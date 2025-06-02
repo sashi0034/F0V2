@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "Title_Rendering.h"
 
+#include "LivePPAddon.h"
 #include "ZG/Buffer3D.h"
 #include "ZG/Graphics3D.h"
 #include "ZG/Image.h"
@@ -26,6 +27,23 @@ namespace
         alignas(16) Float3 lightDirection;
         alignas(16) Float3 lightColor{};
     };
+
+    void Update_impl(
+        Mat4x4& worldMat,
+        DirectionLight_cb2& directionLight,
+        ConstantBuffer<DirectionLight_cb2>& directionLightBuffer,
+        const Model& model)
+    {
+        worldMat = worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
+        const Transformer3D t3d{worldMat};
+
+        const float invRoot3 = std::sqrt(3.0);
+        directionLight.lightDirection = Float3{invRoot3, -invRoot3, invRoot3};
+        directionLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
+        directionLightBuffer.upload(directionLight);
+
+        model.draw();
+    }
 }
 
 void Title_Rendering()
@@ -72,16 +90,12 @@ void Title_Rendering()
 
     while (System::Update())
     {
+#ifdef _DEBUG
+        Util::AdvanceLivePP();
+#endif
+
         {
-            worldMat = worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
-            const Transformer3D t3d{worldMat};
-
-            const float invRoot3 = std::sqrt(3.0);
-            directionLight.lightDirection = Float3{invRoot3, -invRoot3, invRoot3};
-            directionLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
-            directionLightBuffer.upload(directionLight);
-
-            model.draw();
+            Update_impl(worldMat, directionLight, directionLightBuffer, model);
         }
     }
 }

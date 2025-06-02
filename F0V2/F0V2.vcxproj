@@ -110,10 +110,16 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../Zigen</AdditionalIncludeDirectories>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <MinimalRebuild>false</MinimalRebuild>
+      <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,6 +149,7 @@
     <Content Include="engine\stub.hlsl" />
     <Content Include="asset\shader\default2d.hlsl" />
     <Content Include="asset\shader\phong.hlsl" />
+    <ClCompile Include="LivePPAddon.cpp" />
     <ClCompile Include="Title\Title_Rendering.cpp" />
     <ClCompile Include="Title\Title_Free.cpp" />
     <ClCompile Include="main.cpp" />
@@ -166,6 +173,7 @@
   <ItemGroup>
     <ClInclude Include="asset\shader\basic.hlsli" />
     <ClInclude Include="asset\shader\model.hlsli" />
+    <ClInclude Include="LivePPAddon.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Title\Title_Rendering.h" />
     <ClInclude Include="Title\Title_Free.h" />
