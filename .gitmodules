@@ -1,0 +1,3 @@
+[submodule "external/DirectXTex"]
+	path = external/DirectXTex
+	url = https://github.com/microsoft/DirectXTex.git
