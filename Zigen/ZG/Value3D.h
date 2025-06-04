@@ -4,7 +4,7 @@
 namespace ZG
 {
     template <class Type>
-    struct Value3D
+    struct Vector3D
     {
         using value_type = Type;
         // using value_type = double;
@@ -19,58 +19,105 @@ namespace ZG
 
         static constexpr bool isVec3 = std::is_same_v<value_type, double>;
 
-        constexpr Value3D() = default;
+        constexpr Vector3D() = default;
 
-        constexpr Value3D(value_type value) : x(value), y(value), z(value)
+        constexpr Vector3D(value_type value) : x(value), y(value), z(value)
         {
         }
 
-        constexpr Value3D(value_type x, value_type y, value_type z) : x(x), y(y), z(z)
+        constexpr Vector3D(value_type x, value_type y, value_type z) : x(x), y(y), z(z)
         {
         }
 
         template <typename OtherType> requires std::is_convertible_v<OtherType, value_type>
-        [[nodiscard]] Value3D(const Value3D<OtherType>& rhs) : x(rhs.x), y(rhs.y), z(rhs.z)
+        [[nodiscard]] Vector3D(const Vector3D<OtherType>& rhs) : x(rhs.x), y(rhs.y), z(rhs.z)
         {
         }
 
-        Value3D(DirectX::XMFLOAT3 xmf) : x(xmf.x), y(xmf.y), z(xmf.z)
+        Vector3D(DirectX::XMFLOAT3 xmf) : x(xmf.x), y(xmf.y), z(xmf.z)
         {
         }
 
-        Value3D(DirectX::XMVECTOR xmv)
+        Vector3D(DirectX::XMVECTOR xmv)
         {
             DirectX::XMFLOAT3 tmp;
             XMStoreFloat3(&tmp, xmv);
             *this = tmp;
         }
 
-        [[nodiscard]] constexpr Value3D operator+(const Value3D& rhs) const
+        [[nodiscard]] constexpr Vector3D operator+(const Vector3D& rhs) const
         {
-            return Value3D(x + rhs.x, y + rhs.y, z + rhs.z);
+            return Vector3D(x + rhs.x, y + rhs.y, z + rhs.z);
         }
 
-        [[nodiscard]] constexpr Value3D operator-(const Value3D& rhs) const
+        [[nodiscard]] constexpr Vector3D operator-(const Vector3D& rhs) const
         {
-            return Value3D(x - rhs.x, y - rhs.y, z - rhs.z);
+            return Vector3D(x - rhs.x, y - rhs.y, z - rhs.z);
         }
 
-        [[nodiscard]] constexpr Value3D operator*(value_type rhs) const
+        [[nodiscard]] constexpr Vector3D operator*(value_type rhs) const
         {
-            return Value3D(x * rhs, y * rhs, z * rhs);
+            return Vector3D(x * rhs, y * rhs, z * rhs);
         }
 
-        [[nodiscard]] constexpr Value3D operator/(value_type rhs) const
+        [[nodiscard]] constexpr Vector3D operator/(value_type rhs) const
         {
-            return Value3D(x / rhs, y / rhs, z / rhs);
+            return Vector3D(x / rhs, y / rhs, z / rhs);
         }
 
-        [[nodiscard]] constexpr bool operator==(const Value3D& rhs) const
+        Vector3D& operator+=(const Vector3D& rhs)
+        {
+            x += rhs.x;
+            y += rhs.y;
+            z += rhs.z;
+            return *this;
+        }
+
+        Vector3D& operator-=(const Vector3D& rhs)
+        {
+            x -= rhs.x;
+            y -= rhs.y;
+            z -= rhs.z;
+            return *this;
+        }
+
+        Vector3D& operator*=(value_type rhs)
+        {
+            x *= rhs;
+            y *= rhs;
+            z *= rhs;
+            return *this;
+        }
+
+        Vector3D& operator/=(value_type rhs)
+        {
+            x /= rhs;
+            y /= rhs;
+            z /= rhs;
+            return *this;
+        }
+
+        [[nodiscard]] constexpr Vector3D withX(value_type newX) const
+        {
+            return Vector3D(newX, y, z);
+        }
+
+        [[nodiscard]] constexpr Vector3D withY(value_type newY) const
+        {
+            return Vector3D(x, newY, z);
+        }
+
+        [[nodiscard]] constexpr Vector3D withZ(value_type newZ) const
+        {
+            return Vector3D(x, y, newZ);
+        }
+
+        [[nodiscard]] constexpr bool operator==(const Vector3D& rhs) const
         {
             return x == rhs.x && y == rhs.y && z == rhs.z;
         }
 
-        [[nodiscard]] constexpr bool operator!=(const Value3D& rhs) const
+        [[nodiscard]] constexpr bool operator!=(const Vector3D& rhs) const
         {
             return !(*this == rhs);
         }
@@ -78,31 +125,6 @@ namespace ZG
         bool isZero() const
         {
             return x == 0 && y == 0 && z == 0;
-        }
-
-        [[nodiscard]] DirectX::XMFLOAT3 toXMF() const
-        {
-            if constexpr (std::is_same_v<value_type, float>) return {x, y, z};
-            else return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
-        }
-
-        [[nodiscard]] DirectX::XMVECTOR toXMV() const
-        {
-            const auto tmp = toXMF();
-            return DirectX::XMLoadFloat3(&tmp);
-        }
-    };
-
-    /// @brief Floating point 3D vector
-    template <class Type>
-    struct Vector3D : Value3D<Type>
-    {
-        using value_type = Type;
-
-        using Value3D<Type>::Value3D;
-
-        constexpr Vector3D(Value3D<Type> value) : Value3D<Type>(value.x, value.y, value.z)
-        {
         }
 
         [[nodiscard]] constexpr value_type dot(const Vector3D& rhs) const
@@ -126,6 +148,18 @@ namespace ZG
         [[nodiscard]] constexpr Vector3D normalized() const
         {
             return *this / length();
+        }
+
+        [[nodiscard]] DirectX::XMFLOAT3 toXMF() const
+        {
+            if constexpr (std::is_same_v<value_type, float>) return {x, y, z};
+            else return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
+        }
+
+        [[nodiscard]] DirectX::XMVECTOR toXMV() const
+        {
+            const auto tmp = toXMF();
+            return DirectX::XMLoadFloat3(&tmp);
         }
     };
 

@@ -25,6 +25,17 @@ namespace
         alignas(16) Float3 lightColor{};
     };
 
+    struct CameraTransform
+    {
+        Float3 position{};
+        Float3 rotation{}; // Euler angles in radians
+
+        Mat4x4 viewMatrix() const
+        {
+            return Mat4x4::RollPitchYaw(rotation).translated(position);
+        }
+    };
+
     const std::string shader_lambert = "asset/shader/lambert.hlsl";
 }
 
@@ -32,7 +43,7 @@ struct Title_PointLight_impl
 {
     Mat4x4 m_worldMat{};
 
-    Mat4x4 m_viewMat{};
+    CameraTransform m_camera{};
 
     Mat4x4 m_projectionMat{};
 
@@ -52,7 +63,7 @@ struct Title_PointLight_impl
     {
         m_worldMat = Mat4x4::Identity().rotatedY(45.0_deg);
 
-        m_viewMat = Mat4x4::LookAt(Vec3{0, 0, -5}, Vec3{0, 0, 0}, Vec3{0, 1, 0});
+        resetCamera();
 
         m_projectionMat = Mat4x4::PerspectiveFov(
             90.0_deg,
@@ -108,23 +119,34 @@ struct Title_PointLight_impl
         }
     }
 
+    void resetCamera()
+    {
+        m_camera.position = Float3{0.0f, 0.0f, 5.0f};
+        m_camera.rotation = Float3{-Math::PiF / 4.0f, 0.0f, 0.0f};
+    }
+
     void updateCamera()
     {
+        if (KeyR.down())
+        {
+            resetCamera();
+        }
+
         constexpr float moveSpeed = 10.0f;
         constexpr float rotationSpeed = 50.0f;
 
         Float3 moveVector{};
-        moveVector.x = (KeyD.pressed() ? 1.0f : 0.0f) - (KeyA.pressed() ? 1.0f : 0.0f);
+        moveVector.x = (KeyA.pressed() ? 1.0f : 0.0f) - (KeyD.pressed() ? 1.0f : 0.0f);
         moveVector.y = (KeyX.pressed() ? 1.0f : 0.0f) - (KeyE.pressed() ? 1.0f : 0.0f);
         moveVector.z = (KeyS.pressed() ? 1.0f : 0.0f) - (KeyW.pressed() ? 1.0f : 0.0f);
         if (not moveVector.isZero())
         {
-            m_viewMat = m_viewMat.translated(moveVector * moveSpeed * System::DeltaTime());
+            m_camera.position += moveVector * moveSpeed * System::DeltaTime();
 
             std::cout << "Camera position: "
-                << m_viewMat.translation().x << ", "
-                << m_viewMat.translation().y << ", "
-                << m_viewMat.translation().z << std::endl;
+                << m_camera.position.x << ", "
+                << m_camera.position.y << ", "
+                << m_camera.position.z << std::endl;
         }
 
         Float2 rotateVector{};
@@ -132,18 +154,16 @@ struct Title_PointLight_impl
         rotateVector.y = (KeyDown.pressed() ? 1.0f : 0.0f) - (KeyUp.pressed() ? 1.0f : 0.0f);
         if (not rotateVector.isZero())
         {
-            m_viewMat = m_viewMat
-                        .rotatedY(Math::ToRadians(rotateVector.x * rotationSpeed * System::DeltaTime()))
-                        .rotatedX(Math::ToRadians(rotateVector.y * rotationSpeed * System::DeltaTime()));
+            m_camera.rotation.x += Math::ToRadians(-rotateVector.y * rotationSpeed * System::DeltaTime());
+            m_camera.rotation.y += Math::ToRadians(rotateVector.x * rotationSpeed * System::DeltaTime());
 
-            const auto rotation = m_viewMat.eulerRotation();
             std::cout << "Camera rotation: "
-                << rotation.x << ", "
-                << rotation.y << ", "
-                << rotation.z << std::endl;
+                << m_camera.rotation.x << ", "
+                << m_camera.rotation.y << ", "
+                << m_camera.rotation.z << std::endl;
         }
 
-        Graphics3D::SetViewMatrix(m_viewMat);
+        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
         Graphics3D::SetProjectionMatrix(m_projectionMat);
     }
 };

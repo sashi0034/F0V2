@@ -146,5 +146,9 @@ namespace ZG
         {
             return DirectX::XMMatrixTranslation(v.x, v.y, v.z);
         }
+
+        [[nodiscard]] static Mat4x4 RollPitchYaw(Float3 angles);
+
+        [[nodiscard]] static Mat4x4 RollPitchYaw(float roll, float pitch, float yaw);
     };
 }

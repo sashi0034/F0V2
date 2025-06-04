@@ -9,6 +9,12 @@ namespace ZG
         template <FloatingPoint Float>
         inline constexpr Float Pi_v = Float(3.141592653589793238462643383279502884L);
 
+        /// @brief π
+        inline constexpr double Pi = Pi_v<double>;
+
+        /// @brief π
+        inline constexpr double PiF = Pi_v<float>;
+
         constexpr auto ToDegrees(Arithmetic auto rad) noexcept -> decltype(rad)
         {
             return rad * 180 / Pi_v<decltype(rad)>;

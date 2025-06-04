@@ -34,4 +34,14 @@ namespace ZG
 
         return Vector3D<float>{pitch, yaw, roll};
     }
+
+    Mat4x4 Mat4x4::RollPitchYaw(Float3 angles)
+    {
+        return DirectX::XMMatrixRotationRollPitchYaw(angles.x, angles.y, angles.z);
+    }
+
+    Mat4x4 Mat4x4::RollPitchYaw(float roll, float pitch, float yaw)
+    {
+        return DirectX::XMMatrixRotationRollPitchYaw(roll, pitch, yaw);
+    }
 }
