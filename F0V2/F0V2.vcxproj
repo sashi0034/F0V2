@@ -145,8 +145,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Title\Title_Phong.cpp" />
     <Content Include=".gitignore" />
     <Content Include="asset\model\.gitignore" />
+    <Content Include="asset\shader\phong.hlsl" />
     <Content Include="engine\stub.hlsl" />
     <Content Include="asset\shader\default2d.hlsl" />
     <Content Include="asset\shader\lambert.hlsl" />
@@ -178,6 +180,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Title\Title_Lambert.h" />
     <ClInclude Include="Title\Title_Free.h" />
+    <ClInclude Include="Title\Title_Phong.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">

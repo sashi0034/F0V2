@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Title_Lambert.h"
+#include "Title_Phong.h"
 
 #include "LivePPAddon.h"
 #include "ZG/Graphics3D.h"
@@ -18,13 +18,17 @@ using namespace ZG;
 
 namespace
 {
-    struct DirectionLight_cb2
+    struct PhongLight_cb2
     {
         alignas(16) Float3 lightDirection;
         alignas(16) Float3 lightColor{};
+        alignas(16) Float3 eyePosition{};
+        alignas(16) Float3 ambientColor{};
     };
 
-    const std::string shaderPath = "asset/shader/lambert.hlsl";
+    const std::string shaderPath = "asset/shader/phong.hlsl";
+
+    constexpr Vec3 eyePosition{0.0, 0.0, -5.0};
 }
 
 struct App
@@ -38,8 +42,8 @@ struct App
     PixelShader m_modelPS{};
     VertexShader m_modelVS{};
 
-    DirectionLight_cb2 m_directionLight{};
-    ConstantBuffer<DirectionLight_cb2> m_directionLightBuffer{1};
+    PhongLight_cb2 m_directionLight{};
+    ConstantBuffer<PhongLight_cb2> m_directionLightBuffer{1};
 
     Model m_model{};
 
@@ -61,7 +65,7 @@ struct App
 
         m_model = Model{
             ModelParams{
-                .filename = "asset/model/robot_head.obj", // "asset/model/cinnamon.obj"
+                .filename = "asset/model/robot_head.obj",
                 .ps = m_modelPS,
                 .vs = m_modelVS,
                 .cb2 = m_directionLightBuffer
@@ -79,13 +83,18 @@ struct App
 
         m_directionLight.lightDirection = m_worldMat.forward().normalized();
         m_directionLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
+
+        m_directionLight.eyePosition = eyePosition;
+
+        m_directionLight.ambientColor = Float3{0.1f};
+
         m_directionLightBuffer.upload(m_directionLight);
 
         m_model.draw();
     }
 };
 
-void Title_Lambert()
+void Title_Phong()
 {
     App impl{};
 

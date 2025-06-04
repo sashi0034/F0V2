@@ -19,9 +19,13 @@ namespace ZG
 
         static constexpr bool isVec3 = std::is_same_v<value_type, double>;
 
-        Value3D() = default;
+        constexpr Value3D() = default;
 
-        Value3D(value_type x, value_type y, value_type z) : x(x), y(y), z(z)
+        constexpr Value3D(value_type value) : x(value), y(value), z(value)
+        {
+        }
+
+        constexpr Value3D(value_type x, value_type y, value_type z) : x(x), y(y), z(z)
         {
         }
 
@@ -92,7 +96,7 @@ namespace ZG
 
         using Value3D<Type>::Value3D;
 
-        Vector3D(Value3D<Type> value) : Value3D<Type>(value.x, value.y, value.z)
+        constexpr Vector3D(Value3D<Type> value) : Value3D<Type>(value.x, value.y, value.z)
         {
         }
 
