@@ -45,6 +45,16 @@ namespace ZG
             *this = tmp;
         }
 
+        [[nodiscard]] constexpr Vector3D operator+() const
+        {
+            return *this;
+        }
+
+        [[nodiscard]] constexpr Vector3D operator-() const
+        {
+            return Vector3D(-x, -y, -z);
+        }
+
         [[nodiscard]] constexpr Vector3D operator+(const Vector3D& rhs) const
         {
             return Vector3D(x + rhs.x, y + rhs.y, z + rhs.z);

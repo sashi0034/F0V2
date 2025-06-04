@@ -32,7 +32,12 @@ namespace
 
         Mat4x4 viewMatrix() const
         {
-            return Mat4x4::RollPitchYaw(rotation).translated(position);
+            return Mat4x4::Identity()
+                   .rotatedX(rotation.x)
+                   .rotatedY(rotation.y)
+                   .rotatedZ(rotation.z)
+                   .translated(position);
+            // return Mat4x4::RollPitchYaw(rotation).translated(position);
         }
     };
 
