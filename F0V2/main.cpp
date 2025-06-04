@@ -1,11 +1,11 @@
 #include "pch.h"
 
-#include "Title/Title_Rendering.h"
+#include "Title/Title_Phong.h"
 
 void Main()
 {
 #if 1
-    Title_Rendering();
+    Title_Phong();
 #else
     EntryPoint_AS();
 #endif
