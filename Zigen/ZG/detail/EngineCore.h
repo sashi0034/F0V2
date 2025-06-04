@@ -12,6 +12,8 @@ namespace ZG::detail
     public:
         void Init() const;
 
+        bool IsInFrame() const;
+
         void BeginFrame() const;
 
         void EndFrame() const;

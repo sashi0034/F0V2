@@ -58,6 +58,8 @@ namespace
 
         // FIXME: グローバルオブジェクトは ComPtr にしなくていいかも
 
+        bool m_inFrame{};
+
         CommandList m_commandList{};
         CommandList m_copyCommandList{};
 
@@ -181,6 +183,8 @@ namespace
 
         void BeginFrame()
         {
+            m_inFrame = true;
+
             // バックバッファを設定
             const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
             m_scopedBackBuffer = m_backBuffer.scopedBind(backBufferIndex);
@@ -219,6 +223,8 @@ namespace
 
             // フリップ
             m_swapChain->Present(1, 0);
+
+            m_inFrame = false;
         }
 
         void Destroy()
@@ -239,6 +245,11 @@ namespace ZG
     void EngineCore_impl::Init() const
     {
         s_engineCore.Init();
+    }
+
+    bool EngineCore_impl::IsInFrame() const
+    {
+        return s_engineCore.m_inFrame;
     }
 
     void EngineCore_impl::BeginFrame() const

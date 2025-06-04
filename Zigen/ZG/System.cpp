@@ -7,7 +7,6 @@
 
 namespace
 {
-    bool s_initialFrame{true}; // FIXME?
 }
 
 namespace ZG
@@ -16,8 +15,7 @@ namespace ZG
 
     bool System::Update()
     {
-        if (not s_initialFrame) EngineCore.EndFrame();
-        s_initialFrame = false;
+        if (EngineCore.IsInFrame()) EngineCore.EndFrame();
 
         MSG msg;
         if (PeekMessage(&msg, nullptr, 0, 0,PM_REMOVE))

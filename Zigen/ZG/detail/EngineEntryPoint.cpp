@@ -36,6 +36,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         LogInfo.HR().Writeln(L"exception occurred: " + ToUtf16(e.what()));
     }
 
+    if (EngineCore.IsInFrame()) EngineCore.EndFrame();
+
     // -----------------------------------------------
 
     LogInfo.HR().Writeln(L"message loop end");
