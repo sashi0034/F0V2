@@ -146,8 +146,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Title\Title_Phong.cpp" />
+    <ClCompile Include="Title\Title_PointLight.cpp" />
     <Content Include=".gitignore" />
     <Content Include="asset\model\.gitignore" />
+    <Content Include="asset\model\dirty_plane.mtl" />
+    <Content Include="asset\model\dirty_plane.obj" />
     <Content Include="asset\shader\phong.hlsl" />
     <Content Include="engine\stub.hlsl" />
     <Content Include="asset\shader\default2d.hlsl" />
@@ -181,6 +184,7 @@
     <ClInclude Include="Title\Title_Lambert.h" />
     <ClInclude Include="Title\Title_Free.h" />
     <ClInclude Include="Title\Title_Phong.h" />
+    <ClInclude Include="Title\Title_PointLight.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">

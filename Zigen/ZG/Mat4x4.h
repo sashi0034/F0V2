@@ -19,6 +19,21 @@ namespace ZG
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(v.x, v.y, v.z));
         }
 
+        [[nodiscard]] Mat4x4 translatedX(const Float3& v) const
+        {
+            return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(v.x, 0.0f, 0.0f));
+        }
+
+        [[nodiscard]] Mat4x4 translatedY(const Float3& v) const
+        {
+            return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(0.0f, v.y, 0.0f));
+        }
+
+        [[nodiscard]] Mat4x4 translatedZ(const Float3& v) const
+        {
+            return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(0.0f, 0.0f, v.z));
+        }
+
         [[nodiscard]] Mat4x4 translated(float x, float y, float z) const
         {
             return DirectX::XMMatrixMultiply(
@@ -50,6 +65,41 @@ namespace ZG
         [[nodiscard]] Mat4x4 rotatedZ(float angle) const
         {
             return Mat4x4{DirectX::XMMatrixRotationZ(angle) * mat};
+        }
+
+        [[nodiscard]] Float3 translation() const
+        {
+            using namespace DirectX;
+
+            return Vector3D<float>{
+                mat.r[3].m128_f32[0],
+                mat.r[3].m128_f32[1],
+                mat.r[3].m128_f32[2]
+            };
+        }
+
+        [[nodiscard]] Float3 eulerRotation() const;
+
+        [[nodiscard]] Vector3D<float> up() const
+        {
+            using namespace DirectX;
+
+            return Vector3D<float>{
+                mat.r[0].m128_f32[1],
+                mat.r[1].m128_f32[1],
+                mat.r[2].m128_f32[1]
+            };
+        }
+
+        [[nodiscard]] Vector3D<float> right() const
+        {
+            using namespace DirectX;
+
+            return Vector3D<float>{
+                mat.r[0].m128_f32[0],
+                mat.r[1].m128_f32[0],
+                mat.r[2].m128_f32[0]
+            };
         }
 
         [[nodiscard]] Vector3D<float> forward() const

@@ -75,6 +75,11 @@ namespace ZG
             return !(*this == rhs);
         }
 
+        bool isZero() const
+        {
+            return x == 0 && y == 0 && z == 0;
+        }
+
         [[nodiscard]] DirectX::XMFLOAT3 toXMF() const
         {
             if constexpr (std::is_same_v<value_type, float>) return {x, y, z};

@@ -74,6 +74,11 @@ namespace ZG
             return {x, newY};
         }
 
+        [[nodiscard]] bool isZero() const noexcept
+        {
+            return x == 0 && y == 0;
+        }
+
         [[nodiscard]] constexpr Value2D<int> toPoint() const noexcept
         {
             return {static_cast<int>(x), static_cast<int>(y)};
