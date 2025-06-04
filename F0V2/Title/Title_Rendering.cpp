@@ -37,8 +37,7 @@ namespace
         worldMat = worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
         const Transformer3D t3d{worldMat};
 
-        const float invRoot3 = std::sqrt(3.0);
-        directionLight.lightDirection = Float3{invRoot3, -invRoot3, invRoot3};
+        directionLight.lightDirection = worldMat.forward().normalized();
         directionLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
         directionLightBuffer.upload(directionLight);
 

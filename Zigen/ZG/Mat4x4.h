@@ -52,6 +52,17 @@ namespace ZG
             return Mat4x4{DirectX::XMMatrixRotationZ(angle) * mat};
         }
 
+        [[nodiscard]] Vector3D<float> forward() const
+        {
+            using namespace DirectX;
+
+            return Vector3D<float>{
+                mat.r[0].m128_f32[2],
+                mat.r[1].m128_f32[2],
+                mat.r[2].m128_f32[2]
+            };
+        }
+
         [[nodiscard]] Mat4x4 operator*(const Mat4x4& rhs) const
         {
             return Mat4x4{mat * rhs.mat};
@@ -86,106 +97,4 @@ namespace ZG
             return DirectX::XMMatrixTranslation(v.x, v.y, v.z);
         }
     };
-
-    /// @brief スクリプト用のラッパクラス。AngelScript では 16-byte alignment が保証されないため、参照型を用いる
-    struct Mat4x4Ref
-    {
-        std::shared_ptr<Mat4x4> ptr = std::make_shared<Mat4x4>();
-
-        Mat4x4Ref() = default;
-
-        Mat4x4Ref(const std::shared_ptr<Mat4x4>& p) : ptr(p)
-        {
-        }
-
-        Mat4x4Ref(const Mat4x4& m) : ptr(std::make_shared<Mat4x4>(m))
-        {
-        }
-
-        [[nodiscard]] Mat4x4Ref clone() const
-        {
-            return Mat4x4Ref(std::make_shared<Mat4x4>(*ptr));
-        }
-
-        [[nodiscard]] Mat4x4Ref translate(const Float3& v)
-        {
-            *ptr = ptr->translated(v);
-            return *this;
-        }
-
-        [[nodiscard]] Mat4x4Ref translate(float x, float y, float z)
-        {
-            *ptr = ptr->translated(x, y, z);
-            return *this;
-        }
-
-        [[nodiscard]] Mat4x4Ref scale(const Float3& v) const
-        {
-            *ptr = ptr->scaled(v);
-            return *this;
-        }
-
-        [[nodiscard]] Mat4x4Ref scale(float x, float y, float z)
-        {
-            *ptr = ptr->scaled(x, y, z);
-            return *this;
-        }
-
-        [[nodiscard]] Mat4x4Ref rotateX(float angle)
-        {
-            *ptr = ptr->rotatedX(angle);
-            return *this;
-        }
-
-        [[nodiscard]] Mat4x4Ref rotateY(float angle)
-        {
-            *ptr = ptr->rotatedY(angle);
-            return *this;
-        }
-
-        [[nodiscard]] Mat4x4Ref rotateZ(float angle)
-        {
-            *ptr = ptr->rotatedZ(angle);
-            return *this;
-        }
-
-        [[nodiscard]] Mat4x4Ref operator*(const Mat4x4Ref& rhs)
-        {
-            *ptr = (*ptr) * (*rhs.ptr);
-            return *this;
-        }
-
-        [[nodiscard]] const Mat4x4& get()
-        {
-            return *ptr;
-        }
-
-        [[nodiscard]] const Mat4x4& get() const
-        {
-            return *ptr;
-        }
-    };
-
-    namespace Mat4x4Ref_
-    {
-        [[nodiscard]] static Mat4x4Ref Identity()
-        {
-            return {Mat4x4::Identity()};
-        }
-
-        [[nodiscard]] static Mat4x4Ref LookAt(const Float3& eye, const Float3& target, const Float3& up)
-        {
-            return {Mat4x4::LookAt(eye, target, up)};
-        }
-
-        [[nodiscard]] static Mat4x4Ref PerspectiveFov(float fov, float aspect, float nearZ, float farZ)
-        {
-            return {Mat4x4::PerspectiveFov(fov, aspect, nearZ, farZ)};
-        }
-
-        [[nodiscard]] static Mat4x4Ref Translate(const Float3& v)
-        {
-            return {Mat4x4::Translate(v)};
-        }
-    }
 }
