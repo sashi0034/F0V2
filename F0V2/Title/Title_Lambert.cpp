@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Title_Phong.h"
+#include "Title_Lambert.h"
 
 #include "LivePPAddon.h"
 #include "ZG/Graphics3D.h"
@@ -23,9 +23,11 @@ namespace
         alignas(16) Float3 lightDirection;
         alignas(16) Float3 lightColor{};
     };
+
+    const std::string shaderPath = "asset/shader/lambert.hlsl";
 }
 
-struct Phong_impl
+struct Lambert_impl
 {
     Mat4x4 m_worldMat{};
 
@@ -41,7 +43,7 @@ struct Phong_impl
 
     Model m_model{};
 
-    Phong_impl()
+    Lambert_impl()
     {
         m_worldMat = Mat4x4::Identity().rotatedY(45.0_deg);
 
@@ -54,8 +56,8 @@ struct Phong_impl
             10.0f
         );
 
-        m_modelPS = PixelShader{ShaderParams{.filename = "asset/shader/phong.hlsl", .entryPoint = "PS"}};
-        m_modelVS = VertexShader{ShaderParams{.filename = "asset/shader/phong.hlsl", .entryPoint = "VS"}};
+        m_modelPS = PixelShader{ShaderParams{.filename = shaderPath, .entryPoint = "PS"}};
+        m_modelVS = VertexShader{ShaderParams{.filename = shaderPath, .entryPoint = "VS"}};
 
         m_model = Model{
             ModelParams{
@@ -83,9 +85,9 @@ struct Phong_impl
     }
 };
 
-void Title_Phong()
+void Title_Lambert()
 {
-    Phong_impl impl{};
+    Lambert_impl impl{};
 
     while (System::Update())
     {
