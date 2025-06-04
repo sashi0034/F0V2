@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
+    <Content Include="asset\model\.gitignore" />
     <Content Include="engine\stub.hlsl" />
     <Content Include="asset\shader\default2d.hlsl" />
     <Content Include="asset\shader\phong.hlsl" />
