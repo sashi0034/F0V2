@@ -1,4 +1,6 @@
 ﻿#include "pch.h"
+
+#include "imgui.h"
 #include "Title_Phong.h"
 
 #include "LivePPAddon.h"
@@ -121,6 +123,12 @@ struct Title_PointLight_impl
             m_directionLightBuffer.upload(m_directionLight);
 
             m_robotModel.draw();
+        }
+
+        {
+            ImGui::Begin("My Window");
+            ImGui::Text("Hello, world!");
+            ImGui::End();
         }
     }
 

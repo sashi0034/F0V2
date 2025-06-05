@@ -3,6 +3,7 @@
 #include <d3d12.h>
 
 #include "IEngineUpdatable.h"
+#include "ZG/RenderTarget.h"
 #include "ZG/Value2D.h"
 
 namespace ZG::detail
@@ -19,6 +20,8 @@ namespace ZG::detail
         void EndFrame() const;
 
         void Destroy() const;
+
+        const RenderTarget& GetBackBuffer() const;
 
         [[nodiscard]]
         ID3D12Device* GetDevice() const;
