@@ -31,6 +31,9 @@ namespace ZG
         RenderTarget(const RenderTargetParams& params, IDXGISwapChain* swapChain);
 
         [[nodiscard]]
+        int bufferCount() const;
+
+        [[nodiscard]]
         Size size() const;
 
         [[nodiscard]]

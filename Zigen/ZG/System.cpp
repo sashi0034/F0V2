@@ -18,10 +18,12 @@ namespace ZG
         if (EngineCore.IsInFrame()) EngineCore.EndFrame();
 
         MSG msg;
-        if (PeekMessage(&msg, nullptr, 0, 0,PM_REMOVE))
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+
+            if (msg.message == WM_QUIT) return false;
         }
 
         if (msg.message == WM_QUIT)

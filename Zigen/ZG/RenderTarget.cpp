@@ -15,6 +15,7 @@ namespace
 
 struct RenderTarget::Impl
 {
+    int m_bufferCount{};
     Size m_size{};
     ColorF32 m_clearColor{};
 
@@ -31,6 +32,7 @@ struct RenderTarget::Impl
 
     Impl(const RenderTargetParams& params, IDXGISwapChain* swapChain = nullptr)
     {
+        m_bufferCount = params.bufferCount;
         m_size = params.size;
         m_clearColor = params.clearColor;
 
@@ -232,6 +234,11 @@ namespace ZG
     RenderTarget::RenderTarget(const RenderTargetParams& params, IDXGISwapChain* swapChain)
         : p_impl(std::make_shared<Impl>(params, swapChain))
     {
+    }
+
+    int RenderTarget::bufferCount() const
+    {
+        return p_impl ? p_impl->m_bufferCount : 0;
     }
 
     Size RenderTarget::size() const

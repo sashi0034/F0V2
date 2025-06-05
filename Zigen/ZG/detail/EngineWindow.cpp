@@ -3,6 +3,10 @@
 
 #include "ZG/Value2D.h"
 
+#include "backends/imgui_impl_win32.h"
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 namespace
 {
     using namespace ZG;
@@ -16,6 +20,8 @@ namespace
             PostQuitMessage(0);
             return 0;
         }
+
+        if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) return true;
 
         return DefWindowProc(hwnd, msg, wparam, lparam);
     }

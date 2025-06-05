@@ -12,6 +12,7 @@
 
 #include "CommandList.h"
 #include "EngineHotReloader.h"
+#include "EngineImGUI.h"
 #include "EngineKeyboard.h"
 #include "EnginePresetAsset.h"
 #include "EngineWindow.h"
@@ -179,6 +180,9 @@ namespace
 
             // プリセットの初期化
             EnginePresetAsset.Init();
+
+            // ImGUI 初期化
+            EngineImGui.init();
         }
 
         void BeginFrame()
@@ -206,10 +210,16 @@ namespace
 
             // 入力情報の更新
             EngineKeyboard.update();
+
+            // ImGUI フレーム開始
+            EngineImGui.newFrame();
         }
 
         void EndFrame()
         {
+            // ImGUI 描画
+            EngineImGui.render();
+
             // バックバッファ反映
             m_scopedBackBuffer.dispose();
 
@@ -265,6 +275,11 @@ namespace ZG
     void EngineCore_impl::Destroy() const
     {
         s_engineCore.Destroy();
+    }
+
+    const RenderTarget& EngineCore_impl::GetBackBuffer() const
+    {
+        return s_engineCore.m_backBuffer;
     }
 
     ID3D12Device* EngineCore_impl::GetDevice() const

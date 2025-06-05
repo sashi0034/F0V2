@@ -167,6 +167,7 @@
     <ClInclude Include="ZG\detail\EngineCore.h" />
     <ClInclude Include="ZG\detail\EngineEntryPoint.h" />
     <ClInclude Include="ZG\detail\EngineHotReloader.h" />
+    <ClInclude Include="ZG\detail\EngineImGUI.h" />
     <ClInclude Include="ZG\detail\EngineKeyboard.h" />
     <ClInclude Include="ZG\detail\EnginePresetAsset.h" />
     <ClInclude Include="ZG\detail\EngineStackState.h" />
@@ -245,6 +246,7 @@
     <ClCompile Include="ZG\detail\EngineCore.cpp" />
     <ClCompile Include="ZG\detail\EngineEntryPoint.cpp" />
     <ClCompile Include="ZG\detail\EngineHotReloader.cpp" />
+    <ClCompile Include="ZG\detail\EngineImGUI.cpp" />
     <ClCompile Include="ZG\detail\EngineKeyboard.cpp" />
     <ClCompile Include="ZG\detail\EnginePresetAsset.cpp" />
     <ClCompile Include="ZG\detail\EngineStackState.cpp" />
