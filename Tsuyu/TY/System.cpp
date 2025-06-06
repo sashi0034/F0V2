@@ -59,11 +59,6 @@ namespace TY
             if (msg.message == WM_QUIT) return false;
         }
 
-        if (msg.message == WM_QUIT)
-        {
-            return false;
-        }
-
         EngineCore.BeginFrame();
         return true;
     }

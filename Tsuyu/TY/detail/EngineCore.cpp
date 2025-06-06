@@ -242,11 +242,16 @@ namespace
 
         void Destroy()
         {
+            m_copyCommandList.Flush();
+            m_commandList.Flush();
+
             EngineHotReloader.Destroy();
 
             EnginePresetAsset.Destroy();
 
             EngineWindow.Destroy();
+
+            EngineImGui.destroy();
         }
 
     private:
