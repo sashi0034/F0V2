@@ -71,4 +71,13 @@ namespace TY::detail
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineCore.GetCommandList());
     }
+
+    void EngineImGui_impl::destroy() const
+    {
+        ImGui_ImplDX12_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext();
+
+        s_impl = {};
+    }
 }

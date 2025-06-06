@@ -10,6 +10,8 @@ namespace TY::detail
         void newFrame() const;
 
         void render() const;
+
+        void destroy() const;
     };
 
     static inline constexpr auto EngineImGui = EngineImGui_impl{};
