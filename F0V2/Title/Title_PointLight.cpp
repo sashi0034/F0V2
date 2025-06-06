@@ -118,7 +118,7 @@ struct Title_PointLight_impl
         {
             const Transformer3D t3d{m_worldMat};
 
-            m_directionLight.lightDirection = m_worldMat.forward().normalized();
+            m_directionLight.lightDirection = m_camera.viewMatrix().forward().normalized();
             m_directionLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
             m_directionLightBuffer.upload(m_directionLight);
 
@@ -142,6 +142,11 @@ struct Title_PointLight_impl
                         Math::ToDegrees(m_camera.rotation.x),
                         Math::ToDegrees(m_camera.rotation.y),
                         Math::ToDegrees(m_camera.rotation.z));
+
+            ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
+                        m_directionLight.lightDirection.x,
+                        m_directionLight.lightDirection.y,
+                        m_directionLight.lightDirection.z);
 
             ImGui::End();
         }

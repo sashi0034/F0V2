@@ -39,7 +39,7 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
     result.position = mul(g_viewMat, result.position);
     result.position = mul(g_projectionMat, result.position);
 
-    result.normal = normal;
+    result.normal = mul(g_worldMat, normal);
 
     result.color = g_diffuse;
 
