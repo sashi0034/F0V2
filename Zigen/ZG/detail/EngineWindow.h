@@ -10,6 +10,8 @@ namespace ZG::detail
 
         void Show() const;
 
+        void Update() const;
+
         [[nodiscard]]
         HWND Handle() const;
 

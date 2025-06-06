@@ -4,14 +4,19 @@
 #include "ZG/Value2D.h"
 
 #include "backends/imgui_impl_win32.h"
+#include "ZG/EngineTimer.h"
+#include "ZG/Math.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+using namespace ZG;
+using namespace ZG::detail;
+
 namespace
 {
-    using namespace ZG;
-
     constexpr Point DefaultWindowSize{1280, 720};
+
+    const std::wstring windowTitle = L"F0"; // TODO
 
     LRESULT windowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {
@@ -33,7 +38,7 @@ namespace
         {
             m_windowClass.cbSize = sizeof(WNDCLASSEX);
             m_windowClass.lpfnWndProc = static_cast<WNDPROC>(windowProcedure);
-            m_windowClass.lpszClassName = L"F0";
+            m_windowClass.lpszClassName = windowTitle.data();
             m_windowClass.hInstance = GetModuleHandle(nullptr);
             RegisterClassEx(&m_windowClass);
 
@@ -64,6 +69,30 @@ namespace
             ShowWindow(m_handle, SW_SHOW);
         }
 
+        void Update()
+        {
+            const double dt = EngineTimer.GetDeltaTime();
+            if (dt == 0.0) return;
+
+            m_frameCount++;
+
+            m_titleUpdateTimer -= dt;
+            if (m_titleUpdateTimer <= 0.0)
+            {
+                m_titleUpdateTimer = 1.0;
+                ApplyWindowTitle(m_frameCount);
+
+                m_frameCount = 0;
+            }
+        }
+
+        void ApplyWindowTitle(int fps)
+        {
+            wchar_t title[256];
+            swprintf_s(title, L"%s | %d FPS", windowTitle.c_str(), fps);
+            SetWindowText(m_handle, title);
+        }
+
         void Destroy()
         {
             UnregisterClass(m_windowClass.lpszClassName, m_windowClass.hInstance);
@@ -77,6 +106,10 @@ namespace
         WNDCLASSEX m_windowClass{};
         Point m_windowSize{};
         HWND m_handle{};
+
+        int m_frameCount{};
+
+        double m_titleUpdateTimer{1.0};
     } s_engineWindow;
 }
 
@@ -90,6 +123,11 @@ namespace ZG::detail
     void EngineWindow_impl::Show() const
     {
         s_engineWindow.Show();
+    }
+
+    void EngineWindow_impl::Update() const
+    {
+        s_engineWindow.Update();
     }
 
     HWND EngineWindow_impl::Handle() const

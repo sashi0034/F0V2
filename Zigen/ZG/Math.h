@@ -24,6 +24,30 @@ namespace ZG
         {
             return deg * Pi_v<decltype(deg)> / 180;
         }
+
+        constexpr double Clamp(double value, double min, double max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
+        constexpr double Clamp(float value, float min, float max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
+        constexpr double Lerp(double v1, double v2, double f) noexcept
+        {
+            return (v1 + (v2 - v1) * f);
+        }
+
+        constexpr float Lerp(float v1, float v2, float f) noexcept
+        {
+            return (v1 + (v2 - v1) * f);
+        }
     }
 
     inline namespace Literals

@@ -193,6 +193,9 @@ namespace
             const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
             m_scopedBackBuffer = m_backBuffer.scopedBind(backBufferIndex);
 
+            // ウィンドウの更新
+            EngineWindow.Update();
+
             // タイマーの更新
             EngineTimer.Tick();
 
