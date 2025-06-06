@@ -66,6 +66,9 @@ namespace ZG::detail
     void EngineImGui_impl::render() const
     {
         ImGui::Render();
+
+        EngineCore.GetCommandList()->SetDescriptorHeaps(1, s_impl.m_srvHeap.GetAddressOf());
+
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineCore.GetCommandList());
     }
 }
