@@ -4,6 +4,10 @@ namespace ZG
 {
     namespace System
     {
+        void SetTargetFrameRate(std::optional<double> frameRate);
+
+        [[nodiscard]] std::optional<double> TargetFrameRate();
+
         bool Update();
 
         double DeltaTime();

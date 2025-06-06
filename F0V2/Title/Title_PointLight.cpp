@@ -143,6 +143,18 @@ struct Title_PointLight_impl
 
             ImGui::End();
         }
+
+        {
+            ImGui::Begin("System Info");
+
+            int targetFrameRate = System::TargetFrameRate().value_or(0);
+            if (ImGui::SliderInt("Target FPS", &targetFrameRate, 0, 60, "%d"))
+            {
+                System::SetTargetFrameRate(targetFrameRate > 0 ? std::optional<double>(targetFrameRate) : std::nullopt);
+            }
+
+            ImGui::End();
+        }
     }
 
     void resetCamera()

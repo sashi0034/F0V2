@@ -19,7 +19,7 @@ namespace
 
         void Tick()
         {
-            auto now = clock::now();
+            const auto now = clock::now();
             m_deltaTime = std::chrono::duration<double>(now - m_lastFrameTime).count();
             m_lastFrameTime = now;
 

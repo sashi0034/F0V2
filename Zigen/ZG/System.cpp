@@ -5,16 +5,48 @@
 #include "EngineTimer.h"
 #include "detail/EngineCore.h"
 
+using namespace ZG::detail;
+
 namespace
 {
+    struct SystemState
+    {
+        std::optional<double> targetFrameRate{};
+    } s_system{};
+
+    void sleepForTargetFrameRate()
+    {
+        if (const auto targetFrameRate = s_system.targetFrameRate)
+        {
+            const double targetDeltaTime = 1.0 / *targetFrameRate;
+            const double actualDeltaTime = EngineTimer.GetDeltaTime();
+            if (actualDeltaTime < targetDeltaTime)
+            {
+                const double remaining = targetDeltaTime - actualDeltaTime;
+                ::Sleep(static_cast<DWORD>(remaining * 1000.0));
+            }
+        }
+    }
 }
 
 namespace ZG
 {
     using namespace detail;
 
+    void System::SetTargetFrameRate(std::optional<double> frameRate)
+    {
+        s_system.targetFrameRate = frameRate;
+    }
+
+    std::optional<double> System::TargetFrameRate()
+    {
+        return s_system.targetFrameRate;
+    }
+
     bool System::Update()
     {
+        sleepForTargetFrameRate();
+
         if (EngineCore.IsInFrame()) EngineCore.EndFrame();
 
         MSG msg;
