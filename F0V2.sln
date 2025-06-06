@@ -10,7 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "F0V2", "F0V2\F0V2.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj", "{371B9FA9-4C90-4AC6-A123-ACED756D6C77}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Zigen", "Zigen\Zigen.vcxproj", "{6EC0451C-6ADC-497A-B757-F3F886322C53}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tsuyu", "Tsuyu\Tsuyu.vcxproj", "{6EC0451C-6ADC-497A-B757-F3F886322C53}"
 	ProjectSection(ProjectDependencies) = postProject
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {371B9FA9-4C90-4AC6-A123-ACED756D6C77}
 	EndProjectSection

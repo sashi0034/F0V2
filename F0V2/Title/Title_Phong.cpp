@@ -2,19 +2,19 @@
 #include "Title_Phong.h"
 
 #include "LivePPAddon.h"
-#include "ZG/Graphics3D.h"
-#include "ZG/Mat4x4.h"
+#include "TY/Graphics3D.h"
+#include "TY/Mat4x4.h"
 
-#include "ZG/Shader.h"
-#include "ZG/System.h"
+#include "TY/Shader.h"
+#include "TY/System.h"
 
-#include "ZG/Math.h"
-#include "ZG/Model.h"
-#include "ZG/RenderTarget.h"
-#include "ZG/Scene.h"
-#include "ZG/Transformer3D.h"
+#include "TY/Math.h"
+#include "TY/Model.h"
+#include "TY/RenderTarget.h"
+#include "TY/Scene.h"
+#include "TY/Transformer3D.h"
 
-using namespace ZG;
+using namespace TY;
 
 namespace
 {

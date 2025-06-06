@@ -1,23 +1,23 @@
 ﻿#include "pch.h"
 #include "Title_Free.h"
 
-#include "ZG/Buffer3D.h"
-#include "ZG/Graphics3D.h"
-#include "ZG/Image.h"
-#include "ZG/KeyboardInput.h"
-#include "ZG/Mat4x4.h"
+#include "TY/Buffer3D.h"
+#include "TY/Graphics3D.h"
+#include "TY/Image.h"
+#include "TY/KeyboardInput.h"
+#include "TY/Mat4x4.h"
 
-#include "ZG/Shader.h"
-#include "ZG/System.h"
-#include "ZG/Texture.h"
+#include "TY/Shader.h"
+#include "TY/System.h"
+#include "TY/Texture.h"
 
-#include "ZG/Math.h"
-#include "ZG/Model.h"
-#include "ZG/RenderTarget.h"
-#include "ZG/Scene.h"
-#include "ZG/Transformer3D.h"
+#include "TY/Math.h"
+#include "TY/Model.h"
+#include "TY/RenderTarget.h"
+#include "TY/Scene.h"
+#include "TY/Transformer3D.h"
 
-using namespace ZG;
+using namespace TY;
 
 void Title_Free()
 {

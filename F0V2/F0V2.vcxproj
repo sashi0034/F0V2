@@ -109,7 +109,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../Zigen;../external/imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../Tsuyu;../external/imgui</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
@@ -135,7 +135,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../Zigen;../external/imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../Tsuyu;../external/imgui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -190,7 +190,7 @@
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">
       <Project>{371b9fa9-4c90-4ac6-a123-aced756d6c77}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Zigen\Zigen.vcxproj">
+    <ProjectReference Include="..\Tsuyu\Tsuyu.vcxproj">
       <Project>{6ec0451c-6adc-497a-b757-f3f886322c53}</Project>
     </ProjectReference>
   </ItemGroup>
