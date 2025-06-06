@@ -72,13 +72,6 @@ struct Title_PointLight_impl
 
         resetCamera();
 
-        m_projectionMat = Mat4x4::PerspectiveFov(
-            90.0_deg,
-            Scene::Size().horizontalAspectRatio(),
-            1.0f,
-            10.0f
-        );
-
         m_modelPS = PixelShader{ShaderParams{.filename = shader_lambert, .entryPoint = "PS"}};
         m_modelVS = VertexShader{ShaderParams{.filename = shader_lambert, .entryPoint = "VS"}};
 
@@ -187,6 +180,14 @@ struct Title_PointLight_impl
         }
 
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());
+
+        m_projectionMat = Mat4x4::PerspectiveFov(
+            90.0_deg,
+            Scene::Size().horizontalAspectRatio(),
+            0.1f,
+            100.0f
+        );
+
         Graphics3D::SetProjectionMatrix(m_projectionMat);
     }
 };
