@@ -126,8 +126,23 @@ struct Title_PointLight_impl
         }
 
         {
-            ImGui::Begin("My Window");
-            ImGui::Text("Hello, world!");
+            ImGui::Begin("Camera Info");
+
+            ImGui::Text("Position: (%.2f, %.2f, %.2f)",
+                        m_camera.position.x,
+                        m_camera.position.y,
+                        m_camera.position.z);
+
+            ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)",
+                        m_camera.rotation.x,
+                        m_camera.rotation.y,
+                        m_camera.rotation.z);
+
+            ImGui::Text("Rotation (deg): (%.1f, %.1f, %.1f)",
+                        Math::ToDegrees(m_camera.rotation.x),
+                        Math::ToDegrees(m_camera.rotation.y),
+                        Math::ToDegrees(m_camera.rotation.z));
+
             ImGui::End();
         }
     }
@@ -155,11 +170,6 @@ struct Title_PointLight_impl
         if (not moveVector.isZero())
         {
             m_camera.position += moveVector * moveSpeed * System::DeltaTime();
-
-            std::cout << "Camera position: "
-                << m_camera.position.x << ", "
-                << m_camera.position.y << ", "
-                << m_camera.position.z << std::endl;
         }
 
         Float2 rotateVector{};
@@ -169,11 +179,6 @@ struct Title_PointLight_impl
         {
             m_camera.rotation.x += Math::ToRadians(-rotateVector.y * rotationSpeed * System::DeltaTime());
             m_camera.rotation.y += Math::ToRadians(rotateVector.x * rotationSpeed * System::DeltaTime());
-
-            std::cout << "Camera rotation: "
-                << m_camera.rotation.x << ", "
-                << m_camera.rotation.y << ", "
-                << m_camera.rotation.z << std::endl;
         }
 
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());
