@@ -209,7 +209,7 @@ namespace
             }
 
             // ホットリローダの更新
-            EngineHotReloader.Update();
+            EngineHotReloader::Update();
 
             // 入力情報の更新
             EngineKeyboard::Update();
@@ -243,7 +243,7 @@ namespace
             m_copyCommandList.CloseAndFlush();
             m_commandList.CloseAndFlush();
 
-            EngineHotReloader.Destroy();
+            EngineHotReloader::Shutdown();
 
             EnginePresetAsset::Shutdown();
 

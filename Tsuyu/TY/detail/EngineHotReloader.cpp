@@ -36,74 +36,83 @@ namespace
 
         return false;
     }
+}
 
-    struct Impl
+struct EngineHotReloaderImpl
+{
+    Array<TrackingElement> m_elements{};
+
+    void Update()
     {
-        Array<TrackingElement> m_elements{};
-
-        void Update()
+        // 更新可能が発生しない状態になるするまでホットリロードを適応する
+        // 正常に更新が走る場合、要素個数以上の回数の更新は発生しない
+        int reloadedCount{};
+        for (reloadedCount = 0; reloadedCount < m_elements.size(); ++reloadedCount)
         {
-            // 更新可能が発生しない状態になるするまでホットリロードを適応する
-            // 正常に更新が走る場合、要素個数以上の回数の更新は発生しない
-            int reloadedCount{};
-            for (reloadedCount = 0; reloadedCount < m_elements.size(); ++reloadedCount)
-            {
-                const bool reloaded = checkHotReload();
-                if (not reloaded) break;
-            }
+            const bool reloaded = checkHotReload();
+            if (not reloaded) break;
+        }
 
-            if (reloadedCount == m_elements.size())
+        if (reloadedCount == m_elements.size())
+        {
+            // いずれかの要素が正常に更新されない異常発生
+            LogWarning.Writeln(L"the timestamps of some elements have not been updated in hot reload");
+        }
+        else if (reloadedCount > 0)
+        {
+            LogInfo.HR().Writeln(std::format(L"hot reloaded {} elements", reloadedCount));
+        }
+    }
+
+    void Shutdown()
+    {
+        m_elements.clear();
+    }
+
+private:
+    // 全要素を探索し、ホットリロード可能な要素があれば適応する
+    bool checkHotReload()
+    {
+        bool hotReloaded{};
+        for (int i = m_elements.size() - 1; i >= 0; --i)
+        {
+            auto& element = m_elements[i];
+            if (auto target = element.target.lock())
             {
-                // いずれかの要素が正常に更新されない異常発生
-                LogWarning.Writeln(L"the timestamps of some elements have not been updated in hot reload");
+                hotReloaded |= checkHotReloadElement(*target, element.dependencies);
             }
-            else if (reloadedCount > 0)
+            else
             {
-                LogInfo.HR().Writeln(std::format(L"hot reloaded {} elements", reloadedCount));
+                // アセットが破棄されたので削除する
+                m_elements.erase(m_elements.begin() + i);
             }
         }
 
-        // 全要素を探索し、ホットリロード可能な要素があれば適応する
-        bool checkHotReload()
-        {
-            bool hotReloaded{};
-            for (int i = m_elements.size() - 1; i >= 0; --i)
-            {
-                auto& element = m_elements[i];
-                if (auto target = element.target.lock())
-                {
-                    hotReloaded |= checkHotReloadElement(*target, element.dependencies);
-                }
-                else
-                {
-                    // アセットが破棄されたので削除する
-                    m_elements.erase(m_elements.begin() + i);
-                }
-            }
+        return hotReloaded;
+    }
+};
 
-            return hotReloaded;
-        }
-    };
-
-    Impl s_hotReloader{};
+namespace
+{
+    EngineHotReloaderImpl s_hotReloader{};
 }
 
 namespace TY
 {
-    void EngineHotReloader_impl::Update() const
+    void EngineHotReloader::Update()
     {
         s_hotReloader.Update();
     }
 
-    void EngineHotReloader_impl::Destroy() const
+    void EngineHotReloader::Shutdown()
     {
         s_hotReloader.m_elements.clear();
     }
 
-    void EngineHotReloader_impl::TrackAsset(
+    void EngineHotReloader::TrackAsset(
         std::weak_ptr<IEngineHotReloadable> target,
         Array<std::shared_ptr<ITimestamp>> dependencies
-    ) const
+    )
     {
 #ifdef  _DEBUG
         s_hotReloader.m_elements.emplace_back(target, std::move(dependencies));

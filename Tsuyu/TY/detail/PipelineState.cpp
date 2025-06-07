@@ -261,7 +261,7 @@ namespace TY
     PipelineState::PipelineState(const PipelineStateParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
-        EngineHotReloader.TrackAsset(
+        EngineHotReloader::TrackAsset(
             p_impl, {p_impl->m_params.pixelShader.timestamp(), p_impl->m_params.vertexShader.timestamp()});
     }
 

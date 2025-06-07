@@ -84,7 +84,7 @@ namespace TY
         : p_impl{std::make_shared<Shader_impl>(params, "ps_5_0"sv)}
     {
 #ifdef _DEBUG
-        EngineHotReloader.TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filename).timestamp()});
+        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filename).timestamp()});
 #endif
     }
 
@@ -108,7 +108,7 @@ namespace TY
         : p_impl{std::make_shared<Shader_impl>(params, "vs_5_0"sv)}
     {
 #ifdef _DEBUG
-        EngineHotReloader.TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filename).timestamp()});
+        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filename).timestamp()});
 #endif
     }
 

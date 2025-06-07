@@ -4,15 +4,12 @@
 
 namespace TY::detail
 {
-    class EngineHotReloader_impl
+    namespace EngineHotReloader
     {
-    public:
-        void Update() const;
+        void Update();
 
-        void Destroy() const;
+        void TrackAsset(std::weak_ptr<IEngineHotReloadable> target, Array<std::shared_ptr<ITimestamp>> dependencies);
 
-        void TrackAsset(std::weak_ptr<IEngineHotReloadable> target, Array<std::shared_ptr<ITimestamp>> dependencies) const;
+        void Shutdown();
     };
-
-    static inline constexpr auto EngineHotReloader = EngineHotReloader_impl{};
 }
