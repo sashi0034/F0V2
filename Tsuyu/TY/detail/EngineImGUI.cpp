@@ -19,29 +19,35 @@ struct EngineImGuiImpl
     void Init()
     {
         IMGUI_CHECKVERSION();
+
         ImGui::CreateContext();
-        // ImGuiIO& io = ImGui::GetIO();
-        ImGui::StyleColorsDark();
 
         ImGui_ImplWin32_Init(EngineWindow::Handle());
 
-        const int framesInFlight = EngineCore.GetBackBuffer().bufferCount();
+        const int framesInFlight = EngineCore::GetBackBuffer().bufferCount();
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
         srvHeapDesc.NumDescriptors = 1 * framesInFlight;
         srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         srvHeapDesc.NodeMask = 0;
 
-        EngineCore.GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvHeap));
+        EngineCore::GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvHeap));
 
         ImGui_ImplDX12_Init(
-            EngineCore.GetDevice(),
+            EngineCore::GetDevice(),
             framesInFlight,
             DXGI_FORMAT_R8G8B8A8_UNORM,
             m_srvHeap.Get(),
             m_srvHeap->GetCPUDescriptorHandleForHeapStart(),
             m_srvHeap->GetGPUDescriptorHandleForHeapStart()
         );
+
+        // -----------------------------------------------
+
+        ImGui::StyleColorsDark();
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF("engine/font/0xProto/0xProto-Regular.ttf", 14.0f);
     }
 };
 
@@ -68,9 +74,9 @@ namespace TY::detail
     {
         ImGui::Render();
 
-        EngineCore.GetCommandList()->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
+        EngineCore::GetCommandList()->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
 
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineCore.GetCommandList());
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineCore::GetCommandList());
     }
 
     void EngineImGui::Shutdown()

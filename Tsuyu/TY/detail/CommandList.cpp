@@ -37,7 +37,7 @@ struct CommandList::Impl
 
     Impl(CommandListType type)
     {
-        const auto device = EngineCore.GetDevice();
+        const auto device = EngineCore::GetDevice();
         const auto commandListType = getCommandListType(type);
 
         // コマンドアロケータを生成

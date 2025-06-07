@@ -8,34 +8,31 @@
 
 namespace TY::detail
 {
-    class EngineCore_impl
+    namespace EngineCore
     {
-    public:
-        void Init() const;
+        void Init();
 
-        bool IsInFrame() const;
+        bool IsInFrame();
 
-        void BeginFrame() const;
+        void BeginFrame();
 
-        void EndFrame() const;
+        void EndFrame();
 
-        void Destroy() const;
+        void Shutdown();
 
-        const RenderTarget& GetBackBuffer() const;
-
-        [[nodiscard]]
-        ID3D12Device* GetDevice() const;
+        const RenderTarget& GetBackBuffer();
 
         [[nodiscard]]
-        ID3D12GraphicsCommandList* GetCommandList() const;
+        ID3D12Device* GetDevice();
 
         [[nodiscard]]
-        ID3D12GraphicsCommandList* GetCopyCommandList() const;
+        ID3D12GraphicsCommandList* GetCommandList();
 
-        Size GetSceneSize() const;
+        [[nodiscard]]
+        ID3D12GraphicsCommandList* GetCopyCommandList();
 
-        void AddUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable) const;
+        Size GetSceneSize();
+
+        void AddUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable);
     };
-
-    inline constexpr auto EngineCore = EngineCore_impl{};
 }

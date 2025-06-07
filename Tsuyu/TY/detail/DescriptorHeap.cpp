@@ -55,14 +55,14 @@ struct DescriptorHeap::Impl
         descriptorHeapDesc.NumDescriptors = m_descriptorsCount;
         descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         AssertWin32{"failed to create descriptor heap"sv}
-            | EngineCore.GetDevice()->CreateDescriptorHeap(
+            | EngineCore::GetDevice()->CreateDescriptorHeap(
                 &descriptorHeapDesc, IID_PPV_ARGS(&m_descriptorHeap));
         m_descriptorHeap->SetName(L"DescriptorHeap");
 
         const auto heapHandleStart = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
         auto heapHandle = heapHandleStart;
         const auto incrementSize =
-            EngineCore.GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            EngineCore::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // ビュー登録
         m_handleOffsets.resize(params.table.size());
@@ -88,7 +88,7 @@ struct DescriptorHeap::Impl
                     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
                     cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
                     cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
-                    EngineCore.GetDevice()->CreateConstantBufferView(
+                    EngineCore::GetDevice()->CreateConstantBufferView(
                         &cbvDesc, heapHandle);
 
                     heapHandle.ptr += incrementSize;
@@ -109,7 +109,7 @@ struct DescriptorHeap::Impl
                     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
                     srvDesc.Texture2D.MipLevels = 1;
 
-                    EngineCore.GetDevice()->CreateShaderResourceView(
+                    EngineCore::GetDevice()->CreateShaderResourceView(
                         sr[materialId].getResource(), &srvDesc, heapHandle);
 
                     heapHandle.ptr += incrementSize;
@@ -123,7 +123,7 @@ struct DescriptorHeap::Impl
 
     void CommandSet() const
     {
-        EngineCore.GetCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+        EngineCore::GetCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
     void CommandSetTable(int tableId, int materialId) const
@@ -131,7 +131,7 @@ struct DescriptorHeap::Impl
         auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
-        EngineCore.GetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+        EngineCore::GetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
     }
 };
 

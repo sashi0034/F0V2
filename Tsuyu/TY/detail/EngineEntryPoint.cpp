@@ -21,7 +21,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
     LogInfo.HR().Writeln(L"application start");
 
-    EngineCore.Init();
+    EngineCore::Init();
 
     LogInfo.HR().Writeln(L"message loop start");
 
@@ -36,13 +36,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         LogInfo.HR().Writeln(L"exception occurred: " + ToUtf16(e.what()));
     }
 
-    if (EngineCore.IsInFrame()) EngineCore.EndFrame();
+    if (EngineCore::IsInFrame()) EngineCore::EndFrame();
 
     // -----------------------------------------------
 
     LogInfo.HR().Writeln(L"message loop end");
 
-    EngineCore.Destroy();
+    EngineCore::Shutdown();
 
     LogInfo.HR().Writeln(L"application end");
 

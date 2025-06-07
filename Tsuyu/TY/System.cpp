@@ -20,7 +20,7 @@ namespace TY
 
     bool System::Update()
     {
-        if (EngineCore.IsInFrame()) EngineCore.EndFrame();
+        if (EngineCore::IsInFrame()) EngineCore::EndFrame();
 
         MSG msg;
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -31,7 +31,7 @@ namespace TY
             if (msg.message == WM_QUIT) return false;
         }
 
-        EngineCore.BeginFrame();
+        EngineCore::BeginFrame();
         return true;
     }
 

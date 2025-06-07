@@ -14,7 +14,7 @@ struct IndexBuffer::Impl
 
     Impl(int count)
     {
-        const auto device = EngineCore.GetDevice();
+        const auto device = EngineCore::GetDevice();
 
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(index_type) * count);
@@ -50,7 +50,7 @@ struct IndexBuffer::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineCore.GetCommandList();
+        const auto commandList = EngineCore::GetCommandList();
         commandList->IASetIndexBuffer(&m_indexBufferView);
     }
 };

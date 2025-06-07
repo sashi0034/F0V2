@@ -9,7 +9,7 @@ namespace TY
 
     Size Scene::Size()
     {
-        return EngineCore.GetSceneSize();
+        return EngineCore::GetSceneSize();
     }
 
     Point Scene::Center()

@@ -60,7 +60,7 @@ struct ShaderResourceTexture::Impl
         // アップロード用中間バッファの作成
         ID3D12Resource* uploadBuffer{};
         AssertWin32{"failed to create commited resource"sv}
-            | EngineCore.GetDevice()->CreateCommittedResource(
+            | EngineCore::GetDevice()->CreateCommittedResource(
                 &uploadBufferDesc,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -87,7 +87,7 @@ struct ShaderResourceTexture::Impl
 
         // テクスチャバッファ作成
         AssertWin32{""sv}
-            | EngineCore.GetDevice()->CreateCommittedResource(
+            | EngineCore::GetDevice()->CreateCommittedResource(
                 &textureHeapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -134,7 +134,7 @@ struct ShaderResourceTexture::Impl
             static_cast<UINT>(AlignedSize(rawImage->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
         srcCopyLocation.PlacedFootprint.Footprint.Format = rawImage->format;
 
-        const auto copyCommandList = EngineCore.GetCopyCommandList();
+        const auto copyCommandList = EngineCore::GetCopyCommandList();
 
         copyCommandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
 
@@ -172,7 +172,7 @@ struct ShaderResourceTexture::Impl
         resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
         AssertWin32{"failed to create commited resource"sv}
-            | EngineCore.GetDevice()->CreateCommittedResource(
+            | EngineCore::GetDevice()->CreateCommittedResource(
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,

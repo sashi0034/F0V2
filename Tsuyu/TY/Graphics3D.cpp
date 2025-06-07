@@ -25,7 +25,7 @@ namespace TY
         vertexBuffer.commandSet();
         indexBuffer.commandSet();
 
-        const auto commandList = EngineCore.GetCommandList();
+        const auto commandList = EngineCore::GetCommandList();
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->DrawIndexedInstanced(indexBuffer.count(), 1, 0, 0, 0);
     }

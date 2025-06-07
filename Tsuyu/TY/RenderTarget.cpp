@@ -36,7 +36,7 @@ struct RenderTarget::Impl
         m_size = params.size;
         m_clearColor = params.clearColor;
 
-        const auto device = EngineCore.GetDevice();
+        const auto device = EngineCore::GetDevice();
 
         if (not swapChain)
         {
@@ -154,7 +154,7 @@ struct RenderTarget::Impl
 
     void CommandSetViewPortAndScissorsRect() const
     {
-        const auto commandList = EngineCore.GetCommandList();
+        const auto commandList = EngineCore::GetCommandList();
 
         // ビューポートの設定
         D3D12_VIEWPORT viewport = {};
@@ -177,7 +177,7 @@ struct RenderTarget::Impl
 
     ScopedRenderTarget ScopedBind(int index)
     {
-        const auto commandList = EngineCore.GetCommandList();
+        const auto commandList = EngineCore::GetCommandList();
 
         const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
             m_rtvResources[index].Get(),
@@ -187,7 +187,7 @@ struct RenderTarget::Impl
 
         auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
         rtvHandle.ptr +=
-            index * EngineCore.GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+            index * EngineCore::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
         const auto dsvHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
         commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);

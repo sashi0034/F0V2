@@ -14,7 +14,7 @@ struct VertexBuffer_impl::Impl
 
     Impl(int sizeInBytes, int strideInBytes)
     {
-        const auto device = detail::EngineCore.GetDevice();
+        const auto device = EngineCore::GetDevice();
 
         const D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
@@ -51,7 +51,7 @@ struct VertexBuffer_impl::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineCore.GetCommandList();
+        const auto commandList = EngineCore::GetCommandList();
         commandList->IASetVertexBuffers(0, 1, &m_vertBufferView);
     }
 };

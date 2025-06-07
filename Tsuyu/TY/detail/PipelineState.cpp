@@ -131,7 +131,7 @@ namespace
 
         ComPtr<ID3D12RootSignature> rootSignature;
         AssertWin32{"failed to create root signature"sv}
-            | EngineCore.GetDevice()->CreateRootSignature(
+            | EngineCore::GetDevice()->CreateRootSignature(
                 0,
                 rootSignatureBlob->GetBufferPointer(),
                 rootSignatureBlob->GetBufferSize(),
@@ -180,7 +180,7 @@ struct PipelineState::Impl : IEngineHotReloadable
 
     HRESULT createPipelineState(const PipelineStateParams& params)
     {
-        const auto device = EngineCore.GetDevice();
+        const auto device = EngineCore::GetDevice();
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc = {};
 
         const auto vs = params.vertexShader.isEmpty() ? EnginePresetAsset::GetStubVS() : params.vertexShader;
@@ -250,7 +250,7 @@ struct PipelineState::Impl : IEngineHotReloadable
 
     void CommandSet() const
     {
-        const auto commandList = EngineCore.GetCommandList();
+        const auto commandList = EngineCore::GetCommandList();
         commandList->SetPipelineState(m_pipelineState.Get());
         commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     }
