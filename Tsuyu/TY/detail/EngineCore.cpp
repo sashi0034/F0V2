@@ -226,13 +226,9 @@ namespace
             // バックバッファ反映
             m_scopedBackBuffer.dispose();
 
-            // コマンドリストのクローズ
-            m_copyCommandList.GetCommandList()->Close();
-            m_commandList.GetCommandList()->Close();
-
             // コマンドリストの実行
-            m_copyCommandList.Flush();
-            m_commandList.Flush();
+            m_copyCommandList.CloseAndFlush();
+            m_commandList.CloseAndFlush();
 
             // フリップ
             m_swapChain->Present(1, 0);
@@ -242,8 +238,8 @@ namespace
 
         void Destroy()
         {
-            m_copyCommandList.Flush();
-            m_commandList.Flush();
+            m_copyCommandList.CloseAndFlush();
+            m_commandList.CloseAndFlush();
 
             EngineHotReloader.Destroy();
 
@@ -306,11 +302,6 @@ namespace TY
     {
         assert(s_engineCore.m_copyCommandList.GetCommandList());
         return s_engineCore.m_copyCommandList.GetCommandList();
-    }
-
-    void EngineCore_impl::FlushCopyCommandList() const
-    {
-        s_engineCore.m_copyCommandList.Flush();
     }
 
     Size EngineCore_impl::GetSceneSize() const

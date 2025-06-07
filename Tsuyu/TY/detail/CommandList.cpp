@@ -72,8 +72,10 @@ struct CommandList::Impl
         m_fence->SetName(L"Fence");
     }
 
-    void Flush()
+    void CloseAndFlush()
     {
+        m_commandList->Close();
+
         ID3D12CommandList* commandLists[] = {m_commandList.Get()};
         m_commandQueue->ExecuteCommandLists(1, commandLists);
 
@@ -104,9 +106,9 @@ namespace TY::detail
     {
     }
 
-    void CommandList::Flush()
+    void CommandList::CloseAndFlush()
     {
-        if (p_impl) p_impl->Flush();
+        if (p_impl) p_impl->CloseAndFlush();
     }
 
     ID3D12GraphicsCommandList* CommandList::GetCommandList() const

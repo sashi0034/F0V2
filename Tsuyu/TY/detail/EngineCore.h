@@ -32,8 +32,6 @@ namespace TY::detail
         [[nodiscard]]
         ID3D12GraphicsCommandList* GetCopyCommandList() const;
 
-        void FlushCopyCommandList() const;
-
         Size GetSceneSize() const;
 
         void AddUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable) const;
