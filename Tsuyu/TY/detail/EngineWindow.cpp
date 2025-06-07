@@ -78,7 +78,7 @@ struct EngineWindowImpl
 
     void Update()
     {
-        const double dt = EngineTimer.GetDeltaTime();
+        const double dt = EngineTimer::GetDeltaTime();
         if (dt == 0.0) return;
 
         m_frameCount++;

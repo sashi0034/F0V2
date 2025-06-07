@@ -176,7 +176,7 @@ namespace
             EngineWindow::Show();
 
             // タイマーの初期化
-            EngineTimer.Reset();
+            EngineTimer::Reset();
 
             // プリセットの初期化
             EnginePresetAsset::Init();
@@ -197,7 +197,7 @@ namespace
             EngineWindow::Update();
 
             // タイマーの更新
-            EngineTimer.Tick();
+            EngineTimer::Tick();
 
             // アップデータの更新
             for (auto& updatable : m_updatableList)

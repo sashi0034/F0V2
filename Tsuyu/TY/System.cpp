@@ -37,12 +37,12 @@ namespace TY
 
     double System::DeltaTime()
     {
-        return EngineTimer.GetDeltaTime();
+        return EngineTimer::GetDeltaTime();
     }
 
     uint64_t System::FrameCount()
     {
-        return EngineTimer.GetFrameCount();
+        return EngineTimer::GetFrameCount();
     }
 
     void System::Sleep(uint64_t ms)

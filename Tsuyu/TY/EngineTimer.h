@@ -2,17 +2,14 @@
 
 namespace TY::detail
 {
-    class EngineTimer_impl
+    namespace EngineTimer
     {
-    public:
-        void Reset() const;
+        void Reset();
 
-        void Tick() const;
+        void Tick();
 
-        double GetDeltaTime() const;
+        double GetDeltaTime();
 
-        uint64_t GetFrameCount() const;
+        uint64_t GetFrameCount();
     };
-
-    inline constexpr auto EngineTimer = EngineTimer_impl{};
 }
