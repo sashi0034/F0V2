@@ -19,9 +19,8 @@ struct EngineImGuiImpl
     void Init()
     {
         IMGUI_CHECKVERSION();
+
         ImGui::CreateContext();
-        // ImGuiIO& io = ImGui::GetIO();
-        ImGui::StyleColorsDark();
 
         ImGui_ImplWin32_Init(EngineWindow::Handle());
 
@@ -42,6 +41,13 @@ struct EngineImGuiImpl
             m_srvHeap->GetCPUDescriptorHandleForHeapStart(),
             m_srvHeap->GetGPUDescriptorHandleForHeapStart()
         );
+
+        // -----------------------------------------------
+
+        ImGui::StyleColorsDark();
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF("engine/font/0xProto/0xProto-Regular.ttf", 14.0f);
     }
 };
 
