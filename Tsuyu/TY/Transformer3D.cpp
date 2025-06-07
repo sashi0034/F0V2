@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Transformer3D.h"
 
-#include "detail/EngineStackState.h"
+#include "detail/EngineStateContext.h"
 
 namespace TY
 {
@@ -9,14 +9,14 @@ namespace TY
 
     Transformer3D::Transformer3D(const Mat4x4& localWorldMat) : m_active(true)
     {
-        EngineStackState.PushWorldMatrix(localWorldMat);
+        EngineStateContext::PushWorldMatrix(localWorldMat);
     }
 
     Transformer3D::~Transformer3D()
     {
         if (m_active)
         {
-            EngineStackState.PopWorldMatrix();
+            EngineStateContext::PopWorldMatrix();
         }
     }
 

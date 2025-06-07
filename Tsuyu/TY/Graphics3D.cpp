@@ -4,7 +4,7 @@
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 #include "detail/EngineCore.h"
-#include "detail/EngineStackState.h"
+#include "detail/EngineStateContext.h"
 
 namespace TY
 {
@@ -12,12 +12,12 @@ namespace TY
 
     void Graphics3D::SetViewMatrix(const Mat4x4& viewMatrix)
     {
-        EngineStackState.SetViewMatrix(viewMatrix);
+        EngineStateContext::SetViewMatrix(viewMatrix);
     }
 
     void Graphics3D::SetProjectionMatrix(const Mat4x4& projectionMatrix)
     {
-        EngineStackState.SetProjectionMatrix(projectionMatrix);
+        EngineStateContext::SetProjectionMatrix(projectionMatrix);
     }
 
     void Graphics3D::DrawTriangles(const VertexBuffer_impl& vertexBuffer, const IndexBuffer& indexBuffer)

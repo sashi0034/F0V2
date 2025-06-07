@@ -14,7 +14,7 @@
 #include "detail/DescriptorHeap.h"
 #include "detail/EngineCore.h"
 #include "detail/EnginePresetAsset.h"
-#include "detail/EngineStackState.h"
+#include "detail/EngineStateContext.h"
 #include "detail/PipelineState.h"
 
 using namespace TY;
@@ -298,9 +298,9 @@ struct Model::Impl
     void Draw() const
     {
         SceneState_b0 sceneState{};
-        sceneState.worldMat = EngineStackState.GetWorldMatrix().mat;
-        sceneState.viewMat = EngineStackState.GetViewMatrix().mat;
-        sceneState.projectionMat = EngineStackState.GetProjectionMatrix().mat;
+        sceneState.worldMat = EngineStateContext::GetWorldMatrix().mat;
+        sceneState.viewMat = EngineStateContext::GetViewMatrix().mat;
+        sceneState.projectionMat = EngineStateContext::GetProjectionMatrix().mat;
         m_cb0.upload(sceneState);
 
         m_pipelineState.CommandSet();
