@@ -17,7 +17,7 @@ namespace
         DescriptorHeap descriptorHeap{};
 
         ComPtr<ID3D12DescriptorHeap> srvHeap{};
-    } s_impl;
+    } s_imgui{};
 }
 
 namespace TY::detail
@@ -38,15 +38,15 @@ namespace TY::detail
         srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         srvHeapDesc.NodeMask = 0;
 
-        EngineCore.GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&s_impl.srvHeap));
+        EngineCore.GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&s_imgui.srvHeap));
 
         ImGui_ImplDX12_Init(
             EngineCore.GetDevice(),
             framesInFlight,
             DXGI_FORMAT_R8G8B8A8_UNORM,
-            s_impl.srvHeap.Get(),
-            s_impl.srvHeap->GetCPUDescriptorHandleForHeapStart(),
-            s_impl.srvHeap->GetGPUDescriptorHandleForHeapStart()
+            s_imgui.srvHeap.Get(),
+            s_imgui.srvHeap->GetCPUDescriptorHandleForHeapStart(),
+            s_imgui.srvHeap->GetGPUDescriptorHandleForHeapStart()
         );
     }
 
@@ -61,7 +61,7 @@ namespace TY::detail
     {
         ImGui::Render();
 
-        EngineCore.GetCommandList()->SetDescriptorHeaps(1, s_impl.srvHeap.GetAddressOf());
+        EngineCore.GetCommandList()->SetDescriptorHeaps(1, s_imgui.srvHeap.GetAddressOf());
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineCore.GetCommandList());
     }
@@ -72,6 +72,6 @@ namespace TY::detail
         ImGui_ImplWin32_Shutdown();
         ImGui::DestroyContext();
 
-        s_impl = {};
+        s_imgui = {};
     }
 }

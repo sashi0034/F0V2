@@ -16,28 +16,28 @@ namespace
             // 現在の状態を取得
             GetKeyboardState(m_currentState.data());
         }
-    } s_impl;
+    } s_keyboard{};
 }
 
 namespace TY::detail
 {
-    void EngineKeyboard_impl::update() const
+    void EngineKeyboard::Update()
     {
-        s_impl.Update();
+        s_keyboard.Update();
     }
 
-    bool EngineKeyboard_impl::isDown(uint8_t code) const
+    bool EngineKeyboard::IsDown(uint8_t code)
     {
-        return (s_impl.m_currentState[code] & 0x80) && not(s_impl.m_previousState[code] & 0x80);
+        return (s_keyboard.m_currentState[code] & 0x80) && not(s_keyboard.m_previousState[code] & 0x80);
     }
 
-    bool EngineKeyboard_impl::isPressed(uint8_t code) const
+    bool EngineKeyboard::IsPressed(uint8_t code)
     {
-        return s_impl.m_currentState[code] & 0x80;
+        return s_keyboard.m_currentState[code] & 0x80;
     }
 
-    bool EngineKeyboard_impl::isUp(uint8_t code) const
+    bool EngineKeyboard::IsUp(uint8_t code)
     {
-        return not(s_impl.m_currentState[code] & 0x80) && (s_impl.m_previousState[code] & 0x80);
+        return not(s_keyboard.m_currentState[code] & 0x80) && (s_keyboard.m_previousState[code] & 0x80);
     }
 }

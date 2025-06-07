@@ -9,16 +9,16 @@ namespace TY
 
     bool KeyboardInput::down() const
     {
-        return EngineKeyboard.isDown(m_code);
+        return EngineKeyboard::IsDown(m_code);
     }
 
     bool KeyboardInput::pressed() const
     {
-        return EngineKeyboard.isPressed(m_code);
+        return EngineKeyboard::IsPressed(m_code);
     }
 
     bool KeyboardInput::up() const
     {
-        return EngineKeyboard.isUp(m_code);
+        return EngineKeyboard::IsUp(m_code);
     }
 }

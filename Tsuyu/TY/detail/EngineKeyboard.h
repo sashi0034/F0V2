@@ -2,17 +2,14 @@
 
 namespace TY::detail
 {
-    class EngineKeyboard_impl
+    namespace EngineKeyboard
     {
-    public:
-        void update() const;
+        void Update();
 
-        [[nodiscard]] bool isDown(uint8_t code) const;
+        [[nodiscard]] bool IsDown(uint8_t code);
 
-        [[nodiscard]] bool isPressed(uint8_t code) const;
+        [[nodiscard]] bool IsPressed(uint8_t code);
 
-        [[nodiscard]] bool isUp(uint8_t code) const;
-    };
-
-    static inline constexpr auto EngineKeyboard = EngineKeyboard_impl{};
+        [[nodiscard]] bool IsUp(uint8_t code);
+    }
 }

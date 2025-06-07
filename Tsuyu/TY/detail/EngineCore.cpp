@@ -212,7 +212,7 @@ namespace
             EngineHotReloader.Update();
 
             // 入力情報の更新
-            EngineKeyboard.update();
+            EngineKeyboard::Update();
 
             // ImGUI フレーム開始
             EngineImGui::NewFrame();
