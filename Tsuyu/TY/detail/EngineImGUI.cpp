@@ -10,19 +10,13 @@
 using namespace TY;
 using namespace TY::detail;
 
-namespace
+struct EngineImGuiImpl
 {
-    struct EngineImGuiImpl
-    {
-        DescriptorHeap descriptorHeap{};
+    DescriptorHeap m_descriptorHeap{};
 
-        ComPtr<ID3D12DescriptorHeap> srvHeap{};
-    } s_imgui{};
-}
+    ComPtr<ID3D12DescriptorHeap> m_srvHeap{};
 
-namespace TY::detail
-{
-    void EngineImGui::Init()
+    void Init()
     {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -38,16 +32,29 @@ namespace TY::detail
         srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         srvHeapDesc.NodeMask = 0;
 
-        EngineCore.GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&s_imgui.srvHeap));
+        EngineCore.GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvHeap));
 
         ImGui_ImplDX12_Init(
             EngineCore.GetDevice(),
             framesInFlight,
             DXGI_FORMAT_R8G8B8A8_UNORM,
-            s_imgui.srvHeap.Get(),
-            s_imgui.srvHeap->GetCPUDescriptorHandleForHeapStart(),
-            s_imgui.srvHeap->GetGPUDescriptorHandleForHeapStart()
+            m_srvHeap.Get(),
+            m_srvHeap->GetCPUDescriptorHandleForHeapStart(),
+            m_srvHeap->GetGPUDescriptorHandleForHeapStart()
         );
+    }
+};
+
+namespace
+{
+    EngineImGuiImpl s_imgui{};
+}
+
+namespace TY::detail
+{
+    void EngineImGui::Init()
+    {
+        s_imgui.Init();
     }
 
     void EngineImGui::NewFrame()
@@ -61,7 +68,7 @@ namespace TY::detail
     {
         ImGui::Render();
 
-        EngineCore.GetCommandList()->SetDescriptorHeaps(1, s_imgui.srvHeap.GetAddressOf());
+        EngineCore.GetCommandList()->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineCore.GetCommandList());
     }

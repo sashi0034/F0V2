@@ -21,6 +21,6 @@ namespace TY::detail
 
     private:
         struct Impl;
-        std::shared_ptr<Impl> p_impl;
+        std::shared_ptr<Impl> p_impl{};
     };
 }
