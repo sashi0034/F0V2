@@ -18,7 +18,7 @@ namespace
 
     const std::wstring windowTitle = L"F0"; // TODO
 
-    LRESULT windowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+    LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {
         if (msg == WM_DESTROY)
         {
@@ -31,13 +31,13 @@ namespace
         return DefWindowProc(hwnd, msg, wparam, lparam);
     }
 
-    class Impl
+    class EngineWindowImpl
     {
     public:
         void Init()
         {
             m_windowClass.cbSize = sizeof(WNDCLASSEX);
-            m_windowClass.lpfnWndProc = static_cast<WNDPROC>(windowProcedure);
+            m_windowClass.lpfnWndProc = static_cast<WNDPROC>(WindowProcedure);
             m_windowClass.lpszClassName = windowTitle.data();
             m_windowClass.hInstance = GetModuleHandle(nullptr);
             RegisterClassEx(&m_windowClass);
@@ -93,7 +93,7 @@ namespace
             SetWindowText(m_handle, title);
         }
 
-        void Destroy()
+        void Shutdown()
         {
             UnregisterClass(m_windowClass.lpszClassName, m_windowClass.hInstance);
         }
@@ -110,38 +110,38 @@ namespace
         int m_frameCount{};
 
         double m_titleUpdateTimer{1.0};
-    } s_engineWindow;
+    } s_engineWindow{};
 }
 
 namespace TY::detail
 {
-    void EngineWindow_impl::Init() const
+    void EngineWindow::Init()
     {
         s_engineWindow.Init();
     }
 
-    void EngineWindow_impl::Show() const
+    void EngineWindow::Show()
     {
         s_engineWindow.Show();
     }
 
-    void EngineWindow_impl::Update() const
+    void EngineWindow::Update()
     {
         s_engineWindow.Update();
     }
 
-    HWND EngineWindow_impl::Handle() const
+    HWND EngineWindow::Handle()
     {
         return s_engineWindow.Handle();
     }
 
-    Size EngineWindow_impl::WindowSize() const
+    Size EngineWindow::WindowSize()
     {
         return s_engineWindow.WindowSize();
     }
 
-    void EngineWindow_impl::Destroy() const
+    void EngineWindow::Shutdown()
     {
-        s_engineWindow.Destroy();
+        s_engineWindow.Shutdown();
     }
 }

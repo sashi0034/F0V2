@@ -73,7 +73,7 @@ namespace
 
         void Init()
         {
-            EngineWindow.Init();
+            EngineWindow::Init();
 #ifdef _DEBUG
             enableDebugLayer();
 #endif
@@ -155,7 +155,7 @@ namespace
             AssertWin32{"failed to create swap chain"sv}
                 | m_dxgiFactory->CreateSwapChainForHwnd(
                     m_commandList.GetCommandQueue(),
-                    EngineWindow.Handle(),
+                    EngineWindow::Handle(),
                     &swapchainDesc,
                     nullptr,
                     nullptr,
@@ -173,7 +173,7 @@ namespace
             };
 
             // ウィンドウ表示
-            EngineWindow.Show();
+            EngineWindow::Show();
 
             // タイマーの初期化
             EngineTimer.Reset();
@@ -194,7 +194,7 @@ namespace
             m_scopedBackBuffer = m_backBuffer.scopedBind(backBufferIndex);
 
             // ウィンドウの更新
-            EngineWindow.Update();
+            EngineWindow::Update();
 
             // タイマーの更新
             EngineTimer.Tick();
@@ -238,12 +238,12 @@ namespace
 
         void Destroy()
         {
+            EngineWindow::Shutdown();
+
             m_copyCommandList.CloseAndFlush();
             m_commandList.CloseAndFlush();
 
             EngineHotReloader.Destroy();
-
-            EngineWindow.Destroy();
 
             EnginePresetAsset::Shutdown();
 

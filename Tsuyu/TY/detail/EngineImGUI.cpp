@@ -29,7 +29,7 @@ namespace TY::detail
         // ImGuiIO& io = ImGui::GetIO();
         ImGui::StyleColorsDark();
 
-        ImGui_ImplWin32_Init(EngineWindow.Handle());
+        ImGui_ImplWin32_Init(EngineWindow::Handle());
 
         const int framesInFlight = EngineCore.GetBackBuffer().bufferCount();
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
