@@ -12,15 +12,15 @@ using namespace TY::detail;
 
 namespace
 {
-    struct Impl
+    struct EnginePresetAssetImpl
     {
-        ShaderResourceTexture m_whiteTexture;
+        ShaderResourceTexture m_whiteTexture{};
 
-        VertexShader m_stubVS;
+        VertexShader m_stubVS{};
 
-        PixelShader m_stubPS;
+        PixelShader m_stubPS{};
 
-        Impl()
+        EnginePresetAssetImpl()
         {
             const Image whiteImage{Size{16, 16}, ColorU8{255}};
             m_whiteTexture = ShaderResourceTexture(whiteImage);
@@ -31,33 +31,44 @@ namespace
         }
     };
 
-    std::shared_ptr<Impl> s_enginePresetAsset{};
+    std::shared_ptr<EnginePresetAssetImpl> s_enginePresetAsset{};
+
+    void ensureInitialized()
+    {
+        if (not s_enginePresetAsset)
+        {
+            s_enginePresetAsset = std::make_shared<EnginePresetAssetImpl>();
+        }
+    }
 }
 
 namespace TY::detail
 {
-    void EnginePresetAsset_impl::Init() const
+    void EnginePresetAsset::Init()
     {
-        s_enginePresetAsset = std::make_shared<Impl>();
+        ensureInitialized();
     }
 
-    void EnginePresetAsset_impl::Destroy() const
+    void EnginePresetAsset::Shutdown()
     {
         s_enginePresetAsset.reset();
     }
 
-    ShaderResourceTexture EnginePresetAsset_impl::GetWhiteTexture() const
+    ShaderResourceTexture EnginePresetAsset::GetWhiteTexture()
     {
+        ensureInitialized();
         return s_enginePresetAsset->m_whiteTexture;
     }
 
-    VertexShader EnginePresetAsset_impl::GetStubVS() const
+    VertexShader EnginePresetAsset::GetStubVS()
     {
+        ensureInitialized();
         return s_enginePresetAsset->m_stubVS;
     }
 
-    PixelShader EnginePresetAsset_impl::GetStubPS() const
+    PixelShader EnginePresetAsset::GetStubPS()
     {
+        ensureInitialized();
         return s_enginePresetAsset->m_stubPS;
     }
 }

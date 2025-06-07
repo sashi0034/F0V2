@@ -261,7 +261,7 @@ struct Model::Impl
             if (not textureMap.contains(texturePath))
             {
                 const auto texture = texturePath.empty()
-                                         ? EnginePresetAsset.GetWhiteTexture()
+                                         ? EnginePresetAsset::GetWhiteTexture()
                                          : ShaderResourceTexture{texturePath};
                 textureMap[texturePath] = texture;
                 diffuseTextureList.push_back(texture);

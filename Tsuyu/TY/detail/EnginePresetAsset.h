@@ -4,19 +4,16 @@
 
 namespace TY::detail
 {
-    class EnginePresetAsset_impl
+    namespace EnginePresetAsset
     {
-    public:
-        void Init() const;
+        void Init();
 
-        void Destroy() const;
+        void Shutdown();
 
-        ShaderResourceTexture GetWhiteTexture() const;
+        ShaderResourceTexture GetWhiteTexture();
 
-        VertexShader GetStubVS() const;
+        VertexShader GetStubVS();
 
-        PixelShader GetStubPS() const;
+        PixelShader GetStubPS();
     };
-
-    inline constexpr auto EnginePresetAsset = EnginePresetAsset_impl{};
 }

@@ -179,7 +179,7 @@ namespace
             EngineTimer.Reset();
 
             // プリセットの初期化
-            EnginePresetAsset.Init();
+            EnginePresetAsset::Init();
 
             // ImGUI 初期化
             EngineImGui::Init();
@@ -243,9 +243,9 @@ namespace
 
             EngineHotReloader.Destroy();
 
-            EnginePresetAsset.Destroy();
-
             EngineWindow.Destroy();
+
+            EnginePresetAsset::Shutdown();
 
             EngineImGui::Shutdown();
         }
