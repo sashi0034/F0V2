@@ -182,7 +182,7 @@ namespace
             EnginePresetAsset.Init();
 
             // ImGUI 初期化
-            EngineImGui.init();
+            EngineImGui::Init();
         }
 
         void BeginFrame()
@@ -215,13 +215,13 @@ namespace
             EngineKeyboard.update();
 
             // ImGUI フレーム開始
-            EngineImGui.newFrame();
+            EngineImGui::NewFrame();
         }
 
         void EndFrame()
         {
             // ImGUI 描画
-            EngineImGui.render();
+            EngineImGui::Render();
 
             // バックバッファ反映
             m_scopedBackBuffer.dispose();
@@ -247,7 +247,7 @@ namespace
 
             EngineWindow.Destroy();
 
-            EngineImGui.destroy();
+            EngineImGui::Shutdown();
         }
 
     private:
