@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <string>
 
+#include "UnifiedString.h"
+
 namespace TY
 {
     enum class LoggerKind : uint8_t
@@ -17,11 +19,11 @@ namespace TY
         constexpr Logger_impl(LoggerKind kind) : m_kind(kind) { return; }
 
         /// @brief Write a horizontal rule
-        const Logger_impl& HR() const;
+        const Logger_impl& hr() const;
 
-        void Writeln(const std::wstring& message) const;
+        void writeln(const UnifiedString& message) const;
 
-        const Logger_impl& operator <<(const std::wstring& message) const;
+        const Logger_impl& operator <<(const UnifiedString& message) const;
 
     private:
         LoggerKind m_kind;

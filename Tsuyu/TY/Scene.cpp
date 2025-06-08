@@ -2,6 +2,7 @@
 #include "Scene.h"
 
 #include "detail/EngineCore.h"
+#include "detail/EngineRenderContext.h"
 
 namespace TY
 {
@@ -9,7 +10,7 @@ namespace TY
 
     Size Scene::Size()
     {
-        return EngineCore.GetSceneSize();
+        return EngineRenderContext::GetSceneSize();
     }
 
     Point Scene::Center()

@@ -145,12 +145,14 @@ struct Title_PointLight_impl
         }
 
         {
-            ImGui::Begin("System Info");
+            ImGui::Begin("System Settings");
 
-            int targetFrameRate = System::TargetFrameRate().value_or(0);
-            if (ImGui::SliderInt("Target FPS", &targetFrameRate, 0, 60, "%d"))
+            static bool s_sleep{};;
+            ImGui::Checkbox("Sleep", &s_sleep);
+
+            if (s_sleep)
             {
-                System::SetTargetFrameRate(targetFrameRate > 0 ? std::optional<double>(targetFrameRate) : std::nullopt);
+                System::Sleep(500);
             }
 
             ImGui::End();

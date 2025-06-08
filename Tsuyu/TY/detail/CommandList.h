@@ -15,7 +15,7 @@ namespace TY::detail
 
         CommandList(CommandListType type);
 
-        void Flush();
+        void CloseAndFlush();
 
         ID3D12GraphicsCommandList* GetCommandList() const;
 

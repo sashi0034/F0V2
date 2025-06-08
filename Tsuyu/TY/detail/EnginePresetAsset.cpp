@@ -7,57 +7,63 @@
 #include "TY/Value2D.h"
 
 using namespace TY;
-
 using namespace TY::detail;
+
+struct EnginePresetAssetImpl
+{
+    bool m_initialized = false;
+
+    ShaderResourceTexture m_whiteTexture{};
+
+    VertexShader m_stubVS{};
+
+    PixelShader m_stubPS{};
+
+    void Init()
+    {
+        const Image whiteImage{Size{16, 16}, ColorU8{255}};
+        m_whiteTexture = ShaderResourceTexture(whiteImage);
+
+        m_stubVS = VertexShader{ShaderParams{.filename = "engine/stub.hlsl", .entryPoint = "VS"}};
+
+        m_stubPS = PixelShader{ShaderParams{.filename = "engine/stub.hlsl", .entryPoint = "PS"}};
+
+        m_initialized = true;
+    }
+};
 
 namespace
 {
-    struct Impl
-    {
-        ShaderResourceTexture m_whiteTexture;
-
-        VertexShader m_stubVS;
-
-        PixelShader m_stubPS;
-
-        Impl()
-        {
-            const Image whiteImage{Size{16, 16}, ColorU8{255}};
-            m_whiteTexture = ShaderResourceTexture(whiteImage);
-
-            m_stubVS = VertexShader{ShaderParams{.filename = "engine/stub.hlsl", .entryPoint = "VS"}};
-
-            m_stubPS = PixelShader{ShaderParams{.filename = "engine/stub.hlsl", .entryPoint = "PS"}};
-        }
-    };
-
-    std::shared_ptr<Impl> s_enginePresetAsset{};
+    EnginePresetAssetImpl s_enginePresetAsset{};
 }
 
 namespace TY::detail
 {
-    void EnginePresetAsset_impl::Init() const
+    void EnginePresetAsset::Init()
     {
-        s_enginePresetAsset = std::make_shared<Impl>();
+        s_enginePresetAsset.Init();
     }
 
-    void EnginePresetAsset_impl::Destroy() const
+    void EnginePresetAsset::Shutdown()
     {
-        s_enginePresetAsset.reset();
+        s_enginePresetAsset = {};
     }
 
-    ShaderResourceTexture EnginePresetAsset_impl::GetWhiteTexture() const
+    ShaderResourceTexture EnginePresetAsset::GetWhiteTexture()
     {
-        return s_enginePresetAsset->m_whiteTexture;
+        assert(s_enginePresetAsset.m_initialized);
+        return s_enginePresetAsset.m_whiteTexture;
     }
 
-    VertexShader EnginePresetAsset_impl::GetStubVS() const
+    VertexShader EnginePresetAsset::GetStubVS()
     {
-        return s_enginePresetAsset->m_stubVS;
+        assert(s_enginePresetAsset.m_initialized);
+        return s_enginePresetAsset.m_stubVS;
     }
 
-    PixelShader EnginePresetAsset_impl::GetStubPS() const
+    PixelShader EnginePresetAsset::GetStubPS()
     {
-        return s_enginePresetAsset->m_stubPS;
+        assert(s_enginePresetAsset.m_initialized);
+        return s_enginePresetAsset.m_stubPS;
     }
 }

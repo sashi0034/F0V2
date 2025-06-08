@@ -3,23 +3,20 @@
 
 namespace TY::detail
 {
-    class EngineWindow_impl
+    namespace EngineWindow
     {
-    public:
-        void Init() const;
+        void Init();
 
-        void Show() const;
+        void Show();
 
-        void Update() const;
-
-        [[nodiscard]]
-        HWND Handle() const;
+        void Update();
 
         [[nodiscard]]
-        Size WindowSize() const;
+        HWND Handle();
 
-        void Destroy() const;
+        [[nodiscard]]
+        Size WindowSize();
+
+        void Shutdown();
     };
-
-    constexpr inline auto EngineWindow = EngineWindow_impl{};
 }

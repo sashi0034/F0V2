@@ -4,15 +4,13 @@ namespace TY
 {
     namespace System
     {
-        void SetTargetFrameRate(std::optional<double> frameRate);
-
-        [[nodiscard]] std::optional<double> TargetFrameRate();
-
         bool Update();
 
         double DeltaTime();
 
         uint64_t FrameCount();
+
+        void Sleep(uint64_t ms);
 
         void ModalError(const std::wstring& message);
 

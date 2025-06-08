@@ -1,43 +1,21 @@
 ﻿#pragma once
 
-#include <d3d12.h>
-
 #include "IEngineUpdatable.h"
-#include "TY/RenderTarget.h"
-#include "TY/Value2D.h"
 
 namespace TY::detail
 {
-    class EngineCore_impl
+    namespace EngineCore
     {
-    public:
-        void Init() const;
+        void Init();
 
-        bool IsInFrame() const;
+        bool IsInFrame();
 
-        void BeginFrame() const;
+        void BeginFrame();
 
-        void EndFrame() const;
+        void EndFrame();
 
-        void Destroy() const;
+        void Shutdown();
 
-        const RenderTarget& GetBackBuffer() const;
-
-        [[nodiscard]]
-        ID3D12Device* GetDevice() const;
-
-        [[nodiscard]]
-        ID3D12GraphicsCommandList* GetCommandList() const;
-
-        [[nodiscard]]
-        ID3D12GraphicsCommandList* GetCopyCommandList() const;
-
-        void FlushCopyCommandList() const;
-
-        Size GetSceneSize() const;
-
-        void AddUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable) const;
+        void AddUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable);
     };
-
-    inline constexpr auto EngineCore = EngineCore_impl{};
 }

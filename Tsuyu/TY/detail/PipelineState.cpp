@@ -5,6 +5,7 @@
 #include "EngineCore.h"
 #include "EngineHotReloader.h"
 #include "EnginePresetAsset.h"
+#include "EngineRenderContext.h"
 #include "IEngineHotReloadable.h"
 #include "TY/Logger.h"
 #include "TY/System.h"
@@ -131,7 +132,7 @@ namespace
 
         ComPtr<ID3D12RootSignature> rootSignature;
         AssertWin32{"failed to create root signature"sv}
-            | EngineCore.GetDevice()->CreateRootSignature(
+            | EngineRenderContext::GetDevice()->CreateRootSignature(
                 0,
                 rootSignatureBlob->GetBufferPointer(),
                 rootSignatureBlob->GetBufferSize(),
@@ -167,11 +168,11 @@ struct PipelineState::Impl : IEngineHotReloadable
 
         if (SUCCEEDED(createPipelineState(m_params))) return;
 
-        LogWarning.Writeln(L"failed to create pipeline state with user shaders, using stub shaders instead");
+        LogWarning.writeln(L"failed to create pipeline state with user shaders, using stub shaders instead");
 
         auto params2 = m_params;
-        params2.pixelShader = EnginePresetAsset.GetStubPS();
-        params2.vertexShader = EnginePresetAsset.GetStubVS();
+        params2.pixelShader = EnginePresetAsset::GetStubPS();
+        params2.vertexShader = EnginePresetAsset::GetStubVS();
 
         if (SUCCEEDED(createPipelineState(params2))) return;
 
@@ -180,14 +181,14 @@ struct PipelineState::Impl : IEngineHotReloadable
 
     HRESULT createPipelineState(const PipelineStateParams& params)
     {
-        const auto device = EngineCore.GetDevice();
+        const auto device = EngineRenderContext::GetDevice();
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc = {};
 
-        const auto vs = params.vertexShader.isEmpty() ? EnginePresetAsset.GetStubVS() : params.vertexShader;
+        const auto vs = params.vertexShader.isEmpty() ? EnginePresetAsset::GetStubVS() : params.vertexShader;
         pipelineDesc.VS.pShaderBytecode = vs.getBlob()->GetBufferPointer();
         pipelineDesc.VS.BytecodeLength = vs.getBlob()->GetBufferSize();
 
-        const auto ps = params.pixelShader.isEmpty() ? EnginePresetAsset.GetStubPS() : params.pixelShader;
+        const auto ps = params.pixelShader.isEmpty() ? EnginePresetAsset::GetStubPS() : params.pixelShader;
         pipelineDesc.PS.pShaderBytecode = ps.getBlob()->GetBufferPointer();
         pipelineDesc.PS.BytecodeLength = ps.getBlob()->GetBufferSize();
 
@@ -250,7 +251,7 @@ struct PipelineState::Impl : IEngineHotReloadable
 
     void CommandSet() const
     {
-        const auto commandList = EngineCore.GetCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList();
         commandList->SetPipelineState(m_pipelineState.Get());
         commandList->SetGraphicsRootSignature(m_rootSignature.Get());
     }
@@ -261,7 +262,7 @@ namespace TY
     PipelineState::PipelineState(const PipelineStateParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
-        EngineHotReloader.TrackAsset(
+        EngineHotReloader::TrackAsset(
             p_impl, {p_impl->m_params.pixelShader.timestamp(), p_impl->m_params.vertexShader.timestamp()});
     }
 

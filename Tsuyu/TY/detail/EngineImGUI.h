@@ -2,15 +2,14 @@
 
 namespace TY::detail
 {
-    class EngineImGui_impl
+    namespace EngineImGui
     {
-    public:
-        void init() const;
+        void Init();
 
-        void newFrame() const;
+        void NewFrame();
 
-        void render() const;
+        void Render();
+
+        void Shutdown();
     };
-
-    static inline constexpr auto EngineImGui = EngineImGui_impl{};
 }

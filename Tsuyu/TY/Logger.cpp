@@ -9,7 +9,16 @@ namespace
 {
     bool s_initializedConsole = false;
 
-    // bool s_flushRequest{};
+    std::wstring getLoggerEmoji(LoggerKind kind)
+    {
+        static const std::vector<std::wstring> tags{
+            L"ℹ️",
+            L"⚠️",
+            L"❌",
+        };
+
+        return tags[static_cast<int>(kind)];
+    }
 
     std::wstring getLoggerTag(LoggerKind kind)
     {
@@ -32,19 +41,19 @@ namespace
 #endif
     }
 
-    void writelnInternal(const std::wstring& message, bool shouldStdOut)
+    void writelnInternal(const std::wstring& message, LoggerKind kind, bool hasTag)
     {
-        // if (s_flushRequest)
-        // {
-        //     s_flushRequest = false;
-        //     std::wcout << std::endl;
-        // }
+        std::wstring debugString{};
+        if (hasTag)
+        {
+            debugString = getLoggerEmoji(kind) + L" ";
+        }
 
-        // s_flushRequest = true;
+        debugString += message + L"\n";
 
-        OutputDebugString((message + L"\n").c_str());
+        OutputDebugString(debugString.c_str());
 
-        if (shouldStdOut)
+        if (shouldStdOut(kind))
         {
             if (not s_initializedConsole)
             {
@@ -57,6 +66,7 @@ namespace
                 }
             }
 
+            if (hasTag) std::wcout << getLoggerTag(kind);
             std::wcout << message << std::endl;
         }
     }
@@ -64,20 +74,20 @@ namespace
 
 namespace TY
 {
-    const Logger_impl& Logger_impl::HR() const
+    const Logger_impl& Logger_impl::hr() const
     {
-        writelnInternal(L"--------------------------------------------------", shouldStdOut(m_kind));
+        writelnInternal(L"--------------------------------------------------", m_kind, false);
         return *this;
     }
 
-    void Logger_impl::Writeln(const std::wstring& message) const
+    void Logger_impl::writeln(const UnifiedString& message) const
     {
-        writelnInternal(getLoggerTag(m_kind) + message, shouldStdOut(m_kind));
+        writelnInternal(message, m_kind, true);
     }
 
-    const Logger_impl& Logger_impl::operator<<(const std::wstring& message) const
+    const Logger_impl& Logger_impl::operator<<(const UnifiedString& message) const
     {
-        Writeln(message);
+        writeln(message);
         return *this;
     }
 }

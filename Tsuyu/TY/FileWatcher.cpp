@@ -52,7 +52,7 @@ namespace TY
     FileWatcher::FileWatcher(const std::string& path)
         : p_impl(std::make_shared<Impl>(path))
     {
-        EngineCore.AddUpdatable(p_impl);
+        EngineCore::AddUpdatable(p_impl);
     }
 
     FileWatcher::FileWatcher(const std::wstring& path)
