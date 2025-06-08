@@ -168,7 +168,7 @@ struct PipelineState::Impl : IEngineHotReloadable
 
         if (SUCCEEDED(createPipelineState(m_params))) return;
 
-        LogWarning.Writeln(L"failed to create pipeline state with user shaders, using stub shaders instead");
+        LogWarning.writeln(L"failed to create pipeline state with user shaders, using stub shaders instead");
 
         auto params2 = m_params;
         params2.pixelShader = EnginePresetAsset::GetStubPS();

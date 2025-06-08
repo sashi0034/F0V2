@@ -56,11 +56,11 @@ struct EngineHotReloaderImpl
         if (reloadedCount == m_elements.size())
         {
             // いずれかの要素が正常に更新されない異常発生
-            LogWarning.Writeln(L"the timestamps of some elements have not been updated in hot reload");
+            LogWarning.writeln(L"the timestamps of some elements have not been updated in hot reload");
         }
         else if (reloadedCount > 0)
         {
-            LogInfo.HR().Writeln(std::format(L"hot reloaded {} elements", reloadedCount));
+            LogInfo.hr().writeln(std::format(L"hot reloaded {} elements", reloadedCount));
         }
     }
 

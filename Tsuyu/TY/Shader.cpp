@@ -70,7 +70,7 @@ struct TY::Shader_impl : IEngineHotReloadable
             message += ToUtf16(GetErrorMessage());
         }
 
-        LogError.Writeln(message);
+        LogError.writeln(message);
     }
 };
 
