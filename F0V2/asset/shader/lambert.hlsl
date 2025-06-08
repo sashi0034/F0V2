@@ -27,7 +27,6 @@ struct PSInput
 {
     float4 position : SV_POSITION;
     float3 normal: NORMAL;
-    float3 color : COLOR;
     float2 uv : TEXCOORD;
 };
 
@@ -40,8 +39,6 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
     result.position = mul(g_projectionMat, result.position);
 
     result.normal = mul(g_worldMat, normal);
-
-    result.color = g_diffuse;
 
     result.uv = uv;
     return result;
@@ -58,7 +55,7 @@ float4 PS(PSInput input) : SV_TARGET
 
     const float3 diffuseLight = g_lightColor * t;
 
-    float4 finalColor = g_texture0.Sample(g_sampler0, input.uv) * float4(input.color, 1.0f);
+    float4 finalColor = g_texture0.Sample(g_sampler0, input.uv) * float4(g_diffuse, 1.0f);
 
     finalColor.xyz *= diffuseLight.xyz;
 
