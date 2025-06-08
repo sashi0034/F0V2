@@ -194,6 +194,7 @@
     <ClInclude Include="TY\Scene.h" />
     <ClInclude Include="TY\ScopedDefer.h" />
     <ClInclude Include="TY\Shader.h" />
+    <ClInclude Include="TY\UnifiedString.h" />
     <ClInclude Include="TY\System.h" />
     <ClInclude Include="TY\TemplateHelper.h" />
     <ClInclude Include="TY\Texture.h" />
@@ -271,6 +272,7 @@
     <ClCompile Include="TY\Scene.cpp" />
     <ClCompile Include="TY\ScopedDefer.cpp" />
     <ClCompile Include="TY\Shader.cpp" />
+    <ClCompile Include="TY\UnifiedString.cpp" />
     <ClCompile Include="TY\System.cpp" />
     <ClCompile Include="TY\Texture.cpp" />
     <ClCompile Include="TY\Transformer3D.cpp" />

@@ -80,12 +80,12 @@ namespace TY
         return *this;
     }
 
-    void Logger_impl::writeln(const std::wstring& message) const
+    void Logger_impl::writeln(const UnifiedString& message) const
     {
         writelnInternal(message, m_kind, true);
     }
 
-    const Logger_impl& Logger_impl::operator<<(const std::wstring& message) const
+    const Logger_impl& Logger_impl::operator<<(const UnifiedString& message) const
     {
         writeln(message);
         return *this;
