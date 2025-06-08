@@ -4,9 +4,9 @@ namespace TY::detail
 {
     namespace EngineTimer
     {
-        void Reset();
+        void Init();
 
-        void Tick();
+        void Update();
 
         double GetDeltaTime();
 

@@ -7,15 +7,15 @@ using namespace TY::detail;
 class EngineTimerImpl
 {
 public:
-    EngineTimerImpl() { Reset(); }
+    EngineTimerImpl() { Init(); }
 
-    void Reset()
+    void Init()
     {
         m_startTime = clock::now();
         m_lastFrameTime = m_startTime;
     }
 
-    void Tick()
+    void Update()
     {
         const auto now = clock::now();
         m_deltaTime = std::chrono::duration<double>(now - m_lastFrameTime).count();
@@ -48,14 +48,14 @@ namespace
 
 namespace TY
 {
-    void EngineTimer::Reset()
+    void EngineTimer::Init()
     {
-        s_engineTimer.Reset();
+        s_engineTimer.Init();
     }
 
-    void EngineTimer::Tick()
+    void EngineTimer::Update()
     {
-        s_engineTimer.Tick();
+        s_engineTimer.Update();
     }
 
     double EngineTimer::GetDeltaTime()

@@ -4,6 +4,7 @@
 #include "AssertObject.h"
 #include "Utils.h"
 #include "detail/EngineCore.h"
+#include "detail/EngineRenderContext.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -30,7 +31,7 @@ struct ConstantBuffer_impl::Impl
         m_alignedSize = AlignedSize(sizeInBytes, 256);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_alignedSize * count);
         AssertWin32{"failed to create commited resource"sv}
-            | EngineCore::GetDevice()->CreateCommittedResource(
+            | EngineRenderContext::GetDevice()->CreateCommittedResource(
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,

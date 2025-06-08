@@ -3,6 +3,7 @@
 
 #include "AssertObject.h"
 #include "detail/EngineCore.h"
+#include "detail/EngineRenderContext.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -14,7 +15,7 @@ struct VertexBuffer_impl::Impl
 
     Impl(int sizeInBytes, int strideInBytes)
     {
-        const auto device = EngineCore::GetDevice();
+        const auto device = EngineRenderContext::GetDevice();
 
         const D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
@@ -51,7 +52,7 @@ struct VertexBuffer_impl::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineCore::GetCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList();
         commandList->IASetVertexBuffers(0, 1, &m_vertBufferView);
     }
 };

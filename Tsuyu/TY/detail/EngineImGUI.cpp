@@ -3,6 +3,7 @@
 
 #include "DescriptorHeap.h"
 #include "EngineCore.h"
+#include "EngineRenderContext.h"
 #include "EngineWindow.h"
 #include "backends/imgui_impl_dx12.h"
 #include "backends/imgui_impl_win32.h"
@@ -24,17 +25,17 @@ struct EngineImGuiImpl
 
         ImGui_ImplWin32_Init(EngineWindow::Handle());
 
-        const int framesInFlight = EngineCore::GetBackBuffer().bufferCount();
+        const int framesInFlight = EngineRenderContext::GetBackBuffer().bufferCount();
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
         srvHeapDesc.NumDescriptors = 1 * framesInFlight;
         srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         srvHeapDesc.NodeMask = 0;
 
-        EngineCore::GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvHeap));
+        EngineRenderContext::GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvHeap));
 
         ImGui_ImplDX12_Init(
-            EngineCore::GetDevice(),
+            EngineRenderContext::GetDevice(),
             framesInFlight,
             DXGI_FORMAT_R8G8B8A8_UNORM,
             m_srvHeap.Get(),
@@ -74,9 +75,9 @@ namespace TY::detail
     {
         ImGui::Render();
 
-        EngineCore::GetCommandList()->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
+        EngineRenderContext::GetCommandList()->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
 
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineCore::GetCommandList());
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineRenderContext::GetCommandList());
     }
 
     void EngineImGui::Shutdown()

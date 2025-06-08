@@ -4,6 +4,7 @@
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 #include "detail/EngineCore.h"
+#include "detail/EngineRenderContext.h"
 #include "detail/EngineStateContext.h"
 
 namespace TY
@@ -25,7 +26,7 @@ namespace TY
         vertexBuffer.commandSet();
         indexBuffer.commandSet();
 
-        const auto commandList = EngineCore::GetCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList();
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->DrawIndexedInstanced(indexBuffer.count(), 1, 0, 0, 0);
     }

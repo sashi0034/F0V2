@@ -170,6 +170,7 @@
     <ClInclude Include="TY\detail\EngineImGUI.h" />
     <ClInclude Include="TY\detail\EngineKeyboard.h" />
     <ClInclude Include="TY\detail\EnginePresetAsset.h" />
+    <ClInclude Include="TY\detail\EngineRenderContext.h" />
     <ClInclude Include="TY\detail\EngineStateContext.h" />
     <ClInclude Include="TY\detail\EngineTimer.h" />
     <ClInclude Include="TY\detail\EngineWindow.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="TY\detail\EngineImGUI.cpp" />
     <ClCompile Include="TY\detail\EngineKeyboard.cpp" />
     <ClCompile Include="TY\detail\EnginePresetAsset.cpp" />
+    <ClCompile Include="TY\detail\EngineRenderContext.cpp" />
     <ClCompile Include="TY\detail\EngineStateContext.cpp" />
     <ClCompile Include="TY\detail\EngineTimer.cpp" />
     <ClCompile Include="TY\detail\EngineWindow.cpp" />

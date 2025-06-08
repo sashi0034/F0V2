@@ -3,6 +3,7 @@
 
 #include "AssertObject.h"
 #include "detail/EngineCore.h"
+#include "detail/EngineRenderContext.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -23,7 +24,7 @@ struct Buffer3D::Impl
 
     Impl(const Buffer3DParams& params)
     {
-        const auto device = EngineCore::GetDevice();
+        const auto device = EngineRenderContext::GetDevice();
 
         D3D12_HEAP_PROPERTIES heapProperties = {};
         heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -98,7 +99,7 @@ struct Buffer3D::Impl
 
     void Draw() const
     {
-        const auto commandList = EngineCore::GetCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList();
 
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
