@@ -39,9 +39,9 @@ struct EngineRenderContextImpl
     Point m_sceneSize{defaultSceneSize};
     ColorF32 m_clearColor{defaultClearColor};
 
-    ID3D12Device* m_device{};
-    IDXGIFactory6* m_dxgiFactory{};
-    IDXGIAdapter* m_adapter{};
+    ComPtr<ID3D12Device> m_device;
+    ComPtr<IDXGIFactory6> m_dxgiFactory;
+    ComPtr<IDXGIAdapter> m_adapter;
     D3D_FEATURE_LEVEL m_featureLevel{};
 
     CommandList m_commandList{};
@@ -59,10 +59,10 @@ struct EngineRenderContextImpl
 #endif
 
         // デバッグフラグ有効で DXGI ファクトリを生成
-        if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&m_dxgiFactory))))
+        if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf()))))
         {
             // 失敗した場合、デバッグフラグ無効で DXGI ファクトリを生成
-            if (FAILED(CreateDXGIFactory2(0, IID_PPV_ARGS(&m_dxgiFactory))))
+            if (FAILED(CreateDXGIFactory2(0, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf()))))
             {
                 LogError.writeln("CreateDXGIFactory2() failed");
                 return;
@@ -70,17 +70,17 @@ struct EngineRenderContextImpl
         }
 
         // 利用可能なアダプタを取得
-        std::vector<IDXGIAdapter*> availableAdapters{};
+        std::vector<ComPtr<IDXGIAdapter>> availableAdapters{};
         {
-            IDXGIAdapter* tmp = nullptr;
-            for (int i = 0; m_dxgiFactory->EnumAdapters(i, &tmp) != DXGI_ERROR_NOT_FOUND; ++i)
+            ComPtr<IDXGIAdapter> tmp = nullptr;
+            for (int i = 0; m_dxgiFactory->EnumAdapters(i, tmp.ReleaseAndGetAddressOf()) != DXGI_ERROR_NOT_FOUND; ++i)
             {
                 availableAdapters.push_back(tmp);
             }
         }
 
         // 最適なアダプタを選択
-        for (const auto adapter : availableAdapters)
+        for (const auto& adapter : availableAdapters)
         {
             DXGI_ADAPTER_DESC desc = {};
             adapter->GetDesc(&desc);
@@ -108,7 +108,7 @@ struct EngineRenderContextImpl
 
         for (const auto level : levels)
         {
-            if (D3D12CreateDevice(m_adapter, level, IID_PPV_ARGS(&m_device)) == S_OK)
+            if (SUCCEEDED(D3D12CreateDevice(m_adapter.Get(), level, IID_PPV_ARGS(m_device.ReleaseAndGetAddressOf()))))
             {
                 m_featureLevel = level;
                 break;
@@ -226,7 +226,7 @@ namespace TY::detail
     ID3D12Device* EngineRenderContext::GetDevice()
     {
         assert(s_renderContext.m_device);
-        return s_renderContext.m_device;
+        return s_renderContext.m_device.Get();
     }
 
     ID3D12GraphicsCommandList* EngineRenderContext::GetCommandList()
