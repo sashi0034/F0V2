@@ -6,6 +6,7 @@
 
 #include "CommandList.h"
 #include "EngineWindow.h"
+#include "TY/Logger.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -33,6 +34,8 @@ namespace
 
 struct EngineRenderContextImpl
 {
+    bool m_valid{};
+
     Point m_sceneSize{defaultSceneSize};
     ColorF32 m_clearColor{defaultClearColor};
 
@@ -61,7 +64,8 @@ struct EngineRenderContextImpl
             // 失敗した場合、デバッグフラグ無効で DXGI ファクトリを生成
             if (FAILED(CreateDXGIFactory2(0, IID_PPV_ARGS(&m_dxgiFactory))))
             {
-                throw std::runtime_error("failed to create DXGI Factory");
+                LogError.writeln("CreateDXGIFactory2() failed");
+                return;
             }
         }
 
@@ -90,7 +94,8 @@ struct EngineRenderContextImpl
 
         if (not m_adapter)
         {
-            throw std::runtime_error("failed to select adapter");
+            LogError.writeln("No suitable adapter found");
+            return;
         }
 
         // Direct3D デバイスの初期化
@@ -109,6 +114,8 @@ struct EngineRenderContextImpl
                 break;
             }
         }
+
+        LogInfo.writeln(std::format("Direct3D feature level: {:08x}", static_cast<int>(m_featureLevel)));
 
         // コマンドリストの作成
         m_commandList = CommandList{CommandListType::Direct};
@@ -139,7 +146,8 @@ struct EngineRenderContextImpl
                 reinterpret_cast<IDXGISwapChain1**>(m_swapChain.GetAddressOf()));
             FAILED(hr))
         {
-            throw std::runtime_error("failed to create swap chain");
+            LogError.writeln(std::format("CreateSwapChainForHwnd() failed with error code: {}", static_cast<int>(hr)));
+            return;
         }
 
         // バックバッファ作成
@@ -151,6 +159,8 @@ struct EngineRenderContextImpl
             },
             m_swapChain.Get()
         };
+
+        m_valid = true;
     }
 
     void NewFrame()
