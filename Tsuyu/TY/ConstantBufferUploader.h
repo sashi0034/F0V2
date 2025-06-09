@@ -1,14 +1,19 @@
 ﻿#pragma once
 #include "Array.h"
+#include "Empty.h"
 
 namespace TY
 {
     class ConstantBufferUploader_impl
     {
     public:
-        ConstantBufferUploader_impl() = default;
+        ConstantBufferUploader_impl(Empty_t)
+        {
+        }
 
         ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t count);
+
+        bool isEmpty() const;
 
         void upload(const void* data, uint32_t count) const;
 
@@ -29,11 +34,11 @@ namespace TY
     public:
         static constexpr uint32_t sizeInBytes = sizeof(T);
 
-        ConstantBufferUploader() : ConstantBufferUploader_impl()
+        ConstantBufferUploader(Empty_t) : ConstantBufferUploader_impl(Empty)
         {
         }
 
-        ConstantBufferUploader(int count) : ConstantBufferUploader_impl(sizeInBytes, count)
+        ConstantBufferUploader(int count = 1) : ConstantBufferUploader_impl(sizeInBytes, count)
         {
         }
 

@@ -85,6 +85,11 @@ namespace TY
     {
     }
 
+    bool ConstantBufferUploader_impl::isEmpty() const
+    {
+        return not p_impl;
+    }
+
     void ConstantBufferUploader_impl::upload(const void* data, uint32_t count) const
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), count);

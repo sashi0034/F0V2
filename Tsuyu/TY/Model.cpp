@@ -188,7 +188,7 @@ namespace
     PipelineState makePipelineState(const ModelParams& params)
     {
         auto descriptorTable = baseDescriptorTable;
-        if (params.cb2.has_value())
+        if (not params.cb2.isEmpty())
         {
             descriptorTable.push_back({1, 0, 0});;
         }
@@ -231,11 +231,11 @@ struct Model::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
-    ConstantBufferUploader<SceneState_b0> m_cb0{};
+    ConstantBufferUploader<SceneState_b0> m_cb0{Empty};
 
-    ConstantBufferUploader<ModelMaterial_b> m_cb1{};
+    ConstantBufferUploader<ModelMaterial_b> m_cb1{Empty};
 
-    std::optional<ConstantBufferUploader_impl> m_cb2{};
+    ConstantBufferUploader_impl m_cb2{Empty};
 
     Impl(const ModelParams& params) :
         m_modelData(loadObj(params.filename)),
@@ -286,10 +286,10 @@ struct Model::Impl
             .descriptors = {CbSrUaSet{{m_cb0}, {}, {}}, CbSrUaSet{{m_cb1}, {diffuseTextureList}, {}}},
         };
 
-        if (params.cb2.has_value())
+        if (not params.cb2.isEmpty())
         {
             descriptorHeapParam.materialCounts.push_back(1);
-            descriptorHeapParam.descriptors.push_back(CbSrUaSet{{params.cb2.value()}, {}, {}});
+            descriptorHeapParam.descriptors.push_back(CbSrUaSet{{params.cb2}, {}, {}});
         }
 
         m_descriptorHeap = DescriptorHeap(descriptorHeapParam);
@@ -309,7 +309,7 @@ struct Model::Impl
         m_descriptorHeap.CommandSet();
         m_descriptorHeap.CommandSetTable(0);
 
-        if (m_cb2.has_value()) m_descriptorHeap.CommandSetTable(2);
+        if (not m_cb2.isEmpty()) m_descriptorHeap.CommandSetTable(2);
 
         // マテリアル設定
         for (size_t materialId = 0; materialId < m_shapes.size(); ++materialId)

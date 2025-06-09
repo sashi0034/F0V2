@@ -4,6 +4,7 @@
 #include "Title_Phong.h"
 
 #include "LivePPAddon.h"
+#include "TY/ConstantBuffer.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
@@ -57,11 +58,9 @@ struct Title_PointLight_impl
     PixelShader m_modelPS{};
     VertexShader m_modelVS{};
 
-    DirectionLight_cb2 m_planeLight{};
-    ConstantBufferUploader<DirectionLight_cb2> m_planeLightBuffer{1};
+    ConstantBuffer<DirectionLight_cb2> m_planeLight{};
 
-    DirectionLight_cb2 m_directionLight{};
-    ConstantBufferUploader<DirectionLight_cb2> m_directionLightBuffer{1};
+    ConstantBuffer<DirectionLight_cb2> m_directionLight{};
 
     Model m_planeModel{};
     Model m_robotModel{};
@@ -80,7 +79,7 @@ struct Title_PointLight_impl
                 .filename = "asset/model/dirty_plane.obj",
                 .ps = m_modelPS,
                 .vs = m_modelVS,
-                .cb2 = m_planeLightBuffer
+                .cb2 = m_planeLight
             }
         };
 
@@ -89,7 +88,7 @@ struct Title_PointLight_impl
                 .filename = "asset/model/robot_head.obj", // "asset/model/cinnamon.obj"
                 .ps = m_modelPS,
                 .vs = m_modelVS,
-                .cb2 = m_directionLightBuffer
+                .cb2 = m_directionLight
             }
         };
     }
@@ -101,9 +100,9 @@ struct Title_PointLight_impl
         m_worldMat = m_worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
 
         {
-            m_planeLight.lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
-            m_planeLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
-            m_planeLightBuffer.upload(m_planeLight);
+            m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
+            m_planeLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
+            m_planeLight.upload();
 
             m_planeModel.draw();
         }
@@ -111,9 +110,9 @@ struct Title_PointLight_impl
         {
             const Transformer3D t3d{m_worldMat};
 
-            m_directionLight.lightDirection = m_camera.viewMatrix().forward().normalized();
-            m_directionLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
-            m_directionLightBuffer.upload(m_directionLight);
+            m_directionLight->lightDirection = m_camera.viewMatrix().forward().normalized();
+            m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
+            m_directionLight.upload();
 
             m_robotModel.draw();
         }
@@ -137,9 +136,9 @@ struct Title_PointLight_impl
                         Math::ToDegrees(m_camera.rotation.z));
 
             ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
-                        m_directionLight.lightDirection.x,
-                        m_directionLight.lightDirection.y,
-                        m_directionLight.lightDirection.z);
+                        m_directionLight->lightDirection.x,
+                        m_directionLight->lightDirection.y,
+                        m_directionLight->lightDirection.z);
 
             ImGui::End();
         }

@@ -160,6 +160,7 @@
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\Concepts.h" />
+    <ClInclude Include="TY\ConstantBuffer.h" />
     <ClInclude Include="TY\ConstantBufferUploader.h" />
     <ClInclude Include="TY\detail\CommandList.h" />
     <ClInclude Include="TY\detail\DescriptorHeap.h" />
@@ -178,6 +179,7 @@
     <ClInclude Include="TY\detail\IEngineUpdatable.h" />
     <ClInclude Include="TY\detail\PipelineState.h" />
     <ClInclude Include="TY\detail\ShaderResourceTexture.h" />
+    <ClInclude Include="TY\Empty.h" />
     <ClInclude Include="TY\FileWatcher.h" />
     <ClInclude Include="TY\Graphics3D.h" />
     <ClInclude Include="TY\Image.h" />

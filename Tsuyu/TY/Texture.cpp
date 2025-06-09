@@ -110,7 +110,7 @@ struct Texture::Impl
 
     ComPtr<ID3D12Resource> m_constantBuffer{};
 
-    ConstantBufferUploader<SceneState_b0> m_cb0{};
+    ConstantBufferUploader<SceneState_b0> m_cb0{Empty};
 
     DescriptorHeap m_descriptorHeap{};
 

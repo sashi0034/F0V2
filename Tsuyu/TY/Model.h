@@ -10,7 +10,7 @@ namespace TY
         std::string filename;
         PixelShader ps;
         VertexShader vs;
-        std::optional<ConstantBufferUploader_impl> cb2{};
+        ConstantBufferUploader_impl cb2{Empty};
     };
 
     class Model
