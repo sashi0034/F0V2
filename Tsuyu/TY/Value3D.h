@@ -157,7 +157,8 @@ namespace TY
 
         [[nodiscard]] constexpr Vector3D normalized() const
         {
-            return *this / length();
+            const auto length = this->length();
+            return length == 0 ? Vector3D{} : *this / length;
         }
 
         [[nodiscard]] DirectX::XMFLOAT3 toXMF() const

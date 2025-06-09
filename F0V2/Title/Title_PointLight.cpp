@@ -28,12 +28,12 @@ namespace
         alignas(16) Float3 lightColor{};
     };
 
-    struct CameraTransform
+    struct Pose
     {
         Float3 position{};
         Float3 rotation{}; // Euler angles in radians
 
-        Mat4x4 viewMatrix() const
+        Mat4x4 getMatrix() const
         {
             return Mat4x4::Identity()
                    .rotatedX(rotation.x)
@@ -49,9 +49,7 @@ namespace
 
 struct Title_PointLight_impl
 {
-    Mat4x4 m_worldMat{};
-
-    CameraTransform m_camera{};
+    Pose m_camera{};
 
     Mat4x4 m_projectionMat{};
 
@@ -63,12 +61,12 @@ struct Title_PointLight_impl
     ConstantBuffer<DirectionLight_cb2> m_directionLight{};
 
     Model m_planeModel{};
-    Model m_robotModel{};
+    Model m_fighterModel{};
+
+    Pose m_fighterPose{};
 
     Title_PointLight_impl()
     {
-        m_worldMat = Mat4x4::Identity().rotatedY(45.0_deg);
-
         resetCamera();
 
         m_modelPS = PixelShader{ShaderParams{.filename = shader_lambert, .entryPoint = "PS"}};
@@ -83,21 +81,31 @@ struct Title_PointLight_impl
             }
         };
 
-        m_robotModel = Model{
+        m_fighterModel = Model{
             ModelParams{
-                .filename = "asset/model/robot_head.obj", // "asset/model/cinnamon.obj"
+                .filename = "asset/model/tie_fighter.obj",
                 .ps = m_modelPS,
                 .vs = m_modelVS,
                 .cb2 = m_directionLight
             }
         };
+
+        m_fighterPose.position.y = 3.0f;
     }
 
     void Update()
     {
-        updateCamera();
+        if (not KeyShift.pressed())
+        {
+            updateCamera();
+        }
+        else
+        {
+            const auto poseInput = getPoseInput();
+            m_fighterPose.position += poseInput.position.normalized() * 10.0f * System::DeltaTime();
+        }
 
-        m_worldMat = m_worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
+        m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
 
         {
             m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
@@ -108,13 +116,13 @@ struct Title_PointLight_impl
         }
 
         {
-            const Transformer3D t3d{m_worldMat};
+            const Transformer3D t3d{m_fighterPose.getMatrix()};
 
-            m_directionLight->lightDirection = m_camera.viewMatrix().forward().normalized();
+            m_directionLight->lightDirection = m_camera.getMatrix().forward().normalized();
             m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
             m_directionLight.upload();
 
-            m_robotModel.draw();
+            m_fighterModel.draw();
         }
 
         {
@@ -144,6 +152,22 @@ struct Title_PointLight_impl
         }
 
         {
+            ImGui::Begin("Fighter Pose");
+
+            ImGui::Text("Position: (%.2f, %.2f, %.2f)",
+                        m_fighterPose.position.x,
+                        m_fighterPose.position.y,
+                        m_fighterPose.position.z);
+
+            ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)",
+                        m_fighterPose.rotation.x,
+                        m_fighterPose.rotation.y,
+                        m_fighterPose.rotation.z);
+
+            ImGui::End();
+        }
+
+        {
             ImGui::Begin("System Settings");
 
             static bool s_sleep{};;
@@ -160,8 +184,22 @@ struct Title_PointLight_impl
 
     void resetCamera()
     {
-        m_camera.position = Float3{0.0f, 0.0f, 5.0f};
+        m_camera.position = Float3{0.0f, 0.0f, 10.0f};
         m_camera.rotation = Float3{-Math::PiF / 4.0f, 0.0f, 0.0f};
+    }
+
+    static Pose getPoseInput()
+    {
+        Pose pose{};
+
+        pose.position.x = (KeyD.pressed() ? 1.0f : 0.0f) - (KeyA.pressed() ? 1.0f : 0.0f);
+        pose.position.y = (KeyE.pressed() ? 1.0f : 0.0f) - (KeyX.pressed() ? 1.0f : 0.0f);
+        pose.position.z = (KeyW.pressed() ? 1.0f : 0.0f) - (KeyS.pressed() ? 1.0f : 0.0f);
+
+        pose.rotation.x = (KeyRight.pressed() ? 1.0f : 0.0f) - (KeyLeft.pressed() ? 1.0f : 0.0f);
+        pose.rotation.y = (KeyDown.pressed() ? 1.0f : 0.0f) - (KeyUp.pressed() ? 1.0f : 0.0f);
+
+        return pose;
     }
 
     void updateCamera()
@@ -171,28 +209,25 @@ struct Title_PointLight_impl
             resetCamera();
         }
 
-        constexpr float moveSpeed = 10.0f;
-        constexpr float rotationSpeed = 50.0f;
+        const auto poseInput = getPoseInput();
+        const Float3 moveVector = poseInput.position.normalized();
+        const Float3 rotateVector = poseInput.rotation.normalized();
 
-        Float3 moveVector{};
-        moveVector.x = (KeyA.pressed() ? 1.0f : 0.0f) - (KeyD.pressed() ? 1.0f : 0.0f);
-        moveVector.y = (KeyX.pressed() ? 1.0f : 0.0f) - (KeyE.pressed() ? 1.0f : 0.0f);
-        moveVector.z = (KeyS.pressed() ? 1.0f : 0.0f) - (KeyW.pressed() ? 1.0f : 0.0f);
+        constexpr double moveSpeed = 10.0f;
+        constexpr double rotationSpeed = 50.0f;
+
         if (not moveVector.isZero())
         {
-            m_camera.position += moveVector * moveSpeed * System::DeltaTime();
+            m_camera.position += -moveVector * moveSpeed * System::DeltaTime();
         }
 
-        Float2 rotateVector{};
-        rotateVector.x = (KeyRight.pressed() ? 1.0f : 0.0f) - (KeyLeft.pressed() ? 1.0f : 0.0f);
-        rotateVector.y = (KeyDown.pressed() ? 1.0f : 0.0f) - (KeyUp.pressed() ? 1.0f : 0.0f);
         if (not rotateVector.isZero())
         {
             m_camera.rotation.x += Math::ToRadians(-rotateVector.y * rotationSpeed * System::DeltaTime());
             m_camera.rotation.y += Math::ToRadians(rotateVector.x * rotationSpeed * System::DeltaTime());
         }
 
-        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
+        Graphics3D::SetViewMatrix(m_camera.getMatrix());
 
         m_projectionMat = Mat4x4::PerspectiveFov(
             90.0_deg,
