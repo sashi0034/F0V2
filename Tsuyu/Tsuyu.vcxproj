@@ -160,7 +160,7 @@
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\Concepts.h" />
-    <ClInclude Include="TY\ConstantBuffer.h" />
+    <ClInclude Include="TY\ConstantBufferUploader.h" />
     <ClInclude Include="TY\detail\CommandList.h" />
     <ClInclude Include="TY\detail\DescriptorHeap.h" />
     <ClInclude Include="TY\detail\DescriptorTable.h" />
@@ -242,7 +242,7 @@
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
-    <ClCompile Include="TY\ConstantBuffer.cpp" />
+    <ClCompile Include="TY\ConstantBufferUploader.cpp" />
     <ClCompile Include="TY\detail\CommandList.cpp" />
     <ClCompile Include="TY\detail\DescriptorHeap.cpp" />
     <ClCompile Include="TY\detail\EngineCore.cpp" />

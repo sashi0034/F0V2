@@ -110,7 +110,7 @@ struct Texture::Impl
 
     ComPtr<ID3D12Resource> m_constantBuffer{};
 
-    ConstantBuffer<SceneState_b0> m_cb0{};
+    ConstantBufferUploader<SceneState_b0> m_cb0{};
 
     DescriptorHeap m_descriptorHeap{};
 
@@ -119,7 +119,7 @@ struct Texture::Impl
     {
         m_sr = ShaderResourceTexture{options.source};
 
-        m_cb0 = ConstantBuffer<SceneState_b0>{1};
+        m_cb0 = ConstantBufferUploader<SceneState_b0>{1};
 
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,

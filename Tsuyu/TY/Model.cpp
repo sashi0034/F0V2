@@ -3,7 +3,7 @@
 
 #include "Array.h"
 #include "AssertObject.h"
-#include "ConstantBuffer.h"
+#include "ConstantBufferUploader.h"
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
 #include "Mat4x4.h"
@@ -231,11 +231,11 @@ struct Model::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
-    ConstantBuffer<SceneState_b0> m_cb0{};
+    ConstantBufferUploader<SceneState_b0> m_cb0{};
 
-    ConstantBuffer<ModelMaterial_b> m_cb1{};
+    ConstantBufferUploader<ModelMaterial_b> m_cb1{};
 
-    std::optional<ConstantBuffer_impl> m_cb2{};
+    std::optional<ConstantBufferUploader_impl> m_cb2{};
 
     Impl(const ModelParams& params) :
         m_modelData(loadObj(params.filename)),
@@ -274,9 +274,9 @@ struct Model::Impl
 
         // -----------------------------------------------
 
-        m_cb0 = ConstantBuffer<SceneState_b0>{1};
+        m_cb0 = ConstantBufferUploader<SceneState_b0>{1};
 
-        m_cb1 = ConstantBuffer<ModelMaterial_b>{m_modelData.materials};
+        m_cb1 = ConstantBufferUploader<ModelMaterial_b>{m_modelData.materials};
 
         // -----------------------------------------------
 

@@ -39,7 +39,7 @@ struct App
     VertexShader m_modelVS{};
 
     DirectionLight_cb2 m_directionLight{};
-    ConstantBuffer<DirectionLight_cb2> m_directionLightBuffer{1};
+    ConstantBufferUploader<DirectionLight_cb2> m_directionLightBuffer{1};
 
     Model m_model{};
 

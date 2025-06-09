@@ -58,10 +58,10 @@ struct Title_PointLight_impl
     VertexShader m_modelVS{};
 
     DirectionLight_cb2 m_planeLight{};
-    ConstantBuffer<DirectionLight_cb2> m_planeLightBuffer{1};
+    ConstantBufferUploader<DirectionLight_cb2> m_planeLightBuffer{1};
 
     DirectionLight_cb2 m_directionLight{};
-    ConstantBuffer<DirectionLight_cb2> m_directionLightBuffer{1};
+    ConstantBufferUploader<DirectionLight_cb2> m_directionLightBuffer{1};
 
     Model m_planeModel{};
     Model m_robotModel{};

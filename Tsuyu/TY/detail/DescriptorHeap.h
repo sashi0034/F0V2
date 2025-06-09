@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
 #include "ShaderResourceTexture.h"
-#include "TY/ConstantBuffer.h"
+#include "TY/ConstantBufferUploader.h"
 
 namespace TY::detail
 {
@@ -12,7 +12,7 @@ namespace TY::detail
 
     struct CbSrUaSet
     {
-        Array<ConstantBuffer_impl> cb; // Array::size() = cbvCount, (ConstantBuffer::count = materialCount)
+        Array<ConstantBufferUploader_impl> cb; // Array::size() = cbvCount, (ConstantBuffer::count = materialCount)
         Array<Array<ShaderResourceTexture>> sr; // srvCount * materialCount
         Array<Array<UnorderedAccessResource>> ua; // uavCount * materialCount
     };

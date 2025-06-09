@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ConstantBuffer.h"
+#include "ConstantBufferUploader.h"
 
 #include "AssertObject.h"
 #include "Utils.h"
@@ -13,7 +13,7 @@ namespace
 {
 }
 
-struct ConstantBuffer_impl::Impl
+struct ConstantBufferUploader_impl::Impl
 {
     uint32_t m_sizeInBytes;
     uint32_t m_count;
@@ -80,27 +80,27 @@ struct ConstantBuffer_impl::Impl
 
 namespace TY
 {
-    ConstantBuffer_impl::ConstantBuffer_impl(uint32_t sizeInBytes, uint32_t count)
+    ConstantBufferUploader_impl::ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t count)
         : p_impl(std::make_shared<Impl>(sizeInBytes, count))
     {
     }
 
-    void ConstantBuffer_impl::upload(const void* data, uint32_t count) const
+    void ConstantBufferUploader_impl::upload(const void* data, uint32_t count) const
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), count);
     }
 
-    uint32_t ConstantBuffer_impl::count() const
+    uint32_t ConstantBufferUploader_impl::count() const
     {
         return p_impl ? p_impl->m_count : 0;
     }
 
-    size_t ConstantBuffer_impl::alignedSize() const
+    size_t ConstantBufferUploader_impl::alignedSize() const
     {
         return p_impl ? p_impl->m_alignedSize : 0;
     }
 
-    uint64_t ConstantBuffer_impl::bufferLocation() const
+    uint64_t ConstantBufferUploader_impl::bufferLocation() const
     {
         return p_impl ? p_impl->m_cb->GetGPUVirtualAddress() : 0;
     }

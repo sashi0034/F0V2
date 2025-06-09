@@ -43,7 +43,7 @@ struct App
     VertexShader m_modelVS{};
 
     PhongLight_cb2 m_directionLight{};
-    ConstantBuffer<PhongLight_cb2> m_directionLightBuffer{1};
+    ConstantBufferUploader<PhongLight_cb2> m_directionLightBuffer{1};
 
     Model m_model{};
 

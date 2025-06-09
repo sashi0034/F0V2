@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Array.h"
-#include "ConstantBuffer.h"
+#include "ConstantBufferUploader.h"
 #include "Shader.h"
 
 namespace TY
@@ -10,7 +10,7 @@ namespace TY
         std::string filename;
         PixelShader ps;
         VertexShader vs;
-        std::optional<ConstantBuffer_impl> cb2{};
+        std::optional<ConstantBufferUploader_impl> cb2{};
     };
 
     class Model
