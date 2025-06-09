@@ -71,6 +71,20 @@ namespace
         Array<std::string> materialNames{};
         Array<std::string> materialDiffuseTextures{};
         Array<ModelMaterial_b> materials{};
+
+        ShapeData& takeByMaterialIndex(uint16_t materialIndex)
+        {
+            const int index = shapes.indexOf([&](const ShapeData& shape)
+            {
+                return shape.materialIndex == materialIndex;
+            });
+
+            if (index != -1) return shapes[index];
+
+            shapes.emplace_back();
+            shapes.back().materialIndex = materialIndex;
+            return shapes.back();
+        }
     };
 
     ModelData loadObj(const std::string& filename)
@@ -111,16 +125,21 @@ namespace
         ModelData modelData{};
         for (const auto& shape : shapes)
         {
-            ShapeData shapeData{};
-            shapeData.materialIndex = shape.mesh.material_ids.empty() ? 0 : shape.mesh.material_ids[0];
+            if (shape.mesh.num_face_vertices.empty()) continue;;
 
             std::unordered_map<IndexKey, unsigned int, IndexKeyHasher> indexMap{};
 
+            ShapeData* shapeData{nullptr};
             size_t indexOffset = 0;
             for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++)
             {
-                const int fv = shape.mesh.num_face_vertices[f]; // 1つの面の頂点数（三角形なら3）
+                if (not shapeData || shapeData->materialIndex != shape.mesh.material_ids[f])
+                {
+                    shapeData = &modelData.takeByMaterialIndex(shape.mesh.material_ids[f]);
+                    assert(shapeData->materialIndex == shape.mesh.material_ids[f]);
+                }
 
+                const int fv = shape.mesh.num_face_vertices[f]; // 1 つの面の頂点数（三角形なら 3）
                 for (int v = 0; v < fv; ++v)
                 {
                     const auto& index = shape.mesh.indices[indexOffset + v];
@@ -143,21 +162,19 @@ namespace
                             vertex.normal = normals[index.normal_index];
                         }
 
-                        const auto newIndex = shapeData.vertexBuffer.size();
-                        shapeData.vertexBuffer.push_back(vertex);
+                        const auto newIndex = shapeData->vertexBuffer.size();
+                        shapeData->vertexBuffer.push_back(vertex);
                         indexMap[key] = newIndex;
-                        shapeData.indexBuffer.push_back(newIndex);
+                        shapeData->indexBuffer.push_back(newIndex);
                     }
                     else
                     {
-                        shapeData.indexBuffer.push_back(iter->second);
+                        shapeData->indexBuffer.push_back(iter->second);
                     }
                 }
 
                 indexOffset += fv;
             }
-
-            modelData.shapes.push_back(shapeData);
         }
 
         // Material 情報の変換
