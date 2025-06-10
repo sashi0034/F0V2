@@ -39,5 +39,7 @@ namespace TY
     {
         Array<ModelShape> shapes{};
         Array<ModelMaterial> materials{};
+
+        ModelShape& takeShapeByMaterialIndex(uint16_t materialIndex);
     };
 }

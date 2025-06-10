@@ -31,22 +31,6 @@ namespace
         }
     };
 
-    ModelShape& takeShapeByMaterialIndex(ModelData& modelData, uint16_t materialIndex)
-    {
-        for (auto& shape : modelData.shapes)
-        {
-            if (shape.materialIndex == materialIndex)
-            {
-                return shape;
-            }
-        }
-
-        modelData.shapes.emplace_back();
-        auto& newShape = modelData.shapes.back();
-        newShape.materialIndex = materialIndex;
-        return newShape;
-    }
-
     ModelData loadWavefront(const std::string& filename)
     {
         tinyobj::attrib_t attrib{};
@@ -95,7 +79,7 @@ namespace
             {
                 if (not shapeData || shapeData->materialIndex != shape.mesh.material_ids[f])
                 {
-                    shapeData = &takeShapeByMaterialIndex(modelData, shape.mesh.material_ids[f]);
+                    shapeData = &modelData.takeShapeByMaterialIndex(shape.mesh.material_ids[f]);
                     assert(shapeData->materialIndex == shape.mesh.material_ids[f]);
                 }
 

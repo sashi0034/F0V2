@@ -22,6 +22,14 @@ namespace TY
         {
         }
 
+        constexpr ColorF32(double r, double g, double b, double a = 1.0f) :
+            r(static_cast<double>(r)),
+            g(static_cast<double>(g)),
+            b(static_cast<double>(b)),
+            a(static_cast<double>(a))
+        {
+        }
+
         constexpr ColorF32(float color, float alpha = 1.0f) :
             r(color),
             g(color),

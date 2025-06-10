@@ -4,6 +4,24 @@
 
 namespace TY
 {
+    template <typename T>
+    constexpr T Min(T a, T b) noexcept
+    {
+        return (a < b) ? a : b;
+    }
+
+    template <typename T>
+    constexpr T Max(T a, T b) noexcept
+    {
+        return (a > b) ? a : b;
+    }
+
+    template <typename T>
+    constexpr T Abs(T value) noexcept
+    {
+        return (value < 0) ? -value : value;
+    }
+
     namespace Math
     {
         template <FloatingPoint Float>

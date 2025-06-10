@@ -181,6 +181,7 @@
     <ClInclude Include="TY\Empty.h" />
     <ClInclude Include="TY\FileWatcher.h" />
     <ClInclude Include="TY\Graphics3D.h" />
+    <ClInclude Include="TY\HSV.h" />
     <ClInclude Include="TY\Image.h" />
     <ClInclude Include="TY\IndexBuffer.h" />
     <ClInclude Include="TY\ITimestamp.h" />
@@ -263,6 +264,7 @@
     <ClCompile Include="TY\detail\PipelineState.cpp" />
     <ClCompile Include="TY\FileWatcher.cpp" />
     <ClCompile Include="TY\Graphics3D.cpp" />
+    <ClCompile Include="TY\HSV.cpp" />
     <ClCompile Include="TY\Image.cpp" />
     <ClCompile Include="TY\IndexBuffer.cpp" />
     <ClCompile Include="TY\KeyboardInput.cpp" />
@@ -271,6 +273,7 @@
     <ClCompile Include="TY\Mat4x4.cpp" />
     <ClCompile Include="TY\Math.cpp" />
     <ClCompile Include="TY\Model.cpp" />
+    <ClCompile Include="TY\ModelData.cpp" />
     <ClCompile Include="TY\ModelLoader.cpp" />
     <ClCompile Include="TY\Rect.cpp" />
     <ClCompile Include="TY\RenderTarget.cpp" />
