@@ -1,8 +1,7 @@
 ﻿#include "pch.h"
 #include "IndexBuffer.h"
 
-#include "AssertObject.h"
-#include "detail/EngineCore.h"
+#include "Logger.h"
 #include "detail/EngineRenderContext.h"
 
 using namespace TY;
@@ -10,6 +9,7 @@ using namespace TY::detail;
 
 struct IndexBuffer::Impl
 {
+    bool m_valid{};
     ComPtr<ID3D12Resource> m_indexBuffer{};
     D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
 
@@ -21,28 +21,38 @@ struct IndexBuffer::Impl
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(index_type) * count);
 
         // リソース作成
-        AssertWin32{"failed to create buffer"sv}
-            | device->CreateCommittedResource(
+        if (const auto hr = device->CreateCommittedResource(
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
-                IID_PPV_ARGS(&m_indexBuffer)
-            );
+                IID_PPV_ARGS(&m_indexBuffer));
+            FAILED(hr))
+        {
+            LogError.writeln(L"IndexBuffer: Failed to create buffer");
+            return;
+        }
 
         m_indexBuffer->SetName(L"IndexBuffer");
 
         m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
         m_indexBufferView.SizeInBytes = resourceDesc.Width;
         m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+
+        m_valid = true;
     }
 
     void Upload(const Array<index_type>& indices)
     {
         index_type* indexMap{};
-        AssertWin32{"failed to map index buffer"sv}
-            | m_indexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&indexMap));
+
+        if (const auto hr = m_indexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&indexMap));
+            FAILED(hr))
+        {
+            LogError.writeln(L"IndexBuffer: Failed to map index buffer");
+            return;
+        }
 
         std::ranges::copy(indices, indexMap);
 
@@ -64,10 +74,21 @@ namespace TY
 
     IndexBuffer::IndexBuffer(int count) : p_impl(std::make_shared<Impl>(count))
     {
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+            return;
+        }
     }
 
     IndexBuffer::IndexBuffer(const Array<index_type>& indices) : p_impl(std::make_shared<Impl>(indices.size()))
     {
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+            return;
+        }
+
         p_impl->Upload(indices);
     }
 

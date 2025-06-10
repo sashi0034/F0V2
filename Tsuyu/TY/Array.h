@@ -10,6 +10,12 @@ namespace TY
 
         using std::vector<Type>::vector;
 
+        Array append(const Array& other)
+        {
+            this->insert(this->end(), other.begin(), other.end());
+            return *this;
+        }
+
         template <class Fty, std::enable_if_t<std::is_invocable_r_v<bool, Fty, Type>>* = nullptr>
         [[nodiscard]]
         Array filter(Fty f) const
