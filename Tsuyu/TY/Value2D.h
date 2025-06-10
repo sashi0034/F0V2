@@ -64,6 +64,11 @@ namespace TY
             return {x / s, y / s};
         }
 
+        [[nodiscard]] constexpr Value2D operator %(value_type s) const noexcept
+        {
+            return {x % s, y % s};
+        }
+
         [[nodiscard]] constexpr Value2D withX(value_type newX) const noexcept
         {
             return {newX, y};

@@ -80,6 +80,16 @@ namespace
 
 namespace TY
 {
+    ShaderParams ShaderParams::PS(const std::string& filename, const std::string& entryPoint)
+    {
+        return ShaderParams{.filename = filename, .entryPoint = entryPoint,};
+    }
+
+    ShaderParams ShaderParams::VS(const std::string& filename, const std::string& entryPoint)
+    {
+        return ShaderParams{.filename = filename, .entryPoint = entryPoint,};
+    }
+
     PixelShader::PixelShader(const ShaderParams& params)
         : p_impl{std::make_shared<Shader_impl>(params, "ps_5_0"sv)}
     {

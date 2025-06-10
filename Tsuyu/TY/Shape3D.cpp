@@ -72,4 +72,43 @@ namespace TY
         data.shapes.push_back(std::move(shape));
         return data;
     }
+
+    ModelData Shape3D::TexturePlane(const ShaderResourceTexture& texture, const Float2& size)
+    {
+        ModelData data;
+
+        ModelMaterialParameters params;
+        params.ambient = {0.1f, 0.1f, 0.1f};
+        params.diffuse = {1.0f, 1.0f, 1.0f};
+        params.specular = {1.0f, 1.0f, 1.0f};
+        params.shininess = 32.0f;
+
+        data.materials.push_back({"Texture", params, texture});
+
+        ModelShape shape;
+        shape.materialIndex = 0;
+
+        // 頂点生成（表）
+        shape.vertexBuffer = {
+            {{-size.x / 2, 0, -size.y / 2}, {0, 0, -1}, {0, 1}}, // 0
+            {{size.x / 2, 0, -size.y / 2}, {0, 0, -1}, {1, 1}}, // 1
+            {{-size.x / 2, 0, size.y / 2}, {0, 0, -1}, {0, 0}}, // 2
+            {{size.x / 2, 0, size.y / 2}, {0, 0, -1}, {1, 0}}, // 3
+
+            // 裏面用の頂点（法線とUV反転）
+            {{-size.x / 2, 0, -size.y / 2,}, {0, 0, 1}, {0, 1}}, // 4
+            {{-size.x / 2, 0, size.y / 2,}, {0, 0, 1}, {0, 0}}, // 5
+            {{size.x / 2, 0, -size.y / 2,}, {0, 0, 1}, {1, 1}}, // 6
+            {{size.x / 2, 0, size.y / 2,}, {0, 0, 1}, {1, 0}}, // 7
+        };
+
+        // インデックス生成（表 + 裏）
+        shape.indexBuffer = {
+            0, 1, 2, 2, 1, 3, // 表
+            4, 5, 6, 6, 5, 7 // 裏（反時計回り）
+        };
+
+        data.shapes.push_back(std::move(shape));
+        return data;
+    }
 }

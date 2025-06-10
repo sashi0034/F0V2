@@ -46,6 +46,31 @@ namespace
         }
     };
 
+    ShaderResourceTexture makeGridPlane(
+        const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
+    {
+        Image image{size, backColor};
+        const Size padding = (size % lineSpacing) / 2;
+
+        for (int x = padding.x; x < size.x; x += lineSpacing)
+        {
+            for (int y = 0; y < size.y; y++)
+            {
+                image[Point{x, y}] = lineColor;
+            }
+        }
+
+        for (int y = padding.y; y < size.y; y += lineSpacing)
+        {
+            for (int x = 0; x < size.x; x++)
+            {
+                image[Point{x, y}] = lineColor;
+            }
+        }
+
+        return ShaderResourceTexture{image};
+    }
+
     const std::string shader_lambert = "asset/shader/lambert.hlsl";
 }
 
@@ -64,6 +89,8 @@ struct Title_PointLight_impl
 
     Model m_planeModel{};
 
+    Model m_gridPlaneModel{};
+
     Model m_fighterModel{};
     Pose m_fighterPose{};
 
@@ -74,23 +101,35 @@ struct Title_PointLight_impl
     {
         resetCamera();
 
-        m_modelPS = PixelShader{ShaderParams{.filename = shader_lambert, .entryPoint = "PS"}};
-        m_modelVS = VertexShader{ShaderParams{.filename = shader_lambert, .entryPoint = "VS"}};
+        const PixelShader defaultPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
+        const VertexShader defaultVS{ShaderParams::VS("asset/shader/model_vertex.hlsl")};
+
+        const PixelShader customPS{ShaderParams{.filename = shader_lambert, .entryPoint = "PS"}};
+        const VertexShader customVS{ShaderParams{.filename = shader_lambert, .entryPoint = "VS"}};
 
         m_planeModel = Model{
             ModelParams{
                 .data = ModelLoader::Load("asset/model/dirty_plane.obj"),
-                .ps = m_modelPS,
-                .vs = m_modelVS,
+                .ps = customPS,
+                .vs = customVS,
                 .cb2 = m_planeLight
             }
+        };
+
+        const auto gridPlaneTexture = makeGridPlane(
+            Size{1024, 1024}, 32, ColorF32{0.8}, ColorF32{0.9});
+        m_gridPlaneModel = Model{
+            ModelParams{}
+            .setData(Shape3D::TexturePlane(gridPlaneTexture, Float2{100.0f, 100.0f}))
+            .setShaders(defaultPS, defaultVS)
+            .setCB2(m_planeLight)
         };
 
         m_fighterModel = Model{
             ModelParams{
                 .data = ModelLoader::Load("asset/model/tie_fighter.obj"),
-                .ps = m_modelPS,
-                .vs = m_modelVS,
+                .ps = customPS,
+                .vs = customVS,
                 .cb2 = m_directionLight
             }
         };
@@ -100,7 +139,7 @@ struct Title_PointLight_impl
         m_sphereModel = Model{
             ModelParams{}
             .setData(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
-            .setShaders(m_modelPS, m_modelVS)
+            .setShaders(customPS, customVS)
             .setCB2(m_directionLight)
         };
 
@@ -121,17 +160,24 @@ struct Title_PointLight_impl
 
         m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
 
-        {
-            m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
-            m_planeLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-            m_planeLight.upload();
-
-            m_planeModel.draw();
-        }
-
         m_directionLight->lightDirection = m_camera.getMatrix().forward().normalized();
         m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
         m_directionLight.upload();
+
+        m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
+        m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
+        m_planeLight.upload();
+
+        {
+            m_planeModel.draw();
+        }
+
+        {
+            Pose pose{};
+            pose.position.y = -10.0f;
+            const Transformer3D t3d{pose.getMatrix()};
+            m_gridPlaneModel.draw();
+        }
 
         {
             const Transformer3D t3d{m_fighterPose.getMatrix()};

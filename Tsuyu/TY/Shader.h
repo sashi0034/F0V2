@@ -9,6 +9,10 @@ namespace TY
     {
         std::string filename;
         std::string entryPoint;
+
+        static ShaderParams PS(const std::string& filename, const std::string& entryPoint = "PS");
+
+        static ShaderParams VS(const std::string& filename, const std::string& entryPoint = "VS");
     };
 
     struct Shader_impl;
