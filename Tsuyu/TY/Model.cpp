@@ -50,7 +50,7 @@ namespace
         }
     };
 
-    struct ModelMaterial_b
+    struct ModelMaterial_b1
     {
         alignas(16) Float3 ambient; // アンビエント色
         alignas(16) Float3 diffuse; // 拡散反射色
@@ -65,12 +65,12 @@ namespace
         uint16_t materialIndex{};
     };
 
-    struct ModelData
+    struct ModelDataImpl
     {
         Array<ShapeData> shapes{};
         Array<std::string> materialNames{};
         Array<std::string> materialDiffuseTextures{};
-        Array<ModelMaterial_b> materials{};
+        Array<ModelMaterial_b1> materials{};
 
         ShapeData& takeByMaterialIndex(uint16_t materialIndex)
         {
@@ -87,7 +87,7 @@ namespace
         }
     };
 
-    ModelData loadObj(const std::string& filename)
+    ModelDataImpl loadObj(const std::string& filename)
     {
         tinyobj::attrib_t attrib{};
         Array<tinyobj::shape_t> shapes{};
@@ -122,7 +122,7 @@ namespace
         }
 
         // 面データの取得
-        ModelData modelData{};
+        ModelDataImpl modelData{};
         for (const auto& shape : shapes)
         {
             if (shape.mesh.num_face_vertices.empty()) continue;;
@@ -186,7 +186,7 @@ namespace
                                                             ? ""
                                                             : baseDir + "/" + m.diffuse_texname);
 
-            ModelMaterial_b modelMat;
+            ModelMaterial_b1 modelMat;
             modelMat.ambient = Float3(m.ambient[0], m.ambient[1], m.ambient[2]);
             modelMat.diffuse = Float3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
             modelMat.specular = Float3(m.specular[0], m.specular[1], m.specular[2]);
@@ -242,7 +242,7 @@ namespace
 
 struct Model::Impl
 {
-    ModelData m_modelData{};
+    ModelDataImpl m_modelData{};
     Array<Array<ShapeBuffer>> m_shapes{};
     PipelineState m_pipelineState;
 
@@ -250,7 +250,7 @@ struct Model::Impl
 
     ConstantBufferUploader<SceneState_b0> m_cb0{Empty};
 
-    ConstantBufferUploader<ModelMaterial_b> m_cb1{Empty};
+    ConstantBufferUploader<ModelMaterial_b1> m_cb1{Empty};
 
     ConstantBufferUploader_impl m_cb2{Empty};
 
@@ -278,7 +278,7 @@ struct Model::Impl
             if (not textureMap.contains(texturePath))
             {
                 const auto texture = texturePath.empty()
-                                         ? EnginePresetAsset::GetWhiteTexture()
+                                         ? ShaderResourceTexture{}
                                          : ShaderResourceTexture{texturePath};
                 textureMap[texturePath] = texture;
                 diffuseTextureList.push_back(texture);
@@ -293,7 +293,7 @@ struct Model::Impl
 
         m_cb0 = ConstantBufferUploader<SceneState_b0>{1};
 
-        m_cb1 = ConstantBufferUploader<ModelMaterial_b>{m_modelData.materials};
+        m_cb1 = ConstantBufferUploader<ModelMaterial_b1>{m_modelData.materials};
 
         // -----------------------------------------------
 

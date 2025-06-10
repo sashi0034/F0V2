@@ -2,6 +2,7 @@
 #include "DescriptorHeap.h"
 
 #include "EngineCore.h"
+#include "EnginePresetAsset.h"
 #include "EngineRenderContext.h"
 #include "TY/AssertObject.h"
 
@@ -104,14 +105,17 @@ struct DescriptorHeap::Impl
                     AssertWin32{"constant buffer elements count mismatch"sv}
                         | sr.size() == params.materialCounts[tableId];
 
+                    const auto materialSR =
+                        sr[materialId].isEmpty() ? EnginePresetAsset::GetWhiteTexture() : sr[materialId];;
+
                     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-                    srvDesc.Format = sr[materialId].getFormat();
+                    srvDesc.Format = materialSR.getFormat();
                     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
                     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
                     srvDesc.Texture2D.MipLevels = 1;
 
                     EngineRenderContext::GetDevice()->CreateShaderResourceView(
-                        sr[materialId].getResource(), &srvDesc, heapHandle);
+                        materialSR.getResource(), &srvDesc, heapHandle);
 
                     heapHandle.ptr += incrementSize;
                 }

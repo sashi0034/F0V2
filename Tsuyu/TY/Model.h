@@ -20,11 +20,6 @@ namespace TY
 
         Model(const ModelParams& params);
 
-        Model(const std::string& filename, const PixelShader& ps, const VertexShader& vs)
-            : Model{ModelParams{filename, ps, vs}}
-        {
-        }
-
         void draw() const;
 
     private:
