@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
-#include "ShaderResourceTexture.h"
+#include "TY/ShaderResourceTexture.h"
 #include "TY/ConstantBufferUploader.h"
 
 namespace TY::detail

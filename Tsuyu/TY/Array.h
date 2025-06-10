@@ -10,6 +10,35 @@ namespace TY
 
         using std::vector<Type>::vector;
 
+        template <class Fty, std::enable_if_t<std::is_invocable_r_v<bool, Fty, Type>>* = nullptr>
+        [[nodiscard]]
+        Array filter(Fty f) const
+        {
+            Array<Type> result{};
+            for (const auto& item : *this)
+            {
+                if (f(item))
+                {
+                    result.push_back(item);
+                }
+            }
+
+            return result;
+        }
+
+        template <class Fty, std::enable_if_t<std::is_invocable_v<Fty, Type>>* = nullptr>
+        auto map(Fty f) const
+        {
+            Array<std::invoke_result_t<Fty, Type>> result{};
+            result.reserve(this->size());
+            for (const auto& item : *this)
+            {
+                result.push_back(f(item));
+            }
+
+            return result;
+        }
+
         int indexOf(const Type& value) const
         {
             for (size_t i = 0; i < this->size(); ++i)

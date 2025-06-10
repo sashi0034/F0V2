@@ -8,13 +8,10 @@
 #include "Mat3x2.h"
 #include "Rect.h"
 #include "RenderTarget.h"
-#include "Scene.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
-#include "detail/EngineCore.h"
 #include "detail/EngineStateContext.h"
 #include "detail/PipelineState.h"
-#include "detail/ShaderResourceTexture.h"
 
 using namespace TY;
 using namespace TY::detail;

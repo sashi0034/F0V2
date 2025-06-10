@@ -178,7 +178,6 @@
     <ClInclude Include="TY\detail\IEngineHotReloadable.h" />
     <ClInclude Include="TY\detail\IEngineUpdatable.h" />
     <ClInclude Include="TY\detail\PipelineState.h" />
-    <ClInclude Include="TY\detail\ShaderResourceTexture.h" />
     <ClInclude Include="TY\Empty.h" />
     <ClInclude Include="TY\FileWatcher.h" />
     <ClInclude Include="TY\Graphics3D.h" />
@@ -191,11 +190,14 @@
     <ClInclude Include="TY\Mat4x4.h" />
     <ClInclude Include="TY\Math.h" />
     <ClInclude Include="TY\Model.h" />
+    <ClInclude Include="TY\ModelData.h" />
+    <ClInclude Include="TY\ModelLoader.h" />
     <ClInclude Include="TY\Rect.h" />
     <ClInclude Include="TY\RenderTarget.h" />
     <ClInclude Include="TY\Scene.h" />
     <ClInclude Include="TY\ScopedDefer.h" />
     <ClInclude Include="TY\Shader.h" />
+    <ClInclude Include="TY\ShaderResourceTexture.h" />
     <ClInclude Include="TY\UnifiedString.h" />
     <ClInclude Include="TY\System.h" />
     <ClInclude Include="TY\TemplateHelper.h" />
@@ -258,7 +260,6 @@
     <ClCompile Include="TY\detail\EngineTimer.cpp" />
     <ClCompile Include="TY\detail\EngineWindow.cpp" />
     <ClCompile Include="TY\detail\PipelineState.cpp" />
-    <ClCompile Include="TY\detail\ShaderResourceTexture.cpp" />
     <ClCompile Include="TY\FileWatcher.cpp" />
     <ClCompile Include="TY\Graphics3D.cpp" />
     <ClCompile Include="TY\Image.cpp" />
@@ -269,11 +270,13 @@
     <ClCompile Include="TY\Mat4x4.cpp" />
     <ClCompile Include="TY\Math.cpp" />
     <ClCompile Include="TY\Model.cpp" />
+    <ClCompile Include="TY\ModelLoader.cpp" />
     <ClCompile Include="TY\Rect.cpp" />
     <ClCompile Include="TY\RenderTarget.cpp" />
     <ClCompile Include="TY\Scene.cpp" />
     <ClCompile Include="TY\ScopedDefer.cpp" />
     <ClCompile Include="TY\Shader.cpp" />
+    <ClCompile Include="TY\ShaderResourceTexture.cpp" />
     <ClCompile Include="TY\UnifiedString.cpp" />
     <ClCompile Include="TY\System.cpp" />
     <ClCompile Include="TY\Texture.cpp" />

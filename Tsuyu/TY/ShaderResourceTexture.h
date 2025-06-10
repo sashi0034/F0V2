@@ -2,7 +2,7 @@
 #include "TY/Image.h"
 #include "TY/TextureSource.h"
 
-namespace TY::detail
+namespace TY
 {
     class ShaderResourceTexture
     {

@@ -1,8 +1,7 @@
 ﻿#include "pch.h"
 #include "ShaderResourceTexture.h"
 
-#include "EngineCore.h"
-#include "EngineRenderContext.h"
+#include "detail/EngineRenderContext.h"
 #include "TY/AssertObject.h"
 #include "TY/Color.h"
 #include "TY/Image.h"
@@ -11,6 +10,7 @@
 #include "TY/Utils.h"
 #include "TY/Variant.h"
 
+using namespace TY;
 using namespace TY::detail;
 
 struct ShaderResourceTexture::Impl
@@ -202,7 +202,7 @@ struct ShaderResourceTexture::Impl
     }
 };
 
-namespace TY::detail
+namespace TY
 {
     ShaderResourceTexture::ShaderResourceTexture(const TextureSource& source)
     {

@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "EnginePresetAsset.h"
 
-#include "ShaderResourceTexture.h"
 #include "TY/Image.h"
 #include "TY/Shader.h"
 #include "TY/Value2D.h"
