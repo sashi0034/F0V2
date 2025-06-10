@@ -198,6 +198,7 @@
     <ClInclude Include="TY\ScopedDefer.h" />
     <ClInclude Include="TY\Shader.h" />
     <ClInclude Include="TY\ShaderResourceTexture.h" />
+    <ClInclude Include="TY\Shape3D.h" />
     <ClInclude Include="TY\UnifiedString.h" />
     <ClInclude Include="TY\System.h" />
     <ClInclude Include="TY\TemplateHelper.h" />
@@ -277,6 +278,7 @@
     <ClCompile Include="TY\ScopedDefer.cpp" />
     <ClCompile Include="TY\Shader.cpp" />
     <ClCompile Include="TY\ShaderResourceTexture.cpp" />
+    <ClCompile Include="TY\Shape3D.cpp" />
     <ClCompile Include="TY\UnifiedString.cpp" />
     <ClCompile Include="TY\System.cpp" />
     <ClCompile Include="TY\Texture.cpp" />

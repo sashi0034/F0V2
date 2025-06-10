@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Value3D.h"
 
 namespace TY
 {
@@ -10,6 +11,8 @@ namespace TY
         float a;
 
         float* getPointer() { return &r; }
+
+        Float3 toFloat3() const { return Float3{r, g, b}; }
     };
 
     struct ColorU8

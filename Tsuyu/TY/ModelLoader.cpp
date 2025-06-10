@@ -163,6 +163,11 @@ namespace
 
 namespace TY
 {
+    ModelData ModelLoader::Load(const std::string& filename)
+    {
+        return loadWavefront(filename); // TODO: Support other formats
+    }
+
     ModelData ModelLoader::FromWavefront(const std::string& filename)
     {
         return loadWavefront(filename);

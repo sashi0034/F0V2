@@ -13,6 +13,7 @@
 
 #include "TY/Math.h"
 #include "TY/Model.h"
+#include "TY/ModelLoader.h"
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/Transformer3D.h"
@@ -61,7 +62,7 @@ void Title_Free()
 
     const Model model{
         ModelParams{
-            .filename = "asset/model/robot_head.obj", // "asset/model/cinnamon.obj"
+            .data = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
             .ps = modelPS,
             .vs = modelVS,
         }

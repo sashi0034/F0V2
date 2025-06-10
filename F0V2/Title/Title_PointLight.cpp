@@ -14,8 +14,10 @@
 
 #include "TY/Math.h"
 #include "TY/Model.h"
+#include "TY/ModelLoader.h"
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
+#include "TY/Shape3D.h"
 #include "TY/Transformer3D.h"
 
 using namespace TY;
@@ -61,9 +63,12 @@ struct Title_PointLight_impl
     ConstantBuffer<DirectionLight_cb2> m_directionLight{};
 
     Model m_planeModel{};
-    Model m_fighterModel{};
 
+    Model m_fighterModel{};
     Pose m_fighterPose{};
+
+    Model m_sphereModel{};
+    Pose m_spherePose{};
 
     Title_PointLight_impl()
     {
@@ -74,7 +79,7 @@ struct Title_PointLight_impl
 
         m_planeModel = Model{
             ModelParams{
-                .filename = "asset/model/dirty_plane.obj",
+                .data = ModelLoader::Load("asset/model/dirty_plane.obj"),
                 .ps = m_modelPS,
                 .vs = m_modelVS,
                 .cb2 = m_planeLight
@@ -83,7 +88,7 @@ struct Title_PointLight_impl
 
         m_fighterModel = Model{
             ModelParams{
-                .filename = "asset/model/tie_fighter.obj",
+                .data = ModelLoader::Load("asset/model/tie_fighter.obj"),
                 .ps = m_modelPS,
                 .vs = m_modelVS,
                 .cb2 = m_directionLight
@@ -91,6 +96,15 @@ struct Title_PointLight_impl
         };
 
         m_fighterPose.position.y = 3.0f;
+
+        m_sphereModel = Model{
+            ModelParams{}
+            .setData(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
+            .setShaders(m_modelPS, m_modelVS)
+            .setCB2(m_directionLight)
+        };
+
+        m_spherePose.position.y = 5.0f;
     }
 
     void Update()
@@ -115,14 +129,18 @@ struct Title_PointLight_impl
             m_planeModel.draw();
         }
 
+        m_directionLight->lightDirection = m_camera.getMatrix().forward().normalized();
+        m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
+        m_directionLight.upload();
+
         {
             const Transformer3D t3d{m_fighterPose.getMatrix()};
-
-            m_directionLight->lightDirection = m_camera.getMatrix().forward().normalized();
-            m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-            m_directionLight.upload();
-
             m_fighterModel.draw();
+        }
+
+        {
+            const Transformer3D t3d{m_spherePose.getMatrix()};
+            m_sphereModel.draw();
         }
 
         {

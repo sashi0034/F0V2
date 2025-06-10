@@ -65,11 +65,10 @@ struct App
 
         m_model = Model{
             ModelParams{
-                .filename = "asset/model/robot_head.obj",
                 .ps = m_modelPS,
                 .vs = m_modelVS,
                 .cb2 = m_directionLightBuffer
-            }
+            }.loadData("asset/model/robot_head.obj")
         };
 
         Graphics3D::SetViewMatrix(m_viewMat);

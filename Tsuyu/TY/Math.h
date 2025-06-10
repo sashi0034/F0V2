@@ -13,7 +13,7 @@ namespace TY
         inline constexpr double Pi = Pi_v<double>;
 
         /// @brief π
-        inline constexpr double PiF = Pi_v<float>;
+        inline constexpr float PiF = Pi_v<float>;
 
         constexpr auto ToDegrees(Arithmetic auto rad) noexcept -> decltype(rad)
         {

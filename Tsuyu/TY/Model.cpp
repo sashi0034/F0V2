@@ -6,6 +6,7 @@
 #include "ConstantBufferUploader.h"
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
+#include "Logger.h"
 #include "Mat4x4.h"
 #include "ModelData.h"
 #include "ModelLoader.h"
@@ -82,11 +83,10 @@ struct Model::Impl
     ConstantBufferUploader_impl m_cb2{Empty};
 
     Impl(const ModelParams& params) :
+        m_modelData(params.data),
         m_pipelineState(makePipelineState(params)),
         m_cb2(params.cb2)
     {
-        m_modelData = ModelLoader::FromWavefront(params.filename);
-
         m_shapes.clear();
         for (auto& shape : m_modelData.shapes)
         {
@@ -159,6 +159,31 @@ struct Model::Impl
 
 namespace TY
 {
+    ModelParams& ModelParams::loadData(const std::string& filename)
+    {
+        data = ModelLoader::Load(filename);
+        return *this;
+    }
+
+    ModelParams& ModelParams::setData(const ModelData& data_)
+    {
+        data = data_;
+        return *this;
+    }
+
+    ModelParams& ModelParams::setShaders(const PixelShader& ps_, const VertexShader& vs_)
+    {
+        ps = ps_;
+        vs = vs_;
+        return *this;
+    }
+
+    ModelParams& ModelParams::setCB2(const ConstantBufferUploader_impl& cb2_)
+    {
+        cb2 = std::move(cb2_);
+        return *this;
+    }
+
     Model::Model(const ModelParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
