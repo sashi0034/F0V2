@@ -30,6 +30,11 @@ namespace TY
         {
         }
 
+        template <typename FloatType> requires std::is_floating_point_v<FloatType>
+        constexpr Vector3D(FloatType x, FloatType y, FloatType z) : x(x), y(y), z(z)
+        {
+        }
+
         template <typename OtherType> requires std::is_convertible_v<OtherType, value_type>
         [[nodiscard]] Vector3D(const Vector3D<OtherType>& rhs) : x(rhs.x), y(rhs.y), z(rhs.z)
         {
