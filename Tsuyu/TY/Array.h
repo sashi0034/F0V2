@@ -10,6 +10,14 @@ namespace TY
 
         using std::vector<Type>::vector;
 
+        void remove_at(size_t index)
+        {
+            if (index < this->size())
+            {
+                this->erase(this->begin() + index);
+            }
+        }
+
         Array append(const Array& other)
         {
             this->insert(this->end(), other.begin(), other.end());
