@@ -175,6 +175,7 @@
     <ClInclude Include="TY\detail\EngineStateContext.h" />
     <ClInclude Include="TY\detail\EngineTimer.h" />
     <ClInclude Include="TY\detail\EngineWindow.h" />
+    <ClInclude Include="TY\detail\IEngineDrawer.h" />
     <ClInclude Include="TY\detail\IEngineHotReloadable.h" />
     <ClInclude Include="TY\detail\IEngineUpdatable.h" />
     <ClInclude Include="TY\detail\PipelineState.h" />

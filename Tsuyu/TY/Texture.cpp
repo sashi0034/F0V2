@@ -10,7 +10,9 @@
 #include "RenderTarget.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
+#include "detail/EngineCore.h"
 #include "detail/EngineStateContext.h"
+#include "detail/IEngineDrawer.h"
 #include "detail/PipelineState.h"
 
 using namespace TY;
@@ -95,7 +97,7 @@ namespace
     };
 }
 
-struct Texture::Impl
+struct Texture::Impl : IEngineDrawer
 {
     ShaderResourceTexture m_sr;
 
@@ -178,16 +180,28 @@ namespace TY
 
     void Texture::draw(const RectF& region) const
     {
-        if (p_impl) p_impl->Draw(region);
+        if (p_impl)
+        {
+            p_impl->Draw(region);
+            EngineCore::MarkDrawerInFrame(p_impl);
+        }
     }
 
     void Texture::drawAt(const Vec2& position) const
     {
-        if (p_impl) p_impl->DrawAt(position);
+        if (p_impl)
+        {
+            p_impl->DrawAt(position);
+            EngineCore::MarkDrawerInFrame(p_impl);
+        }
     }
 
     void Texture::draw3D() const
     {
-        if (p_impl) p_impl->Draw3D();
+        if (p_impl)
+        {
+            p_impl->Draw3D();
+            EngineCore::MarkDrawerInFrame(p_impl);
+        }
     }
 }

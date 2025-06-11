@@ -18,6 +18,7 @@
 #include "detail/EngineCore.h"
 #include "detail/EnginePresetAsset.h"
 #include "detail/EngineStateContext.h"
+#include "detail/IEngineDrawer.h"
 #include "detail/PipelineState.h"
 
 using namespace TY;
@@ -66,7 +67,7 @@ namespace
     };
 }
 
-struct Model::Impl
+struct Model::Impl : IEngineDrawer
 {
     ModelData m_modelData{};
     Array<ShapeBuffer> m_shapes{};
@@ -191,6 +192,10 @@ namespace TY
 
     void Model::draw() const
     {
-        if (p_impl) p_impl->Draw();
+        if (p_impl)
+        {
+            p_impl->Draw();
+            EngineCore::MarkDrawerInFrame(p_impl);
+        }
     }
 }

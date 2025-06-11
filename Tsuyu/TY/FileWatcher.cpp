@@ -52,7 +52,7 @@ namespace TY
     FileWatcher::FileWatcher(const UnifiedString& path)
         : p_impl(std::make_shared<Impl>(path))
     {
-        EngineCore::AddUpdatable(p_impl);
+        EngineCore::ObserveUpdatable(p_impl);
     }
 
     std::shared_ptr<ITimestamp> FileWatcher::timestamp() const

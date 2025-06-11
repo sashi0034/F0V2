@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "IEngineDrawer.h"
 #include "IEngineUpdatable.h"
 
 namespace TY::detail
@@ -16,6 +17,8 @@ namespace TY::detail
 
         void Shutdown();
 
-        void AddUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable);
+        void ObserveUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable);
+
+        void MarkDrawerInFrame(const std::shared_ptr<IEngineDrawer>& updatable);
     };
 }

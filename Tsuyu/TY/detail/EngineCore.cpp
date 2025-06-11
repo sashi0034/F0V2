@@ -8,7 +8,9 @@
 #include "EngineRenderContext.h"
 #include "EngineTimer.h"
 #include "EngineWindow.h"
+#include "IEngineDrawer.h"
 #include "TY/Array.h"
+#include "TY/Logger.h"
 
 namespace
 {
@@ -23,6 +25,8 @@ struct EngineCoreImpl
     bool m_inFrame{};
 
     Array<std::weak_ptr<IEngineUpdatable>> m_updatableList{};
+
+    Array<std::shared_ptr<IEngineDrawer>> m_drawersInFrame{};
 
     void Init()
     {
@@ -69,6 +73,8 @@ struct EngineCoreImpl
         EngineImGui::Render();
 
         EngineRenderContext::Render();
+
+        m_drawersInFrame.clear();
 
         m_inFrame = false;
     }
@@ -119,8 +125,20 @@ namespace TY
         s_core.Shutdown();
     }
 
-    void EngineCore::AddUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable)
+    void EngineCore::ObserveUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable)
     {
         s_core.m_updatableList.push_back(updatable);
+    }
+
+    void EngineCore::MarkDrawerInFrame(const std::shared_ptr<IEngineDrawer>& updatable)
+    {
+        if (s_core.m_inFrame)
+        {
+            s_core.m_drawersInFrame.push_back(updatable);
+        }
+        else
+        {
+            LogError.writeln("EngineCore::MarkDrawerInFrame(): Invalid call detected outside the frame lifecycle.");
+        }
     }
 }
