@@ -22,7 +22,7 @@ namespace TY
 
         constexpr Vector3D() = default;
 
-        constexpr Vector3D(value_type value) : x(value), y(value), z(value)
+        explicit constexpr Vector3D(value_type value) : x(value), y(value), z(value)
         {
         }
 
@@ -74,6 +74,11 @@ namespace TY
         [[nodiscard]] constexpr Vector3D operator*(value_type rhs) const
         {
             return Vector3D(x * rhs, y * rhs, z * rhs);
+        }
+
+        [[nodiscard]] constexpr Vector3D operator*(const Vector3D& rhs) const
+        {
+            return Vector3D(x * rhs.x, y * rhs.y, z * rhs.z);
         }
 
         [[nodiscard]] constexpr Vector3D operator/(value_type rhs) const

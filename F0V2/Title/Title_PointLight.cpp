@@ -46,6 +46,24 @@ namespace
         }
     };
 
+    struct Camera3D
+    {
+        Float3 position{};
+        double yaw{};
+        double targetY{};
+        Float3 upDirection{0, 1, 0};
+
+        Float3 targetPosition() const
+        {
+            return Float3{position.x + std::sin(yaw), targetY, position.z + std::cos(yaw)};
+        }
+
+        Mat4x4 getMatrix() const
+        {
+            return Mat4x4::LookAt(position, targetPosition(), upDirection);
+        }
+    };
+
     ShaderResourceTexture makeGridPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
@@ -76,7 +94,8 @@ namespace
 
 struct Title_PointLight_impl
 {
-    Pose m_camera{};
+    Camera3D m_camera{};
+    Mat4x4 m_cameraMatrix{m_camera.getMatrix()};
 
     Mat4x4 m_projectionMat{};
 
@@ -160,7 +179,7 @@ struct Title_PointLight_impl
 
         m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
 
-        m_directionLight->lightDirection = m_camera.getMatrix().forward().normalized();
+        m_directionLight->lightDirection = m_cameraMatrix.forward().normalized();
         m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
         m_directionLight.upload();
 
@@ -192,20 +211,16 @@ struct Title_PointLight_impl
         {
             ImGui::Begin("Camera Info");
 
-            ImGui::Text("Position: (%.2f, %.2f, %.2f)",
+            ImGui::Text("Eye Position: (%.2f, %.2f, %.2f)",
                         m_camera.position.x,
                         m_camera.position.y,
                         m_camera.position.z);
 
-            ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)",
-                        m_camera.rotation.x,
-                        m_camera.rotation.y,
-                        m_camera.rotation.z);
-
-            ImGui::Text("Rotation (deg): (%.1f, %.1f, %.1f)",
-                        Math::ToDegrees(m_camera.rotation.x),
-                        Math::ToDegrees(m_camera.rotation.y),
-                        Math::ToDegrees(m_camera.rotation.z));
+            const auto targetPosition = m_camera.targetPosition();
+            ImGui::Text("Target Position: (%.2f, %.2f, %.2f)",
+                        targetPosition.x,
+                        targetPosition.y,
+                        targetPosition.z);
 
             ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
                         m_directionLight->lightDirection.x,
@@ -248,8 +263,7 @@ struct Title_PointLight_impl
 
     void resetCamera()
     {
-        m_camera.position = Float3{0.0f, 0.0f, 10.0f};
-        m_camera.rotation = Float3{-Math::PiF / 4.0f, 0.0f, 0.0f};
+        m_camera = {};
     }
 
     static Pose getPoseInput()
@@ -261,7 +275,7 @@ struct Title_PointLight_impl
         pose.position.z = (KeyW.pressed() ? 1.0f : 0.0f) - (KeyS.pressed() ? 1.0f : 0.0f);
 
         pose.rotation.x = (KeyRight.pressed() ? 1.0f : 0.0f) - (KeyLeft.pressed() ? 1.0f : 0.0f);
-        pose.rotation.y = (KeyDown.pressed() ? 1.0f : 0.0f) - (KeyUp.pressed() ? 1.0f : 0.0f);
+        pose.rotation.y = (KeyUp.pressed() ? 1.0f : 0.0f) - (KeyDown.pressed() ? 1.0f : 0.0f);
 
         return pose;
     }
@@ -282,16 +296,32 @@ struct Title_PointLight_impl
 
         if (not moveVector.isZero())
         {
-            m_camera.position += -moveVector * moveSpeed * System::DeltaTime();
+            const auto forward = m_cameraMatrix.forward();
+            const auto df = forward * moveVector.z * moveSpeed * System::DeltaTime();
+            m_camera.position += df;
+
+            const auto right = m_cameraMatrix.right();
+            const auto dr = right * moveVector.x * moveSpeed * System::DeltaTime();
+            m_camera.position += dr;
+
+            const auto up = m_cameraMatrix.up();
+            const auto du = up * moveVector.y * moveSpeed * System::DeltaTime();
+            m_camera.position += du;
+
+            m_camera.targetY += (df + dr + du).y; // Adjust targetY based on movement
         }
 
         if (not rotateVector.isZero())
         {
-            m_camera.rotation.x += Math::ToRadians(-rotateVector.y * rotationSpeed * System::DeltaTime());
-            m_camera.rotation.y += Math::ToRadians(rotateVector.x * rotationSpeed * System::DeltaTime());
+            m_camera.yaw += Math::ToRadians(rotateVector.x * rotationSpeed * System::DeltaTime());
+
+            const auto dy = Abs(m_camera.targetY - m_camera.position.y);
+            const auto s = std::sqrt(1 + dy * dy);
+            m_camera.targetY += s * Math::ToRadians(rotateVector.y * rotationSpeed * System::DeltaTime());
         }
 
-        Graphics3D::SetViewMatrix(m_camera.getMatrix());
+        m_cameraMatrix = m_camera.getMatrix();
+        Graphics3D::SetViewMatrix(m_cameraMatrix);
 
         m_projectionMat = Mat4x4::PerspectiveFov(
             90.0_deg,
