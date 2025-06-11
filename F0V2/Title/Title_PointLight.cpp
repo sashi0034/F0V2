@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 
-#include "imgui.h"
-#include "Title_Phong.h"
+#include "imgui/imgui.h"
+#include "Title_PointLight.h"
 
 #include "LivePPAddon.h"
 #include "TY/ConstantBuffer.h"

@@ -109,7 +109,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../Tsuyu;../external/imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../external;../Tsuyu;</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
@@ -135,7 +135,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../Tsuyu;../external/imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../external;../Tsuyu;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

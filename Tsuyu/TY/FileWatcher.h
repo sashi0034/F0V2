@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "ITimestamp.h"
+#include "UnifiedString.h"
 
 namespace TY
 {
@@ -8,11 +9,11 @@ namespace TY
     public:
         FileWatcher() = default;
 
-        FileWatcher(const std::string& path);
-
-        FileWatcher(const std::wstring& path);
+        FileWatcher(const UnifiedString& path);
 
         std::shared_ptr<ITimestamp> timestamp() const;
+
+        bool isChangedInFrame() const;
 
     private:
         struct Impl;

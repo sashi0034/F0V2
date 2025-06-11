@@ -49,20 +49,20 @@ struct FileWatcher::Impl : IEngineUpdatable, ITimestamp
 
 namespace TY
 {
-    FileWatcher::FileWatcher(const std::string& path)
+    FileWatcher::FileWatcher(const UnifiedString& path)
         : p_impl(std::make_shared<Impl>(path))
     {
         EngineCore::AddUpdatable(p_impl);
-    }
-
-    FileWatcher::FileWatcher(const std::wstring& path)
-        : FileWatcher(ToUtf8(path))
-    {
     }
 
     std::shared_ptr<ITimestamp> FileWatcher::timestamp() const
     {
         if (not p_impl) return InvalidTimestamp;
         return p_impl;
+    }
+
+    bool FileWatcher::isChangedInFrame() const
+    {
+        return p_impl->m_timestamp = System::FrameCount();
     }
 }

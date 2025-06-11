@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "DirectXMath.h"
 #include "TemplateHelper.h"
 
 namespace TY

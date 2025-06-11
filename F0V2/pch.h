@@ -62,11 +62,15 @@
 #include <variant>
 
 // external libraries
-#include "DirectXTex.h"
+#include "DirectXTex/DirectXTex/DirectXTex.h"
 
-#include "../external/d3dx12.h"
+#include "imgui/imgui.h"
 
-#include "../external/tiny_obj_loader.h"
+#include "d3dx12.h"
+
+#include "tiny_obj_loader.h"
+
+#include "toml.h"
 
 using namespace std::string_view_literals;
 
