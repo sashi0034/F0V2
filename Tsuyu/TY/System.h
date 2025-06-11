@@ -6,7 +6,7 @@ namespace TY
     {
         bool Update();
 
-        double DeltaTime();
+        float DeltaTime();
 
         uint64_t FrameCount();
 

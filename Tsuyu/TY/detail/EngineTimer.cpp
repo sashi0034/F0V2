@@ -18,17 +18,17 @@ public:
     void Update()
     {
         const auto now = clock::now();
-        m_deltaTime = std::chrono::duration<double>(now - m_lastFrameTime).count();
+        m_deltaTime = std::chrono::duration<float>(now - m_lastFrameTime).count();
         m_lastFrameTime = now;
 
         m_frameCount++;
     }
 
-    double GetDeltaTime() const { return m_deltaTime; }
+    float GetDeltaTime() const { return m_deltaTime; }
 
-    double GetElapsedTime() const
+    float GetElapsedTime() const
     {
-        return std::chrono::duration<double>(clock::now() - m_startTime).count();
+        return std::chrono::duration<float>(clock::now() - m_startTime).count();
     }
 
     uint64_t GetFrameCount() const { return m_frameCount; }
@@ -37,7 +37,7 @@ private:
     using clock = std::chrono::high_resolution_clock;
     clock::time_point m_startTime;
     clock::time_point m_lastFrameTime;
-    double m_deltaTime = 0.0f;
+    float m_deltaTime = 0.0f;
     uint64_t m_frameCount = 0;
 };
 
@@ -58,7 +58,7 @@ namespace TY
         s_engineTimer.Update();
     }
 
-    double EngineTimer::GetDeltaTime()
+    float EngineTimer::GetDeltaTime()
     {
         return s_engineTimer.GetDeltaTime();
     }

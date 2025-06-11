@@ -35,7 +35,7 @@ namespace TY
         return true;
     }
 
-    double System::DeltaTime()
+    float System::DeltaTime()
     {
         return EngineTimer::GetDeltaTime();
     }

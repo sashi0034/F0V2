@@ -162,6 +162,7 @@
     <ClInclude Include="TY\Concepts.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
     <ClInclude Include="TY\ConstantBufferUploader.h" />
+    <ClInclude Include="TY\SimpleCamera3D.h" />
     <ClInclude Include="TY\detail\CommandList.h" />
     <ClInclude Include="TY\detail\DescriptorHeap.h" />
     <ClInclude Include="TY\detail\DescriptorTable.h" />
@@ -201,6 +202,7 @@
     <ClInclude Include="TY\Shader.h" />
     <ClInclude Include="TY\ShaderResourceTexture.h" />
     <ClInclude Include="TY\Shape3D.h" />
+    <ClInclude Include="TY\SimpleInput.h" />
     <ClInclude Include="TY\UnifiedString.h" />
     <ClInclude Include="TY\System.h" />
     <ClInclude Include="TY\TemplateHelper.h" />
@@ -251,6 +253,7 @@
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\ConstantBufferUploader.cpp" />
+    <ClCompile Include="TY\SimpleCamera3D.cpp" />
     <ClCompile Include="TY\detail\CommandList.cpp" />
     <ClCompile Include="TY\detail\DescriptorHeap.cpp" />
     <ClCompile Include="TY\detail\EngineCore.cpp" />
@@ -284,6 +287,7 @@
     <ClCompile Include="TY\Shader.cpp" />
     <ClCompile Include="TY\ShaderResourceTexture.cpp" />
     <ClCompile Include="TY\Shape3D.cpp" />
+    <ClCompile Include="TY\SimpleInput.cpp" />
     <ClCompile Include="TY\UnifiedString.cpp" />
     <ClCompile Include="TY\System.cpp" />
     <ClCompile Include="TY\Texture.cpp" />

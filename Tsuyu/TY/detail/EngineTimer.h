@@ -8,7 +8,7 @@ namespace TY::detail
 
         void Update();
 
-        double GetDeltaTime();
+        float GetDeltaTime();
 
         uint64_t GetFrameCount();
     };
