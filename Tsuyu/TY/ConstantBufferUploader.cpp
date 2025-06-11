@@ -1,9 +1,8 @@
 ﻿#include "pch.h"
 #include "ConstantBufferUploader.h"
 
-#include "AssertObject.h"
+#include "Logger.h"
 #include "Utils.h"
-#include "detail/EngineCore.h"
 #include "detail/EngineRenderContext.h"
 
 using namespace TY;
@@ -15,6 +14,8 @@ namespace
 
 struct ConstantBufferUploader_impl::Impl
 {
+    bool m_valid{};
+
     uint32_t m_sizeInBytes;
     uint32_t m_count;
     size_t m_alignedSize{};
@@ -30,16 +31,23 @@ struct ConstantBufferUploader_impl::Impl
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         m_alignedSize = AlignedSize(sizeInBytes, 256);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_alignedSize * count);
-        AssertWin32{"failed to create commited resource"sv}
-            | EngineRenderContext::GetDevice()->CreateCommittedResource(
+
+        if (const auto hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
                 IID_PPV_ARGS(&m_cb));
+            FAILED(hr))
+        {
+            LogError.writeln("ConstantBufferUploader: Failed to create resource.");
+            return;
+        }
 
         m_cb->SetName(L"ConstantBuffer");
+
+        m_valid = true;
     }
 
     ~Impl()
@@ -53,8 +61,14 @@ struct ConstantBufferUploader_impl::Impl
     void Upload(const uint8_t* data, uint32_t count)
     {
         uint8_t* dest;
-        AssertWin32{"failed to map constant buffer"sv}
-            | m_cb->Map(0, nullptr, reinterpret_cast<void**>(&dest));
+
+        if (const auto hr = m_cb->Map(0, nullptr, reinterpret_cast<void**>(&dest));
+            FAILED(hr))
+        {
+            LogError.writeln(std::format("ConstantBufferUploader: Failed to map resource for 0x{:016x}",
+                                         reinterpret_cast<size_t>(data)));
+            return;
+        }
 
         uint32_t srcOffset{};
         for (int i = 0; i < count; ++i)
@@ -83,6 +97,10 @@ namespace TY
     ConstantBufferUploader_impl::ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t count)
         : p_impl(std::make_shared<Impl>(sizeInBytes, count))
     {
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+        }
     }
 
     bool ConstantBufferUploader_impl::isEmpty() const
