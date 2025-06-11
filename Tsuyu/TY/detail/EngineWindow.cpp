@@ -49,6 +49,8 @@ namespace
 
 struct EngineWindowImpl
 {
+    bool m_initialized = false;
+
     WNDCLASSEX m_windowClass{};
     Point m_windowSize{};
     HWND m_handle{};
@@ -95,6 +97,8 @@ struct EngineWindowImpl
             m_windowClass.hInstance, // hInstance, 
             nullptr // lpParam
         );
+
+        m_initialized = true;
     }
 
     void Show()
@@ -147,6 +151,11 @@ namespace TY::detail
         s_engineWindow.Init();
     }
 
+    bool EngineWindow::IsInitialized()
+    {
+        return s_engineWindow.m_initialized;
+    }
+
     void EngineWindow::Show()
     {
         s_engineWindow.Show();
@@ -155,6 +164,11 @@ namespace TY::detail
     void EngineWindow::Update()
     {
         s_engineWindow.Update();
+    }
+
+    HINSTANCE EngineWindow::HInstance()
+    {
+        return s_engineWindow.m_windowClass.hInstance;
     }
 
     HWND EngineWindow::Handle()

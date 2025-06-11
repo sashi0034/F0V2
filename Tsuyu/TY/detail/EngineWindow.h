@@ -7,11 +7,16 @@ namespace TY::detail
     {
         void Init();
 
+        bool IsInitialized();
+
         void Show();
 
         void Update();
 
         void Shutdown();
+
+        [[nodiscard]]
+        HINSTANCE HInstance();
 
         [[nodiscard]]
         HWND Handle();
