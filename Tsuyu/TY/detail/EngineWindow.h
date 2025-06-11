@@ -11,12 +11,14 @@ namespace TY::detail
 
         void Update();
 
+        void Shutdown();
+
         [[nodiscard]]
         HWND Handle();
 
         [[nodiscard]]
         Size WindowSize();
 
-        void Shutdown();
+        void SetTitle(const std::wstring& title);
     };
 }

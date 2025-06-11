@@ -213,6 +213,7 @@
     <ClInclude Include="TY\Value3D.h" />
     <ClInclude Include="TY\Variant.h" />
     <ClInclude Include="TY\VertexBuffer.h" />
+    <ClInclude Include="TY\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\external\imgui\backends\imgui_impl_dx12.cpp">
@@ -291,6 +292,7 @@
     <ClCompile Include="TY\Value2D.cpp" />
     <ClCompile Include="TY\Value3D.cpp" />
     <ClCompile Include="TY\VertexBuffer.cpp" />
+    <ClCompile Include="TY\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">

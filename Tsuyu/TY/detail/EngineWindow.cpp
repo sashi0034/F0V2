@@ -13,11 +13,9 @@ using namespace TY::detail;
 
 namespace
 {
-    constexpr Point DefaultWindowSize{1280, 720};
+    constexpr Point defaultWindowSize{1280, 720};
 
-    const std::wstring windowTitle = L"F0"; // TODO
-
-    LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+    LRESULT windowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {
         if (msg == WM_DESTROY)
         {
@@ -29,6 +27,24 @@ namespace
 
         return DefWindowProc(hwnd, msg, wparam, lparam);
     }
+
+    std::wstring getFullTitle(const std::wstring& title, int fps)
+    {
+        return std::format(L"{} | {} FPS", title, fps);
+    }
+
+    std::wstring getExecutableFileName()
+    {
+        wchar_t buffer[MAX_PATH];
+        DWORD length = GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+        if (length == 0 || length == MAX_PATH)
+        {
+            return L"Tsuyu_unknown";
+        }
+
+        std::filesystem::path path(buffer);
+        return path.stem().wstring(); // 拡張子なしのファイル名
+    }
 }
 
 struct EngineWindowImpl
@@ -38,27 +54,37 @@ struct EngineWindowImpl
     HWND m_handle{};
 
     int m_frameCount{};
+    int m_fps{};
 
     double m_titleUpdateTimer{1.0};
 
+    std::wstring m_className{};
+    std::wstring m_title{L"Tsuyu Application"};
+
+    std::wstring m_fullTitle{m_title};
+
     void Init()
     {
+        m_className = getExecutableFileName();
+
         m_windowClass.cbSize = sizeof(WNDCLASSEX);
-        m_windowClass.lpfnWndProc = static_cast<WNDPROC>(WindowProcedure);
-        m_windowClass.lpszClassName = windowTitle.data();
+        m_windowClass.lpfnWndProc = static_cast<WNDPROC>(windowProcedure);
+        m_windowClass.lpszClassName = m_className.c_str();
         m_windowClass.hInstance = GetModuleHandle(nullptr);
         RegisterClassEx(&m_windowClass);
 
         // -----------------------------------------------
 
-        m_windowSize = DefaultWindowSize;
+        m_windowSize = defaultWindowSize;
 
         RECT windowRect{0, 0, m_windowSize.x, m_windowSize.y};
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
 
+        MakeFullTitle();
+
         m_handle = CreateWindow(
             m_windowClass.lpszClassName,
-            L"F0",
+            m_fullTitle.c_str(),
             WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
@@ -76,6 +102,11 @@ struct EngineWindowImpl
         ShowWindow(m_handle, SW_SHOW);
     }
 
+    void MakeFullTitle()
+    {
+        m_fullTitle = getFullTitle(m_title, m_fps);
+    }
+
     void Update()
     {
         const double dt = EngineTimer::GetDeltaTime();
@@ -87,17 +118,15 @@ struct EngineWindowImpl
         if (m_titleUpdateTimer <= 0.0)
         {
             m_titleUpdateTimer = 1.0;
-            ApplyWindowTitle(m_frameCount);
+
+            m_fps = m_frameCount;
+
+            MakeFullTitle();
+
+            SetWindowText(m_handle, m_fullTitle.c_str());
 
             m_frameCount = 0;
         }
-    }
-
-    void ApplyWindowTitle(int fps)
-    {
-        wchar_t title[256];
-        swprintf_s(title, L"%s | %d FPS", windowTitle.c_str(), fps);
-        SetWindowText(m_handle, title);
     }
 
     void Shutdown()
@@ -136,6 +165,13 @@ namespace TY::detail
     Size EngineWindow::WindowSize()
     {
         return s_engineWindow.m_windowSize;
+    }
+
+    void EngineWindow::SetTitle(const std::wstring& title)
+    {
+        s_engineWindow.m_title = title;
+        s_engineWindow.MakeFullTitle();
+        SetWindowText(s_engineWindow.m_handle, s_engineWindow.m_fullTitle.c_str());
     }
 
     void EngineWindow::Shutdown()
