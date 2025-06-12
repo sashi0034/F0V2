@@ -102,6 +102,8 @@ struct Title_PointLight_impl
 
     Title_PointLight_impl()
     {
+        MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
+
         resetCamera();
 
         const PixelShader defaultPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
@@ -157,7 +159,7 @@ struct Title_PointLight_impl
         }
         else
         {
-            m_fighterPose.position += SimpleInput::GetPlayerMovement() * 10.0f * System::DeltaTime();
+            m_fighterPose.position += SimpleInput::GetPlayerMovement3D() * 10.0f * System::DeltaTime();
         }
 
         m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
@@ -245,7 +247,7 @@ struct Title_PointLight_impl
 
         {
             ImGui::Begin("Gamepad Info");
-            const auto& state = MainGamepad.state();
+            const auto& state = MainGamepad.rawState();
 
             ImGui::Text("Buttons:");
             ImGui::BeginGroup();

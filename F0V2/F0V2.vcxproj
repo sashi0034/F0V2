@@ -148,6 +148,7 @@
     <ClCompile Include="Title\Title_Phong.cpp" />
     <ClCompile Include="Title\Title_PointLight.cpp" />
     <Content Include=".gitignore" />
+    <Content Include="asset\gamepad.toml" />
     <Content Include="asset\model\.gitignore" />
     <Content Include="asset\model\dirty_plane.mtl" />
     <Content Include="asset\model\dirty_plane.obj" />

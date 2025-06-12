@@ -6,7 +6,7 @@ namespace TY
 {
     namespace SimpleInput
     {
-        Float3 GetPlayerMovement();
+        Float3 GetPlayerMovement3D();
 
         Float2 GetCameraRotation();
     }
