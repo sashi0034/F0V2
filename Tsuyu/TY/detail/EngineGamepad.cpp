@@ -132,8 +132,12 @@ struct EngineGamepadImpl
 
         if (SUCCEEDED(m_gamepad->GetDeviceState(sizeof(DIJOYSTATE), &js)))
         {
-            m_inputState.axisL = Float2{normalizeAxis(js.lX), normalizeAxis(js.lY)};
-            m_inputState.axisR = Float2{normalizeAxis(js.lRx), normalizeAxis(js.lRy)};
+            m_inputState.axes[0] = normalizeAxis(js.lX);
+            m_inputState.axes[1] = normalizeAxis(js.lY);
+            m_inputState.axes[2] = normalizeAxis(js.lZ);
+            m_inputState.axes[3] = normalizeAxis(js.lRx);
+            m_inputState.axes[4] = normalizeAxis(js.lRy);
+            m_inputState.axes[5] = normalizeAxis(js.lRz);
 
             bool pressedUp, pressedDown, pressedLeft, pressedRight;
             readPOV(js.rgdwPOV[0], pressedUp, pressedDown, pressedLeft, pressedRight);

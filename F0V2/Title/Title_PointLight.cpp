@@ -288,8 +288,18 @@ struct Title_PointLight_impl
 
             ImGui::EndGroup();
 
-            ImGui::Text("AxisL: (%.2f, %.2f)", state.axisL.x, state.axisL.y);
-            ImGui::Text("AxisR: (%.2f, %.2f)", state.axisR.x, state.axisR.y);
+            ImGui::Text("Axes:");
+            ImGui::BeginGroup();
+            for (size_t i = 0; i < state.axes.size(); ++i)
+            {
+                if (state.axes[i] != 0.0f)
+                {
+                    ImGui::SameLine();
+                    ImGui::Text("[%d: %.2f]", i, state.axes[i]);
+                }
+            }
+
+            ImGui::EndGroup();
 
             ImGui::End();
         }

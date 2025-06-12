@@ -22,8 +22,6 @@ namespace TY
 
         GamepadButtonState povRight{};
 
-        Float2 axisL{};
-
-        Float2 axisR{};
+        std::array<float, 6> axes; // lx, ly, lz, lRx, lRy, lRz
     };
 }
