@@ -164,6 +164,7 @@
     <ClInclude Include="TY\ConstantBufferUploader.h" />
     <ClInclude Include="TY\detail\EngineGamepad.h" />
     <ClInclude Include="TY\Gamepad.h" />
+    <ClInclude Include="TY\GamepadInputState.h" />
     <ClInclude Include="TY\SimpleCamera3D.h" />
     <ClInclude Include="TY\detail\CommandList.h" />
     <ClInclude Include="TY\detail\DescriptorHeap.h" />

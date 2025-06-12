@@ -5,6 +5,7 @@
 
 #include "LivePPAddon.h"
 #include "TY/ConstantBuffer.h"
+#include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
@@ -238,6 +239,57 @@ struct Title_PointLight_impl
             {
                 System::Sleep(500);
             }
+
+            ImGui::End();
+        }
+
+        {
+            ImGui::Begin("Gamepad Info");
+            const auto& state = MainGamepad.state();
+
+            ImGui::Text("Buttons:");
+            ImGui::BeginGroup();
+            for (size_t i = 0; i < state.buttons.size(); ++i)
+            {
+                if (state.buttons[i].pressed)
+                {
+                    ImGui::SameLine();
+                    ImGui::Text("[%zu]", i);
+                }
+            }
+
+            ImGui::EndGroup();
+
+            ImGui::Text("POV:");
+            ImGui::BeginGroup();
+            if (state.povUp.pressed)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Up");
+            }
+
+            if (state.povDown.pressed)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Down");
+            }
+
+            if (state.povLeft.pressed)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Left");
+            }
+
+            if (state.povRight.pressed)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Right");
+            }
+
+            ImGui::EndGroup();
+
+            ImGui::Text("AxisL: (%.2f, %.2f)", state.axisL.x, state.axisL.y);
+            ImGui::Text("AxisR: (%.2f, %.2f)", state.axisR.x, state.axisR.y);
 
             ImGui::End();
         }

@@ -1,9 +1,13 @@
 ﻿#pragma once
+#include "GamepadInputState.h"
 
 namespace TY
 {
-    class Gamepad
+    class GamepadInput
     {
     public:
+        const GamepadInputState& state() const;
     };
+
+    inline constexpr GamepadInput MainGamepad{};
 }

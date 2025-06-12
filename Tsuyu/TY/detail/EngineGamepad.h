@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TY/GamepadInputState.h"
 
 namespace TY::detail
 {
@@ -9,5 +10,7 @@ namespace TY::detail
         void Update();
 
         void Shutdown();
+
+        const GamepadInputState& GetInputState();
     };
 }
