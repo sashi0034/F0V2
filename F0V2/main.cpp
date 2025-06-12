@@ -1,10 +1,10 @@
 #include "pch.h"
 
-#include "Title/Title_Lambert.h"
-#include "Title/Title_Phong.h"
-#include "Title/Title_PointLight.h"
+#include "Demo/Demo_Lambert.h"
+#include "Demo/Demo_Phong.h"
+#include "Demo/Demo_PointLight.h"
 
 void Main()
 {
-    Title_PointLight();
+    Demo_PointLight();
 }

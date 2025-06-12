@@ -145,8 +145,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Title\Title_Phong.cpp" />
-    <ClCompile Include="Title\Title_PointLight.cpp" />
+    <ClCompile Include="Demo\Demo_Phong.cpp" />
+    <ClCompile Include="Demo\Demo_PointLight.cpp" />
     <Content Include=".gitignore" />
     <Content Include="asset\gamepad.toml" />
     <Content Include="asset\model\.gitignore" />
@@ -157,8 +157,8 @@
     <Content Include="asset\shader\default2d.hlsl" />
     <Content Include="asset\shader\lambert.hlsl" />
     <ClCompile Include="LivePPAddon.cpp" />
-    <ClCompile Include="Title\Title_Lambert.cpp" />
-    <ClCompile Include="Title\Title_Free.cpp" />
+    <ClCompile Include="Demo\Demo_Lambert.cpp" />
+    <ClCompile Include="Demo\Demo_RenderTarget.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -182,10 +182,10 @@
     <ClInclude Include="asset\shader\model.hlsli" />
     <ClInclude Include="LivePPAddon.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Title\Title_Lambert.h" />
-    <ClInclude Include="Title\Title_Free.h" />
-    <ClInclude Include="Title\Title_Phong.h" />
-    <ClInclude Include="Title\Title_PointLight.h" />
+    <ClInclude Include="Demo\Demo_Lambert.h" />
+    <ClInclude Include="Demo\Demo_RenderTarget.h" />
+    <ClInclude Include="Demo\Demo_Phong.h" />
+    <ClInclude Include="Demo\Demo_PointLight.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">

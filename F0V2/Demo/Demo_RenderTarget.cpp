@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Title_Free.h"
+#include "Demo_RenderTarget.h"
 
 #include "TY/Buffer3D.h"
 #include "TY/Graphics3D.h"
@@ -20,7 +20,7 @@
 
 using namespace TY;
 
-void Title_Free()
+void Demo_RenderTarget()
 {
     const PixelShader default2dPS{ShaderParams{.filename = "asset/shader/default2d.hlsl", .entryPoint = "PS"}};
     const VertexShader default2dVS{ShaderParams{.filename = "asset/shader/default2d.hlsl", .entryPoint = "VS"}};

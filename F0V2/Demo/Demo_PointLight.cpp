@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Title_PointLight.h"
+#include "Demo_PointLight.h"
 
 #include "LivePPAddon.h"
 #include "TY/ConstantBuffer.h"
@@ -77,7 +77,7 @@ namespace
     const std::string shader_lambert = "asset/shader/lambert.hlsl";
 }
 
-struct Title_PointLight_impl
+struct Demo_PointLight_impl
 {
     SimpleCamera3D m_camera{};
 
@@ -100,7 +100,7 @@ struct Title_PointLight_impl
     Model m_sphereModel{};
     Pose m_spherePose{};
 
-    Title_PointLight_impl()
+    Demo_PointLight_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -333,9 +333,9 @@ struct Title_PointLight_impl
     }
 };
 
-void Title_PointLight()
+void Demo_PointLight()
 {
-    Title_PointLight_impl impl{};
+    Demo_PointLight_impl impl{};
 
     while (System::Update())
     {
