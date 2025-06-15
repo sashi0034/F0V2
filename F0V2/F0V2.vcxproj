@@ -145,6 +145,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Content Include="asset\shader\simple_compute.hlsl" />
+    <ClCompile Include="Demo\Demo_Gpgpu.cpp" />
     <ClCompile Include="Demo\Demo_Phong.cpp" />
     <ClCompile Include="Demo\Demo_PointLight.cpp" />
     <Content Include=".gitignore" />
@@ -180,6 +182,7 @@
   <ItemGroup>
     <ClInclude Include="asset\shader\basic.hlsli" />
     <ClInclude Include="asset\shader\model.hlsli" />
+    <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="LivePPAddon.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Demo\Demo_Lambert.h" />

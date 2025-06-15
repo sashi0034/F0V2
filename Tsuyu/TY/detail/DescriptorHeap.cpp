@@ -121,7 +121,25 @@ struct DescriptorHeap::Impl
                 }
 
                 // UAV
-                // TODO
+                AssertWin32{"failed to create descriptor heap"sv}
+                    | params.descriptors[tableId].ua.size() == params.table[tableId].uavCount;
+                for (int uavId = 0; uavId < params.table[tableId].uavCount; ++uavId)
+                {
+                    const auto& ua = params.descriptors[tableId].ua[uavId];
+                    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+                    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+                    uavDesc.Buffer.FirstElement = 0;
+                    uavDesc.Buffer.NumElements = ua[materialId].elementCount();
+                    uavDesc.Buffer.StructureByteStride = ua[materialId].elementStride();
+
+                    EngineRenderContext::GetDevice()->CreateUnorderedAccessView(
+                        ua[materialId].getBuffer(),
+                        nullptr,
+                        &uavDesc,
+                        heapHandle);
+
+                    heapHandle.ptr += incrementSize;
+                }
             }
         }
     }

@@ -159,10 +159,14 @@
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\Color.h" />
+    <ClInclude Include="TY\Gpgpu.h" />
+    <ClInclude Include="TY\UnorderedAccessUploader.h" />
     <ClInclude Include="TY\Concepts.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
     <ClInclude Include="TY\ConstantBufferUploader.h" />
+    <ClInclude Include="TY\detail\ComputePipelineState.h" />
     <ClInclude Include="TY\detail\EngineGamepad.h" />
+    <ClInclude Include="TY\detail\RootSignature.h" />
     <ClInclude Include="TY\Gamepad.h" />
     <ClInclude Include="TY\GamepadInputState.h" />
     <ClInclude Include="TY\GamepadMapping.h" />
@@ -256,8 +260,12 @@
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
+    <ClCompile Include="TY\Gpgpu.cpp" />
+    <ClCompile Include="TY\UnorderedAccessUploader.cpp" />
     <ClCompile Include="TY\ConstantBufferUploader.cpp" />
+    <ClCompile Include="TY\detail\ComputePipelineState.cpp" />
     <ClCompile Include="TY\detail\EngineGamepad.cpp" />
+    <ClCompile Include="TY\detail\RootSignature.cpp" />
     <ClCompile Include="TY\Gamepad.cpp" />
     <ClCompile Include="TY\GamepadMapping.cpp" />
     <ClCompile Include="TY\SimpleCamera3D.cpp" />

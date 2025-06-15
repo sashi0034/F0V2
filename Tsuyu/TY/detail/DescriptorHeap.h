@@ -2,19 +2,15 @@
 #include "DescriptorTable.h"
 #include "TY/ShaderResourceTexture.h"
 #include "TY/ConstantBufferUploader.h"
+#include "TY/UnorderedAccessUploader.h"
 
 namespace TY::detail
 {
-    struct UnorderedAccessResource
-    {
-        // TODO
-    };
-
     struct CbSrUaSet
     {
         Array<ConstantBufferUploader_impl> cb; // Array::size() = cbvCount, (ConstantBuffer::count = materialCount)
         Array<Array<ShaderResourceTexture>> sr; // srvCount * materialCount
-        Array<Array<UnorderedAccessResource>> ua; // uavCount * materialCount
+        Array<Array<UnorderedAccessUploader>> ua; // uavCount * materialCount
     };
 
     struct DescriptorHeapParams
