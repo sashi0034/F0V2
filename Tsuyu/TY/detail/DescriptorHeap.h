@@ -31,6 +31,8 @@ namespace TY::detail
 
         void CommandSetTable(int tableId, int materialId = 0) const;
 
+        void CommandSetComputeTable(int tableId, int materialId = 0) const;
+
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl{};

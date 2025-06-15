@@ -156,6 +156,14 @@ struct DescriptorHeap::Impl
 
         EngineRenderContext::GetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
     }
+
+    void CommandSetComputeTable(int tableId, int materialId) const
+    {
+        auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
+        heapHandle.ptr += m_handleOffsets[tableId][materialId];
+
+        EngineRenderContext::GetCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
+    }
 };
 
 namespace TY::detail
@@ -172,5 +180,10 @@ namespace TY::detail
     void DescriptorHeap::CommandSetTable(int tableId, int materialId) const
     {
         if (p_impl) p_impl->CommandSetTable(tableId, materialId);
+    }
+
+    void DescriptorHeap::CommandSetComputeTable(int tableId, int materialId) const
+    {
+        if (p_impl) p_impl->CommandSetComputeTable(tableId, materialId);
     }
 }
