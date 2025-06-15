@@ -187,7 +187,7 @@
     <ClInclude Include="TY\detail\IEngineDrawer.h" />
     <ClInclude Include="TY\detail\IEngineHotReloadable.h" />
     <ClInclude Include="TY\detail\IEngineUpdatable.h" />
-    <ClInclude Include="TY\detail\PipelineState.h" />
+    <ClInclude Include="TY\detail\GraphicsPipelineState.h" />
     <ClInclude Include="TY\Empty.h" />
     <ClInclude Include="TY\FileWatcher.h" />
     <ClInclude Include="TY\Graphics3D.h" />
@@ -281,7 +281,7 @@
     <ClCompile Include="TY\detail\EngineStateContext.cpp" />
     <ClCompile Include="TY\detail\EngineTimer.cpp" />
     <ClCompile Include="TY\detail\EngineWindow.cpp" />
-    <ClCompile Include="TY\detail\PipelineState.cpp" />
+    <ClCompile Include="TY\detail\GraphicsPipelineState.cpp" />
     <ClCompile Include="TY\FileWatcher.cpp" />
     <ClCompile Include="TY\Graphics3D.cpp" />
     <ClCompile Include="TY\HSV.cpp" />

@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "PipelineState.h"
+#include "GraphicsPipelineState.h"
 
 #include "TY/AssertObject.h"
 #include "EngineHotReloader.h"
@@ -37,7 +37,7 @@ namespace
     }
 }
 
-struct PipelineState::Impl : IEngineHotReloadable
+struct GraphicsPipelineState::Impl : IEngineHotReloadable
 {
     uint64_t m_timestamp{};
 
@@ -152,19 +152,19 @@ struct PipelineState::Impl : IEngineHotReloadable
 
 namespace TY
 {
-    PipelineState::PipelineState(const PipelineStateParams& params) :
+    GraphicsPipelineState::GraphicsPipelineState(const PipelineStateParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
         EngineHotReloader::TrackAsset(
             p_impl, {p_impl->m_params.pixelShader.timestamp(), p_impl->m_params.vertexShader.timestamp()});
     }
 
-    DescriptorTable PipelineState::descriptorTable() const
+    DescriptorTable GraphicsPipelineState::descriptorTable() const
     {
         return p_impl ? p_impl->m_params.descriptorTable : DescriptorTable{};
     }
 
-    void PipelineState::CommandSet() const
+    void GraphicsPipelineState::CommandSet() const
     {
         if (p_impl) p_impl->CommandSet();
     }

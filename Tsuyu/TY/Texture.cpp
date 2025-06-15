@@ -13,7 +13,7 @@
 #include "detail/EngineCore.h"
 #include "detail/EngineStateContext.h"
 #include "detail/IEngineDrawer.h"
-#include "detail/PipelineState.h"
+#include "detail/GraphicsPipelineState.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -73,10 +73,10 @@ namespace
 
     const DescriptorTable descriptorTable = {{1, 1, 0}};
 
-    PipelineState makePipelineState(const TextureParams& options)
+    GraphicsPipelineState makePipelineState(const TextureParams& options)
     {
         // TODO: キャッシュする?
-        return PipelineState{
+        return GraphicsPipelineState{
             PipelineStateParams{
                 .pixelShader = options.ps,
                 .vertexShader = options.vs,
@@ -101,7 +101,7 @@ struct Texture::Impl : IEngineDrawer
 {
     ShaderResourceTexture m_sr;
 
-    PipelineState m_pipelineState;
+    GraphicsPipelineState m_pipelineState;
 
     TextureVertexData m_textureVertexData;
     VertexBuffer<TextureVertex> m_vertexBuffer{m_textureVertexData.Get()};

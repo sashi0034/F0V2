@@ -19,7 +19,7 @@
 #include "detail/EnginePresetAsset.h"
 #include "detail/EngineStateContext.h"
 #include "detail/IEngineDrawer.h"
-#include "detail/PipelineState.h"
+#include "detail/GraphicsPipelineState.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -28,7 +28,7 @@ namespace
 {
     const DescriptorTable baseDescriptorTable = {{1, 0, 0}, {1, 1, 0}};
 
-    PipelineState makePipelineState(const ModelParams& params)
+    GraphicsPipelineState makePipelineState(const ModelParams& params)
     {
         auto descriptorTable = baseDescriptorTable;
         if (not params.cb2.isEmpty())
@@ -37,7 +37,7 @@ namespace
         }
 
         // TODO: キャッシュする?
-        return PipelineState{
+        return GraphicsPipelineState{
             PipelineStateParams{
                 .pixelShader = params.ps,
                 .vertexShader = params.vs,
@@ -73,7 +73,7 @@ struct Model::Impl : IEngineDrawer
     Array<ShapeBuffer> m_shapes{};
     Array<ModelMaterialParameters> m_materials{};
 
-    PipelineState m_pipelineState;
+    GraphicsPipelineState m_pipelineState;
 
     DescriptorHeap m_descriptorHeap{};
 
