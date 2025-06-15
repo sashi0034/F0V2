@@ -139,12 +139,6 @@ struct UnorderedAccessUploader::Impl
         {
             memcpy(dest, src, m_dataSize);
             m_readbackBuffer->Unmap(0, nullptr);
-
-            for (size_t i = 0; i < min(m_dataSize, size_t(64)); ++i)
-            {
-                printf("%02X ", src[i]);
-            }
-            printf("\n");
         }
         else
         {
