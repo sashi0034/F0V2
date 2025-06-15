@@ -159,6 +159,7 @@
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\Color.h" />
+    <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\UnorderedAccessUploader.h" />
     <ClInclude Include="TY\Concepts.h" />

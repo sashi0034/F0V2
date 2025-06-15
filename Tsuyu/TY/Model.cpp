@@ -140,18 +140,18 @@ struct Model::Impl : IEngineDrawer
         sceneState.projectionMat = EngineStateContext::GetProjectionMatrix().mat;
         m_cb0.upload(sceneState);
 
-        m_pipelineState.CommandSet();
+        m_pipelineState.commandSet();
 
         // カメラ行列設定
-        m_descriptorHeap.CommandSet();
-        m_descriptorHeap.CommandSetTable(0);
+        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
 
-        if (not m_cb2.isEmpty()) m_descriptorHeap.CommandSetTable(2);
+        if (not m_cb2.isEmpty()) m_descriptorHeap.commandSetTable(PipelineType::Graphics, 2);
 
         // 形状ごとに描画
         for (size_t shapeId = 0; shapeId < m_shapes.size(); ++shapeId)
         {
-            m_descriptorHeap.CommandSetTable(1, m_shapes[shapeId].materialIndex);
+            m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1, m_shapes[shapeId].materialIndex);
 
             Graphics3D::DrawTriangles(m_shapes[shapeId].vertexBuffer, m_shapes[shapeId].indexBuffer);
         }

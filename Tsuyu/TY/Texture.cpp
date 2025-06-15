@@ -129,10 +129,10 @@ struct Texture::Impl : IEngineDrawer
 
     void DrawInternal() const
     {
-        m_pipelineState.CommandSet();
+        m_pipelineState.commandSet();
 
-        m_descriptorHeap.CommandSet();
-        m_descriptorHeap.CommandSetTable(0);
+        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
 
         Graphics3D::DrawTriangles(m_vertexBuffer, m_indexBuffer);
     }

@@ -39,7 +39,7 @@ namespace TY::detail
 
         DescriptorTable descriptorTable() const;
 
-        void CommandSet() const;
+        void commandSet() const;
 
     private:
         struct Impl;

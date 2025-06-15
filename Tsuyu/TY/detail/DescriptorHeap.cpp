@@ -149,20 +149,23 @@ struct DescriptorHeap::Impl
         EngineRenderContext::GetCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
-    void CommandSetTable(int tableId, int materialId) const
+    void CommandSetTable(PipelineType pipeline, int tableId, int materialId) const
     {
         auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
-        EngineRenderContext::GetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
-    }
-
-    void CommandSetComputeTable(int tableId, int materialId) const
-    {
-        auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
-        heapHandle.ptr += m_handleOffsets[tableId][materialId];
-
-        EngineRenderContext::GetCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
+        if (pipeline == PipelineType::Graphics)
+        {
+            EngineRenderContext::GetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+        }
+        else if (pipeline == PipelineType::Compute)
+        {
+            EngineRenderContext::GetCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
+        }
+        else
+        {
+            assert(false);
+        }
     }
 };
 
@@ -172,18 +175,13 @@ namespace TY::detail
     {
     }
 
-    void DescriptorHeap::CommandSet() const
+    void DescriptorHeap::commandSet() const
     {
         if (p_impl) p_impl->CommandSet();
     }
 
-    void DescriptorHeap::CommandSetTable(int tableId, int materialId) const
+    void DescriptorHeap::commandSetTable(PipelineType pipeline, int tableId, int materialId) const
     {
-        if (p_impl) p_impl->CommandSetTable(tableId, materialId);
-    }
-
-    void DescriptorHeap::CommandSetComputeTable(int tableId, int materialId) const
-    {
-        if (p_impl) p_impl->CommandSetComputeTable(tableId, materialId);
+        if (p_impl) p_impl->CommandSetTable(pipeline, tableId, materialId);
     }
 }

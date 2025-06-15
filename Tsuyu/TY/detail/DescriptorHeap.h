@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
+#include "PipelineType.h"
 #include "TY/ShaderResourceTexture.h"
 #include "TY/ConstantBufferUploader.h"
 #include "TY/UnorderedAccessUploader.h"
@@ -27,11 +28,9 @@ namespace TY::detail
 
         DescriptorHeap(const DescriptorHeapParams& params);
 
-        void CommandSet() const;
+        void commandSet() const;
 
-        void CommandSetTable(int tableId, int materialId = 0) const;
-
-        void CommandSetComputeTable(int tableId, int materialId = 0) const;
+        void commandSetTable(PipelineType pipeline, int tableId, int materialId = 0) const;
 
     private:
         struct Impl;

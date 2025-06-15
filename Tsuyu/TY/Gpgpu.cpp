@@ -47,8 +47,8 @@ struct Gpgpu_impl::Impl
         m_ua.upload(data);
 
         m_computePipelineState.commandSet();
-        m_descriptorHeap.CommandSet();
-        m_descriptorHeap.CommandSetComputeTable(0);
+        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
 
         const auto commandList = EngineRenderContext::GetCommandList();
         // commandList->Dispatch((UINT)ceil(m_params.elementCount / 64.0), 1, 1); // TODO

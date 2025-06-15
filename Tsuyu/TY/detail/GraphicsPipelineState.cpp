@@ -164,7 +164,7 @@ namespace TY
         return p_impl ? p_impl->m_params.descriptorTable : DescriptorTable{};
     }
 
-    void GraphicsPipelineState::CommandSet() const
+    void GraphicsPipelineState::commandSet() const
     {
         if (p_impl) p_impl->CommandSet();
     }
