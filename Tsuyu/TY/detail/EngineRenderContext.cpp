@@ -183,6 +183,12 @@ struct EngineRenderContextImpl
         m_swapChain->Present(1, 0);
     }
 
+    void CloseAndFlush()
+    {
+        m_copyCommandList.CloseAndFlush();
+        m_commandList.CloseAndFlush();
+    }
+
     void OnShutdown()
     {
         m_commandList.CloseAndFlush();
@@ -216,6 +222,11 @@ namespace TY::detail
     {
         s_renderContext.OnShutdown();
         s_renderContext = {};
+    }
+
+    void EngineRenderContext::CloseAndFlush()
+    {
+        s_renderContext.CloseAndFlush();
     }
 
     const RenderTarget& EngineRenderContext::GetBackBuffer()

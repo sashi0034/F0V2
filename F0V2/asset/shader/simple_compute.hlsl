@@ -1,8 +1,7 @@
-RWStructuredBuffer<uint> g_resultBuffer : register(u0);
+RWStructuredBuffer<uint> g_buffer : register(u0);
 
 [numthreads(64, 1, 1)]
 void CS(uint3 DTid : SV_DispatchThreadID)
 {
-    // g_resultBuffer[DTid.x] += 5;
-    g_resultBuffer[DTid.x] = 5;
+    g_buffer[DTid.x] = 0x12345678;
 }

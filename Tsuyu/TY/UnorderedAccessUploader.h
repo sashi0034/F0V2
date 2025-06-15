@@ -8,7 +8,7 @@ namespace TY
         int elementStride;
     };
 
-    class UnorderedAccessUploader
+    class UnorderedAccessUploader // TODO: Transfer へリネーム
     {
     public:
         UnorderedAccessUploader() = default;
@@ -16,6 +16,8 @@ namespace TY
         UnorderedAccessUploader(const UnorderedAccessUploaderParams& params);
 
         void upload(const void* src);
+
+        void readback(void* dst);
 
         int elementCount() const;
 

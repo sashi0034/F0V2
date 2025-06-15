@@ -14,6 +14,8 @@ namespace TY::detail
 
         void Shutdown();
 
+        void CloseAndFlush();
+
         const RenderTarget& GetBackBuffer();
 
         [[nodiscard]]

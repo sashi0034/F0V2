@@ -42,7 +42,7 @@ struct Gpgpu_impl::Impl
         });
     }
 
-    void Compute(const void* data)
+    void Compute(void* data)
     {
         m_ua.upload(data);
 
@@ -52,6 +52,10 @@ struct Gpgpu_impl::Impl
         const auto commandList = EngineRenderContext::GetCommandList();
         // commandList->Dispatch((UINT)ceil(m_params.elementCount / 64.0), 1, 1); // TODO
         commandList->Dispatch(1, 1, 1); // TODO
+
+        // EngineRenderContext::FlushCommandList();
+
+        m_ua.readback(data);
     }
 };
 
@@ -62,7 +66,7 @@ namespace TY
     {
     }
 
-    void Gpgpu_impl::compute(const void* data)
+    void Gpgpu_impl::compute(void* data)
     {
         if (p_impl) p_impl->Compute(data);
     }

@@ -24,7 +24,7 @@ namespace TY
 
         Gpgpu_impl(const GpgpuParams_impl& params);
 
-        void compute(const void* data);
+        void compute(void* data);
 
         int elementCount() const;
 
