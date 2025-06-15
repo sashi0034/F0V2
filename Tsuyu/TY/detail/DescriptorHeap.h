@@ -3,7 +3,7 @@
 #include "PipelineType.h"
 #include "TY/ShaderResourceTexture.h"
 #include "TY/ConstantBufferUploader.h"
-#include "TY/UnorderedAccessUploader.h"
+#include "TY/UnorderedAccessTransfer.h"
 
 namespace TY::detail
 {
@@ -11,7 +11,7 @@ namespace TY::detail
     {
         Array<ConstantBufferUploader_impl> cb; // Array::size() = cbvCount, (ConstantBuffer::count = materialCount)
         Array<Array<ShaderResourceTexture>> sr; // srvCount * materialCount
-        Array<Array<UnorderedAccessUploader>> ua; // uavCount * materialCount
+        Array<Array<UnorderedAccessTransfer>> ua; // uavCount * materialCount
     };
 
     struct DescriptorHeapParams

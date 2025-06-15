@@ -2,18 +2,18 @@
 
 namespace TY
 {
-    struct UnorderedAccessUploaderParams
+    struct UnorderedAccessTransferParams
     {
         int elementCount;
         int elementStride;
     };
 
-    class UnorderedAccessUploader // TODO: Transfer へリネーム
+    class UnorderedAccessTransfer
     {
     public:
-        UnorderedAccessUploader() = default;
+        UnorderedAccessTransfer() = default;
 
-        UnorderedAccessUploader(const UnorderedAccessUploaderParams& params);
+        UnorderedAccessTransfer(const UnorderedAccessTransferParams& params);
 
         void upload(const void* src);
 

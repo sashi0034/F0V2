@@ -161,7 +161,7 @@
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Gpgpu.h" />
-    <ClInclude Include="TY\UnorderedAccessUploader.h" />
+    <ClInclude Include="TY\UnorderedAccessTransfer.h" />
     <ClInclude Include="TY\Concepts.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
     <ClInclude Include="TY\ConstantBufferUploader.h" />
@@ -262,7 +262,7 @@
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\Gpgpu.cpp" />
-    <ClCompile Include="TY\UnorderedAccessUploader.cpp" />
+    <ClCompile Include="TY\UnorderedAccessTransfer.cpp" />
     <ClCompile Include="TY\ConstantBufferUploader.cpp" />
     <ClCompile Include="TY\detail\ComputePipelineState.cpp" />
     <ClCompile Include="TY\detail\EngineGamepad.cpp" />

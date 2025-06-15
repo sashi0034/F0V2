@@ -17,7 +17,7 @@ struct Gpgpu_impl::Impl
 {
     GpgpuParams_impl m_params{};
 
-    UnorderedAccessUploader m_ua{};
+    UnorderedAccessTransfer m_ua{};
 
     ComputePipelineState m_computePipelineState{};
 
@@ -25,7 +25,7 @@ struct Gpgpu_impl::Impl
 
     Impl(const GpgpuParams_impl& params) : m_params(params)
     {
-        m_ua = UnorderedAccessUploader({
+        m_ua = UnorderedAccessTransfer({
             .elementCount = m_params.elementCount,
             .elementStride = m_params.elementStride
         });
