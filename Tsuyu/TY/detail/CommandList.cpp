@@ -16,10 +16,10 @@ namespace
         {
         case CommandListType::Direct:
             return D3D12_COMMAND_LIST_TYPE_DIRECT;
-            break;
         case CommandListType::Copy:
             return D3D12_COMMAND_LIST_TYPE_COPY;
-            break;
+        case CommandListType::Compute:
+            return D3D12_COMMAND_LIST_TYPE_COMPUTE;
         }
 
         assert(false);
