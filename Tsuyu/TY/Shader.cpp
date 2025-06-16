@@ -90,6 +90,11 @@ namespace TY
         return ShaderParams{.filename = filename, .entryPoint = entryPoint,};
     }
 
+    ShaderParams ShaderParams::CS(const std::string& filename, const std::string& entryPoint)
+    {
+        return ShaderParams{.filename = filename, .entryPoint = entryPoint,};
+    }
+
     PixelShader::PixelShader(const ShaderParams& params)
         : p_impl{std::make_shared<Shader_impl>(params, "ps_5_0"sv)}
     {
@@ -134,6 +139,27 @@ namespace TY
     }
 
     ID3D10Blob* VertexShader::getBlob() const
+    {
+        return p_impl ? p_impl->shaderBlob.Get() : nullptr;
+    }
+
+    ComputeShader::ComputeShader(const ShaderParams& params)
+    {
+        p_impl = std::make_shared<Shader_impl>(params, "cs_5_0"sv);
+    }
+
+    bool ComputeShader::isEmpty() const
+    {
+        return p_impl == nullptr || p_impl->shaderBlob == nullptr;
+    }
+
+    std::shared_ptr<ITimestamp> ComputeShader::timestamp() const
+    {
+        if (not p_impl) return InvalidTimestamp;
+        return p_impl;
+    }
+
+    ID3D10Blob* ComputeShader::getBlob() const
     {
         return p_impl ? p_impl->shaderBlob.Get() : nullptr;
     }

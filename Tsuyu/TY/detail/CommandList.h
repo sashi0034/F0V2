@@ -6,6 +6,7 @@ namespace TY::detail
     {
         Direct,
         Copy,
+        Compute,
     };
 
     class CommandList

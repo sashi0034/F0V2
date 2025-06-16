@@ -1,0 +1,16 @@
+
+# HORIPAD for Nintendo Switch
+a = 2
+b = 1
+x = 3
+y = 0
+lb = 4
+rb = 5
+lt = 6
+rt = 7
+menu = 9
+view = 8
+axis_lx = 0
+axis_ly = 1
+axis_rx = 2
+axis_ry = 5

@@ -1,10 +1,11 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Title_PointLight.h"
+#include "Demo_PointLight.h"
 
 #include "LivePPAddon.h"
 #include "TY/ConstantBuffer.h"
+#include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
@@ -76,7 +77,7 @@ namespace
     const std::string shader_lambert = "asset/shader/lambert.hlsl";
 }
 
-struct Title_PointLight_impl
+struct Demo_PointLight_impl
 {
     SimpleCamera3D m_camera{};
 
@@ -99,8 +100,10 @@ struct Title_PointLight_impl
     Model m_sphereModel{};
     Pose m_spherePose{};
 
-    Title_PointLight_impl()
+    Demo_PointLight_impl()
     {
+        MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
+
         resetCamera();
 
         const PixelShader defaultPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
@@ -156,7 +159,7 @@ struct Title_PointLight_impl
         }
         else
         {
-            m_fighterPose.position += SimpleInput::GetPlayerMovement() * 10.0f * System::DeltaTime();
+            m_fighterPose.position += SimpleInput::GetPlayerMovement3D() * 10.0f * System::DeltaTime();
         }
 
         m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
@@ -241,6 +244,67 @@ struct Title_PointLight_impl
 
             ImGui::End();
         }
+
+        {
+            ImGui::Begin("Gamepad Info");
+            const auto& state = MainGamepad.rawState();
+
+            ImGui::Text("Buttons:");
+            ImGui::BeginGroup();
+            for (size_t i = 0; i < state.buttons.size(); ++i)
+            {
+                if (state.buttons[i].pressed)
+                {
+                    ImGui::SameLine();
+                    ImGui::Text("[%zu]", i);
+                }
+            }
+
+            ImGui::EndGroup();
+
+            ImGui::Text("POV:");
+            ImGui::BeginGroup();
+            if (state.povUp.pressed)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Up");
+            }
+
+            if (state.povDown.pressed)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Down");
+            }
+
+            if (state.povLeft.pressed)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Left");
+            }
+
+            if (state.povRight.pressed)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Right");
+            }
+
+            ImGui::EndGroup();
+
+            ImGui::Text("Axes:");
+            ImGui::BeginGroup();
+            for (size_t i = 0; i < state.axes.size(); ++i)
+            {
+                if (state.axes[i] != 0.0f)
+                {
+                    ImGui::SameLine();
+                    ImGui::Text("[%d: %.2f]", i, state.axes[i]);
+                }
+            }
+
+            ImGui::EndGroup();
+
+            ImGui::End();
+        }
     }
 
     void resetCamera()
@@ -269,9 +333,9 @@ struct Title_PointLight_impl
     }
 };
 
-void Title_PointLight()
+void Demo_PointLight()
 {
-    Title_PointLight_impl impl{};
+    Demo_PointLight_impl impl{};
 
     while (System::Update())
     {

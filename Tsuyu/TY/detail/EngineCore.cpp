@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "EngineCore.h"
 
+#include "EngineGamepad.h"
 #include "EngineHotReloader.h"
 #include "EngineImGUI.h"
 #include "EngineKeyboard.h"
@@ -40,6 +41,8 @@ struct EngineCoreImpl
 
         EnginePresetAsset::Init();
 
+        EngineGamepad::Init();
+
         EngineImGui::Init();
     }
 
@@ -54,6 +57,8 @@ struct EngineCoreImpl
         EngineTimer::Update();
 
         EngineWindow::Update();
+
+        EngineGamepad::Update();
 
         EngineHotReloader::Update();
 
@@ -88,6 +93,8 @@ struct EngineCoreImpl
         EngineHotReloader::Shutdown();
 
         EnginePresetAsset::Shutdown();
+
+        EngineGamepad::Shutdown();
 
         EngineImGui::Shutdown();
     }

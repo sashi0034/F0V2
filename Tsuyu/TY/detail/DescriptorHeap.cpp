@@ -33,6 +33,100 @@ namespace
 
         return count;
     }
+
+    void createConstantBufferView(
+        D3D12_CPU_DESCRIPTOR_HANDLE heapHandle,
+        int tableId,
+        int cbvId,
+        int materialId,
+        const DescriptorHeapParams& params)
+    {
+        const auto& cb = params.descriptors[tableId].cb[cbvId];
+        AssertWin32{"constant buffer elements count mismatch"sv}
+            | cb.count() == params.materialCounts[tableId];
+
+        if (cb.alignedSize() == 0) return;
+
+        D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+        cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
+        cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
+        EngineRenderContext::GetDevice()->CreateConstantBufferView(&cbvDesc, heapHandle);
+    }
+
+    void createShaderResourceView(
+        D3D12_CPU_DESCRIPTOR_HANDLE heapHandle,
+        int tableId,
+        int srvId,
+        int materialId,
+        const DescriptorHeapParams& params)
+    {
+        const auto& srArray = params.descriptors[tableId].sr[srvId];
+        AssertWin32{"shader resoruce elements count mismatch"sv}
+            | srArray.size() == params.materialCounts[tableId];
+
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+        ID3D12Resource* p_resource{};
+        const auto sr = srArray[materialId];
+        if (sr.isHolds<ShaderResourceTexture>())
+        {
+            const auto& t = sr.get<ShaderResourceTexture>();
+            const auto materialSR =
+                t.isEmpty() ? EnginePresetAsset::GetWhiteTexture() : t;
+
+            srvDesc.Format = t.getFormat();
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            p_resource = materialSR.getResource();
+        }
+        else if (sr.isHolds<StructuredBufferTransfer>())
+        {
+            const auto& t = sr.get<StructuredBufferTransfer>();
+            if (t.elementCount() == 0) return;
+
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+            srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Buffer.FirstElement = 0;
+            srvDesc.Buffer.NumElements = t.elementCount();
+            srvDesc.Buffer.StructureByteStride = t.elementStride();
+            srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+            p_resource = t.getBuffer();
+        }
+
+        assert(p_resource);
+
+        EngineRenderContext::GetDevice()->CreateShaderResourceView(p_resource, &srvDesc, heapHandle);
+    }
+
+    void createUnorderedAccessView(
+        D3D12_CPU_DESCRIPTOR_HANDLE heapHandle,
+        int tableId,
+        int uavId,
+        int materialId,
+        const DescriptorHeapParams& params)
+    {
+        const auto& uaArray = params.descriptors[tableId].ua[uavId];
+        AssertWin32{"unordered access elements count mismatch"sv}
+            | uaArray.size() == params.materialCounts[tableId];
+
+        const auto ua = uaArray[materialId];
+        if (ua.elementCount() == 0) return;
+
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+        uavDesc.Buffer.FirstElement = 0;
+        uavDesc.Buffer.NumElements = uaArray[materialId].elementCount();
+        uavDesc.Buffer.StructureByteStride = ua.elementStride();
+
+        EngineRenderContext::GetDevice()->CreateUnorderedAccessView(
+            ua.getBuffer(),
+            nullptr,
+            &uavDesc,
+            heapHandle);
+    }
 }
 
 struct DescriptorHeap::Impl
@@ -78,20 +172,9 @@ struct DescriptorHeap::Impl
                 // CBV
                 AssertWin32{"constant buffer size mismatch"sv} // FIXME: 丁寧なメッセージ
                     | params.descriptors[tableId].cb.size() == params.table[tableId].cbvCount;
-                for (int cavId = 0; cavId < params.table[tableId].cbvCount; ++cavId)
+                for (int cbvId = 0; cbvId < params.table[tableId].cbvCount; ++cbvId)
                 {
-                    const auto& cb = params.descriptors[tableId].cb[cavId];
-                    AssertWin32{"constant buffer elements count mismatch"sv}
-                        | cb.count() == params.materialCounts[tableId];
-
-                    AssertTrue{"constant buffer is empty"sv}
-                        | cb.alignedSize() != 0;
-
-                    D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-                    cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
-                    cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
-                    EngineRenderContext::GetDevice()->CreateConstantBufferView(
-                        &cbvDesc, heapHandle);
+                    createConstantBufferView(heapHandle, tableId, cbvId, materialId, params);
 
                     heapHandle.ptr += incrementSize;
                 }
@@ -101,42 +184,46 @@ struct DescriptorHeap::Impl
                     | params.descriptors[tableId].sr.size() == params.table[tableId].srvCount;
                 for (int srvId = 0; srvId < params.table[tableId].srvCount; ++srvId)
                 {
-                    const auto& sr = params.descriptors[tableId].sr[srvId];
-                    AssertWin32{"constant buffer elements count mismatch"sv}
-                        | sr.size() == params.materialCounts[tableId];
-
-                    const auto materialSR =
-                        sr[materialId].isEmpty() ? EnginePresetAsset::GetWhiteTexture() : sr[materialId];;
-
-                    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-                    srvDesc.Format = materialSR.getFormat();
-                    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-                    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-                    srvDesc.Texture2D.MipLevels = 1;
-
-                    EngineRenderContext::GetDevice()->CreateShaderResourceView(
-                        materialSR.getResource(), &srvDesc, heapHandle);
+                    createShaderResourceView(heapHandle, tableId, srvId, materialId, params);
 
                     heapHandle.ptr += incrementSize;
                 }
 
                 // UAV
-                // TODO
+                AssertWin32{"failed to create descriptor heap"sv}
+                    | params.descriptors[tableId].ua.size() == params.table[tableId].uavCount;
+                for (int uavId = 0; uavId < params.table[tableId].uavCount; ++uavId)
+                {
+                    createUnorderedAccessView(heapHandle, tableId, uavId, materialId, params);
+
+                    heapHandle.ptr += incrementSize;
+                }
             }
         }
     }
 
     void CommandSet() const
     {
-        EngineRenderContext::GetCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+        EngineRenderContext::ActiveCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
-    void CommandSetTable(int tableId, int materialId) const
+    void CommandSetTable(PipelineType pipeline, int tableId, int materialId) const
     {
         auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
-        EngineRenderContext::GetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+        if (pipeline == PipelineType::Graphics)
+        {
+            EngineRenderContext::ActiveCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+        }
+        else if (pipeline == PipelineType::Compute)
+        {
+            EngineRenderContext::ActiveCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
+        }
+        else
+        {
+            assert(false);
+        }
     }
 };
 
@@ -146,13 +233,13 @@ namespace TY::detail
     {
     }
 
-    void DescriptorHeap::CommandSet() const
+    void DescriptorHeap::commandSet() const
     {
         if (p_impl) p_impl->CommandSet();
     }
 
-    void DescriptorHeap::CommandSetTable(int tableId, int materialId) const
+    void DescriptorHeap::commandSetTable(PipelineType pipeline, int tableId, int materialId) const
     {
-        if (p_impl) p_impl->CommandSetTable(tableId, materialId);
+        if (p_impl) p_impl->CommandSetTable(pipeline, tableId, materialId);
     }
 }

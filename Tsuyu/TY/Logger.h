@@ -23,6 +23,11 @@ namespace TY
 
         void writeln(const UnifiedString& message) const;
 
+        void operator()(const UnifiedString& message) const
+        {
+            writeln(message);
+        }
+
         const Logger_impl& operator <<(const UnifiedString& message) const;
 
     private:

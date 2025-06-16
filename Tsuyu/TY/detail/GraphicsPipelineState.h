@@ -32,14 +32,14 @@ namespace TY::detail
 
     struct PipelineState_impl;
 
-    class PipelineState
+    class GraphicsPipelineState
     {
     public:
-        PipelineState(const PipelineStateParams& params);
+        GraphicsPipelineState(const PipelineStateParams& params);
 
         DescriptorTable descriptorTable() const;
 
-        void CommandSet() const;
+        void commandSet() const;
 
     private:
         struct Impl;

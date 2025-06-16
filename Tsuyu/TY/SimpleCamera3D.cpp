@@ -33,7 +33,7 @@ struct SimpleCamera3D::Impl
 
     void Update(float dt)
     {
-        const Float3 moveVector = SimpleInput::GetPlayerMovement();
+        const Float3 moveVector = SimpleInput::GetPlayerMovement3D();
         const Float2 rotateVector = SimpleInput::GetCameraRotation();
 
         constexpr double moveSpeed = 10.0f;
@@ -41,7 +41,7 @@ struct SimpleCamera3D::Impl
 
         if (not moveVector.isZero())
         {
-            const auto forward = m_cameraMatrix.forward();
+            const auto forward = -m_cameraMatrix.forward(); // FIXME?
             const auto df = forward * moveVector.z * moveSpeed * dt;
             m_eyePosition += df;
 

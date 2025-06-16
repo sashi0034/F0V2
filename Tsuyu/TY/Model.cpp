@@ -19,7 +19,7 @@
 #include "detail/EnginePresetAsset.h"
 #include "detail/EngineStateContext.h"
 #include "detail/IEngineDrawer.h"
-#include "detail/PipelineState.h"
+#include "detail/GraphicsPipelineState.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -28,7 +28,7 @@ namespace
 {
     const DescriptorTable baseDescriptorTable = {{1, 0, 0}, {1, 1, 0}};
 
-    PipelineState makePipelineState(const ModelParams& params)
+    GraphicsPipelineState makePipelineState(const ModelParams& params)
     {
         auto descriptorTable = baseDescriptorTable;
         if (not params.cb2.isEmpty())
@@ -37,7 +37,7 @@ namespace
         }
 
         // TODO: キャッシュする?
-        return PipelineState{
+        return GraphicsPipelineState{
             PipelineStateParams{
                 .pixelShader = params.ps,
                 .vertexShader = params.vs,
@@ -73,7 +73,7 @@ struct Model::Impl : IEngineDrawer
     Array<ShapeBuffer> m_shapes{};
     Array<ModelMaterialParameters> m_materials{};
 
-    PipelineState m_pipelineState;
+    GraphicsPipelineState m_pipelineState;
 
     DescriptorHeap m_descriptorHeap{};
 
@@ -111,10 +111,10 @@ struct Model::Impl : IEngineDrawer
 
         // -----------------------------------------------
 
-        const Array<ShaderResourceTexture> diffuseTextureList =
+        const Array<ShaderResourceType> diffuseTextureList =
             m_modelData.materials.map([](const ModelMaterial& material)
             {
-                return material.diffuseTexture;
+                return ShaderResourceType(material.diffuseTexture);
             });
 
         auto descriptorHeapParam = DescriptorHeapParams{
@@ -140,18 +140,18 @@ struct Model::Impl : IEngineDrawer
         sceneState.projectionMat = EngineStateContext::GetProjectionMatrix().mat;
         m_cb0.upload(sceneState);
 
-        m_pipelineState.CommandSet();
+        m_pipelineState.commandSet();
 
         // カメラ行列設定
-        m_descriptorHeap.CommandSet();
-        m_descriptorHeap.CommandSetTable(0);
+        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
 
-        if (not m_cb2.isEmpty()) m_descriptorHeap.CommandSetTable(2);
+        if (not m_cb2.isEmpty()) m_descriptorHeap.commandSetTable(PipelineType::Graphics, 2);
 
         // 形状ごとに描画
         for (size_t shapeId = 0; shapeId < m_shapes.size(); ++shapeId)
         {
-            m_descriptorHeap.CommandSetTable(1, m_shapes[shapeId].materialIndex);
+            m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1, m_shapes[shapeId].materialIndex);
 
             Graphics3D::DrawTriangles(m_shapes[shapeId].vertexBuffer, m_shapes[shapeId].indexBuffer);
         }

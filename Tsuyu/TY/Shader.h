@@ -13,6 +13,8 @@ namespace TY
         static ShaderParams PS(const std::string& filename, const std::string& entryPoint = "PS");
 
         static ShaderParams VS(const std::string& filename, const std::string& entryPoint = "VS");
+
+        static ShaderParams CS(const std::string& filename, const std::string& entryPoint = "CS");
     };
 
     struct Shader_impl;
@@ -50,6 +52,28 @@ namespace TY
 
         explicit VertexShader(const std::string& filename, const std::string& entryPoint)
             : VertexShader{ShaderParams{.filename = filename, .entryPoint = entryPoint}}
+        {
+        }
+
+        [[nodiscard]] bool isEmpty() const;
+
+        [[nodiscard]] std::shared_ptr<ITimestamp> timestamp() const;
+
+        [[nodiscard]] ID3D10Blob* getBlob() const;
+
+    private:
+        std::shared_ptr<Shader_impl> p_impl;
+    };
+
+    class ComputeShader
+    {
+    public:
+        ComputeShader() = default;
+
+        explicit ComputeShader(const ShaderParams& params);
+
+        explicit ComputeShader(const std::string& filename, const std::string& entryPoint)
+            : ComputeShader{ShaderParams{.filename = filename, .entryPoint = entryPoint}}
         {
         }
 

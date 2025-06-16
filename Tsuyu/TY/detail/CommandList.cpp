@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
 #include "CommandList.h"
 
-#include "EngineCore.h"
 #include "EngineRenderContext.h"
 #include "TY/AssertObject.h"
+#include "TY/Logger.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -16,10 +16,10 @@ namespace
         {
         case CommandListType::Direct:
             return D3D12_COMMAND_LIST_TYPE_DIRECT;
-            break;
         case CommandListType::Copy:
             return D3D12_COMMAND_LIST_TYPE_COPY;
-            break;
+        case CommandListType::Compute:
+            return D3D12_COMMAND_LIST_TYPE_COMPUTE;
         }
 
         assert(false);
@@ -29,6 +29,7 @@ namespace
 
 struct CommandList::Impl
 {
+    bool m_valid{};
     ComPtr<ID3D12CommandAllocator> m_commandAllocator{};
     ComPtr<ID3D12GraphicsCommandList> m_commandList{};
     ComPtr<ID3D12CommandQueue> m_commandQueue{};
@@ -42,19 +43,28 @@ struct CommandList::Impl
         const auto commandListType = getCommandListType(type);
 
         // コマンドアロケータを生成
-        AssertWin32{"failed to create command allocator"sv}
-            | device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(&m_commandAllocator));
+        if (const HRESULT hr = device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(&m_commandAllocator));
+            FAILED(hr))
+        {
+            LogError(std::format("CreateCommandAllocator failed: {}", hr));
+            return;
+        }
+
         m_commandAllocator->SetName(L"CommandAllocator");
 
         // コマンドリストを生成
-        AssertWin32{"failed to create command list"sv}
-            | device->CreateCommandList(
+        if (const HRESULT hr = device->CreateCommandList(
                 0,
                 commandListType,
                 m_commandAllocator.Get(),
                 nullptr,
-                IID_PPV_ARGS(&m_commandList)
-            );
+                IID_PPV_ARGS(&m_commandList));
+            FAILED(hr))
+        {
+            LogError(std::format("CreateCommandList failed: {}", hr));
+            return;
+        }
+
         m_commandList->SetName(L"CommandList");
 
         // コマンドキューを生成
@@ -63,14 +73,31 @@ struct CommandList::Impl
         commandQueueDesc.NodeMask = 0;
         commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL; // プライオリティ特に指定なし
         commandQueueDesc.Type = commandListType;
-        AssertWin32{"failed to create command queue"sv}
-            | device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&m_commandQueue));
+
+        if (const HRESULT hr = device->CreateCommandQueue(
+                &commandQueueDesc, IID_PPV_ARGS(&m_commandQueue));
+            FAILED(hr))
+        {
+            LogError(std::format("CreateCommandQueue failed: {}", hr));
+            return;
+        }
+
         m_commandQueue->SetName(L"CommandQueue");
 
         // フェンスを生成
-        AssertWin32{"failed to create fence"sv}
-            | device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
+        if (const HRESULT hr = device->CreateFence(
+                0,
+                D3D12_FENCE_FLAG_NONE,
+                IID_PPV_ARGS(&m_fence));
+            FAILED(hr))
+        {
+            LogError(std::format("CreateFence failed: {}", hr));
+            return;
+        }
+
         m_fence->SetName(L"Fence");
+
+        m_valid = true;
     }
 
     void CloseAndFlush()
@@ -105,6 +132,10 @@ namespace TY::detail
     CommandList::CommandList(CommandListType type) :
         p_impl(std::make_shared<Impl>(type))
     {
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+        }
     }
 
     void CommandList::CloseAndFlush()

@@ -19,7 +19,7 @@ struct ConstantBufferUploader_impl::Impl
     uint32_t m_sizeInBytes;
     uint32_t m_count;
     size_t m_alignedSize{};
-    ComPtr<ID3D12Resource> m_cb{};
+    ComPtr<ID3D12Resource> m_uploadBuffer{};
 
     bool m_uploaded{};
     bool m_shouldUnmap{};
@@ -38,14 +38,14 @@ struct ConstantBufferUploader_impl::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
-                IID_PPV_ARGS(&m_cb));
+                IID_PPV_ARGS(&m_uploadBuffer));
             FAILED(hr))
         {
             LogError.writeln("ConstantBufferUploader: Failed to create resource.");
             return;
         }
 
-        m_cb->SetName(L"ConstantBuffer");
+        m_uploadBuffer->SetName(L"ConstantBuffer");
 
         m_valid = true;
     }
@@ -54,7 +54,7 @@ struct ConstantBufferUploader_impl::Impl
     {
         if (m_shouldUnmap)
         {
-            m_cb->Unmap(0, nullptr);
+            m_uploadBuffer->Unmap(0, nullptr);
         }
     }
 
@@ -62,7 +62,7 @@ struct ConstantBufferUploader_impl::Impl
     {
         uint8_t* dest;
 
-        if (const auto hr = m_cb->Map(0, nullptr, reinterpret_cast<void**>(&dest));
+        if (const auto hr = m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dest));
             FAILED(hr))
         {
             LogError.writeln(std::format("ConstantBufferUploader: Failed to map resource for 0x{:016x}",
@@ -87,7 +87,7 @@ struct ConstantBufferUploader_impl::Impl
         {
             // 初回のアップロードのみマップの解除を行う
             m_uploaded = true;
-            m_cb->Unmap(0, nullptr);
+            m_uploadBuffer->Unmap(0, nullptr);
         }
     }
 };
@@ -125,6 +125,6 @@ namespace TY
 
     uint64_t ConstantBufferUploader_impl::bufferLocation() const
     {
-        return p_impl ? p_impl->m_cb->GetGPUVirtualAddress() : 0;
+        return p_impl ? p_impl->m_uploadBuffer->GetGPUVirtualAddress() : 0;
     }
 }

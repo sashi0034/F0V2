@@ -62,7 +62,7 @@ struct VertexBuffer_impl::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::GetCommandList();
+        const auto commandList = EngineRenderContext::ActiveCommandList();
         commandList->IASetVertexBuffers(0, 1, &m_vertBufferView);
     }
 };

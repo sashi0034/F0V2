@@ -1,20 +1,19 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
+#include "PipelineType.h"
 #include "TY/ShaderResourceTexture.h"
 #include "TY/ConstantBufferUploader.h"
+#include "TY/StructuredBufferTransfer.h"
 
 namespace TY::detail
 {
-    struct UnorderedAccessResource
-    {
-        // TODO
-    };
+    using ShaderResourceType = Variant<ShaderResourceTexture, StructuredBufferTransfer>;
 
     struct CbSrUaSet
     {
-        Array<ConstantBufferUploader_impl> cb; // Array::size() = cbvCount, (ConstantBuffer::count = materialCount)
-        Array<Array<ShaderResourceTexture>> sr; // srvCount * materialCount
-        Array<Array<UnorderedAccessResource>> ua; // uavCount * materialCount
+        Array<ConstantBufferUploader_impl> cb; /* [cbvCount] where ConstantBuffer::count() = materialCount */
+        Array<Array<ShaderResourceType>> sr; /* [srvCount][materialCount] */
+        Array<Array<StructuredBufferTransfer>> ua; /* [uavCount][materialCount] */
     };
 
     struct DescriptorHeapParams
@@ -31,9 +30,9 @@ namespace TY::detail
 
         DescriptorHeap(const DescriptorHeapParams& params);
 
-        void CommandSet() const;
+        void commandSet() const;
 
-        void CommandSetTable(int tableId, int materialId = 0) const;
+        void commandSetTable(PipelineType pipeline, int tableId, int materialId = 0) const;
 
     private:
         struct Impl;

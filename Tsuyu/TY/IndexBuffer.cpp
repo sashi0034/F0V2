@@ -61,7 +61,7 @@ struct IndexBuffer::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::GetCommandList();
+        const auto commandList = EngineRenderContext::ActiveCommandList();
         commandList->IASetIndexBuffer(&m_indexBufferView);
     }
 };
