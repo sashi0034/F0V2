@@ -84,14 +84,14 @@ struct DescriptorHeap::Impl
                     AssertWin32{"constant buffer elements count mismatch"sv}
                         | cb.count() == params.materialCounts[tableId];
 
-                    AssertTrue{"constant buffer is empty"sv}
-                        | cb.alignedSize() != 0;
-
-                    D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-                    cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
-                    cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
-                    EngineRenderContext::GetDevice()->CreateConstantBufferView(
-                        &cbvDesc, heapHandle);
+                    if (cb.alignedSize() != 0)
+                    {
+                        D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+                        cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
+                        cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
+                        EngineRenderContext::GetDevice()->CreateConstantBufferView(
+                            &cbvDesc, heapHandle);
+                    }
 
                     heapHandle.ptr += incrementSize;
                 }
@@ -146,7 +146,7 @@ struct DescriptorHeap::Impl
 
     void CommandSet() const
     {
-        EngineRenderContext::GetCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+        EngineRenderContext::ActiveCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
     void CommandSetTable(PipelineType pipeline, int tableId, int materialId) const
@@ -156,11 +156,11 @@ struct DescriptorHeap::Impl
 
         if (pipeline == PipelineType::Graphics)
         {
-            EngineRenderContext::GetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+            EngineRenderContext::ActiveCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
         }
         else if (pipeline == PipelineType::Compute)
         {
-            EngineRenderContext::GetCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
+            EngineRenderContext::ActiveCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
         }
         else
         {

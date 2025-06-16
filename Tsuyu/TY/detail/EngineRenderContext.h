@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "CommandList.h"
+#include "PipelineType.h"
 #include "TY/RenderTarget.h"
 #include "TY/Value2D.h"
 
@@ -14,18 +16,21 @@ namespace TY::detail
 
         void Shutdown();
 
-        void CloseAndFlush();
-
         const RenderTarget& GetBackBuffer();
 
         [[nodiscard]]
         ID3D12Device* GetDevice();
 
         [[nodiscard]]
-        ID3D12GraphicsCommandList* GetCommandList();
+        ScopedDefer ScopedCommandTarget(CommandListType type);
 
         [[nodiscard]]
-        ID3D12GraphicsCommandList* GetCopyCommandList();
+        CommandListType ActiveCommandTarget();
+
+        [[nodiscard]]
+        ID3D12GraphicsCommandList* ActiveCommandList();
+
+        void FlushActiveCommandList();
 
         Size GetSceneSize();
     }

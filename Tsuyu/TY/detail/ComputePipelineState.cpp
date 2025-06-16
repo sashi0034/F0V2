@@ -38,7 +38,7 @@ struct ComputePipelineState::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::GetCommandList();
+        const auto commandList = EngineRenderContext::ActiveCommandList();
         commandList->SetPipelineState(m_pipelineState.Get());
         commandList->SetComputeRootSignature(m_rootSignature.getPointer());
     }

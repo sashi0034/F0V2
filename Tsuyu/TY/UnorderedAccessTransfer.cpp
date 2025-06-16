@@ -96,7 +96,8 @@ struct UnorderedAccessTransfer::Impl
         m_uploadBuffer->Unmap(0, nullptr);
 
         // GPU へアップロード
-        const auto commandList = EngineRenderContext::GetCommandList();
+        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
+        const auto commandList = EngineRenderContext::ActiveCommandList();
         commandList->CopyResource(m_gpuBuffer.Get(), m_uploadBuffer.Get());
 
         // CopyResource で COPY_DEST 状態になっている m_gpuBuffer を、UNORDERED_ACCESS に移す
@@ -109,7 +110,8 @@ struct UnorderedAccessTransfer::Impl
 
     void Readback(uint8_t* dest)
     {
-        const auto commandList = EngineRenderContext::GetCommandList();
+        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
+        const auto commandList = EngineRenderContext::ActiveCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_gpuBuffer.Get());
@@ -132,7 +134,7 @@ struct UnorderedAccessTransfer::Impl
             D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         commandList->ResourceBarrier(1, &toUAV);
 
-        EngineRenderContext::CloseAndFlush();
+        EngineRenderContext::FlushActiveCommandList();
 
         uint8_t* src = nullptr;
         if (SUCCEEDED(m_readbackBuffer->Map(0, nullptr, reinterpret_cast<void**>(&src))))

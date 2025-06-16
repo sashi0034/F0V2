@@ -75,9 +75,9 @@ namespace TY::detail
     {
         ImGui::Render();
 
-        EngineRenderContext::GetCommandList()->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
+        EngineRenderContext::ActiveCommandList()->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
 
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineRenderContext::GetCommandList());
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineRenderContext::ActiveCommandList());
     }
 
     void EngineImGui::Shutdown()

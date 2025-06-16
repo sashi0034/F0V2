@@ -25,7 +25,7 @@ struct Demo_Gpgpu_Impl
         m_gpgpu = Gpgpu<uint32_t>{
             {
                 .cs = m_computeShader,
-                .elementCount = 64
+                .elementCount = 100
             }
         };
 

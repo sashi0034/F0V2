@@ -46,11 +46,14 @@ struct EngineRenderContextImpl
 
     CommandList m_commandList{};
     CommandList m_copyCommandList{};
+    CommandList m_computeCommandList{};
 
     ComPtr<IDXGISwapChain4> m_swapChain{};
 
     RenderTarget m_backBuffer{};
     ScopedRenderTarget m_scopedBackBuffer{};
+
+    Array<CommandListType> m_commandTargetStack{};
 
     void Init()
     {
@@ -122,6 +125,8 @@ struct EngineRenderContextImpl
 
         m_copyCommandList = CommandList{CommandListType::Copy};
 
+        m_computeCommandList = CommandList{CommandListType::Compute};
+
         // スワップチェインの設定
         DXGI_SWAP_CHAIN_DESC1 swapchainDesc = {};
         swapchainDesc.Width = m_sceneSize.x;
@@ -172,27 +177,49 @@ struct EngineRenderContextImpl
 
     void Render()
     {
+        assert(m_commandTargetStack.empty());
+
         // バックバッファ反映
         m_scopedBackBuffer.dispose();
 
         // コマンドリストの実行
-        m_copyCommandList.CloseAndFlush();
-        m_commandList.CloseAndFlush();
+        FlushCommandLists();
 
         // フリップ
         m_swapChain->Present(1, 0);
     }
 
-    void CloseAndFlush()
+    void FlushCommandLists()
     {
+        m_computeCommandList.CloseAndFlush();
         m_copyCommandList.CloseAndFlush();
         m_commandList.CloseAndFlush();
     }
 
+    CommandList& getActiveCommandList()
+    {
+        if (m_commandTargetStack.empty())
+        {
+            return m_commandList;
+        }
+
+        switch (m_commandTargetStack.back())
+        {
+        case CommandListType::Direct:
+            return m_commandList;
+        case CommandListType::Copy:
+            return m_copyCommandList;
+        case CommandListType::Compute:
+            return m_computeCommandList;
+        default:
+            assert(false);
+            return m_commandList;
+        }
+    }
+
     void OnShutdown()
     {
-        m_commandList.CloseAndFlush();
-        m_copyCommandList.CloseAndFlush();
+        FlushCommandLists();
     }
 };
 
@@ -224,11 +251,6 @@ namespace TY::detail
         s_renderContext = {};
     }
 
-    void EngineRenderContext::CloseAndFlush()
-    {
-        s_renderContext.CloseAndFlush();
-    }
-
     const RenderTarget& EngineRenderContext::GetBackBuffer()
     {
         return s_renderContext.m_backBuffer;
@@ -240,16 +262,43 @@ namespace TY::detail
         return s_renderContext.m_device.Get();
     }
 
-    ID3D12GraphicsCommandList* EngineRenderContext::GetCommandList()
+    ScopedDefer EngineRenderContext::ScopedCommandTarget(CommandListType type)
     {
-        assert(s_renderContext.m_commandList.GetCommandList());
-        return s_renderContext.m_commandList.GetCommandList();
+        s_renderContext.m_commandTargetStack.push_back(type);
+        return ScopedDefer{
+            [type]()
+            {
+                if (not s_renderContext.m_commandTargetStack.empty())
+                {
+                    assert(s_renderContext.m_commandTargetStack.back() == type);
+                    s_renderContext.m_commandTargetStack.pop_back();
+                }
+                else
+                {
+                    assert(false);
+                }
+            }
+        };
     }
 
-    ID3D12GraphicsCommandList* EngineRenderContext::GetCopyCommandList()
+    CommandListType EngineRenderContext::ActiveCommandTarget()
     {
-        assert(s_renderContext.m_copyCommandList.GetCommandList());
-        return s_renderContext.m_copyCommandList.GetCommandList();
+        if (s_renderContext.m_commandTargetStack.empty())
+        {
+            return CommandListType::Direct;
+        }
+
+        return s_renderContext.m_commandTargetStack.back();
+    }
+
+    ID3D12GraphicsCommandList* EngineRenderContext::ActiveCommandList()
+    {
+        return s_renderContext.getActiveCommandList().GetCommandList();
+    }
+
+    void EngineRenderContext::FlushActiveCommandList()
+    {
+        s_renderContext.getActiveCommandList().CloseAndFlush();
     }
 
     Size EngineRenderContext::GetSceneSize()
