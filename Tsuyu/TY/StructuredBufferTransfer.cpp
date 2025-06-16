@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "UnorderedAccessTransfer.h"
+#include "StructuredBufferTransfer.h"
 
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
@@ -7,15 +7,15 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct UnorderedAccessTransfer::Impl
+struct StructuredBufferTransfer::Impl
 {
-    UnorderedAccessTransferParams m_params;
+    StructuredBufferTransferParams m_params;
     ComPtr<ID3D12Resource> m_gpuBuffer;
     ComPtr<ID3D12Resource> m_uploadBuffer;
     ComPtr<ID3D12Resource> m_readbackBuffer;
     size_t m_dataSize{};
 
-    Impl(const UnorderedAccessTransferParams& params) : m_params(params)
+    Impl(const StructuredBufferTransferParams& params) : m_params(params)
     {
         const auto device = EngineRenderContext::GetDevice();
 
@@ -160,32 +160,32 @@ struct UnorderedAccessTransfer::Impl
 
 namespace TY
 {
-    UnorderedAccessTransfer::UnorderedAccessTransfer(const UnorderedAccessTransferParams& params)
+    StructuredBufferTransfer::StructuredBufferTransfer(const StructuredBufferTransferParams& params)
         : p_impl(std::make_shared<Impl>(params))
     {
     }
 
-    void UnorderedAccessTransfer::upload(const void* src)
+    void StructuredBufferTransfer::upload(const void* src)
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(src));
     }
 
-    void UnorderedAccessTransfer::readback(void* dst)
+    void StructuredBufferTransfer::readback(void* dst)
     {
         if (p_impl) p_impl->Readback(static_cast<uint8_t*>(dst));
     }
 
-    int UnorderedAccessTransfer::elementCount() const
+    int StructuredBufferTransfer::elementCount() const
     {
         return p_impl ? p_impl->m_params.elementCount : 0;
     }
 
-    int UnorderedAccessTransfer::elementStride() const
+    int StructuredBufferTransfer::elementStride() const
     {
         return p_impl ? p_impl->m_params.elementStride : 0;
     }
 
-    ID3D12Resource* UnorderedAccessTransfer::getBuffer() const
+    ID3D12Resource* StructuredBufferTransfer::getBuffer() const
     {
         return p_impl ? p_impl->m_gpuBuffer.Get() : nullptr;
     }

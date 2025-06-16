@@ -27,8 +27,8 @@ struct Gpgpu::Impl
 
     ConstantBuffer<BufferInfo_b0> m_cb0{};
 
-    Array<UnorderedAccessTransfer> m_sr{};
-    Array<UnorderedAccessTransfer> m_ua{};
+    Array<StructuredBufferTransfer> m_sr{};
+    Array<StructuredBufferTransfer> m_ua{};
 
     ComputePipelineState m_computePipelineState{};
 
@@ -45,7 +45,7 @@ struct Gpgpu::Impl
         m_sr.resize(params.readonlyBuffer.size());
         for (int i = 0; i < params.readonlyBuffer.size(); ++i)
         {
-            m_sr[i] = UnorderedAccessTransfer({
+            m_sr[i] = StructuredBufferTransfer({
                 .elementCount = params.readonlyBuffer[i]->getElementCount(),
                 .elementStride = params.readonlyBuffer[i]->getElementStride()
             });
@@ -54,7 +54,7 @@ struct Gpgpu::Impl
         m_ua.resize(params.writableBuffer.size());
         for (int i = 0; i < params.writableBuffer.size(); ++i)
         {
-            m_ua[i] = UnorderedAccessTransfer({
+            m_ua[i] = StructuredBufferTransfer({
                 .elementCount = params.writableBuffer[i]->getElementCount(),
                 .elementStride = params.writableBuffer[i]->getElementStride()
             });

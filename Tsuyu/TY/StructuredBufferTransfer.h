@@ -2,20 +2,19 @@
 
 namespace TY
 {
-    struct UnorderedAccessTransferParams
+    struct StructuredBufferTransferParams
     {
         bool isReadonly;
         int elementCount;
         int elementStride;
     };
 
-    // TODO: Rename to StructuredBuffer
-    class UnorderedAccessTransfer
+    class StructuredBufferTransfer
     {
     public:
-        UnorderedAccessTransfer() = default;
+        StructuredBufferTransfer() = default;
 
-        UnorderedAccessTransfer(const UnorderedAccessTransferParams& params);
+        StructuredBufferTransfer(const StructuredBufferTransferParams& params);
 
         void upload(const void* src);
 

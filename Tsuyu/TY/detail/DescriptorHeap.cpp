@@ -80,9 +80,9 @@ namespace
 
             p_resource = materialSR.getResource();
         }
-        else if (sr.isHolds<UnorderedAccessTransfer>())
+        else if (sr.isHolds<StructuredBufferTransfer>())
         {
-            const auto& t = sr.get<UnorderedAccessTransfer>();
+            const auto& t = sr.get<StructuredBufferTransfer>();
             if (t.elementCount() == 0) return;
 
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
