@@ -60,21 +60,45 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& sr = params.descriptors[tableId].sr[srvId];
+        const auto& srArray = params.descriptors[tableId].sr[srvId];
         AssertWin32{"shader resoruce elements count mismatch"sv}
-            | sr.size() == params.materialCounts[tableId];
+            | srArray.size() == params.materialCounts[tableId];
 
-        const auto materialSR =
-            sr[materialId].isEmpty() ? EnginePresetAsset::GetWhiteTexture() : sr[materialId];;
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+        ID3D12Resource* p_resource{};
+        const auto sr = srArray[materialId];
+        if (sr.isHolds<ShaderResourceTexture>())
+        {
+            const auto& t = sr.get<ShaderResourceTexture>();
+            const auto materialSR =
+                t.isEmpty() ? EnginePresetAsset::GetWhiteTexture() : t;
 
-        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = materialSR.getFormat();
-        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        srvDesc.Texture2D.MipLevels = 1;
+            srvDesc.Format = t.getFormat();
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Texture2D.MipLevels = 1;
 
-        EngineRenderContext::GetDevice()->CreateShaderResourceView(
-            materialSR.getResource(), &srvDesc, heapHandle);
+            p_resource = materialSR.getResource();
+        }
+        else if (sr.isHolds<UnorderedAccessTransfer>())
+        {
+            const auto& t = sr.get<UnorderedAccessTransfer>();
+            if (t.elementCount() == 0) return;
+
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+            srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Buffer.FirstElement = 0;
+            srvDesc.Buffer.NumElements = t.elementCount();
+            srvDesc.Buffer.StructureByteStride = t.elementStride();
+            srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+            p_resource = t.getBuffer();
+        }
+
+        assert(p_resource);
+
+        EngineRenderContext::GetDevice()->CreateShaderResourceView(p_resource, &srvDesc, heapHandle);
     }
 
     void createUnorderedAccessView(
@@ -84,20 +108,21 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& ua = params.descriptors[tableId].ua[uavId];
+        const auto& uaArray = params.descriptors[tableId].ua[uavId];
         AssertWin32{"unordered access elements count mismatch"sv}
-            | ua.size() == params.materialCounts[tableId];
+            | uaArray.size() == params.materialCounts[tableId];
 
-        if (ua[materialId].elementCount() == 0) return;
+        const auto ua = uaArray[materialId];
+        if (ua.elementCount() == 0) return;
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
         uavDesc.Buffer.FirstElement = 0;
-        uavDesc.Buffer.NumElements = ua[materialId].elementCount();
-        uavDesc.Buffer.StructureByteStride = ua[materialId].elementStride();
+        uavDesc.Buffer.NumElements = uaArray[materialId].elementCount();
+        uavDesc.Buffer.StructureByteStride = ua.elementStride();
 
         EngineRenderContext::GetDevice()->CreateUnorderedAccessView(
-            ua[materialId].getBuffer(),
+            ua.getBuffer(),
             nullptr,
             &uavDesc,
             heapHandle);

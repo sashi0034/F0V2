@@ -12,13 +12,12 @@ using namespace TY::detail;
 
 namespace
 {
-    constexpr int maxUavCount = 8;
-
-    const DescriptorTable descriptorTable = {{2, 0, maxUavCount}};
+    constexpr int maxBufferCount = 8;
 
     struct BufferInfo_b0
     {
-        std::array<uint32_t, maxUavCount> elementCount{};
+        std::array<uint32_t, maxBufferCount> writableBufferSize{};
+        std::array<uint32_t, maxBufferCount> readonlyBufferSize{};
     };
 }
 
@@ -28,6 +27,7 @@ struct Gpgpu::Impl
 
     ConstantBuffer<BufferInfo_b0> m_cb0{};
 
+    Array<UnorderedAccessTransfer> m_sr{};
     Array<UnorderedAccessTransfer> m_ua{};
 
     ComputePipelineState m_computePipelineState{};
@@ -36,21 +36,31 @@ struct Gpgpu::Impl
 
     Impl(const GpgpuParams& params) : m_params(params)
     {
-        if (params.buffers.size() > maxUavCount)
+        if (params.readonlyBuffer.size() > maxBufferCount || params.writableBuffer.size() > maxBufferCount)
         {
-            LogError.writeln("Gpgpu: Too many buffers specified. Maximum is " + std::to_string(maxUavCount));
+            LogError.writeln("Gpgpu: Too many buffers specified. Maximum is " + std::to_string(maxBufferCount));
             return;
         }
 
-        m_ua.resize(maxUavCount);
-        for (int i = 0; i < params.buffers.size(); ++i)
+        m_sr.resize(params.readonlyBuffer.size());
+        for (int i = 0; i < params.readonlyBuffer.size(); ++i)
         {
-            m_ua[i] = UnorderedAccessTransfer({
-                .elementCount = params.buffers[i]->getElementCount(),
-                .elementStride = params.buffers[i]->getElementStride()
+            m_sr[i] = UnorderedAccessTransfer({
+                .elementCount = params.readonlyBuffer[i]->getElementCount(),
+                .elementStride = params.readonlyBuffer[i]->getElementStride()
             });
         }
 
+        m_ua.resize(params.writableBuffer.size());
+        for (int i = 0; i < params.writableBuffer.size(); ++i)
+        {
+            m_ua[i] = UnorderedAccessTransfer({
+                .elementCount = params.writableBuffer[i]->getElementCount(),
+                .elementStride = params.writableBuffer[i]->getElementStride()
+            });
+        }
+
+        const auto descriptorTable = DescriptorTable{DescriptorTableElement{2, m_sr.size(), m_ua.size()}};
         m_computePipelineState = ComputePipelineState({
             .computeShader = params.cs,
             .descriptorTable = descriptorTable
@@ -59,12 +69,19 @@ struct Gpgpu::Impl
         m_descriptorHeap = DescriptorHeap(DescriptorHeapParams{
             .table = m_computePipelineState.descriptorTable(),
             .materialCounts = {1},
-            .descriptors = {CbSrUaSet{{m_cb0, params.cb1}, {}, m_ua.toColumnVector()}}
+            .descriptors = {
+                CbSrUaSet{{m_cb0, params.cb1}, m_sr.toColumnVector<ShaderResourceType>(), m_ua.toColumnVector()}
+            }
         });
 
-        for (int i = 0; i < params.buffers.size(); ++i)
+        for (int i = 0; i < params.readonlyBuffer.size(); ++i)
         {
-            m_cb0->elementCount[i] = static_cast<uint32_t>(m_params.buffers[i]->getElementCount());
+            m_cb0->readonlyBufferSize[i] = static_cast<uint32_t>(m_params.readonlyBuffer[i]->getElementCount());
+        }
+
+        for (int i = 0; i < params.writableBuffer.size(); ++i)
+        {
+            m_cb0->writableBufferSize[i] = static_cast<uint32_t>(m_params.writableBuffer[i]->getElementCount());
         }
 
         m_cb0.upload();
@@ -73,9 +90,14 @@ struct Gpgpu::Impl
     void Compute()
     {
         const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
-        for (int i = 0; i < m_params.buffers.size(); ++i)
+        for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)
         {
-            m_ua[i].upload(m_params.buffers[i]->getDataPointer());
+            m_sr[i].upload(m_params.readonlyBuffer[i]->getDataPointer());
+        }
+
+        for (int i = 0; i < m_params.writableBuffer.size(); ++i)
+        {
+            m_ua[i].upload(m_params.writableBuffer[i]->getDataPointer());
         }
 
         m_computePipelineState.commandSet();
@@ -87,10 +109,10 @@ struct Gpgpu::Impl
         const auto mainUA = m_ua[0];
         commandList->Dispatch(static_cast<UINT>(ceil(mainUA.elementCount() / groutCountX)), 1, 1);
 
-        for (int i = 0; i < m_params.buffers.size(); ++i)
+        for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
-            if (m_params.buffers[i]->getReadonly()) continue;
-            m_ua[i].readback(m_params.buffers[i]->getDataPointer());
+            if (m_params.writableBuffer[i]->getReadonly()) continue;
+            m_ua[i].readback(m_params.writableBuffer[i]->getDataPointer());
         }
     }
 };

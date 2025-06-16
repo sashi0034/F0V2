@@ -24,13 +24,14 @@ namespace TY
             return *this;
         }
 
-        Array<Array<Type>> toColumnVector() const
+        template <typename U = Type>
+        Array<Array<U>> toColumnVector() const
         {
-            Array<Array<Type>> result{};
+            Array<Array<U>> result{};
             result.reserve(this->size());
             for (const auto& item : *this)
             {
-                result.push_back(Array<Type>{item});
+                result.push_back(Array<U>{item});
             }
 
             return result;

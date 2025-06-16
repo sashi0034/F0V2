@@ -9,6 +9,7 @@ namespace TY
         int elementStride;
     };
 
+    // TODO: Rename to StructuredBuffer
     class UnorderedAccessTransfer
     {
     public:

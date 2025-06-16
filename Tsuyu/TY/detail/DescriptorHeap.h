@@ -7,10 +7,12 @@
 
 namespace TY::detail
 {
+    using ShaderResourceType = Variant<ShaderResourceTexture, UnorderedAccessTransfer>;
+
     struct CbSrUaSet
     {
         Array<ConstantBufferUploader_impl> cb; /* [cbvCount] where ConstantBuffer::count() = materialCount */
-        Array<Array<ShaderResourceTexture>> sr; /* [srvCount][materialCount] */
+        Array<Array<ShaderResourceType>> sr; /* [srvCount][materialCount] */
         Array<Array<UnorderedAccessTransfer>> ua; /* [uavCount][materialCount] */
     };
 

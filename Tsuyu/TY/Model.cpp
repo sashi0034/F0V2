@@ -111,10 +111,10 @@ struct Model::Impl : IEngineDrawer
 
         // -----------------------------------------------
 
-        const Array<ShaderResourceTexture> diffuseTextureList =
+        const Array<ShaderResourceType> diffuseTextureList =
             m_modelData.materials.map([](const ModelMaterial& material)
             {
-                return material.diffuseTexture;
+                return ShaderResourceType(material.diffuseTexture);
             });
 
         auto descriptorHeapParam = DescriptorHeapParams{
