@@ -33,6 +33,71 @@ namespace
 
         return count;
     }
+
+    void createConstantBufferView(
+        D3D12_CPU_DESCRIPTOR_HANDLE heapHandle,
+        int tableId,
+        int cbvId,
+        int materialId,
+        const DescriptorHeapParams& params)
+    {
+        const auto& cb = params.descriptors[tableId].cb[cbvId];
+        AssertWin32{"constant buffer elements count mismatch"sv}
+            | cb.count() == params.materialCounts[tableId];
+
+        if (cb.alignedSize() != 0)
+        {
+            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+            cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
+            cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
+            EngineRenderContext::GetDevice()->CreateConstantBufferView(&cbvDesc, heapHandle);
+        }
+    }
+
+    void createShaderResourceView(
+        D3D12_CPU_DESCRIPTOR_HANDLE heapHandle,
+        int tableId,
+        int srvId,
+        int materialId,
+        const DescriptorHeapParams& params)
+    {
+        const auto& sr = params.descriptors[tableId].sr[srvId];
+        AssertWin32{"constant buffer elements count mismatch"sv}
+            | sr.size() == params.materialCounts[tableId];
+
+        const auto materialSR =
+            sr[materialId].isEmpty() ? EnginePresetAsset::GetWhiteTexture() : sr[materialId];;
+
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = materialSR.getFormat();
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Texture2D.MipLevels = 1;
+
+        EngineRenderContext::GetDevice()->CreateShaderResourceView(
+            materialSR.getResource(), &srvDesc, heapHandle);
+    }
+
+    void createUnorderedAccessView(
+        D3D12_CPU_DESCRIPTOR_HANDLE heapHandle,
+        int tableId,
+        int uavId,
+        int materialId,
+        const DescriptorHeapParams& params)
+    {
+        const auto& ua = params.descriptors[tableId].ua[uavId];
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+        uavDesc.Buffer.FirstElement = 0;
+        uavDesc.Buffer.NumElements = ua[materialId].elementCount();
+        uavDesc.Buffer.StructureByteStride = ua[materialId].elementStride();
+
+        EngineRenderContext::GetDevice()->CreateUnorderedAccessView(
+            ua[materialId].getBuffer(),
+            nullptr,
+            &uavDesc,
+            heapHandle);
+    }
 }
 
 struct DescriptorHeap::Impl
@@ -78,20 +143,9 @@ struct DescriptorHeap::Impl
                 // CBV
                 AssertWin32{"constant buffer size mismatch"sv} // FIXME: 丁寧なメッセージ
                     | params.descriptors[tableId].cb.size() == params.table[tableId].cbvCount;
-                for (int cavId = 0; cavId < params.table[tableId].cbvCount; ++cavId)
+                for (int cbvId = 0; cbvId < params.table[tableId].cbvCount; ++cbvId)
                 {
-                    const auto& cb = params.descriptors[tableId].cb[cavId];
-                    AssertWin32{"constant buffer elements count mismatch"sv}
-                        | cb.count() == params.materialCounts[tableId];
-
-                    if (cb.alignedSize() != 0)
-                    {
-                        D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-                        cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
-                        cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
-                        EngineRenderContext::GetDevice()->CreateConstantBufferView(
-                            &cbvDesc, heapHandle);
-                    }
+                    createConstantBufferView(heapHandle, tableId, cbvId, materialId, params);
 
                     heapHandle.ptr += incrementSize;
                 }
@@ -101,21 +155,7 @@ struct DescriptorHeap::Impl
                     | params.descriptors[tableId].sr.size() == params.table[tableId].srvCount;
                 for (int srvId = 0; srvId < params.table[tableId].srvCount; ++srvId)
                 {
-                    const auto& sr = params.descriptors[tableId].sr[srvId];
-                    AssertWin32{"constant buffer elements count mismatch"sv}
-                        | sr.size() == params.materialCounts[tableId];
-
-                    const auto materialSR =
-                        sr[materialId].isEmpty() ? EnginePresetAsset::GetWhiteTexture() : sr[materialId];;
-
-                    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-                    srvDesc.Format = materialSR.getFormat();
-                    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-                    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-                    srvDesc.Texture2D.MipLevels = 1;
-
-                    EngineRenderContext::GetDevice()->CreateShaderResourceView(
-                        materialSR.getResource(), &srvDesc, heapHandle);
+                    createShaderResourceView(heapHandle, tableId, srvId, materialId, params);
 
                     heapHandle.ptr += incrementSize;
                 }
@@ -125,18 +165,7 @@ struct DescriptorHeap::Impl
                     | params.descriptors[tableId].ua.size() == params.table[tableId].uavCount;
                 for (int uavId = 0; uavId < params.table[tableId].uavCount; ++uavId)
                 {
-                    const auto& ua = params.descriptors[tableId].ua[uavId];
-                    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-                    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-                    uavDesc.Buffer.FirstElement = 0;
-                    uavDesc.Buffer.NumElements = ua[materialId].elementCount();
-                    uavDesc.Buffer.StructureByteStride = ua[materialId].elementStride();
-
-                    EngineRenderContext::GetDevice()->CreateUnorderedAccessView(
-                        ua[materialId].getBuffer(),
-                        nullptr,
-                        &uavDesc,
-                        heapHandle);
+                    createUnorderedAccessView(heapHandle, tableId, uavId, materialId, params);
 
                     heapHandle.ptr += incrementSize;
                 }
