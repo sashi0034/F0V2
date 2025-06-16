@@ -4,6 +4,7 @@ namespace TY
 {
     struct UnorderedAccessTransferParams
     {
+        bool isReadonly;
         int elementCount;
         int elementStride;
     };

@@ -45,13 +45,12 @@ namespace
         AssertWin32{"constant buffer elements count mismatch"sv}
             | cb.count() == params.materialCounts[tableId];
 
-        if (cb.alignedSize() != 0)
-        {
-            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-            cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
-            cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
-            EngineRenderContext::GetDevice()->CreateConstantBufferView(&cbvDesc, heapHandle);
-        }
+        if (cb.alignedSize() == 0) return;
+
+        D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+        cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
+        cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
+        EngineRenderContext::GetDevice()->CreateConstantBufferView(&cbvDesc, heapHandle);
     }
 
     void createShaderResourceView(
@@ -62,7 +61,7 @@ namespace
         const DescriptorHeapParams& params)
     {
         const auto& sr = params.descriptors[tableId].sr[srvId];
-        AssertWin32{"constant buffer elements count mismatch"sv}
+        AssertWin32{"shader resoruce elements count mismatch"sv}
             | sr.size() == params.materialCounts[tableId];
 
         const auto materialSR =
@@ -86,6 +85,11 @@ namespace
         const DescriptorHeapParams& params)
     {
         const auto& ua = params.descriptors[tableId].ua[uavId];
+        AssertWin32{"unordered access elements count mismatch"sv}
+            | ua.size() == params.materialCounts[tableId];
+
+        if (ua[materialId].elementCount() == 0) return;
+
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
         uavDesc.Buffer.FirstElement = 0;

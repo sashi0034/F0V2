@@ -15,18 +15,26 @@ namespace
 struct Demo_Gpgpu_Impl
 {
     ComputeShader m_computeShader{};
-
-    Gpgpu<uint32_t> m_gpgpu{};
+    GpgpuBuffer<uint32_t> m_buffer{};
+    GpgpuBuffer<uint32_t> m_readonlyData{};
+    Gpgpu m_gpgpu{};
 
     Demo_Gpgpu_Impl()
     {
         m_computeShader = ComputeShader{ShaderParams::CS("asset/shader/simple_compute.hlsl")};
 
-        m_gpgpu = Gpgpu<uint32_t>{
-            {
-                .cs = m_computeShader,
-                .elementCount = 100
-            }
+        m_buffer = GpgpuBuffer<uint32_t>::Writable(100);
+        m_readonlyData = GpgpuBuffer<uint32_t>::Readonly(50);
+
+        for (int i = 0; i < m_readonlyData.data().size(); ++i)
+        {
+            m_readonlyData.data()[i] = i;
+        }
+
+        m_gpgpu = Gpgpu{
+            GpgpuParams{}
+            .setCS(m_computeShader)
+            .setBuffers({m_buffer, m_readonlyData})
         };
 
         m_gpgpu.compute();
@@ -37,7 +45,7 @@ struct Demo_Gpgpu_Impl
         {
             ImGui::Begin("Compute Shader");
 
-            const auto& data = m_gpgpu.data();
+            const auto& data = m_buffer.data();
             ImGui::Text("Element Count: %d", data.size());
 
             ImGui::BeginGroup();

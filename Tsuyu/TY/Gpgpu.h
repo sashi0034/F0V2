@@ -1,77 +1,48 @@
 ﻿#pragma once
+
 #include "Array.h"
 #include "ConstantBufferUploader.h"
+#include "GpgpuBuffer.h"
 #include "Shader.h"
 
 namespace TY
 {
     struct GpgpuParams
     {
-        ComputeShader cs;
+        ComputeShader cs{};
+        Array<std::shared_ptr<IGpgpuBuffer>> buffers{};
         ConstantBufferUploader_impl cb1{Empty};
-        int elementCount;
-    };
 
-    struct GpgpuParams_detail : GpgpuParams
-    {
-        int elementStride;
-
-        GpgpuParams_detail() = default;
-
-        GpgpuParams_detail(const GpgpuParams& params, int elementStride_)
-            : GpgpuParams{params},
-              elementStride{elementStride_}
+        GpgpuParams& setCS(const ComputeShader& cs_)
         {
+            cs = cs_;
+            return *this;
+        }
+
+        GpgpuParams& setBuffers(const Array<std::shared_ptr<IGpgpuBuffer>>& buffers_)
+        {
+            buffers = buffers_;
+            return *this;
+        }
+
+        GpgpuParams& setCB1(const ConstantBufferUploader_impl& cb1_)
+        {
+            cb1 = cb1_;
+            return *this;
         }
     };
 
-    class Gpgpu_impl
+    class Gpgpu
     {
     public:
-        Gpgpu_impl() = default;
+        Gpgpu() = default;
 
-        Gpgpu_impl(const GpgpuParams_detail& params);
+        Gpgpu(const GpgpuParams& params);
 
-        void compute(void* data);
-
-        int elementCount() const;
+        void compute();
 
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl;
-    };
-
-    template <typename DataType>
-    class Gpgpu : Gpgpu_impl
-    {
-    public:
-        static constexpr int Stride = sizeof(DataType);
-
-        Gpgpu() = default;
-
-        Gpgpu(const GpgpuParams& params)
-            : Gpgpu_impl{{params, Stride}}
-        {
-            m_data.resize(params.elementCount);
-        }
-
-        Array<DataType>& data()
-        {
-            return m_data;
-        }
-
-        const Array<DataType>& data() const
-        {
-            return m_data;
-        }
-
-        void compute()
-        {
-            assert(m_data.size() == Gpgpu_impl::elementCount());
-            Gpgpu_impl::compute(m_data.data());
-        }
-
-    private:
-        Array<DataType> m_data{};
     };
 }

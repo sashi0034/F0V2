@@ -21,12 +21,12 @@ struct UnorderedAccessTransfer::Impl
 
         m_dataSize = params.elementCount * params.elementStride;
 
-        const CD3DX12_RESOURCE_DESC gpuBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(
-            m_dataSize,
-            D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
-        );
+        const D3D12_RESOURCE_FLAGS gpuBufferFlags =
+            m_params.isReadonly ? D3D12_RESOURCE_FLAG_NONE : D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-        CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
+        const CD3DX12_RESOURCE_DESC gpuBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(m_dataSize, gpuBufferFlags);
+
+        CD3DX12_HEAP_PROPERTIES heapProps{D3D12_HEAP_TYPE_DEFAULT};
 
         if (const auto hr = device->CreateCommittedResource(
                 &heapProps,
@@ -101,15 +101,24 @@ struct UnorderedAccessTransfer::Impl
         commandList->CopyResource(m_gpuBuffer.Get(), m_uploadBuffer.Get());
 
         // CopyResource で COPY_DEST 状態になっている m_gpuBuffer を、UNORDERED_ACCESS に移す
-        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_gpuBuffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-        commandList->ResourceBarrier(1, &barrier);
+        if (not m_params.isReadonly)
+        {
+            const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+                m_gpuBuffer.Get(),
+                D3D12_RESOURCE_STATE_COPY_DEST,
+                D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            commandList->ResourceBarrier(1, &barrier);
+        }
     }
 
     void Readback(uint8_t* dest)
     {
+        if (m_params.isReadonly)
+        {
+            LogError.writeln("UnorderedAccessTransfer::Readback(): Attempted to read from a readonly transfer.");
+            return;
+        }
+
         assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
         const auto commandList = EngineRenderContext::ActiveCommandList();
 

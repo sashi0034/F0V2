@@ -9,9 +9,9 @@ namespace TY::detail
 {
     struct CbSrUaSet
     {
-        Array<ConstantBufferUploader_impl> cb; // Array::size() = cbvCount, (ConstantBuffer::count = materialCount)
-        Array<Array<ShaderResourceTexture>> sr; // srvCount * materialCount
-        Array<Array<UnorderedAccessTransfer>> ua; // uavCount * materialCount
+        Array<ConstantBufferUploader_impl> cb; /* [cbvCount] where ConstantBuffer::count() = materialCount */
+        Array<Array<ShaderResourceTexture>> sr; /* [srvCount][materialCount] */
+        Array<Array<UnorderedAccessTransfer>> ua; /* [uavCount][materialCount] */
     };
 
     struct DescriptorHeapParams

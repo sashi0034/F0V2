@@ -161,6 +161,7 @@
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Gpgpu.h" />
+    <ClInclude Include="TY\GpgpuBuffer.h" />
     <ClInclude Include="TY\UnorderedAccessTransfer.h" />
     <ClInclude Include="TY\Concepts.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />

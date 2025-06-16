@@ -2,6 +2,7 @@
 #include "Gpgpu.h"
 
 #include "ConstantBuffer.h"
+#include "Logger.h"
 #include "detail/ComputePipelineState.h"
 #include "detail/DescriptorHeap.h"
 #include "detail/EngineRenderContext.h"
@@ -11,32 +12,44 @@ using namespace TY::detail;
 
 namespace
 {
-    const DescriptorTable descriptorTable = {{2, 0, 1}};
+    constexpr int maxUavCount = 8;
+
+    const DescriptorTable descriptorTable = {{2, 0, maxUavCount}};
 
     struct BufferInfo_b0
     {
-        uint32_t elementCount{};
+        std::array<uint32_t, maxUavCount> elementCount{};
     };
 }
 
-struct Gpgpu_impl::Impl
+struct Gpgpu::Impl
 {
-    GpgpuParams_detail m_params{};
+    GpgpuParams m_params{};
 
     ConstantBuffer<BufferInfo_b0> m_cb0{};
 
-    UnorderedAccessTransfer m_ua{};
+    Array<UnorderedAccessTransfer> m_ua{};
 
     ComputePipelineState m_computePipelineState{};
 
     DescriptorHeap m_descriptorHeap{};
 
-    Impl(const GpgpuParams_detail& params) : m_params(params)
+    Impl(const GpgpuParams& params) : m_params(params)
     {
-        m_ua = UnorderedAccessTransfer({
-            .elementCount = m_params.elementCount,
-            .elementStride = m_params.elementStride
-        });
+        if (params.buffers.size() > maxUavCount)
+        {
+            LogError.writeln("Gpgpu: Too many buffers specified. Maximum is " + std::to_string(maxUavCount));
+            return;
+        }
+
+        m_ua.resize(maxUavCount);
+        for (int i = 0; i < params.buffers.size(); ++i)
+        {
+            m_ua[i] = UnorderedAccessTransfer({
+                .elementCount = params.buffers[i]->getElementCount(),
+                .elementStride = params.buffers[i]->getElementStride()
+            });
+        }
 
         m_computePipelineState = ComputePipelineState({
             .computeShader = params.cs,
@@ -46,17 +59,24 @@ struct Gpgpu_impl::Impl
         m_descriptorHeap = DescriptorHeap(DescriptorHeapParams{
             .table = m_computePipelineState.descriptorTable(),
             .materialCounts = {1},
-            .descriptors = {CbSrUaSet{{m_cb0, params.cb1}, {}, {{m_ua}}}}
+            .descriptors = {CbSrUaSet{{m_cb0, params.cb1}, {}, m_ua.toColumnVector()}}
         });
 
-        m_cb0->elementCount = static_cast<uint32_t>(m_params.elementCount);
+        for (int i = 0; i < params.buffers.size(); ++i)
+        {
+            m_cb0->elementCount[i] = static_cast<uint32_t>(m_params.buffers[i]->getElementCount());
+        }
+
         m_cb0.upload();
     }
 
-    void Compute(void* data)
+    void Compute()
     {
         const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
-        m_ua.upload(data);
+        for (int i = 0; i < m_params.buffers.size(); ++i)
+        {
+            m_ua[i].upload(m_params.buffers[i]->getDataPointer());
+        }
 
         m_computePipelineState.commandSet();
         m_descriptorHeap.commandSet();
@@ -64,26 +84,26 @@ struct Gpgpu_impl::Impl
 
         const auto commandList = EngineRenderContext::ActiveCommandList();
         constexpr double groutCountX = 64.0;
-        commandList->Dispatch(static_cast<UINT>(ceil(m_params.elementCount / groutCountX)), 1, 1);
+        const auto mainUA = m_ua[0];
+        commandList->Dispatch(static_cast<UINT>(ceil(mainUA.elementCount() / groutCountX)), 1, 1);
 
-        m_ua.readback(data);
+        for (int i = 0; i < m_params.buffers.size(); ++i)
+        {
+            if (m_params.buffers[i]->getReadonly()) continue;
+            m_ua[i].readback(m_params.buffers[i]->getDataPointer());
+        }
     }
 };
 
 namespace TY
 {
-    Gpgpu_impl::Gpgpu_impl(const GpgpuParams_detail& params)
+    Gpgpu::Gpgpu(const GpgpuParams& params)
         : p_impl(std::make_shared<Impl>(params))
     {
     }
 
-    void Gpgpu_impl::compute(void* data)
+    void Gpgpu::compute()
     {
-        if (p_impl) p_impl->Compute(data);
-    }
-
-    int Gpgpu_impl::elementCount() const
-    {
-        return p_impl ? p_impl->m_params.elementCount : 0;
+        if (p_impl) p_impl->Compute();
     }
 }
