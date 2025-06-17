@@ -109,6 +109,7 @@ namespace TY
         s_hotReloader.m_elements.clear();
     }
 
+    // TODO: dependencies は IEngineHotReloadable に実装する 
     void EngineHotReloader::TrackAsset(
         std::weak_ptr<IEngineHotReloadable> target,
         Array<std::shared_ptr<ITimestamp>> dependencies

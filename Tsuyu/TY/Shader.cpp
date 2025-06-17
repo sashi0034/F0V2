@@ -144,8 +144,11 @@ namespace TY
     }
 
     ComputeShader::ComputeShader(const ShaderParams& params)
+        : p_impl(std::make_shared<Shader_impl>(params, "cs_5_0"sv))
     {
-        p_impl = std::make_shared<Shader_impl>(params, "cs_5_0"sv);
+#ifdef _DEBUG
+        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filename).timestamp()});
+#endif
     }
 
     bool ComputeShader::isEmpty() const
