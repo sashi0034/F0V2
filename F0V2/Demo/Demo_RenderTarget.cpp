@@ -22,8 +22,8 @@ using namespace TY;
 
 void Demo_RenderTarget()
 {
-    const PixelShader default2dPS{ShaderParams{.filename = "asset/shader/default2d.hlsl", .entryPoint = "PS"}};
-    const VertexShader default2dVS{ShaderParams{.filename = "asset/shader/default2d.hlsl", .entryPoint = "VS"}};
+    const PixelShader default2dPS{ShaderParams{.filepath = "asset/shader/default2d.hlsl", .entryPoint = "PS"}};
+    const VertexShader default2dVS{ShaderParams{.filepath = "asset/shader/default2d.hlsl", .entryPoint = "VS"}};
 
     Image image{Size{16, 16}};
     for (int x = 0; x < image.size().x; ++x)
@@ -57,8 +57,8 @@ void Demo_RenderTarget()
         10.0f
     );
 
-    const PixelShader modelPS{ShaderParams{.filename = "asset/shader/model_pixel.hlsl", .entryPoint = "PS"}};
-    const VertexShader modelVS{ShaderParams{.filename = "asset/shader/model_vertex.hlsl", .entryPoint = "VS"}};
+    const PixelShader modelPS{ShaderParams{.filepath = "asset/shader/model_pixel.hlsl", .entryPoint = "PS"}};
+    const VertexShader modelVS{ShaderParams{.filepath = "asset/shader/model_vertex.hlsl", .entryPoint = "VS"}};
 
     const Model model{
         ModelParams{

@@ -42,9 +42,9 @@ struct TY::Shader_impl : IEngineHotReloadable
     {
         m_timestamp = System::FrameCount();
 
-        const auto filename = ToUtf16(m_params.filename);
+        const auto filepath = ToUtf16(m_params.filepath);
         const auto compileResult = D3DCompileFromFile(
-            filename.c_str(),
+            filepath.c_str(),
             nullptr,
             D3D_COMPILE_STANDARD_FILE_INCLUDE,
             m_params.entryPoint.c_str(),
@@ -82,24 +82,24 @@ namespace TY
 {
     ShaderParams ShaderParams::PS(const std::string& filename, const std::string& entryPoint)
     {
-        return ShaderParams{.filename = filename, .entryPoint = entryPoint,};
+        return ShaderParams{.filepath = filename, .entryPoint = entryPoint,};
     }
 
     ShaderParams ShaderParams::VS(const std::string& filename, const std::string& entryPoint)
     {
-        return ShaderParams{.filename = filename, .entryPoint = entryPoint,};
+        return ShaderParams{.filepath = filename, .entryPoint = entryPoint,};
     }
 
     ShaderParams ShaderParams::CS(const std::string& filename, const std::string& entryPoint)
     {
-        return ShaderParams{.filename = filename, .entryPoint = entryPoint,};
+        return ShaderParams{.filepath = filename, .entryPoint = entryPoint,};
     }
 
     PixelShader::PixelShader(const ShaderParams& params)
         : p_impl{std::make_shared<Shader_impl>(params, "ps_5_0"sv)}
     {
 #ifdef _DEBUG
-        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filename).timestamp()});
+        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
 #endif
     }
 
@@ -123,7 +123,7 @@ namespace TY
         : p_impl{std::make_shared<Shader_impl>(params, "vs_5_0"sv)}
     {
 #ifdef _DEBUG
-        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filename).timestamp()});
+        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
 #endif
     }
 
@@ -147,7 +147,7 @@ namespace TY
         : p_impl(std::make_shared<Shader_impl>(params, "cs_5_0"sv))
     {
 #ifdef _DEBUG
-        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filename).timestamp()});
+        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
 #endif
     }
 

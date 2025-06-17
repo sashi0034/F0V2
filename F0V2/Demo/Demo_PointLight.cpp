@@ -109,8 +109,8 @@ struct Demo_PointLight_impl
         const PixelShader defaultPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
         const VertexShader defaultVS{ShaderParams::VS("asset/shader/model_vertex.hlsl")};
 
-        const PixelShader customPS{ShaderParams{.filename = shader_lambert, .entryPoint = "PS"}};
-        const VertexShader customVS{ShaderParams{.filename = shader_lambert, .entryPoint = "VS"}};
+        const PixelShader customPS{ShaderParams{.filepath = shader_lambert, .entryPoint = "PS"}};
+        const VertexShader customVS{ShaderParams{.filepath = shader_lambert, .entryPoint = "VS"}};
 
         m_planeModel = Model{
             ModelParams{

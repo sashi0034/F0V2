@@ -60,8 +60,8 @@ struct Demo_Phong_impl
             10.0f
         );
 
-        m_modelPS = PixelShader{ShaderParams{.filename = shaderPath, .entryPoint = "PS"}};
-        m_modelVS = VertexShader{ShaderParams{.filename = shaderPath, .entryPoint = "VS"}};
+        m_modelPS = PixelShader{ShaderParams{.filepath = shaderPath, .entryPoint = "PS"}};
+        m_modelVS = VertexShader{ShaderParams{.filepath = shaderPath, .entryPoint = "VS"}};
 
         m_model = Model{
             ModelParams{

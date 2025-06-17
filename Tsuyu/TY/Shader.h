@@ -7,7 +7,7 @@ namespace TY
 {
     struct ShaderParams
     {
-        std::string filename;
+        std::string filepath;
         std::string entryPoint;
 
         static ShaderParams PS(const std::string& filename, const std::string& entryPoint = "PS");
@@ -29,7 +29,7 @@ namespace TY
         explicit PixelShader(const ShaderParams& params);
 
         explicit PixelShader(const std::string& filename, const std::string& entryPoint)
-            : PixelShader{ShaderParams{.filename = filename, .entryPoint = entryPoint}}
+            : PixelShader{ShaderParams{.filepath = filename, .entryPoint = entryPoint}}
         {
         }
 
@@ -51,7 +51,7 @@ namespace TY
         explicit VertexShader(const ShaderParams& params);
 
         explicit VertexShader(const std::string& filename, const std::string& entryPoint)
-            : VertexShader{ShaderParams{.filename = filename, .entryPoint = entryPoint}}
+            : VertexShader{ShaderParams{.filepath = filename, .entryPoint = entryPoint}}
         {
         }
 
@@ -73,7 +73,7 @@ namespace TY
         explicit ComputeShader(const ShaderParams& params);
 
         explicit ComputeShader(const std::string& filename, const std::string& entryPoint)
-            : ComputeShader{ShaderParams{.filename = filename, .entryPoint = entryPoint}}
+            : ComputeShader{ShaderParams{.filepath = filename, .entryPoint = entryPoint}}
         {
         }
 
