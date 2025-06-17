@@ -2,6 +2,7 @@
 #include "ComputePipelineState.h"
 
 #include "EngineHotReloader.h"
+#include "EnginePresetAsset.h"
 #include "EngineRenderContext.h"
 #include "RootSignature.h"
 #include "TY/Logger.h"
@@ -15,7 +16,6 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
     ComputePipelineStateParams m_params;
 
     uint64_t m_timestamp{};
-    bool m_valid{};
 
     ComPtr<ID3D12PipelineState> m_pipelineState;
     RootSignature m_rootSignature;
@@ -34,19 +34,15 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
-        m_valid = false;
-
-        if (m_params.computeShader.isEmpty())
-        {
-            return;
-        }
 
         m_rootSignature = RootSignature{{m_params.descriptorTable}};
 
         D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
         desc.pRootSignature = m_rootSignature.getPointer();
-        desc.CS.pShaderBytecode = m_params.computeShader.getBlob()->GetBufferPointer();
-        desc.CS.BytecodeLength = m_params.computeShader.getBlob()->GetBufferSize();
+
+        const auto cs = m_params.computeShader.isEmpty() ? EnginePresetAsset::GetStubCS() : m_params.computeShader;
+        desc.CS.pShaderBytecode = cs.getBlob()->GetBufferPointer();
+        desc.CS.BytecodeLength = cs.getBlob()->GetBufferSize();
 
         const auto device = EngineRenderContext::GetDevice();
         if (const auto hr = device->CreateComputePipelineState(
@@ -58,14 +54,10 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
         }
 
         // LogInfo.writeln("ComputePipelineState created successfully.");
-
-        m_valid = true;
     }
 
     void CommandSet() const
     {
-        if (not m_valid) return;
-
         const auto commandList = EngineRenderContext::ActiveCommandList();
         commandList->SetPipelineState(m_pipelineState.Get());
         commandList->SetComputeRootSignature(m_rootSignature.getPointer());

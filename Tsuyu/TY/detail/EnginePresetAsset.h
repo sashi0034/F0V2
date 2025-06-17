@@ -15,5 +15,7 @@ namespace TY::detail
         VertexShader GetStubVS();
 
         PixelShader GetStubPS();
-    };
+
+        ComputeShader GetStubCS();
+    }
 }

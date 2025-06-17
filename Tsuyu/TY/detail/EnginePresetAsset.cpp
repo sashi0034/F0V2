@@ -18,14 +18,18 @@ struct EnginePresetAssetImpl
 
     PixelShader m_stubPS{};
 
+    ComputeShader m_stubCS{};
+
     void Init()
     {
         const Image whiteImage{Size{16, 16}, ColorU8{255}};
         m_whiteTexture = ShaderResourceTexture(whiteImage);
 
-        m_stubVS = VertexShader{ShaderParams{.filename = "engine/stub.hlsl", .entryPoint = "VS"}};
+        m_stubVS = VertexShader{ShaderParams::VS("engine/graphics_stub.hlsl")};
 
-        m_stubPS = PixelShader{ShaderParams{.filename = "engine/stub.hlsl", .entryPoint = "PS"}};
+        m_stubPS = PixelShader{ShaderParams::PS("engine/graphics_stub.hlsl")};
+
+        m_stubCS = ComputeShader{ShaderParams::CS("engine/compute_stub.hlsl")};
 
         m_initialized = true;
     }
@@ -64,5 +68,11 @@ namespace TY::detail
     {
         assert(s_enginePresetAsset.m_initialized);
         return s_enginePresetAsset.m_stubPS;
+    }
+
+    ComputeShader EnginePresetAsset::GetStubCS()
+    {
+        assert(s_enginePresetAsset.m_initialized);
+        return s_enginePresetAsset.m_stubCS;
     }
 }
