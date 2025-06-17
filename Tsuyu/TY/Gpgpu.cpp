@@ -111,7 +111,6 @@ struct Gpgpu::Impl
 
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
-            if (m_params.writableBuffer[i]->getReadonly()) continue;
             m_ua[i].readback(m_params.writableBuffer[i]->getDataPointer());
         }
     }

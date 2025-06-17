@@ -12,21 +12,33 @@ namespace TY
         virtual int getElementCount() const = 0;
 
         virtual int getElementStride() const = 0;
-
-        virtual bool getReadonly() const = 0;
     };
 
-    template <typename DataType>
+    struct IWritableGpgpu : IGpgpuBuffer
+    {
+    };
+
+    struct IReadonlyGpgpu : IGpgpuBuffer
+    {
+    };
+
+    template <typename DataType, typename InterfaceType>
     class GpgpuBuffer
     {
     public:
+        static_assert(std::is_base_of<IGpgpuBuffer, InterfaceType>::value);
+
         static constexpr int ElementStride = sizeof(DataType);
 
         GpgpuBuffer()
         {
         }
 
-        operator std::shared_ptr<IGpgpuBuffer>()
+        GpgpuBuffer(int elementCount) : p_impl(std::make_shared<Impl>(elementCount))
+        {
+        }
+
+        operator std::shared_ptr<InterfaceType>()
         {
             return p_impl;
         }
@@ -42,29 +54,17 @@ namespace TY
             return p_impl->m_data;
         }
 
-        static GpgpuBuffer Writable(int elementCount)
-        {
-            return std::make_shared<Impl>(elementCount, false);
-        }
-
-        static GpgpuBuffer Readonly(int elementCount)
-        {
-            return std::make_shared<Impl>(elementCount, true);
-        }
-
     private:
-        struct Impl : IGpgpuBuffer
+        struct Impl : InterfaceType
         {
             Array<DataType> m_data{};
             int m_elementCount{};
-            bool m_readonly{};
 
             Impl() = default;
 
-            Impl(int count, bool isReadonly)
+            Impl(int count)
                 : m_data(count),
-                  m_elementCount(count),
-                  m_readonly(isReadonly)
+                  m_elementCount(count)
             {
             }
 
@@ -73,8 +73,6 @@ namespace TY
             int getElementCount() const override { return m_elementCount; }
 
             int getElementStride() const override { return ElementStride; }
-
-            bool getReadonly() const override { return m_readonly; }
         };
 
         std::shared_ptr<Impl> p_impl{};
@@ -83,4 +81,10 @@ namespace TY
         {
         }
     };
+
+    template <typename DataType>
+    using WritableGpgpuBuffer = GpgpuBuffer<DataType, IWritableGpgpu>;
+
+    template <typename DataType>
+    using ReadonlyGpgpuBuffer = GpgpuBuffer<DataType, IReadonlyGpgpu>;
 }
