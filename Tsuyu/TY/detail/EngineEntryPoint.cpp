@@ -5,6 +5,7 @@
 #include "TY/Buffer3D.h"
 
 #include "TY/Logger.h"
+#include "TY/System.h"
 #include "TY/Utils.h"
 #include "TY/detail/EngineCore.h"
 
@@ -33,7 +34,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
     catch (const std::exception& e)
     {
-        LogInfo.hr().writeln(L"exception occurred: " + ToUtf16(e.what()));
+        const auto message = L"An error occurred: " + ToUtf16(e.what());
+        LogError.hr().writeln(message);
+        System::ModalError(message);
     }
 
     if (EngineCore::IsInFrame()) EngineCore::EndFrame();

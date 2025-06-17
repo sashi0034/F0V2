@@ -44,7 +44,8 @@ namespace TY
         {
         }
 
-        TextureDrawable2D drawable2D() const;
+        [[nodiscard]]
+        TextureDrawable2D as2D() const;
 
         void draw3D() const;
 
@@ -60,7 +61,9 @@ namespace TY
 
         Float2 scaling{1.0, 1.0};
 
-        TextureDrawable2D& scale(Float2 scaling_);
+        TextureDrawable2D& scaled(float value);
+
+        TextureDrawable2D& scaled(Float2 scaling_);
 
         void draw(const Vec2& position) const;
 

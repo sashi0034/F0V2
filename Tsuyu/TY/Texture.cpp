@@ -197,7 +197,7 @@ namespace TY
     //     }
     // }
 
-    TextureDrawable2D Texture::drawable2D() const
+    TextureDrawable2D Texture::as2D() const
     {
         return TextureDrawable2D{*this};
     }
@@ -211,7 +211,13 @@ namespace TY
         }
     }
 
-    TextureDrawable2D& TextureDrawable2D::scale(Float2 scaling_)
+    TextureDrawable2D& TextureDrawable2D::scaled(float value)
+    {
+        scaling = Float2{value, value} * scaling;
+        return *this;
+    }
+
+    TextureDrawable2D& TextureDrawable2D::scaled(Float2 scaling_)
     {
         scaling = scaling * scaling_;
         return *this;
