@@ -4,7 +4,7 @@
 
 namespace TY
 {
-    struct TextureSource : Variant<std::string, Image, ID3D12Resource*>
+    struct TextureSource : Variant<std::string, ImageView, ID3D12Resource*>
     {
         using Variant::Variant;
     };

@@ -162,6 +162,7 @@
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\GpgpuBuffer.h" />
+    <ClInclude Include="TY\ImageView.h" />
     <ClInclude Include="TY\StructuredBufferTransfer.h" />
     <ClInclude Include="TY\Concepts.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />

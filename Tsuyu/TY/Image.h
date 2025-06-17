@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Array.h"
 #include "Color.h"
+#include "ImageView.h"
 #include "Value2D.h"
 
 namespace TY
@@ -27,6 +28,21 @@ namespace TY
         size_t size_in_bytes() const { return m_size.x * m_size.y * sizeof(ColorU8); }
 
         const ColorU8* data() const { return m_data.data(); }
+
+        ImageView view() const
+        {
+            return ImageView{
+                reinterpret_cast<const uint8_t*>(m_data.data()),
+                m_size,
+                size_in_bytes(),
+                DXGI_FORMAT_B8G8R8A8_UNORM
+            };
+        }
+
+        operator ImageView() const
+        {
+            return view();
+        }
 
     private:
         Size m_size{};

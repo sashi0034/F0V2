@@ -4,8 +4,9 @@
 #include "Demo/Demo_Lambert.h"
 #include "Demo/Demo_Phong.h"
 #include "Demo/Demo_PointLight.h"
+#include "Demo/Demo_RenderTarget.h"
 
 void Main()
 {
-    Demo_Gpgpu();
+    Demo_RenderTarget();
 }

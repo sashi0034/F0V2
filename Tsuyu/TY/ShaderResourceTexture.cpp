@@ -151,7 +151,7 @@ struct ShaderResourceTexture::Impl
         m_size = Size{static_cast<int>(metadata.width), static_cast<int>(metadata.height)};
     }
 
-    Impl(const Image& image)
+    Impl(const ImageView& image)
     {
         D3D12_HEAP_PROPERTIES heapProperties{};
         heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
@@ -163,8 +163,8 @@ struct ShaderResourceTexture::Impl
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
         resourceDesc.Alignment = 0;
-        resourceDesc.Width = image.size().x;
-        resourceDesc.Height = image.size().y;
+        resourceDesc.Width = image.size.x;
+        resourceDesc.Height = image.size.y;
         resourceDesc.DepthOrArraySize = 1;
         resourceDesc.MipLevels = 1;
         resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -186,9 +186,9 @@ struct ShaderResourceTexture::Impl
             | m_textureBuffer->WriteToSubresource(
                 0,
                 nullptr, // リソース全体領域をコピー
-                image.data(),
-                image.size().x * sizeof(ColorU8),
-                image.size_in_bytes());
+                image.getPointer(),
+                image.size.x * image.pixelSizeInBytes(),
+                image.sizeInBytes);
 
         m_format = resourceDesc.Format;
 
@@ -211,7 +211,7 @@ namespace TY
         {
             p_impl = std::make_shared<Impl>(ToUtf16(*path));
         }
-        else if (const auto image = source.tryGet<Image>())
+        else if (const auto image = source.tryGet<ImageView>())
         {
             p_impl = std::make_shared<Impl>(*image);
         }
