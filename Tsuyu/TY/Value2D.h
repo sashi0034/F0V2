@@ -59,6 +59,11 @@ namespace TY
             return {x * s, y * s};
         }
 
+        [[nodiscard]] constexpr Value2D operator *(Value2D v) const noexcept
+        {
+            return {x * v.x, y * v.y};
+        }
+
         [[nodiscard]] constexpr Value2D operator /(value_type s) const noexcept
         {
             return {x / s, y / s};

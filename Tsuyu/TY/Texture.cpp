@@ -152,9 +152,10 @@ struct Texture::Impl : IEngineDrawer
     }
 
     // 2D
-    void Draw(const RectF& region)
+    void Draw(const Vec2& position, const TextureDrawable2D& drawable)
     {
         const auto mat3x2 = Mat3x2::Screen(RenderTarget::Current().size());
+        const auto region = RectF{position, m_sr.size() * drawable.scaling};
         const auto transformedTL = mat3x2.transformPoint(region.tl());
         const auto transformedBR = mat3x2.transformPoint(region.br());
         m_textureVertexData.TransformPosition(transformedTL, transformedBR);
@@ -163,11 +164,11 @@ struct Texture::Impl : IEngineDrawer
         DrawInternal();
     }
 
-    void DrawAt(const Vec2 position)
+    void DrawAt(const Vec2 center, const TextureDrawable2D& drawable)
     {
-        const auto size = m_sr.size();
-        const auto tl = position - size.cast<double>() / 2.0;
-        Draw(RectF{tl, size.cast<double>()});
+        const auto size = m_sr.size() * drawable.scaling;
+        const auto tl = center - size.cast<double>() / 2.0;
+        Draw(tl, drawable);
     }
 };
 
@@ -178,22 +179,27 @@ namespace TY
     {
     }
 
-    void Texture::draw(const RectF& region) const
-    {
-        if (p_impl)
-        {
-            p_impl->Draw(region);
-            EngineCore::MarkDrawerInFrame(p_impl);
-        }
-    }
+    // void Texture::draw(const Vec2& position) const
+    // {
+    //     if (p_impl)
+    //     {
+    //         p_impl->Draw(position, {});
+    //         EngineCore::MarkDrawerInFrame(p_impl);
+    //     }
+    // }
+    //
+    // void Texture::drawAt(const Vec2& center) const
+    // {
+    //     if (p_impl)
+    //     {
+    //         p_impl->DrawAt(center, {});
+    //         EngineCore::MarkDrawerInFrame(p_impl);
+    //     }
+    // }
 
-    void Texture::drawAt(const Vec2& position) const
+    TextureDrawable2D Texture::drawable2D() const
     {
-        if (p_impl)
-        {
-            p_impl->DrawAt(position);
-            EngineCore::MarkDrawerInFrame(p_impl);
-        }
+        return TextureDrawable2D{*this};
     }
 
     void Texture::draw3D() const
@@ -202,6 +208,30 @@ namespace TY
         {
             p_impl->Draw3D();
             EngineCore::MarkDrawerInFrame(p_impl);
+        }
+    }
+
+    TextureDrawable2D& TextureDrawable2D::scale(Float2 scaling_)
+    {
+        scaling = scaling * scaling_;
+        return *this;
+    }
+
+    void TextureDrawable2D::draw(const Vec2& position) const
+    {
+        if (texture.p_impl)
+        {
+            texture.p_impl->Draw(position, *this);
+            EngineCore::MarkDrawerInFrame(texture.p_impl);
+        }
+    }
+
+    void TextureDrawable2D::drawAt(const Vec2& center) const
+    {
+        if (texture.p_impl)
+        {
+            texture.p_impl->DrawAt(center, *this);
+            EngineCore::MarkDrawerInFrame(texture.p_impl);
         }
     }
 }

@@ -57,6 +57,14 @@ namespace TY
             return value;
         }
 
+        template <typename T, typename U, typename V>
+        constexpr T Clamp(T value, U min, V max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
         constexpr double Lerp(double v1, double v2, double f) noexcept
         {
             return (v1 + (v2 - v1) * f);

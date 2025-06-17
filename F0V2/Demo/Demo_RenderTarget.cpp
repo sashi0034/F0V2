@@ -106,11 +106,11 @@ void Demo_RenderTarget()
             count++;
             if (count % 120 < 60)
             {
-                pngTexture.drawAt(Scene::Center());
+                pngTexture.drawable2D().drawAt(Scene::Center());
             }
             else
             {
-                noiseTexture.drawAt(Scene::Center());
+                noiseTexture.drawable2D().drawAt(Scene::Center());
             }
 
             continue;
@@ -126,6 +126,6 @@ void Demo_RenderTarget()
         }
 
         constexpr Point someMargin = Point{64, 64};
-        renderTargetTexture.draw(RectF{someMargin, renderTarget.size()});
+        renderTargetTexture.drawable2D().draw(someMargin);
     }
 }

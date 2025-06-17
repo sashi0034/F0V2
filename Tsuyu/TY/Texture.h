@@ -32,6 +32,8 @@ namespace TY
 
     class Texture
     {
+        friend struct TextureDrawable2D;
+
     public:
         Texture() = default;
 
@@ -42,9 +44,7 @@ namespace TY
         {
         }
 
-        void draw(const RectF& region) const;
-
-        void drawAt(const Vec2& position) const;
+        TextureDrawable2D drawable2D() const;
 
         void draw3D() const;
 
@@ -52,5 +52,18 @@ namespace TY
         struct Impl;
         std::shared_ptr<Impl> p_impl;
         std::wstring m_filename;
+    };
+
+    struct TextureDrawable2D
+    {
+        Texture texture;
+
+        Float2 scaling{1.0, 1.0};
+
+        TextureDrawable2D& scale(Float2 scaling_);
+
+        void draw(const Vec2& position) const;
+
+        void drawAt(const Vec2& center) const;
     };
 }
