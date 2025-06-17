@@ -9,6 +9,17 @@ namespace
 {
     bool s_initializedConsole = false;
 
+    struct LoggerSourceState
+    {
+        bool debuggerOutput{};
+        bool consoleOutput{};
+    };
+
+    std::array<LoggerSourceState, 256> s_sourceStates{
+        LoggerSourceState{true, false}, // Engine
+        LoggerSourceState{true, true}, // Title
+    };
+
     std::wstring getLoggerEmoji(LoggerKind kind)
     {
         static const std::vector<std::wstring> tags{
@@ -31,41 +42,39 @@ namespace
         return tags[static_cast<int>(kind)];
     }
 
-    bool shouldStdOut(LoggerKind kind)
+    void ensureInitializedConsole()
     {
-#ifdef _DEBUG
-        return true;
-        // return kind == LoggerKind::Warning || kind == LoggerKind::Error;
-#else
-        return false;
-#endif
-    }
+        if (s_initializedConsole) return;
+        // -----------------------------------------------
 
-    void writelnInternal(const std::wstring& message, LoggerKind kind, bool hasTag)
-    {
-        std::wstring debugString{};
-        if (hasTag)
+        if (AllocConsole())
         {
-            debugString = getLoggerEmoji(kind) + L" ";
+            FILE* fp = nullptr;
+            freopen_s(&fp, "CONOUT$", "w", stdout);
         }
 
-        debugString += message + L"\n";
+        s_initializedConsole = true;
+    }
 
-        OutputDebugString(debugString.c_str());
+    void writelnInternal(const std::wstring& message, bool hasTag, LoggerKind kind, LoggerSource_impl source)
+    {
+        ensureInitializedConsole();
 
-        if (shouldStdOut(kind))
+        if (s_sourceStates[source.id()].debuggerOutput)
         {
-            if (not s_initializedConsole)
+            std::wstring debugString{};
+            if (hasTag)
             {
-                s_initializedConsole = true;
-
-                if (AllocConsole())
-                {
-                    FILE* fp = nullptr;
-                    freopen_s(&fp, "CONOUT$", "w", stdout);
-                }
+                debugString = getLoggerEmoji(kind) + L" ";
             }
 
+            debugString += message + L"\n";
+
+            OutputDebugString(debugString.c_str());
+        }
+
+        if (s_sourceStates[source.id()].consoleOutput)
+        {
             if (hasTag) std::wcout << getLoggerTag(kind);
             std::wcout << message << std::endl;
         }
@@ -74,15 +83,25 @@ namespace
 
 namespace TY
 {
+    void LoggerSource_impl::enableDebuggerOutput(bool enable) const
+    {
+        s_sourceStates[id()].debuggerOutput = enable;
+    }
+
+    void LoggerSource_impl::enableConsoleOutput(bool enable) const
+    {
+        s_sourceStates[id()].consoleOutput = enable;
+    }
+
     const Logger_impl& Logger_impl::hr() const
     {
-        writelnInternal(L"--------------------------------------------------", m_kind, false);
+        writelnInternal(L"--------------------------------------------------", false, m_kind, m_source);
         return *this;
     }
 
     void Logger_impl::writeln(const UnifiedString& message) const
     {
-        writelnInternal(message, m_kind, true);
+        writelnInternal(message, true, m_kind, m_source);
     }
 
     const Logger_impl& Logger_impl::operator<<(const UnifiedString& message) const
