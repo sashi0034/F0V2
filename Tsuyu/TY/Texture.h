@@ -10,6 +10,24 @@ namespace TY
         TextureSource source; // FIXME? 生から ComPtr はメモリリークするのだろうか
         PixelShader ps;
         VertexShader vs;
+
+        TextureParams& setSource(const TextureSource& source_)
+        {
+            source = source_;
+            return *this;
+        }
+
+        TextureParams& setPS(const PixelShader& ps_)
+        {
+            ps = ps_;
+            return *this;
+        }
+
+        TextureParams& setVS(const VertexShader& vs_)
+        {
+            vs = vs_;
+            return *this;
+        }
     };
 
     class Texture
