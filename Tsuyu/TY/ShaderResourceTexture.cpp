@@ -167,7 +167,7 @@ struct ShaderResourceTexture::Impl
         resourceDesc.Height = image.size.y;
         resourceDesc.DepthOrArraySize = 1;
         resourceDesc.MipLevels = 1;
-        resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        resourceDesc.Format = image.format;
         resourceDesc.SampleDesc.Count = 1;
         resourceDesc.SampleDesc.Quality = 0;
         resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
