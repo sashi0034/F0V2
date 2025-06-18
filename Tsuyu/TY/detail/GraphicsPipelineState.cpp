@@ -155,8 +155,10 @@ namespace TY
     GraphicsPipelineState::GraphicsPipelineState(const PipelineStateParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
+#ifdef _DEBUG
         EngineHotReloader::TrackAsset(
             p_impl, {p_impl->m_params.pixelShader.timestamp(), p_impl->m_params.vertexShader.timestamp()});
+#endif
     }
 
     DescriptorTable GraphicsPipelineState::descriptorTable() const

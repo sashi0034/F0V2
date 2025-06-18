@@ -44,6 +44,11 @@ struct EngineHotReloaderImpl
 
     void Update()
     {
+        if (m_elements.size() == 0)
+        {
+            return;
+        }
+
         // 更新可能が発生しない状態になるするまでホットリロードを適応する
         // 正常に更新が走る場合、要素個数以上の回数の更新は発生しない
         int reloadedCount{};
