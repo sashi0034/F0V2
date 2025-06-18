@@ -8,5 +8,5 @@
 
 void Main()
 {
-    Demo_RenderTarget();
+    Demo_Gpgpu();
 }

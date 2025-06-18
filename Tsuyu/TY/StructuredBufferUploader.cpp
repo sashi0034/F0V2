@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "StructuredBufferTransfer.h"
+#include "StructuredBufferUploader.h"
 
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
@@ -7,22 +7,24 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct StructuredBufferTransfer::Impl
+struct StructuredBufferUploader::Impl
 {
     StructuredBufferTransferParams m_params;
+    bool m_writable{};
+
     ComPtr<ID3D12Resource> m_gpuBuffer;
     ComPtr<ID3D12Resource> m_uploadBuffer;
     ComPtr<ID3D12Resource> m_readbackBuffer;
     size_t m_dataSize{};
 
-    Impl(const StructuredBufferTransferParams& params) : m_params(params)
+    Impl(const StructuredBufferTransferParams& params, bool isWritable) : m_params(params), m_writable(isWritable)
     {
         const auto device = EngineRenderContext::GetDevice();
 
         m_dataSize = params.elementCount * params.elementStride;
 
         const D3D12_RESOURCE_FLAGS gpuBufferFlags =
-            m_params.isReadonly ? D3D12_RESOURCE_FLAG_NONE : D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+            m_writable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
         const CD3DX12_RESOURCE_DESC gpuBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(m_dataSize, gpuBufferFlags);
 
@@ -101,7 +103,7 @@ struct StructuredBufferTransfer::Impl
         commandList->CopyResource(m_gpuBuffer.Get(), m_uploadBuffer.Get());
 
         // CopyResource で COPY_DEST 状態になっている m_gpuBuffer を、UNORDERED_ACCESS に移す
-        if (not m_params.isReadonly)
+        if (m_writable)
         {
             const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 m_gpuBuffer.Get(),
@@ -111,13 +113,21 @@ struct StructuredBufferTransfer::Impl
         }
     }
 
-    void Readback(uint8_t* dest)
+    void AfterDispatch()
     {
-        if (m_params.isReadonly)
-        {
-            LogError.writeln("UnorderedAccessTransfer::Readback(): Attempted to read from a readonly transfer.");
-            return;
-        }
+        assert(m_writable);;
+
+        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
+        const auto commandList = EngineRenderContext::ActiveCommandList();
+
+        // UAV バリアを入れて、UAV 書き込みの完了を保証
+        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_gpuBuffer.Get());
+        commandList->ResourceBarrier(1, &uavBarrier);
+    }
+
+    void BeforeFlush()
+    {
+        assert(m_writable);
 
         assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
         const auto commandList = EngineRenderContext::ActiveCommandList();
@@ -142,8 +152,11 @@ struct StructuredBufferTransfer::Impl
             D3D12_RESOURCE_STATE_COPY_SOURCE,
             D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         commandList->ResourceBarrier(1, &toUAV);
+    }
 
-        EngineRenderContext::FlushActiveCommandList();
+    void Readback(uint8_t* dest)
+    {
+        assert(m_writable);
 
         uint8_t* src = nullptr;
         if (SUCCEEDED(m_readbackBuffer->Map(0, nullptr, reinterpret_cast<void**>(&src))))
@@ -160,33 +173,57 @@ struct StructuredBufferTransfer::Impl
 
 namespace TY
 {
-    StructuredBufferTransfer::StructuredBufferTransfer(const StructuredBufferTransferParams& params)
-        : p_impl(std::make_shared<Impl>(params))
+    StructuredBufferUploader::StructuredBufferUploader(const StructuredBufferTransferParams& params)
+        : p_impl(std::make_shared<Impl>(params, false))
     {
     }
 
-    void StructuredBufferTransfer::upload(const void* src)
+    void StructuredBufferUploader::upload(const void* src)
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(src));
     }
 
-    void StructuredBufferTransfer::readback(void* dst)
-    {
-        if (p_impl) p_impl->Readback(static_cast<uint8_t*>(dst));
-    }
-
-    int StructuredBufferTransfer::elementCount() const
+    int StructuredBufferUploader::elementCount() const
     {
         return p_impl ? p_impl->m_params.elementCount : 0;
     }
 
-    int StructuredBufferTransfer::elementStride() const
+    int StructuredBufferUploader::elementStride() const
     {
         return p_impl ? p_impl->m_params.elementStride : 0;
     }
 
-    ID3D12Resource* StructuredBufferTransfer::getBuffer() const
+    ID3D12Resource* StructuredBufferUploader::getBuffer() const
     {
         return p_impl ? p_impl->m_gpuBuffer.Get() : nullptr;
+    }
+
+    StructuredBufferTransfer::StructuredBufferTransfer(const StructuredBufferTransferParams& params)
+    {
+        p_impl = std::make_shared<Impl>(params, true);
+    }
+
+    void StructuredBufferTransfer::afterDispatch()
+    {
+        if (p_impl)
+        {
+            p_impl->AfterDispatch();
+        }
+    }
+
+    void StructuredBufferTransfer::beforeFlush()
+    {
+        if (p_impl)
+        {
+            p_impl->BeforeFlush();
+        }
+    }
+
+    void StructuredBufferTransfer::readback(void* dst)
+    {
+        if (p_impl)
+        {
+            p_impl->Readback(static_cast<uint8_t*>(dst));
+        }
     }
 }

@@ -27,7 +27,7 @@ struct Gpgpu::Impl
 
     ConstantBuffer<BufferInfo_b0> m_cb0{};
 
-    Array<StructuredBufferTransfer> m_sr{};
+    Array<StructuredBufferUploader> m_sr{};
     Array<StructuredBufferTransfer> m_ua{};
 
     ComputePipelineState m_computePipelineState{};
@@ -45,7 +45,7 @@ struct Gpgpu::Impl
         m_sr.resize(params.readonlyBuffer.size());
         for (int i = 0; i < params.readonlyBuffer.size(); ++i)
         {
-            m_sr[i] = StructuredBufferTransfer({
+            m_sr[i] = StructuredBufferUploader({
                 .elementCount = params.readonlyBuffer[i]->getElementCount(),
                 .elementStride = params.readonlyBuffer[i]->getElementStride()
             });
@@ -70,7 +70,11 @@ struct Gpgpu::Impl
             .table = m_computePipelineState.descriptorTable(),
             .materialCounts = {1},
             .descriptors = {
-                CbSrUaSet{{m_cb0, params.cb1}, m_sr.toColumnVector<ShaderResourceType>(), m_ua.toColumnVector()}
+                CbSrUaSet{
+                    {m_cb0, params.cb1},
+                    m_sr.toColumnVector<ShaderResourceType>(),
+                    m_ua.toColumnVector<StructuredBufferUploader>()
+                }
             }
         });
 
@@ -108,6 +112,18 @@ struct Gpgpu::Impl
         constexpr double groutCountX = 64.0;
         const auto mainUA = m_ua[0];
         commandList->Dispatch(static_cast<UINT>(ceil(mainUA.elementCount() / groutCountX)), 1, 1);
+
+        for (int i = 0; i < m_params.writableBuffer.size(); ++i)
+        {
+            m_ua[i].afterDispatch();
+        }
+
+        for (int i = 0; i < m_params.writableBuffer.size(); ++i)
+        {
+            m_ua[i].beforeFlush();
+        }
+
+        EngineRenderContext::FlushActiveCommandList();
 
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
