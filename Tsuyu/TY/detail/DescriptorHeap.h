@@ -11,7 +11,7 @@ namespace TY::detail
 
     struct CbSrUaSet
     {
-        Array<ConstantBufferUploader_impl> cb; /* [cbvCount] where ConstantBuffer::count() = materialCount */
+        Array<ConstantBufferUploader_impl> cb; /* [cbvCount], ConstantBuffer::count()=materialCount */
         Array<Array<ShaderResourceType>> sr; /* [srvCount][materialCount] */
         Array<Array<StructuredBufferUploader>> ua; /* [uavCount][materialCount] */
     };
