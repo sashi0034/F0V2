@@ -163,6 +163,7 @@
     <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\GpgpuBuffer.h" />
     <ClInclude Include="TY\ImageView.h" />
+    <ClInclude Include="TY\InlineComponent.h" />
     <ClInclude Include="TY\Random.h" />
     <ClInclude Include="TY\StructuredBufferUploader.h" />
     <ClInclude Include="TY\Concepts.h" />
@@ -265,6 +266,7 @@
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\Gpgpu.cpp" />
+    <ClCompile Include="TY\InlineComponent.cpp" />
     <ClCompile Include="TY\Random.cpp" />
     <ClCompile Include="TY\StructuredBufferUploader.cpp" />
     <ClCompile Include="TY\ConstantBufferUploader.cpp" />

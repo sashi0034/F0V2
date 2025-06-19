@@ -7,6 +7,7 @@
 #include "EngineKeyboard.h"
 #include "EnginePresetAsset.h"
 #include "EngineRenderContext.h"
+#include "EngineStateContext.h"
 #include "EngineTimer.h"
 #include "EngineWindow.h"
 #include "IEngineDrawer.h"
@@ -86,6 +87,8 @@ struct EngineCoreImpl
 
     void Shutdown()
     {
+        EngineStateContext::Shutdown();
+
         EngineWindow::Shutdown();
 
         EngineRenderContext::Shutdown();

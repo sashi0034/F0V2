@@ -3,6 +3,8 @@
 
 #include <assert.h>
 
+#include "TY/Array.h"
+
 using namespace TY;
 
 struct EngineStateContextImpl
@@ -10,6 +12,7 @@ struct EngineStateContextImpl
     std::vector<Mat4x4> m_worldMatStack{};
     Mat4x4 m_viewMat{};
     Mat4x4 m_projectionMat{};
+    Array<std::unique_ptr<IInlineComponent>> m_components{};
 };
 
 namespace
@@ -19,6 +22,11 @@ namespace
 
 namespace TY::detail
 {
+    void EngineStateContext::Shutdown()
+    {
+        s_stateContext = {};
+    }
+
     void EngineStateContext::PushWorldMatrix(const Mat4x4& worldMatrix)
     {
         s_stateContext.m_worldMatStack.push_back(worldMatrix);
@@ -53,5 +61,22 @@ namespace TY::detail
     [[nodiscard]] Mat4x4 EngineStateContext::GetProjectionMatrix()
     {
         return s_stateContext.m_projectionMat;
+    }
+
+    IInlineComponent& EngineStateContext::FetchInlineComponent(
+        InlineComponentId id,
+        const std::function<std::unique_ptr<IInlineComponent>()>& initializer)
+    {
+        if (s_stateContext.m_components.size() <= id.value())
+        {
+            s_stateContext.m_components.resize(id.value() + 1);
+        }
+
+        if (s_stateContext.m_components[id.value()] == nullptr)
+        {
+            s_stateContext.m_components[id.value()] = initializer();
+        }
+
+        return *s_stateContext.m_components[id.value()];
     }
 }
