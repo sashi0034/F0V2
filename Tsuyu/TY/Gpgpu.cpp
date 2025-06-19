@@ -16,8 +16,8 @@ namespace
 
     struct BufferInfo_b0
     {
-        std::array<uint32_t, maxBufferCount> writableBufferSize{};
-        std::array<uint32_t, maxBufferCount> readonlyBufferSize{};
+        std::array<std::array<uint32_t, 4>, maxBufferCount> writableBufferSize{};
+        std::array<std::array<uint32_t, 4>, maxBufferCount> readonlyBufferSize{};
     };
 }
 
@@ -80,12 +80,12 @@ struct Gpgpu::Impl
 
         for (int i = 0; i < params.readonlyBuffer.size(); ++i)
         {
-            m_cb0->readonlyBufferSize[i] = static_cast<uint32_t>(m_params.readonlyBuffer[i]->getElementCount());
+            m_cb0->readonlyBufferSize[i][0] = static_cast<uint32_t>(m_params.readonlyBuffer[i]->getElementCount());
         }
 
         for (int i = 0; i < params.writableBuffer.size(); ++i)
         {
-            m_cb0->writableBufferSize[i] = static_cast<uint32_t>(m_params.writableBuffer[i]->getElementCount());
+            m_cb0->writableBufferSize[i][0] = static_cast<uint32_t>(m_params.writableBuffer[i]->getElementCount());
         }
 
         m_cb0.upload();
