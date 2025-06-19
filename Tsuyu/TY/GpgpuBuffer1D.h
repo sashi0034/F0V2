@@ -19,11 +19,11 @@ namespace TY
             virtual Point3D getSize3D() const = 0;
         };
 
-        struct IWritableGpgpu : IGpgpuBuffer
+        struct IReadonlyGpgpu : IGpgpuBuffer
         {
         };
 
-        struct IReadonlyGpgpu : IGpgpuBuffer
+        struct IWritableGpgpu : IReadonlyGpgpu
         {
         };
 
@@ -41,6 +41,11 @@ namespace TY
 
             GpgpuBuffer1D(int elementCount) : p_impl(std::make_shared<Impl>(elementCount))
             {
+            }
+
+            std::shared_ptr<IReadonlyGpgpu> asReadonly()
+            {
+                return p_impl;
             }
 
             operator std::shared_ptr<InterfaceType>()
@@ -103,6 +108,11 @@ namespace TY
 
             GpgpuBuffer2D(int x, int y) : p_impl(std::make_shared<Impl>(x, y))
             {
+            }
+
+            std::shared_ptr<IReadonlyGpgpu> asReadonly()
+            {
+                return p_impl;
             }
 
             operator std::shared_ptr<InterfaceType>()
@@ -170,4 +180,10 @@ namespace TY
 
     template <typename DataType>
     using ReadonlyGpgpuBuffer1D = detail::GpgpuBuffer1D<DataType, detail::IReadonlyGpgpu>;
+
+    template <typename DataType>
+    using WritableGpgpuBuffer2D = detail::GpgpuBuffer2D<DataType, detail::IWritableGpgpu>;
+
+    template <typename DataType>
+    using ReadonlyGpgpuBuffer2D = detail::GpgpuBuffer2D<DataType, detail::IReadonlyGpgpu>;
 }
