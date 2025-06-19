@@ -110,7 +110,7 @@ namespace
         if (sr.isHolds<ShaderResourceTexture>())
         {
             const auto& t = sr.get<ShaderResourceTexture>();
-            const auto materialSR =
+            const auto texture =
                 t.isEmpty() ? EnginePresetAsset::GetWhiteTexture() : t;
 
             srvDesc.Format = t.getFormat();
@@ -118,24 +118,23 @@ namespace
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
             srvDesc.Texture2D.MipLevels = 1;
 
-            p_resource = materialSR.getResource();
+            p_resource = texture.getResource();
         }
         else if (sr.isHolds<StructuredBufferUploader>())
         {
             const auto& t = sr.get<StructuredBufferUploader>();
+            const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer();
 
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
             srvDesc.Format = DXGI_FORMAT_UNKNOWN;
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
             srvDesc.Buffer.FirstElement = 0;
-            srvDesc.Buffer.NumElements = t.elementCount();
-            srvDesc.Buffer.StructureByteStride = t.elementStride();
+            srvDesc.Buffer.NumElements = rsc.elementCount();
+            srvDesc.Buffer.StructureByteStride = rsc.elementStride();
             srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-            p_resource = t.getBuffer();
+            p_resource = rsc.getBuffer();
         }
-
-        assert(p_resource);
 
         EngineRenderContext::GetDevice()->CreateShaderResourceView(p_resource, &srvDesc, heapHandle);
         return true;
@@ -164,14 +163,16 @@ namespace
 
     bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const StructuredBufferUploader& ua)
     {
+        const auto rsc = ua.getBuffer() ? ua : EnginePresetAsset::GetEmptyStructuredBuffer();
+
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
         uavDesc.Buffer.FirstElement = 0;
-        uavDesc.Buffer.NumElements = ua.elementCount();
-        uavDesc.Buffer.StructureByteStride = ua.elementStride();
+        uavDesc.Buffer.NumElements = rsc.elementCount();
+        uavDesc.Buffer.StructureByteStride = rsc.elementStride();
 
         EngineRenderContext::GetDevice()->CreateUnorderedAccessView(
-            ua.getBuffer(),
+            rsc.getBuffer(),
             nullptr,
             &uavDesc,
             heapHandle);

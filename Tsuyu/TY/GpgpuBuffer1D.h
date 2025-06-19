@@ -1,6 +1,7 @@
 #pragma once
 #include "Array.h"
 #include "Intergral3D.h"
+#include "Empty.h"
 
 namespace TY
 {
@@ -35,11 +36,11 @@ namespace TY
 
             static constexpr int ElementStride = sizeof(DataType);
 
-            GpgpuBuffer1D()
+            GpgpuBuffer1D(Empty_t)
             {
             }
 
-            GpgpuBuffer1D(int elementCount) : p_impl(std::make_shared<Impl>(elementCount))
+            GpgpuBuffer1D(int elementCount = 0) : p_impl(std::make_shared<Impl>(elementCount))
             {
             }
 
@@ -61,6 +62,16 @@ namespace TY
             Array<DataType>& data()
             {
                 return p_impl->m_data;
+            }
+
+            void resize(int newCount)
+            {
+                assert(p_impl);
+
+                if (p_impl && newCount != p_impl->m_elementCount)
+                {
+                    *p_impl = Impl(newCount);
+                }
             }
 
         private:
@@ -102,11 +113,11 @@ namespace TY
 
             static constexpr int ElementStride = sizeof(DataType);
 
-            GpgpuBuffer2D()
+            GpgpuBuffer2D(Empty_t)
             {
             }
 
-            GpgpuBuffer2D(int x, int y) : p_impl(std::make_shared<Impl>(x, y))
+            GpgpuBuffer2D(int x = 0, int y = 0) : p_impl(std::make_shared<Impl>(x, y))
             {
             }
 
@@ -128,6 +139,16 @@ namespace TY
             Array<DataType>& data()
             {
                 return p_impl->m_data;
+            }
+
+            void resize(int newX, int newY)
+            {
+                assert(p_impl);
+
+                if (p_impl && newX != p_impl->m_sizeX || newY != p_impl->m_sizeY)
+                {
+                    *p_impl = Impl(newX, newY);
+                }
             }
 
             DataType& at(int x, int y)

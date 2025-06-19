@@ -2,10 +2,17 @@
 
 namespace TY
 {
+    namespace detail
+    {
+        struct IGpgpuBuffer;
+    }
+
     struct StructuredBufferTransferParams
     {
         int elementCount;
         int elementStride;
+
+        static StructuredBufferTransferParams From(const std::shared_ptr<detail::IGpgpuBuffer>& buffer);
     };
 
     class StructuredBufferUploader

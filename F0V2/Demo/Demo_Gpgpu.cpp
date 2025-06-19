@@ -24,25 +24,26 @@ struct Demo_Gpgpu_Impl
     {
         m_computeShader = ComputeShader{ShaderParams::CS("asset/shader/simple_compute.hlsl")};
 
-        m_buffer = WritableGpgpuBuffer1D<uint32_t>(100);
-        m_readonlyData0 = ReadonlyGpgpuBuffer1D<uint32_t>(50);
-        for (int i = 0; i < m_readonlyData0.data().size(); ++i)
-        {
-            m_readonlyData0.data()[i] = i * 10;
-        }
-
-        m_readonlyData1 = ReadonlyGpgpuBuffer1D<uint32_t>(100);
-        for (int i = 0; i < m_readonlyData1.data().size(); ++i)
-        {
-            m_readonlyData1.data()[i] = -i;
-        }
-
         m_gpgpu = Gpgpu{
             GpgpuParams{}
             .setCS(m_computeShader)
             .setWritableBuffer({m_buffer})
             .setReadonlyBuffer({m_readonlyData0, m_readonlyData1,})
         };
+
+        m_buffer.resize(100);
+
+        m_readonlyData0.resize(50);;
+        for (int i = 0; i < m_readonlyData0.data().size(); ++i)
+        {
+            m_readonlyData0.data()[i] = i * 10;
+        }
+
+        m_readonlyData1.resize(100);;
+        for (int i = 0; i < m_readonlyData1.data().size(); ++i)
+        {
+            m_readonlyData1.data()[i] = -i;
+        }
 
         m_gpgpu.compute();
     }

@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "StructuredBufferUploader.h"
 
+#include "GpgpuBuffer1D.h"
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
 
@@ -9,6 +10,8 @@ using namespace TY::detail;
 
 struct StructuredBufferUploader::Impl
 {
+    bool m_valid = false;
+
     StructuredBufferTransferParams m_params;
     bool m_writable{};
 
@@ -22,6 +25,11 @@ struct StructuredBufferUploader::Impl
         const auto device = EngineRenderContext::GetDevice();
 
         m_dataSize = params.elementCount * params.elementStride;
+        if (m_dataSize <= 0)
+        {
+            LogError.writeln("StructuredBufferUploader: Invalid data size.");
+            return;
+        }
 
         const D3D12_RESOURCE_FLAGS gpuBufferFlags =
             m_writable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
@@ -80,6 +88,8 @@ struct StructuredBufferUploader::Impl
             LogError.writeln(std::format("Failed to create readback buffer: {}", hr));
             return;
         }
+
+        m_valid = true;
     }
 
     void Upload(const uint8_t* src)
@@ -173,9 +183,29 @@ struct StructuredBufferUploader::Impl
 
 namespace TY
 {
+    StructuredBufferTransferParams StructuredBufferTransferParams::From(
+        const std::shared_ptr<detail::IGpgpuBuffer>& buffer)
+    {
+        if (not buffer)
+        {
+            return {};
+        }
+
+        StructuredBufferTransferParams params{
+            .elementCount = buffer->getElementCount(),
+            .elementStride = buffer->getElementStride()
+        };
+
+        return params;
+    }
+
     StructuredBufferUploader::StructuredBufferUploader(const StructuredBufferTransferParams& params)
         : p_impl(std::make_shared<Impl>(params, false))
     {
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+        }
     }
 
     void StructuredBufferUploader::upload(const void* src)
@@ -201,6 +231,10 @@ namespace TY
     StructuredBufferTransfer::StructuredBufferTransfer(const StructuredBufferTransferParams& params)
     {
         p_impl = std::make_shared<Impl>(params, true);
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+        }
     }
 
     void StructuredBufferTransfer::afterDispatch()

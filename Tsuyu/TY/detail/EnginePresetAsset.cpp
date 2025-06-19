@@ -3,6 +3,8 @@
 
 #include "TY/Image.h"
 #include "TY/Shader.h"
+#include "TY/ShaderResourceTexture.h"
+#include "TY/StructuredBufferUploader.h"
 #include "TY/Value2D.h"
 
 using namespace TY;
@@ -20,6 +22,8 @@ struct EnginePresetAssetImpl
 
     ComputeShader m_stubCS{};
 
+    StructuredBufferTransfer m_emptyStructuredBuffer{};
+
     void Init()
     {
         const Image whiteImage{Size{16, 16}, ColorU8{255}};
@@ -30,6 +34,13 @@ struct EnginePresetAssetImpl
         m_stubPS = PixelShader{ShaderParams::PS("engine/graphics_stub.hlsl")};
 
         m_stubCS = ComputeShader{ShaderParams::CS("engine/compute_stub.hlsl")};
+
+        m_emptyStructuredBuffer = StructuredBufferTransfer(
+            StructuredBufferTransferParams{
+                .elementCount = 1,
+                .elementStride = sizeof(uint8_t)
+            }
+        );
 
         m_initialized = true;
     }
@@ -74,5 +85,11 @@ namespace TY::detail
     {
         assert(s_enginePresetAsset.m_initialized);
         return s_enginePresetAsset.m_stubCS;
+    }
+
+    StructuredBufferTransfer EnginePresetAsset::GetEmptyStructuredBuffer()
+    {
+        assert(s_enginePresetAsset.m_initialized);
+        return s_enginePresetAsset.m_emptyStructuredBuffer;
     }
 }

@@ -19,6 +19,30 @@ namespace
         std::array<uint32_t, 4> t0_size{};
         std::array<uint32_t, 4> u0_size{};
     };
+
+    struct EmptyGpgpuBuffer : IGpgpuBuffer
+    {
+        void* getDataPointer() override { return nullptr; };
+
+        int getElementCount() const override { return 0; };
+
+        int getElementStride() const override { return 0; };
+
+        Point3D getSize3D() const override { return Point3D{}; };
+    };
+
+    IGpgpuBuffer& access(const std::shared_ptr<IGpgpuBuffer>& buffer)
+    {
+        if (buffer)
+        {
+            return *buffer;
+        }
+        else
+        {
+            static EmptyGpgpuBuffer empty{};
+            return empty;
+        }
+    }
 }
 
 struct Gpgpu::Impl
@@ -44,27 +68,36 @@ struct Gpgpu::Impl
             return;
         }
 
-        m_sr.resize(params.readonlyBuffer.size());
-        for (int i = 0; i < params.readonlyBuffer.size(); ++i)
+        Setup();
+
+        uploadCB0(m_params);
+
+        m_valid = true;
+    }
+
+    void Setup()
+    {
+        m_sr.resize(m_params.readonlyBuffer.size());
+        for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)
         {
-            m_sr[i] = StructuredBufferUploader({
-                .elementCount = params.readonlyBuffer[i]->getElementCount(),
-                .elementStride = params.readonlyBuffer[i]->getElementStride()
-            });
+            if (access(m_params.readonlyBuffer[i]).getElementCount() > 0)
+            {
+                m_sr[i] = StructuredBufferUploader(StructuredBufferTransferParams::From(m_params.readonlyBuffer[i]));
+            }
         }
 
-        m_ua.resize(params.writableBuffer.size());
-        for (int i = 0; i < params.writableBuffer.size(); ++i)
+        m_ua.resize(m_params.writableBuffer.size());
+        for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
-            m_ua[i] = StructuredBufferTransfer({
-                .elementCount = params.writableBuffer[i]->getElementCount(),
-                .elementStride = params.writableBuffer[i]->getElementStride()
-            });
+            if (access(m_params.writableBuffer[i]).getElementCount() > 0)
+            {
+                m_ua[i] = StructuredBufferTransfer(StructuredBufferTransferParams::From(m_params.writableBuffer[i]));
+            }
         }
 
         const auto descriptorTable = DescriptorTable{DescriptorTableElement{2, m_sr.size(), m_ua.size()}};
         m_computePipelineState = ComputePipelineState({
-            .computeShader = params.cs,
+            .computeShader = m_params.cs,
             .descriptorTable = descriptorTable
         });
 
@@ -73,39 +106,27 @@ struct Gpgpu::Impl
             .materialCounts = {1},
             .descriptors = {
                 CbSrUaSet{
-                    {m_cb0, params.cb1},
+                    {m_cb0, m_params.cb1},
                     m_sr.toColumnVector<ShaderResourceType>(),
                     m_ua.toColumnVector<UnorderedAccessType>()
                 }
             }
         });
-
-        const auto t0_size = params.readonlyBuffer.empty() ? Point3D{} : params.readonlyBuffer[0]->getSize3D();
-        m_cb0->t0_size[0] = static_cast<uint32_t>(t0_size.x);
-        m_cb0->t0_size[1] = static_cast<uint32_t>(t0_size.y);
-        m_cb0->t0_size[2] = static_cast<uint32_t>(t0_size.z);
-
-        const auto u0_size = params.writableBuffer.empty() ? Point3D{} : params.writableBuffer[0]->getSize3D();
-        m_cb0->u0_size[0] = static_cast<uint32_t>(u0_size.x);
-        m_cb0->u0_size[1] = static_cast<uint32_t>(u0_size.y);
-        m_cb0->u0_size[2] = static_cast<uint32_t>(u0_size.z);
-
-        m_cb0.upload();
-
-        m_valid = true;
     }
 
     void Compute()
     {
+        checkResized();
+
         const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
         for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)
         {
-            m_sr[i].upload(m_params.readonlyBuffer[i]->getDataPointer());
+            m_sr[i].upload(access(m_params.readonlyBuffer[i]).getDataPointer());
         }
 
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
-            m_ua[i].upload(m_params.writableBuffer[i]->getDataPointer());
+            m_ua[i].upload(access(m_params.writableBuffer[i]).getDataPointer());
         }
 
         m_computePipelineState.commandSet();
@@ -115,7 +136,7 @@ struct Gpgpu::Impl
         const auto commandList = EngineRenderContext::ActiveCommandList();
         const auto mainUA = m_ua[0];
 
-        const auto mainSize3D = m_params.writableBuffer[0]->getSize3D();
+        const auto mainSize3D = access(m_params.writableBuffer[0]).getSize3D();
         Integer3D<UINT> threadGroup{1, 1, 1};;
         if (mainSize3D.y <= 1 && mainSize3D.z <= 1)
         {
@@ -156,6 +177,60 @@ struct Gpgpu::Impl
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
             m_ua[i].readback(m_params.writableBuffer[i]->getDataPointer());
+        }
+    }
+
+private:
+    void uploadCB0(const GpgpuParams& params)
+    {
+        const auto t0_size = params.readonlyBuffer.empty() ? Point3D{} : params.readonlyBuffer[0]->getSize3D();
+        m_cb0->t0_size[0] = static_cast<uint32_t>(t0_size.x);
+        m_cb0->t0_size[1] = static_cast<uint32_t>(t0_size.y);
+        m_cb0->t0_size[2] = static_cast<uint32_t>(t0_size.z);
+
+        const auto u0_size = params.writableBuffer.empty() ? Point3D{} : params.writableBuffer[0]->getSize3D();
+        m_cb0->u0_size[0] = static_cast<uint32_t>(u0_size.x);
+        m_cb0->u0_size[1] = static_cast<uint32_t>(u0_size.y);
+        m_cb0->u0_size[2] = static_cast<uint32_t>(u0_size.z);
+
+        m_cb0.upload();
+    }
+
+    void checkResized()
+    {
+        bool resized{};
+
+        for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)
+        {
+            if (m_sr[i].elementCount() != access(m_params.readonlyBuffer[i]).getElementCount())
+            {
+                m_sr[i] =
+                    access(m_params.readonlyBuffer[i]).getElementCount() > 0
+                        ? StructuredBufferUploader(StructuredBufferTransferParams::From(m_params.readonlyBuffer[i]))
+                        : StructuredBufferUploader{};
+                m_descriptorHeap.resetSRV(m_sr[i], 0, i);
+
+                resized = true;
+            }
+        }
+
+        for (int i = 0; i < m_params.writableBuffer.size(); ++i)
+        {
+            if (m_ua[i].elementCount() != access(m_params.writableBuffer[i]).getElementCount())
+            {
+                m_ua[i] =
+                    access(m_params.writableBuffer[i]).getElementCount() > 0
+                        ? StructuredBufferTransfer(StructuredBufferTransferParams::From(m_params.writableBuffer[i]))
+                        : StructuredBufferTransfer{};
+                m_descriptorHeap.resetUAV(m_ua[i], 0, i);
+
+                resized = true;
+            }
+        }
+
+        if (resized)
+        {
+            uploadCB0(m_params);
         }
     }
 };

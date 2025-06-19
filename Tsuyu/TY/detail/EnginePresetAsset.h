@@ -1,6 +1,12 @@
 ﻿#pragma once
 #include "TY/Shader.h"
-#include "TY/ShaderResourceTexture.h"
+
+namespace TY
+{
+    class ShaderResourceTexture;
+
+    class StructuredBufferTransfer;
+}
 
 namespace TY::detail
 {
@@ -17,5 +23,7 @@ namespace TY::detail
         PixelShader GetStubPS();
 
         ComputeShader GetStubCS();
+
+        StructuredBufferTransfer GetEmptyStructuredBuffer();
     }
 }
