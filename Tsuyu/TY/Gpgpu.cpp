@@ -16,13 +16,14 @@ namespace
 
     struct BufferInfo_b0
     {
-        std::array<std::array<uint32_t, 4>, maxBufferCount> writableBufferSize{};
-        std::array<std::array<uint32_t, 4>, maxBufferCount> readonlyBufferSize{};
+        std::array<uint32_t, 4> u0_size{};
     };
 }
 
 struct Gpgpu::Impl
 {
+    bool m_valid{};
+
     GpgpuParams m_params{};
 
     ConstantBuffer<BufferInfo_b0> m_cb0{};
@@ -78,17 +79,14 @@ struct Gpgpu::Impl
             }
         });
 
-        for (int i = 0; i < params.readonlyBuffer.size(); ++i)
-        {
-            m_cb0->readonlyBufferSize[i][0] = static_cast<uint32_t>(m_params.readonlyBuffer[i]->getElementCount());
-        }
-
-        for (int i = 0; i < params.writableBuffer.size(); ++i)
-        {
-            m_cb0->writableBufferSize[i][0] = static_cast<uint32_t>(m_params.writableBuffer[i]->getElementCount());
-        }
+        const auto u0_size = params.writableBuffer[0]->getSize3D();
+        m_cb0->u0_size[0] = static_cast<uint32_t>(u0_size.x);
+        m_cb0->u0_size[1] = static_cast<uint32_t>(u0_size.y);
+        m_cb0->u0_size[2] = static_cast<uint32_t>(u0_size.z);
 
         m_cb0.upload();
+
+        m_valid = true;
     }
 
     void Compute()
@@ -161,6 +159,10 @@ namespace TY
     Gpgpu::Gpgpu(const GpgpuParams& params)
         : p_impl(std::make_shared<Impl>(params))
     {
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+        }
     }
 
     void Gpgpu::compute()

@@ -14,6 +14,22 @@
 using namespace TY;
 using namespace TY::detail;
 
+namespace
+{
+    // constexpr int csWritableBufferCapacity = 16;
+    // constexpr int csReadonlyBufferCapacity = 16;
+    //
+    // const std::string csWritableBufferCapacityString = std::to_string(csWritableBufferCapacity);
+    // const std::string csReadonlyBufferCapacityString = std::to_string(csReadonlyBufferCapacity);
+    //
+    // const std::vector<D3D_SHADER_MACRO> csDefaultMacros
+    // {
+    //     {"WRITABLE_BUFFER_CAPACITY", csWritableBufferCapacityString.c_str()},
+    //     {"READONLY_BUFFER_CAPACITY", csReadonlyBufferCapacityString.c_str()},
+    //     {nullptr, nullptr} // End of macros
+    // };
+}
+
 struct TY::Shader_impl : IEngineHotReloadable
 {
     uint64_t m_timestamp{};
@@ -21,8 +37,12 @@ struct TY::Shader_impl : IEngineHotReloadable
     ComPtr<ID3DBlob> errorBlob{};
     ShaderParams m_params{};
     std::string_view m_target{};
+    std::vector<D3D_SHADER_MACRO> m_macros{};
 
-    Shader_impl(const ShaderParams& params, std::string_view target) : m_params(params), m_target(target)
+    Shader_impl(const ShaderParams& params, std::string_view target, const std::vector<D3D_SHADER_MACRO>& macros = {})
+        : m_params(params),
+          m_target(target),
+          m_macros(std::move(macros))
     {
         Shader_impl::HotReload();
     }
@@ -45,7 +65,7 @@ struct TY::Shader_impl : IEngineHotReloadable
         const auto filepath = ToUtf16(m_params.filepath);
         const auto compileResult = D3DCompileFromFile(
             filepath.c_str(),
-            nullptr,
+            m_macros.empty() ? nullptr : m_macros.data(),
             D3D_COMPILE_STANDARD_FILE_INCLUDE,
             m_params.entryPoint.c_str(),
             m_target.data(),

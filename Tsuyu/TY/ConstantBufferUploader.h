@@ -11,11 +11,11 @@ namespace TY
         {
         }
 
-        ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t count);
+        ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t materialCount = 1);
 
         bool isEmpty() const;
 
-        void upload(const void* data, uint32_t count) const;
+        void upload(const void* data, uint32_t materialCount = 1) const;
 
         uint32_t count() const;
 
@@ -38,7 +38,7 @@ namespace TY
         {
         }
 
-        ConstantBufferUploader(int count = 1) : ConstantBufferUploader_impl(sizeInBytes, count)
+        ConstantBufferUploader(int materialCount = 1) : ConstantBufferUploader_impl(sizeInBytes, materialCount)
         {
         }
 

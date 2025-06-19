@@ -94,8 +94,8 @@ struct ConstantBufferUploader_impl::Impl
 
 namespace TY
 {
-    ConstantBufferUploader_impl::ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t count)
-        : p_impl(std::make_shared<Impl>(sizeInBytes, count))
+    ConstantBufferUploader_impl::ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t materialCount)
+        : p_impl(std::make_shared<Impl>(sizeInBytes, materialCount))
     {
         if (not p_impl->m_valid)
         {
@@ -108,9 +108,9 @@ namespace TY
         return not p_impl;
     }
 
-    void ConstantBufferUploader_impl::upload(const void* data, uint32_t count) const
+    void ConstantBufferUploader_impl::upload(const void* data, uint32_t materialCount) const
     {
-        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), count);
+        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount);
     }
 
     uint32_t ConstantBufferUploader_impl::count() const

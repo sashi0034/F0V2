@@ -83,6 +83,10 @@ namespace TY
 
         [[nodiscard]] ID3D10Blob* getBlob() const;
 
+        // [[nodiscard]] int readonlyBufferCapacity() const;
+
+        // [[nodiscard]] int writableBufferCapacity() const;
+
     private:
         std::shared_ptr<Shader_impl> p_impl;
     };
