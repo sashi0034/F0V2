@@ -17,7 +17,7 @@ namespace TY
 
         void upload(const void* data, uint32_t materialCount = 1) const;
 
-        uint32_t count() const;
+        uint32_t materialCount() const;
 
         size_t alignedSize() const;
 

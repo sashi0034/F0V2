@@ -17,7 +17,7 @@ struct ConstantBufferUploader_impl::Impl
     bool m_valid{};
 
     uint32_t m_sizeInBytes;
-    uint32_t m_count;
+    uint32_t m_materialCount;
     size_t m_alignedSize{};
     ComPtr<ID3D12Resource> m_uploadBuffer{};
 
@@ -26,7 +26,7 @@ struct ConstantBufferUploader_impl::Impl
 
     Impl(uint32_t sizeInBytes, uint32_t count)
         : m_sizeInBytes(sizeInBytes),
-          m_count(count)
+          m_materialCount(count)
     {
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         m_alignedSize = AlignedSize(sizeInBytes, 256);
@@ -113,9 +113,9 @@ namespace TY
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount);
     }
 
-    uint32_t ConstantBufferUploader_impl::count() const
+    uint32_t ConstantBufferUploader_impl::materialCount() const
     {
-        return p_impl ? p_impl->m_count : 0;
+        return p_impl ? p_impl->m_materialCount : 0;
     }
 
     size_t ConstantBufferUploader_impl::alignedSize() const

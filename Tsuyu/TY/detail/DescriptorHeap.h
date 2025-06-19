@@ -9,11 +9,13 @@ namespace TY::detail
 {
     using ShaderResourceType = Variant<ShaderResourceTexture, StructuredBufferUploader>;
 
+    using UnorderedAccessType = StructuredBufferTransfer;
+
     struct CbSrUaSet
     {
         Array<ConstantBufferUploader_impl> cb; /* [cbvCount], ConstantBuffer::count()=materialCount */
         Array<Array<ShaderResourceType>> sr; /* [srvCount][materialCount] */
-        Array<Array<StructuredBufferUploader>> ua; /* [uavCount][materialCount] */
+        Array<Array<UnorderedAccessType>> ua; /* [uavCount][materialCount] */
     };
 
     struct DescriptorHeapParams
@@ -29,6 +31,10 @@ namespace TY::detail
         DescriptorHeap() = default;
 
         DescriptorHeap(const DescriptorHeapParams& params);
+
+        void resetSRV(const ShaderResourceType& sr, int tableId, int srvId, int materialId = 0);
+
+        void resetUAV(const UnorderedAccessType& ua, int tableId, int uavId, int materialId = 0);
 
         void commandSet() const;
 

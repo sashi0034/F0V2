@@ -75,7 +75,7 @@ struct Gpgpu::Impl
                 CbSrUaSet{
                     {m_cb0, params.cb1},
                     m_sr.toColumnVector<ShaderResourceType>(),
-                    m_ua.toColumnVector<StructuredBufferUploader>()
+                    m_ua.toColumnVector<UnorderedAccessType>()
                 }
             }
         });
