@@ -109,9 +109,33 @@ struct Gpgpu::Impl
         m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
 
         const auto commandList = EngineRenderContext::ActiveCommandList();
-        constexpr double groutCountX = 64.0;
         const auto mainUA = m_ua[0];
-        commandList->Dispatch(static_cast<UINT>(ceil(mainUA.elementCount() / groutCountX)), 1, 1);
+
+        const auto mainSize3D = m_params.writableBuffer[0]->getSize3D();
+        Integer3D<UINT> threadGroup{1, 1, 1};;
+        if (mainSize3D.y <= 1 && mainSize3D.z <= 1)
+        {
+            // 1D Buffer
+            static constexpr double groutCount = 64.0;
+            threadGroup.x = static_cast<UINT>(ceil(mainSize3D.x / groutCount));
+        }
+        else if (mainSize3D.x <= 1)
+        {
+            // 2D Buffer
+            static constexpr double groutCount = 8.0;
+            threadGroup.x = static_cast<UINT>(ceil(mainSize3D.x / groutCount));
+            threadGroup.y = static_cast<UINT>(ceil(mainSize3D.y / groutCount));
+        }
+        else
+        {
+            // 3D Buffer
+            static constexpr double groutCount = 4.0;
+            threadGroup.x = static_cast<UINT>(ceil(mainSize3D.x / groutCount));
+            threadGroup.y = static_cast<UINT>(ceil(mainSize3D.y / groutCount));
+            threadGroup.z = static_cast<UINT>(ceil(mainSize3D.z / groutCount));
+        }
+
+        commandList->Dispatch(threadGroup.x, threadGroup.y, threadGroup.z);
 
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {

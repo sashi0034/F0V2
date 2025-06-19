@@ -15,23 +15,23 @@ namespace
 struct Demo_Gpgpu_Impl
 {
     ComputeShader m_computeShader{};
-    WritableGpgpuBuffer<uint32_t> m_buffer{};
-    ReadonlyGpgpuBuffer<uint32_t> m_readonlyData0{};
-    ReadonlyGpgpuBuffer<uint32_t> m_readonlyData1{};
+    WritableGpgpuBuffer1D<uint32_t> m_buffer{};
+    ReadonlyGpgpuBuffer1D<uint32_t> m_readonlyData0{};
+    ReadonlyGpgpuBuffer1D<uint32_t> m_readonlyData1{};
     Gpgpu m_gpgpu{};
 
     Demo_Gpgpu_Impl()
     {
         m_computeShader = ComputeShader{ShaderParams::CS("asset/shader/simple_compute.hlsl")};
 
-        m_buffer = WritableGpgpuBuffer<uint32_t>(100);
-        m_readonlyData0 = ReadonlyGpgpuBuffer<uint32_t>(50);
+        m_buffer = WritableGpgpuBuffer1D<uint32_t>(100);
+        m_readonlyData0 = ReadonlyGpgpuBuffer1D<uint32_t>(50);
         for (int i = 0; i < m_readonlyData0.data().size(); ++i)
         {
             m_readonlyData0.data()[i] = i * 10;
         }
 
-        m_readonlyData1 = ReadonlyGpgpuBuffer<uint32_t>(100);
+        m_readonlyData1 = ReadonlyGpgpuBuffer1D<uint32_t>(100);
         for (int i = 0; i < m_readonlyData1.data().size(); ++i)
         {
             m_readonlyData1.data()[i] = -i;

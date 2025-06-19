@@ -161,9 +161,10 @@
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Gpgpu.h" />
-    <ClInclude Include="TY\GpgpuBuffer.h" />
+    <ClInclude Include="TY\GpgpuBuffer1D.h" />
     <ClInclude Include="TY\ImageView.h" />
     <ClInclude Include="TY\InlineComponent.h" />
+    <ClInclude Include="TY\Intergral3D.h" />
     <ClInclude Include="TY\Random.h" />
     <ClInclude Include="TY\StructuredBufferUploader.h" />
     <ClInclude Include="TY\Concepts.h" />
