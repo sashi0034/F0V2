@@ -16,6 +16,7 @@ namespace
 
     struct BufferInfo_b0
     {
+        std::array<uint32_t, 4> t0_size{};
         std::array<uint32_t, 4> u0_size{};
     };
 }
@@ -79,7 +80,12 @@ struct Gpgpu::Impl
             }
         });
 
-        const auto u0_size = params.writableBuffer[0]->getSize3D();
+        const auto t0_size = params.readonlyBuffer.empty() ? Point3D{} : params.readonlyBuffer[0]->getSize3D();
+        m_cb0->t0_size[0] = static_cast<uint32_t>(t0_size.x);
+        m_cb0->t0_size[1] = static_cast<uint32_t>(t0_size.y);
+        m_cb0->t0_size[2] = static_cast<uint32_t>(t0_size.z);
+
+        const auto u0_size = params.writableBuffer.empty() ? Point3D{} : params.writableBuffer[0]->getSize3D();
         m_cb0->u0_size[0] = static_cast<uint32_t>(u0_size.x);
         m_cb0->u0_size[1] = static_cast<uint32_t>(u0_size.y);
         m_cb0->u0_size[2] = static_cast<uint32_t>(u0_size.z);

@@ -6,6 +6,7 @@ StructuredBuffer<uint> g_readonlyData1 : register(t1);
 
 cbuffer BufferInfo : register(b0)
 {
+    uint3 g_t0_size;
     uint3 g_u0_size;
 }
 
