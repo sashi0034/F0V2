@@ -52,7 +52,7 @@ namespace
             static constexpr double groutCount = 64.0;
             threadGroup.x = static_cast<UINT>(ceil(targetSize.x / groutCount));
         }
-        else if (targetSize.x <= 1)
+        else if (targetSize.z <= 1)
         {
             // 2D Buffer
             static constexpr double groutCount = 8.0;
