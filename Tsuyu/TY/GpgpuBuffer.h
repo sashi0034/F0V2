@@ -204,19 +204,19 @@ namespace TY
             }
         };
 
-        template <typename DataType, typename InterfaceType>
-        class GpgpuBufferView
+        template <typename ViewType, typename DataType, typename InterfaceType>
+        class GpgpuBufferViewBase
         {
         public:
             static_assert(std::is_base_of<IGpgpuBuffer, InterfaceType>::value);
 
             static constexpr int ElementStride = sizeof(DataType);
 
-            GpgpuBufferView(Empty_t)
+            GpgpuBufferViewBase(Empty_t)
             {
             }
 
-            GpgpuBufferView() : p_impl(std::make_shared<Impl>())
+            GpgpuBufferViewBase() : p_impl(std::make_shared<Impl>())
             {
             }
 
@@ -230,45 +230,15 @@ namespace TY
                 return p_impl;
             }
 
-            ScopedDefer scopedWritable(Array<DataType>& data)
-            {
-                return scopedWritable(data, Point3D{static_cast<int>(data.size()), 1, 1});
-            }
-
-            ScopedDefer scopedWritable(Array<DataType>& data, const Point3D& size3D)
-            {
-                if (not p_impl) return {};
-                *p_impl = Impl(std::span<DataType>{data}, size3D);
-                return ScopedDefer([this] { *p_impl = Impl(); });
-            }
-
-            ScopedDefer scopedReadonly(const Array<DataType>& data)
-            {
-                return scopedReadonly(data, Point3D{static_cast<int>(data.size()), 1, 1});
-            }
-
-            ScopedDefer scopedReadonly(const Array<DataType>& data, const Point3D& size3D)
-            {
-                if (not p_impl) return {};
-                *p_impl = Impl(std::span<const DataType>{data}, size3D);
-                return ScopedDefer([this] { *p_impl = Impl(); });
-            }
-
-            // template <class Container> requires std::is_same_v<typename Container::value_type, DataType>
-            // TODO
-
-        private:
+        protected:
             struct Impl : InterfaceType
             {
-                using readonly_span = std::span<const DataType>;
-                using writable_span = std::span<DataType>;
-
-                std::variant<readonly_span, writable_span> m_data{};
+                std::span<ViewType> m_data{};
                 Point3D m_size3D{};
 
                 Impl() = default;
 
-                Impl(std::variant<readonly_span, writable_span> data, const Point3D& size)
+                Impl(std::span<ViewType> data, const Point3D& size)
                     : m_data(data),
                       m_size3D(size)
                 {
@@ -277,14 +247,14 @@ namespace TY
 
                 const void* readonlyDataPointer() override
                 {
-                    return std::visit([](auto&& span) -> const void* { return span.data(); }, this->m_data);
+                    return m_data.data();
                 }
 
                 void* writableDataPointer() override
                 {
-                    if (std::holds_alternative<writable_span>(this->m_data))
+                    if constexpr (not std::is_const<ViewType>::value)
                     {
-                        return std::get<writable_span>(this->m_data).data();
+                        return m_data.data();
                     }
 
                     return nullptr;
@@ -292,7 +262,7 @@ namespace TY
 
                 int getElementCount() const override
                 {
-                    return std::visit([](auto&& span) -> int { return span.size(); }, this->m_data);
+                    return static_cast<int>(m_data.size());
                 }
 
                 int getElementStride() const override { return ElementStride; }
@@ -302,7 +272,7 @@ namespace TY
 
             std::shared_ptr<Impl> p_impl{};
 
-            GpgpuBufferView(const std::shared_ptr<Impl>& impl) : p_impl(impl)
+            GpgpuBufferViewBase(const std::shared_ptr<Impl>& impl) : p_impl(impl)
             {
             }
         };
@@ -321,8 +291,48 @@ namespace TY
     using ReadonlyGpgpuBuffer2D = detail::GpgpuBuffer2D<DataType, detail::IReadonlyGpgpu>;
 
     template <typename DataType>
-    using WritableGpgpuBufferView = detail::GpgpuBufferView<DataType, detail::IWritableGpgpu>;
+    class WritableGpgpuBufferView : public detail::GpgpuBufferViewBase<DataType, DataType, detail::IWritableGpgpu>
+    {
+        using base_type = detail::GpgpuBufferViewBase<DataType, DataType, detail::IWritableGpgpu>;
+
+    public:
+        using base_type::GpgpuBufferViewBase;
+
+        template <class Container> requires std::is_same_v<typename Container::value_type, DataType>
+        ScopedDefer scopedWritable(Container& data)
+        {
+            return scopedWritable(data, Point3D{static_cast<int>(data.size()), 1, 1});
+        }
+
+        template <class Container> requires std::is_same_v<typename Container::value_type, DataType>
+        ScopedDefer scopedWritable(Container& data, const Point3D& size3D)
+        {
+            if (not this->p_impl) return {};
+            *this->p_impl = base_type::Impl(std::span<DataType>{data}, size3D);
+            return ScopedDefer([this] { *this->p_impl = base_type::Impl(); });
+        }
+    };
 
     template <typename DataType>
-    using ReadonlyGpgpuBufferView = detail::GpgpuBufferView<DataType, detail::IReadonlyGpgpu>;
+    class ReadonlyGpgpuBufferView : public detail::GpgpuBufferViewBase<const DataType, DataType, detail::IReadonlyGpgpu>
+    {
+        using base_type = detail::GpgpuBufferViewBase<const DataType, DataType, detail::IReadonlyGpgpu>;
+
+    public:
+        using base_type::GpgpuBufferViewBase;
+
+        template <class Container> requires std::is_same_v<typename Container::value_type, DataType>
+        ScopedDefer scopedReadonly(const Container& data)
+        {
+            return scopedReadonly(data, Point3D{static_cast<int>(data.size()), 1, 1});
+        }
+
+        template <class Container> requires std::is_same_v<typename Container::value_type, DataType>
+        ScopedDefer scopedReadonly(const Container& data, const Point3D& size3D)
+        {
+            if (not this->p_impl) return {};
+            *this->p_impl = base_type::Impl(std::span<const DataType>{data}, size3D);
+            return ScopedDefer([this] { *this->p_impl = base_type::Impl(); });
+        }
+    };
 }
