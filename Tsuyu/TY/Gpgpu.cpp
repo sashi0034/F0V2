@@ -212,20 +212,35 @@ struct Gpgpu::Impl
 
         for (auto& impl : list)
         {
-            for (int i = 0; i < impl->m_params.readonlyBuffer.size(); ++i)
-            {
-                if (srMap.contains(impl->m_params.readonlyBuffer[i].get())) continue;
-
-                impl->m_sr[i].upload(access(impl->m_params.readonlyBuffer[i]).getDataPointer());
-                srMap[impl->m_params.readonlyBuffer[i].get()] = impl->m_sr[i];
-            }
-
             for (int i = 0; i < impl->m_params.writableBuffer.size(); ++i)
             {
-                if (uaMap.contains(impl->m_params.writableBuffer[i].get())) continue;
+                if (uaMap.contains(impl->m_params.writableBuffer[i].get()))
+                {
+                    continue;
+                }
 
                 impl->m_ua[i].upload(access(impl->m_params.writableBuffer[i]).getDataPointer());
                 uaMap[impl->m_params.writableBuffer[i].get()] = impl->m_ua[i];
+            }
+        }
+
+        for (auto& impl : list)
+        {
+            for (int i = 0; i < impl->m_params.readonlyBuffer.size(); ++i)
+            {
+                if (uaMap.contains(impl->m_params.readonlyBuffer[i].get()))
+                {
+                    // バッファを UA として転送済みなら SR としては転送しない
+                    continue;
+                }
+
+                if (srMap.contains(impl->m_params.readonlyBuffer[i].get()))
+                {
+                    continue;
+                }
+
+                impl->m_sr[i].upload(access(impl->m_params.readonlyBuffer[i]).getDataPointer());
+                srMap[impl->m_params.readonlyBuffer[i].get()] = impl->m_sr[i];
             }
         }
 
