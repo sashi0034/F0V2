@@ -118,6 +118,11 @@ namespace TY
         return p_impl ? p_impl->m_materialCount : 0;
     }
 
+    size_t ConstantBufferUploader_impl::sizeInBytes() const
+    {
+        return p_impl ? p_impl->m_sizeInBytes : 0;
+    }
+
     size_t ConstantBufferUploader_impl::alignedSize() const
     {
         return p_impl ? p_impl->m_alignedSize : 0;

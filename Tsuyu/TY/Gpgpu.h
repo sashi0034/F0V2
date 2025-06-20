@@ -10,19 +10,13 @@ namespace TY
     struct GpgpuParams
     {
         ComputeShader cs{};
-        Array<std::shared_ptr<detail::IWritableGpgpu>> writableBuffer{};
         Array<std::shared_ptr<detail::IReadonlyGpgpu>> readonlyBuffer{};
-        ConstantBufferUploader_impl cb1{Empty};
+        Array<std::shared_ptr<detail::IWritableGpgpu>> writableBuffer{};
+        ConstantBufferUploader_impl cb2{Empty};
 
         GpgpuParams& setCS(const ComputeShader& cs_)
         {
             cs = cs_;
-            return *this;
-        }
-
-        GpgpuParams& setWritableBuffer(const Array<std::shared_ptr<detail::IWritableGpgpu>>& buffers_)
-        {
-            writableBuffer = buffers_;
             return *this;
         }
 
@@ -32,9 +26,15 @@ namespace TY
             return *this;
         }
 
-        GpgpuParams& setCB1(const ConstantBufferUploader_impl& cb1_)
+        GpgpuParams& setWritableBuffer(const Array<std::shared_ptr<detail::IWritableGpgpu>>& buffers_)
         {
-            cb1 = cb1_;
+            writableBuffer = buffers_;
+            return *this;
+        }
+
+        GpgpuParams& setCB2(const ConstantBufferUploader_impl& cb)
+        {
+            cb2 = cb;
             return *this;
         }
     };

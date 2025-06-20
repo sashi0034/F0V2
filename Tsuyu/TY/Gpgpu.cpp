@@ -12,13 +12,9 @@ using namespace TY::detail;
 
 namespace
 {
-    constexpr int maxBufferCount = 8;
+    constexpr int readonlyBufferCapacity = 128;
 
-    struct BufferInfo_b0
-    {
-        std::array<uint32_t, 4> t0_size{};
-        std::array<uint32_t, 4> u0_size{};
-    };
+    constexpr int writableBufferCapacity = 64;
 
     struct EmptyGpgpuBuffer : IGpgpuBuffer
     {
@@ -51,7 +47,8 @@ struct Gpgpu::Impl
 
     GpgpuParams m_params{};
 
-    ConstantBuffer<BufferInfo_b0> m_cb0{};
+    ConstantBufferUploader_impl m_cb0{Empty};
+    ConstantBufferUploader_impl m_cb1{Empty};
 
     Array<StructuredBufferUploader> m_sr{};
     Array<StructuredBufferTransfer> m_ua{};
@@ -62,21 +59,34 @@ struct Gpgpu::Impl
 
     Impl(const GpgpuParams& params) : m_params(params)
     {
-        if (params.readonlyBuffer.size() > maxBufferCount || params.writableBuffer.size() > maxBufferCount)
+        if (params.readonlyBuffer.size() > readonlyBufferCapacity)
         {
-            LogError.writeln("Gpgpu: Too many buffers specified. Maximum is " + std::to_string(maxBufferCount));
+            LogError.writeln(std::format(
+                "Gpgpu: Too many readonly buffers specified. Maximum is {}",
+                readonlyBufferCapacity));
+            return;
+        }
+
+        if (params.writableBuffer.size() > writableBufferCapacity)
+        {
+            LogError.writeln(std::format(
+                "Gpgpu: Too many writable buffers specified. Maximum is {}",
+                writableBufferCapacity));
             return;
         }
 
         Setup();
 
-        uploadCB0(m_params);
+        uploadCB0_1(m_params);
 
         m_valid = true;
     }
 
     void Setup()
     {
+        m_cb0 = ConstantBufferUploader_impl(sizeof(uint32_t) * 4 * m_params.readonlyBuffer.size());
+        m_cb1 = ConstantBufferUploader_impl(sizeof(uint32_t) * 4 * m_params.writableBuffer.size());
+
         m_sr.resize(m_params.readonlyBuffer.size());
         for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)
         {
@@ -95,7 +105,7 @@ struct Gpgpu::Impl
             }
         }
 
-        const auto descriptorTable = DescriptorTable{DescriptorTableElement{2, m_sr.size(), m_ua.size()}};
+        const auto descriptorTable = DescriptorTable{DescriptorTableElement{3, m_sr.size(), m_ua.size()}};
         m_computePipelineState = ComputePipelineState({
             .computeShader = m_params.cs,
             .descriptorTable = descriptorTable
@@ -106,7 +116,7 @@ struct Gpgpu::Impl
             .materialCounts = {1},
             .descriptors = {
                 CbSrUaSet{
-                    {m_cb0, m_params.cb1},
+                    {m_cb0, m_cb1, m_params.cb2},
                     m_sr.toColumnVector<ShaderResourceType>(),
                     m_ua.toColumnVector<UnorderedAccessType>()
                 }
@@ -181,19 +191,39 @@ struct Gpgpu::Impl
     }
 
 private:
-    void uploadCB0(const GpgpuParams& params)
+    void uploadCB0_1(const GpgpuParams& params)
     {
-        const auto t0_size = params.readonlyBuffer.empty() ? Point3D{} : params.readonlyBuffer[0]->getSize3D();
-        m_cb0->t0_size[0] = static_cast<uint32_t>(t0_size.x);
-        m_cb0->t0_size[1] = static_cast<uint32_t>(t0_size.y);
-        m_cb0->t0_size[2] = static_cast<uint32_t>(t0_size.z);
+        Array<std::array<uint32_t, 4>> sr_sizes{};
+        sr_sizes.reserve(params.readonlyBuffer.size());
+        for (int i = 0; i < params.readonlyBuffer.size(); ++i)
+        {
+            const auto& buffer = access(params.readonlyBuffer[i]);
+            sr_sizes.push_back({
+                static_cast<uint32_t>(buffer.getSize3D().x),
+                static_cast<uint32_t>(buffer.getSize3D().y),
+                static_cast<uint32_t>(buffer.getSize3D().z),
+                0
+            });
+        }
 
-        const auto u0_size = params.writableBuffer.empty() ? Point3D{} : params.writableBuffer[0]->getSize3D();
-        m_cb0->u0_size[0] = static_cast<uint32_t>(u0_size.x);
-        m_cb0->u0_size[1] = static_cast<uint32_t>(u0_size.y);
-        m_cb0->u0_size[2] = static_cast<uint32_t>(u0_size.z);
+        Array<std::array<uint32_t, 4>> ua_sizes{};
+        ua_sizes.reserve(params.writableBuffer.size());
+        for (int i = 0; i < params.writableBuffer.size(); ++i)
+        {
+            const auto& buffer = access(params.writableBuffer[i]);
+            ua_sizes.push_back({
+                static_cast<uint32_t>(buffer.getSize3D().x),
+                static_cast<uint32_t>(buffer.getSize3D().y),
+                static_cast<uint32_t>(buffer.getSize3D().z),
+                0
+            });
+        }
 
-        m_cb0.upload();
+        assert(sr_sizes.size_in_bytes() == m_cb0.sizeInBytes());
+        m_cb0.upload(sr_sizes.data());
+
+        assert(ua_sizes.size_in_bytes() == m_cb1.sizeInBytes());
+        m_cb1.upload(ua_sizes.data());
     }
 
     void checkResized()
@@ -230,7 +260,7 @@ private:
 
         if (resized)
         {
-            uploadCB0(m_params);
+            uploadCB0_1(m_params);
         }
     }
 };

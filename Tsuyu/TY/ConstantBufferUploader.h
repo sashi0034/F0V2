@@ -19,6 +19,8 @@ namespace TY
 
         uint32_t materialCount() const;
 
+        size_t sizeInBytes() const;
+
         size_t alignedSize() const;
 
         uint64_t bufferLocation() const;
