@@ -93,6 +93,42 @@ namespace TY
             return -1;
         }
 
+        bool sequenceEquals(const Array& other) const
+        {
+            if (this->size() != other.size())
+            {
+                return false;
+            }
+
+            for (size_t i = 0; i < this->size(); ++i)
+            {
+                if ((*this)[i] != other[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        bool sequenceAlmostEquals(const Array& other, float threshold = 1e-5f) const
+        {
+            if (this->size() != other.size())
+            {
+                return false;
+            }
+
+            for (size_t i = 0; i < this->size(); ++i)
+            {
+                if (std::abs((*this)[i] - other[i]) > threshold)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         /// @brief バッファのサイズをバイト単位で取得
         [[nodiscard]]
         std::size_t size_in_bytes() const
