@@ -198,6 +198,70 @@ struct Gpgpu::Impl
         }
     }
 
+    static void SequenceCompute(const Array<std::shared_ptr<Impl>>& list)
+    {
+        for (auto& impl : list)
+        {
+            impl->checkResized();
+        }
+
+        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
+
+        std::unordered_map<IReadonlyGpgpu*, StructuredBufferUploader> srMap{};
+        std::unordered_map<IReadonlyGpgpu*, StructuredBufferTransfer> uaMap{};
+
+        for (auto& impl : list)
+        {
+            for (int i = 0; i < impl->m_params.readonlyBuffer.size(); ++i)
+            {
+                if (srMap.contains(impl->m_params.readonlyBuffer[i].get())) continue;
+
+                impl->m_sr[i].upload(access(impl->m_params.readonlyBuffer[i]).getDataPointer());
+                srMap[impl->m_params.readonlyBuffer[i].get()] = impl->m_sr[i];
+            }
+
+            for (int i = 0; i < impl->m_params.writableBuffer.size(); ++i)
+            {
+                if (uaMap.contains(impl->m_params.writableBuffer[i].get())) continue;
+
+                impl->m_ua[i].upload(access(impl->m_params.writableBuffer[i]).getDataPointer());
+                uaMap[impl->m_params.writableBuffer[i].get()] = impl->m_ua[i];
+            }
+        }
+
+        for (auto& impl : list)
+        {
+            impl->m_computePipelineState.commandSet();
+            impl->m_descriptorHeap.commandSet();
+            impl->m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
+
+            const auto commandList = EngineRenderContext::ActiveCommandList();
+            const auto mainUA = impl->m_ua[0];
+
+            const auto mainSize3D = access(impl->m_params.writableBuffer[0]).getSize3D();
+
+            const Integer3D<UINT> threadGroup = getThreadGroup(mainSize3D);
+            commandList->Dispatch(threadGroup.x, threadGroup.y, threadGroup.z);
+
+            for (int i = 0; i < impl->m_params.writableBuffer.size(); ++i)
+            {
+                impl->m_ua[i].afterDispatch();
+            }
+        }
+
+        for (auto& ua : uaMap)
+        {
+            ua.second.beforeFlush();
+        }
+
+        EngineRenderContext::FlushActiveCommandList();
+
+        for (auto& ua : uaMap)
+        {
+            ua.second.readback(ua.first->getDataPointer());
+        }
+    }
+
 private:
     void uploadCB0_1(const GpgpuParams& params)
     {
@@ -285,5 +349,9 @@ namespace TY
 
     void Gpgpu::SequenceCompute(const Array<Gpgpu>& list)
     {
+        Impl::SequenceCompute(
+            list.filter([](const Gpgpu& gpgpu) -> bool { return gpgpu.p_impl != nullptr; })
+                .map([](const Gpgpu& gpgpu) { return gpgpu.p_impl; })
+        );
     }
 }
