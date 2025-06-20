@@ -168,6 +168,7 @@
     <ClInclude Include="TY\Integer2D.h" />
     <ClInclude Include="TY\Integer3D.h" />
     <ClInclude Include="TY\Random.h" />
+    <ClInclude Include="TY\ScopedDeferStack.h" />
     <ClInclude Include="TY\StructuredBufferUploader.h" />
     <ClInclude Include="TY\Concepts.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
@@ -272,6 +273,7 @@
     <ClCompile Include="TY\Gpgpu.cpp" />
     <ClCompile Include="TY\InlineComponent.cpp" />
     <ClCompile Include="TY\Random.cpp" />
+    <ClCompile Include="TY\ScopedDeferStack.cpp" />
     <ClCompile Include="TY\StructuredBufferUploader.cpp" />
     <ClCompile Include="TY\ConstantBufferUploader.cpp" />
     <ClCompile Include="TY\detail\ComputePipelineState.cpp" />
