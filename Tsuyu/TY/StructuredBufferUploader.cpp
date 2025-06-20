@@ -27,7 +27,7 @@ struct StructuredBufferUploader::Impl
         m_dataSize = params.elementCount * params.elementStride;
         if (m_dataSize <= 0)
         {
-            LogError.writeln("StructuredBufferUploader: Invalid data size.");
+            LogError.writeln("StructuredBufferUploader: StructuredBufferUploader: Invalid data size.");
             return;
         }
 
@@ -48,7 +48,7 @@ struct StructuredBufferUploader::Impl
             );
             FAILED(hr))
         {
-            LogError.writeln(std::format("Failed to create GPU buffer: {}", hr));
+            LogError.writeln(std::format("StructuredBufferUploader: Failed to create GPU buffer: {}", hr));
             return;
         }
 
@@ -68,7 +68,7 @@ struct StructuredBufferUploader::Impl
                 IID_PPV_ARGS(&m_uploadBuffer));
             FAILED(hr))
         {
-            LogError.writeln(std::format("Failed to create upload buffer: {}", hr));
+            LogError.writeln(std::format("StructuredBufferUploader: Failed to create upload buffer: {}", hr));
             return;
         }
 
@@ -85,7 +85,7 @@ struct StructuredBufferUploader::Impl
                 IID_PPV_ARGS(&m_readbackBuffer));
             FAILED(hr))
         {
-            LogError.writeln(std::format("Failed to create readback buffer: {}", hr));
+            LogError.writeln(std::format("StructuredBufferUploader: Failed to create readback buffer: {}", hr));
             return;
         }
 
@@ -100,7 +100,7 @@ struct StructuredBufferUploader::Impl
         if (const HRESULT hr = m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dest));
             FAILED(hr))
         {
-            LogError.writeln(std::format("Failed to map upload buffer: {}", hr));
+            LogError.writeln(std::format("StructuredBufferUploader::Upload(): Failed to map upload buffer: {}", hr));
             return;
         }
 
@@ -168,6 +168,12 @@ struct StructuredBufferUploader::Impl
     {
         assert(m_writable);
 
+        if (not dest)
+        {
+            LogError.writeln("StructuredBufferTransfer::Readback(): Destination pointer is null.");
+            return;
+        }
+
         uint8_t* src = nullptr;
         if (SUCCEEDED(m_readbackBuffer->Map(0, nullptr, reinterpret_cast<void**>(&src))))
         {
@@ -176,7 +182,7 @@ struct StructuredBufferUploader::Impl
         }
         else
         {
-            LogError.writeln("Failed to map readback buffer.");
+            LogError.writeln("StructuredBufferTransfer::Readback(): Failed to map readback buffer.");
         }
     }
 };

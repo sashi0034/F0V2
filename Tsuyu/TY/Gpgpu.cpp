@@ -19,7 +19,9 @@ namespace
 
     struct EmptyGpgpuBuffer : IGpgpuBuffer
     {
-        void* getDataPointer() override { return nullptr; };
+        const void* readonlyDataPointer() override { return nullptr; };
+
+        void* writableDataPointer() override { return nullptr; };
 
         int getElementCount() const override { return 0; };
 
@@ -160,12 +162,12 @@ struct Gpgpu::Impl
         const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
         for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)
         {
-            m_sr[i].upload(access(m_params.readonlyBuffer[i]).getDataPointer());
+            m_sr[i].upload(access(m_params.readonlyBuffer[i]).readonlyDataPointer());
         }
 
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
-            m_ua[i].upload(access(m_params.writableBuffer[i]).getDataPointer());
+            m_ua[i].upload(access(m_params.writableBuffer[i]).readonlyDataPointer());
         }
 
         m_computePipelineState.commandSet();
@@ -194,7 +196,7 @@ struct Gpgpu::Impl
 
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
-            m_ua[i].readback(m_params.writableBuffer[i]->getDataPointer());
+            m_ua[i].readback(m_params.writableBuffer[i]->writableDataPointer());
         }
     }
 
@@ -219,7 +221,7 @@ struct Gpgpu::Impl
                     continue;
                 }
 
-                impl->m_ua[i].upload(access(impl->m_params.writableBuffer[i]).getDataPointer());
+                impl->m_ua[i].upload(access(impl->m_params.writableBuffer[i]).readonlyDataPointer());
                 uaMap[impl->m_params.writableBuffer[i].get()] = impl->m_ua[i];
             }
         }
@@ -239,7 +241,7 @@ struct Gpgpu::Impl
                     continue;
                 }
 
-                impl->m_sr[i].upload(access(impl->m_params.readonlyBuffer[i]).getDataPointer());
+                impl->m_sr[i].upload(access(impl->m_params.readonlyBuffer[i]).readonlyDataPointer());
                 srMap[impl->m_params.readonlyBuffer[i].get()] = impl->m_sr[i];
             }
         }
@@ -273,7 +275,7 @@ struct Gpgpu::Impl
 
         for (auto& ua : uaMap)
         {
-            ua.second.readback(ua.first->getDataPointer());
+            ua.second.readback(ua.first->writableDataPointer());
         }
     }
 

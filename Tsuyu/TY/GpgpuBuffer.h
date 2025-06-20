@@ -1,7 +1,10 @@
 #pragma once
+#include <span>
+
 #include "Array.h"
 #include "Integer3D.h"
 #include "Empty.h"
+#include "ScopedDefer.h"
 
 namespace TY
 {
@@ -11,7 +14,9 @@ namespace TY
         {
             virtual ~IGpgpuBuffer() = default;
 
-            virtual void* getDataPointer() = 0;
+            virtual const void* readonlyDataPointer() = 0;
+
+            virtual void* writableDataPointer() = 0;
 
             virtual int getElementCount() const = 0;
 
@@ -89,7 +94,9 @@ namespace TY
                 {
                 }
 
-                void* getDataPointer() override { return m_data.data(); }
+                const void* readonlyDataPointer() override { return m_data.data(); }
+
+                void* writableDataPointer() override { return m_data.data(); }
 
                 int getElementCount() const override { return m_elementCount; }
 
@@ -179,7 +186,9 @@ namespace TY
                 {
                 }
 
-                void* getDataPointer() override { return m_data.data(); }
+                const void* readonlyDataPointer() override { return m_data.data(); }
+
+                void* writableDataPointer() override { return m_data.data(); }
 
                 int getElementCount() const override { return m_elementCount; }
 
@@ -191,6 +200,109 @@ namespace TY
             std::shared_ptr<Impl> p_impl{};
 
             GpgpuBuffer2D(const std::shared_ptr<Impl>& impl) : p_impl(impl)
+            {
+            }
+        };
+
+        template <typename DataType, typename InterfaceType>
+        class GpgpuBufferView
+        {
+        public:
+            static_assert(std::is_base_of<IGpgpuBuffer, InterfaceType>::value);
+
+            static constexpr int ElementStride = sizeof(DataType);
+
+            GpgpuBufferView(Empty_t)
+            {
+            }
+
+            GpgpuBufferView() : p_impl(std::make_shared<Impl>())
+            {
+            }
+
+            std::shared_ptr<IReadonlyGpgpu> asReadonly()
+            {
+                return p_impl;
+            }
+
+            operator std::shared_ptr<InterfaceType>()
+            {
+                return p_impl;
+            }
+
+            ScopedDefer scopedWritable(Array<DataType>& data)
+            {
+                return scopedWritable(data, Point3D{static_cast<int>(data.size()), 1, 1});
+            }
+
+            ScopedDefer scopedWritable(Array<DataType>& data, const Point3D& size3D)
+            {
+                if (not p_impl) return {};
+                *p_impl = Impl(std::span<DataType>{data}, size3D);
+                return ScopedDefer([this] { *p_impl = Impl(); });
+            }
+
+            ScopedDefer scopedReadonly(const Array<DataType>& data)
+            {
+                return scopedReadonly(data, Point3D{static_cast<int>(data.size()), 1, 1});
+            }
+
+            ScopedDefer scopedReadonly(const Array<DataType>& data, const Point3D& size3D)
+            {
+                if (not p_impl) return {};
+                *p_impl = Impl(std::span<const DataType>{data}, size3D);
+                return ScopedDefer([this] { *p_impl = Impl(); });
+            }
+
+            // template <class Container> requires std::is_same_v<typename Container::value_type, DataType>
+            // TODO
+
+        private:
+            struct Impl : InterfaceType
+            {
+                using readonly_span = std::span<const DataType>;
+                using writable_span = std::span<DataType>;
+
+                std::variant<readonly_span, writable_span> m_data{};
+                Point3D m_size3D{};
+
+                Impl() = default;
+
+                Impl(std::variant<readonly_span, writable_span> data, const Point3D& size)
+                    : m_data(data),
+                      m_size3D(size)
+                {
+                    assert(getElementCount() == size.x * size.y * size.z);
+                }
+
+                const void* readonlyDataPointer() override
+                {
+                    return std::visit([](auto&& span) -> const void* { return span.data(); }, this->m_data);
+                }
+
+                void* writableDataPointer() override
+                {
+                    if (std::holds_alternative<writable_span>(this->m_data))
+                    {
+                        return std::get<writable_span>(this->m_data).data();
+                    }
+
+                    return nullptr;
+                }
+
+                int getElementCount() const override
+                {
+                    return std::visit([](auto&& span) -> int { return span.size(); }, this->m_data);
+                }
+
+                int getElementStride() const override { return ElementStride; }
+
+                Point3D getSize3D() const override { return m_size3D; }
+            };
+
+            std::shared_ptr<Impl> p_impl{};
+
+            GpgpuBufferView(const std::shared_ptr<Impl>& impl) : p_impl(impl)
             {
             }
         };
@@ -207,4 +319,10 @@ namespace TY
 
     template <typename DataType>
     using ReadonlyGpgpuBuffer2D = detail::GpgpuBuffer2D<DataType, detail::IReadonlyGpgpu>;
+
+    template <typename DataType>
+    using WritableGpgpuBufferView = detail::GpgpuBufferView<DataType, detail::IWritableGpgpu>;
+
+    template <typename DataType>
+    using ReadonlyGpgpuBufferView = detail::GpgpuBufferView<DataType, detail::IReadonlyGpgpu>;
 }
