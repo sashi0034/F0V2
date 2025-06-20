@@ -2,7 +2,7 @@
 
 #include "Array.h"
 #include "ConstantBufferUploader.h"
-#include "GpgpuBuffer1D.h"
+#include "GpgpuBuffer.h"
 #include "Shader.h"
 
 namespace TY

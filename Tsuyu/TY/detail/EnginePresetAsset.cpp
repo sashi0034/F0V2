@@ -5,7 +5,7 @@
 #include "TY/Shader.h"
 #include "TY/ShaderResourceTexture.h"
 #include "TY/StructuredBufferUploader.h"
-#include "TY/Value2D.h"
+#include "TY/Vector2D.h"
 
 using namespace TY;
 using namespace TY::detail;

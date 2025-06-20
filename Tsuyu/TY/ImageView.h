@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Value2D.h"
+#include "Vector2D.h"
 
 namespace TY
 {

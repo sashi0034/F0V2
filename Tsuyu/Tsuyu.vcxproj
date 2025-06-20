@@ -162,10 +162,11 @@
     <ClInclude Include="TY\detail\EngineCacheContext.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Gpgpu.h" />
-    <ClInclude Include="TY\GpgpuBuffer1D.h" />
+    <ClInclude Include="TY\GpgpuBuffer.h" />
     <ClInclude Include="TY\ImageView.h" />
     <ClInclude Include="TY\InlineComponent.h" />
-    <ClInclude Include="TY\Intergral3D.h" />
+    <ClInclude Include="TY\Integer2D.h" />
+    <ClInclude Include="TY\Integer3D.h" />
     <ClInclude Include="TY\Random.h" />
     <ClInclude Include="TY\StructuredBufferUploader.h" />
     <ClInclude Include="TY\Concepts.h" />
@@ -226,8 +227,8 @@
     <ClInclude Include="TY\Transformer3D.h" />
     <ClInclude Include="TY\Uncopyable.h" />
     <ClInclude Include="TY\Utils.h" />
-    <ClInclude Include="TY\Value2D.h" />
-    <ClInclude Include="TY\Value3D.h" />
+    <ClInclude Include="TY\Vector2D.h" />
+    <ClInclude Include="TY\Vector3D.h" />
     <ClInclude Include="TY\Variant.h" />
     <ClInclude Include="TY\VertexBuffer.h" />
     <ClInclude Include="TY\Window.h" />
@@ -318,8 +319,8 @@
     <ClCompile Include="TY\Texture.cpp" />
     <ClCompile Include="TY\Transformer3D.cpp" />
     <ClCompile Include="TY\Utils.cpp" />
-    <ClCompile Include="TY\Value2D.cpp" />
-    <ClCompile Include="TY\Value3D.cpp" />
+    <ClCompile Include="TY\Vector2D.cpp" />
+    <ClCompile Include="TY\Vector3D.cpp" />
     <ClCompile Include="TY\VertexBuffer.cpp" />
     <ClCompile Include="TY\Window.cpp" />
   </ItemGroup>

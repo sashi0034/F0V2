@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Value2D.h"
+#include "Vector2D.h"
 
 namespace TY
 {
@@ -7,7 +7,7 @@ namespace TY
     struct Rectangle
     {
         using value_type = Type;
-        using position_type = Value2D<value_type>;
+        using position_type = Vector2D<value_type>;
 
         position_type pos;
         position_type size;

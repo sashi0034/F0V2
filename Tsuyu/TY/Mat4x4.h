@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Value3D.h"
+#include "Vector3D.h"
 
 namespace TY
 {

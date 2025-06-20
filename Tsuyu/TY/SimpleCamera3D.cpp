@@ -4,7 +4,7 @@
 #include "Graphics3D.h"
 #include "Math.h"
 #include "SimpleInput.h"
-#include "Value3D.h"
+#include "Vector3D.h"
 
 using namespace TY;
 

@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "StructuredBufferUploader.h"
 
-#include "GpgpuBuffer1D.h"
+#include "GpgpuBuffer.h"
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
 

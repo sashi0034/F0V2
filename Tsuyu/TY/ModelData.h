@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "Array.h"
 #include "ShaderResourceTexture.h"
-#include "Value2D.h"
-#include "Value3D.h"
+#include "Vector2D.h"
+#include "Vector3D.h"
 
 namespace TY
 {

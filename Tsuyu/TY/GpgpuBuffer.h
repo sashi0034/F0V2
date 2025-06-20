@@ -1,6 +1,6 @@
 #pragma once
 #include "Array.h"
-#include "Intergral3D.h"
+#include "Integer3D.h"
 #include "Empty.h"
 
 namespace TY
