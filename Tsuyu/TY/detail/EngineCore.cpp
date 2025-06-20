@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "EngineCore.h"
 
+#include "EngineCacheContext.h"
 #include "EngineGamepad.h"
 #include "EngineHotReloader.h"
 #include "EngineImGUI.h"
@@ -57,6 +58,8 @@ struct EngineCoreImpl
 
         EngineTimer::Update();
 
+        EngineCacheContext::Update();
+
         EngineWindow::Update();
 
         EngineGamepad::Update();
@@ -88,6 +91,8 @@ struct EngineCoreImpl
     void Shutdown()
     {
         EngineStateContext::Shutdown();
+
+        EngineCacheContext::Shutdown();
 
         EngineWindow::Shutdown();
 

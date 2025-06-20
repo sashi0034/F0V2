@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "detail/ComputePipelineState.h"
 #include "detail/DescriptorHeap.h"
+#include "detail/EngineCacheContext.h"
 #include "detail/EngineRenderContext.h"
 
 using namespace TY;
@@ -38,6 +39,34 @@ namespace
             static EmptyGpgpuBuffer empty{};
             return empty;
         }
+    }
+
+    Integer3D<UINT> getThreadGroup(const Point3D targetSize)
+    {
+        Integer3D<UINT> threadGroup = {1, 1, 1};;
+        if (targetSize.y <= 1 && targetSize.z <= 1)
+        {
+            // 1D Buffer
+            static constexpr double groutCount = 64.0;
+            threadGroup.x = static_cast<UINT>(ceil(targetSize.x / groutCount));
+        }
+        else if (targetSize.x <= 1)
+        {
+            // 2D Buffer
+            static constexpr double groutCount = 8.0;
+            threadGroup.x = static_cast<UINT>(ceil(targetSize.x / groutCount));
+            threadGroup.y = static_cast<UINT>(ceil(targetSize.y / groutCount));
+        }
+        else
+        {
+            // 3D Buffer
+            static constexpr double groutCount = 4.0;
+            threadGroup.x = static_cast<UINT>(ceil(targetSize.x / groutCount));
+            threadGroup.y = static_cast<UINT>(ceil(targetSize.y / groutCount));
+            threadGroup.z = static_cast<UINT>(ceil(targetSize.z / groutCount));
+        }
+
+        return threadGroup;
     }
 }
 
@@ -92,7 +121,7 @@ struct Gpgpu::Impl
         {
             if (access(m_params.readonlyBuffer[i]).getElementCount() > 0)
             {
-                m_sr[i] = StructuredBufferUploader(StructuredBufferTransferParams::From(m_params.readonlyBuffer[i]));
+                m_sr[i] = EngineCacheContext::FetchStructuredBufferUploader(m_params.readonlyBuffer[i]);
             }
         }
 
@@ -101,7 +130,7 @@ struct Gpgpu::Impl
         {
             if (access(m_params.writableBuffer[i]).getElementCount() > 0)
             {
-                m_ua[i] = StructuredBufferTransfer(StructuredBufferTransferParams::From(m_params.writableBuffer[i]));
+                m_ua[i] = EngineCacheContext::FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
             }
         }
 
@@ -147,29 +176,8 @@ struct Gpgpu::Impl
         const auto mainUA = m_ua[0];
 
         const auto mainSize3D = access(m_params.writableBuffer[0]).getSize3D();
-        Integer3D<UINT> threadGroup{1, 1, 1};;
-        if (mainSize3D.y <= 1 && mainSize3D.z <= 1)
-        {
-            // 1D Buffer
-            static constexpr double groutCount = 64.0;
-            threadGroup.x = static_cast<UINT>(ceil(mainSize3D.x / groutCount));
-        }
-        else if (mainSize3D.x <= 1)
-        {
-            // 2D Buffer
-            static constexpr double groutCount = 8.0;
-            threadGroup.x = static_cast<UINT>(ceil(mainSize3D.x / groutCount));
-            threadGroup.y = static_cast<UINT>(ceil(mainSize3D.y / groutCount));
-        }
-        else
-        {
-            // 3D Buffer
-            static constexpr double groutCount = 4.0;
-            threadGroup.x = static_cast<UINT>(ceil(mainSize3D.x / groutCount));
-            threadGroup.y = static_cast<UINT>(ceil(mainSize3D.y / groutCount));
-            threadGroup.z = static_cast<UINT>(ceil(mainSize3D.z / groutCount));
-        }
 
+        const Integer3D<UINT> threadGroup = getThreadGroup(mainSize3D);
         commandList->Dispatch(threadGroup.x, threadGroup.y, threadGroup.z);
 
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
@@ -234,10 +242,7 @@ private:
         {
             if (m_sr[i].elementCount() != access(m_params.readonlyBuffer[i]).getElementCount())
             {
-                m_sr[i] =
-                    access(m_params.readonlyBuffer[i]).getElementCount() > 0
-                        ? StructuredBufferUploader(StructuredBufferTransferParams::From(m_params.readonlyBuffer[i]))
-                        : StructuredBufferUploader{};
+                m_sr[i] = EngineCacheContext::FetchStructuredBufferTransfer(m_params.readonlyBuffer[i]);
                 m_descriptorHeap.resetSRV(m_sr[i], 0, i);
 
                 resized = true;
@@ -248,10 +253,7 @@ private:
         {
             if (m_ua[i].elementCount() != access(m_params.writableBuffer[i]).getElementCount())
             {
-                m_ua[i] =
-                    access(m_params.writableBuffer[i]).getElementCount() > 0
-                        ? StructuredBufferTransfer(StructuredBufferTransferParams::From(m_params.writableBuffer[i]))
-                        : StructuredBufferTransfer{};
+                m_ua[i] = EngineCacheContext::FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
                 m_descriptorHeap.resetUAV(m_ua[i], 0, i);
 
                 resized = true;
@@ -279,5 +281,9 @@ namespace TY
     void Gpgpu::compute()
     {
         if (p_impl) p_impl->Compute();
+    }
+
+    void Gpgpu::SequenceCompute(const Array<Gpgpu>& list)
+    {
     }
 }

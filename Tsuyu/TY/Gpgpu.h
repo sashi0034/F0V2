@@ -48,6 +48,8 @@ namespace TY
 
         void compute();
 
+        static void SequenceCompute(const Array<Gpgpu>& list);
+
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl;

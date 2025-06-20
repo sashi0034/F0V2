@@ -159,6 +159,7 @@
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\Color.h" />
+    <ClInclude Include="TY\detail\EngineCacheContext.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\GpgpuBuffer1D.h" />
@@ -266,6 +267,7 @@
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
+    <ClCompile Include="TY\detail\EngineCacheContext.cpp" />
     <ClCompile Include="TY\Gpgpu.cpp" />
     <ClCompile Include="TY\InlineComponent.cpp" />
     <ClCompile Include="TY\Random.cpp" />
