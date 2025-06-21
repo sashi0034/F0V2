@@ -105,6 +105,7 @@ struct StructuredBufferUploader::Impl
         }
 
         memcpy(dest, src, m_dataSize);
+
         m_uploadBuffer->Unmap(0, nullptr);
 
         // GPU へアップロード
@@ -166,6 +167,7 @@ struct StructuredBufferUploader::Impl
 
     void Readback(uint8_t* dest)
     {
+        // TODO: 複数バリアの最適化
         assert(m_writable);
 
         if (not dest)
