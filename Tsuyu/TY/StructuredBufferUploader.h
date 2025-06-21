@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Array.h"
 
 namespace TY
 {
@@ -44,7 +45,11 @@ namespace TY
 
         void afterDispatch();
 
+        static void AfterDispatch(const Array<StructuredBufferTransfer>& list);
+
         void beforeFlush();
+
+        static void BeforeFlush(const Array<StructuredBufferTransfer>& list);
 
         void readback(void* dst);
     };

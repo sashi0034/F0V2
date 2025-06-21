@@ -260,15 +260,25 @@ struct Gpgpu::Impl
             const Integer3D<UINT> threadGroup = getThreadGroup(mainSize3D);
             commandList->Dispatch(threadGroup.x, threadGroup.y, threadGroup.z);
 
-            for (int i = 0; i < impl->m_params.writableBuffer.size(); ++i)
-            {
-                impl->m_ua[i].afterDispatch();
-            }
+            // for (int i = 0; i < impl->m_params.writableBuffer.size(); ++i)
+            // {
+            //     impl->m_ua[i].afterDispatch();
+            // }
+            StructuredBufferTransfer::AfterDispatch(impl->m_ua);
         }
 
-        for (auto& ua : uaMap)
+        // for (auto& ua : uaMap)
+        // {
+        //     ua.second.beforeFlush();
+        // }
         {
-            ua.second.beforeFlush();
+            Array<StructuredBufferTransfer> transfers{uaMap.size()};
+            for (const auto& ua : uaMap)
+            {
+                transfers.push_back(ua.second);
+            }
+
+            StructuredBufferTransfer::BeforeFlush(transfers);
         }
 
         EngineRenderContext::FlushActiveCommandList();

@@ -124,6 +124,57 @@ struct StructuredBufferUploader::Impl
         }
     }
 
+    // static void Upload(const Array<StructuredBufferUploader>& list, const Array<uint8_t*>& srcs)
+    // {
+    //     assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
+    //     const auto commandList = EngineRenderContext::ActiveCommandList();
+    //
+    //     for (int i = 0; i < list.size(); ++i)
+    //     {
+    //         auto& impl = list[i].p_impl;
+    //         if (not impl) continue;
+    //
+    //         auto& src = srcs[i];
+    //
+    //         // マップして書き込み
+    //         uint8_t* dest;
+    //         if (FAILED(impl->m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dest))))
+    //         {
+    //             LogError.writeln("StructuredBufferUploader::Upload(): Failed to map upload buffer.");
+    //             continue;
+    //         }
+    //
+    //         memcpy(dest, src, impl->m_dataSize);
+    //         impl->m_uploadBuffer->Unmap(0, nullptr);
+    //
+    //         // GPU へアップロード
+    //         commandList->CopyResource(impl->m_gpuBuffer.Get(), impl->m_uploadBuffer.Get());
+    //     }
+    //
+    //     Array<D3D12_RESOURCE_BARRIER> barriers;
+    //     barriers.reserve(list.size());
+    //
+    //     // CopyResource で COPY_DEST 状態になっている m_gpuBuffer を、UNORDERED_ACCESS に移す
+    //     for (int i = 0; i < list.size(); ++i)
+    //     {
+    //         auto& impl = list[i].p_impl;
+    //         if (not impl) continue;
+    //
+    //         if (impl->m_writable)
+    //         {
+    //             barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
+    //                 impl->m_gpuBuffer.Get(),
+    //                 D3D12_RESOURCE_STATE_COPY_DEST,
+    //                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
+    //         }
+    //     }
+    //
+    //     if (not barriers.empty())
+    //     {
+    //         commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+    //     }
+    // }
+
     void AfterDispatch()
     {
         assert(m_writable);;
@@ -134,6 +185,27 @@ struct StructuredBufferUploader::Impl
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_gpuBuffer.Get());
         commandList->ResourceBarrier(1, &uavBarrier);
+    }
+
+    static void AfterDispatch(const Array<StructuredBufferTransfer>& list)
+    {
+        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
+        const auto commandList = EngineRenderContext::ActiveCommandList();
+
+        Array<D3D12_RESOURCE_BARRIER> barriers{};
+        barriers.reserve(8);
+
+        // UAV バリアを入れて、UAV 書き込みの完了を保証
+        for (int i = 0; i < list.size(); ++i)
+        {
+            auto& impl = list[i].p_impl;
+            if (not impl) continue;
+
+            const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(impl->m_gpuBuffer.Get());
+            barriers.push_back(uavBarrier);
+        }
+
+        commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
     }
 
     void BeforeFlush()
@@ -163,6 +235,57 @@ struct StructuredBufferUploader::Impl
             D3D12_RESOURCE_STATE_COPY_SOURCE,
             D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         commandList->ResourceBarrier(1, &toUAV);
+    }
+
+    static void BeforeFlush(const Array<StructuredBufferTransfer>& list)
+    {
+        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
+        const auto commandList = EngineRenderContext::ActiveCommandList();
+
+        // UAV バリアを入れて、UAV 書き込みの完了を保証
+        Array<D3D12_RESOURCE_BARRIER> barriers;
+        barriers.reserve(list.size() * 2);
+
+        // GPU バッファを COPY_SOURCE に遷移
+        for (int i = 0; i < list.size(); ++i)
+        {
+            auto& impl = list[i].p_impl;
+            if (not impl) continue;
+
+            barriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(impl->m_gpuBuffer.Get()));
+            barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
+                    impl->m_gpuBuffer.Get(),
+                    D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                    D3D12_RESOURCE_STATE_COPY_SOURCE)
+            );
+        }
+
+        commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+
+        // ReadbackBuffer へコピー
+        for (int i = 0; i < list.size(); ++i)
+        {
+            auto& impl = list[i].p_impl;
+            if (not impl) continue;
+
+            commandList->CopyResource(impl->m_readbackBuffer.Get(), impl->m_gpuBuffer.Get());
+        }
+
+        // GPU バッファを UNORDERED_ACCESS に戻す
+        barriers.clear();
+        for (int i = 0; i < list.size(); ++i)
+        {
+            auto& impl = list[i].p_impl;
+            if (not impl) continue;
+
+            barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
+                    impl->m_gpuBuffer.Get(),
+                    D3D12_RESOURCE_STATE_COPY_SOURCE,
+                    D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+            );
+        }
+
+        commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
     }
 
     void Readback(uint8_t* dest)
@@ -253,12 +376,22 @@ namespace TY
         }
     }
 
+    void StructuredBufferTransfer::AfterDispatch(const Array<StructuredBufferTransfer>& list)
+    {
+        Impl::AfterDispatch(list);
+    }
+
     void StructuredBufferTransfer::beforeFlush()
     {
         if (p_impl)
         {
             p_impl->BeforeFlush();
         }
+    }
+
+    void StructuredBufferTransfer::BeforeFlush(const Array<StructuredBufferTransfer>& list)
+    {
+        Impl::BeforeFlush(list);
     }
 
     void StructuredBufferTransfer::readback(void* dst)
