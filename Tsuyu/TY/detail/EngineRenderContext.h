@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "CommandList.h"
 #include "PipelineType.h"
+#include "TY/Mat3x2.h"
 #include "TY/RenderTarget.h"
 #include "TY/Vector2D.h"
 
@@ -33,5 +34,7 @@ namespace TY::detail
         void FlushActiveCommandList();
 
         Size FrameBufferSize();
+
+        Mat3x2 WindowToViewport();
     }
 }

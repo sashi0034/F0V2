@@ -5,7 +5,7 @@
 #include "EngineGamepad.h"
 #include "EngineHotReloader.h"
 #include "EngineImGUI.h"
-#include "EngineKeyboard.h"
+#include "EngineKeyboardMouse.h"
 #include "EnginePresetAsset.h"
 #include "EngineRenderContext.h"
 #include "EngineStateContext.h"
@@ -66,7 +66,7 @@ struct EngineCoreImpl
 
         EngineHotReloader::Update();
 
-        EngineKeyboard::Update();
+        EngineKeyboardMouse::Update();
 
         for (auto& updatable : m_updatableList)
         {

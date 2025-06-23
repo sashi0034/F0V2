@@ -16,6 +16,7 @@
 #include "TY/Math.h"
 #include "TY/Model.h"
 #include "TY/ModelLoader.h"
+#include "TY/Mouse.h"
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/Shape3D.h"
@@ -302,6 +303,16 @@ struct Demo_PointLight_impl
             }
 
             ImGui::EndGroup();
+
+            ImGui::End();
+        }
+
+        {
+            ImGui::Begin("Mouse Info");
+
+            ImGui::Text("Position: (%.2f, %.2f)",
+                        Mouse::PosF().x,
+                        Mouse::PosF().y);
 
             ImGui::End();
         }

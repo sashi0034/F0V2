@@ -7,6 +7,7 @@
 #include "CommandList.h"
 #include "EngineWindow.h"
 #include "TY/Logger.h"
+#include "TY/Mat3x2.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -54,6 +55,8 @@ struct EngineRenderContextImpl
     ScopedRenderTarget m_scopedBackBuffer{};
 
     Array<CommandListType> m_commandTargetStack{};
+
+    Mat3x2 m_windowToViewport{};
 
     void Init()
     {
@@ -170,7 +173,13 @@ struct EngineRenderContextImpl
 
     void NewFrame()
     {
-        m_backBuffer.setViewport(getViewportRect());
+        const auto viewport = getViewportRect();
+        m_backBuffer.setViewport(viewport);
+
+        m_windowToViewport =
+            Mat3x2::Identity()
+            .scaled(Float2(viewport.size) / m_frameBufferSize) // FIXME!
+            .translated(-viewport.pos);
 
         // バックバッファを設定
         const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -338,5 +347,10 @@ namespace TY::detail
     Size EngineRenderContext::FrameBufferSize()
     {
         return s_renderContext.m_frameBufferSize;
+    }
+
+    Mat3x2 EngineRenderContext::WindowToViewport()
+    {
+        return s_renderContext.m_windowToViewport;
     }
 }

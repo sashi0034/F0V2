@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "KeyboardInput.h"
 
-#include "detail/EngineKeyboard.h"
+#include "detail/EngineKeyboardMouse.h"
 
 namespace TY
 {
@@ -9,16 +9,16 @@ namespace TY
 
     bool KeyboardInput::down() const
     {
-        return EngineKeyboard::IsDown(m_code);
+        return EngineKeyboardMouse::KeyDown(m_code);
     }
 
     bool KeyboardInput::pressed() const
     {
-        return EngineKeyboard::IsPressed(m_code);
+        return EngineKeyboardMouse::KeyPressed(m_code);
     }
 
     bool KeyboardInput::up() const
     {
-        return EngineKeyboard::IsUp(m_code);
+        return EngineKeyboardMouse::KeyUp(m_code);
     }
 }

@@ -38,6 +38,8 @@ namespace TY
 
         void setViewport(const RectF& viewport);
 
+        RectF getViewport() const;
+
         [[nodiscard]]
         ScopedRenderTarget scopedBind(int index = 0) const;
 

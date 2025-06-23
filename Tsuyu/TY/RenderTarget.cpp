@@ -254,6 +254,11 @@ namespace TY
         if (p_impl) p_impl->m_viewport = viewport;
     }
 
+    RectF RenderTarget::getViewport() const
+    {
+        return p_impl ? p_impl->m_viewport : RectF{};
+    }
+
     ScopedRenderTarget RenderTarget::scopedBind(int index) const
     {
         if (not p_impl) return ScopedRenderTarget{};
