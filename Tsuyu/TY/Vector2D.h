@@ -90,6 +90,16 @@ namespace TY
             return {x, newY};
         }
 
+        [[nodiscard]] constexpr value_type maxComponent() const noexcept
+        {
+            return (x > y) ? x : y;
+        }
+
+        [[nodiscard]] constexpr value_type minComponent() const noexcept
+        {
+            return (x < y) ? x : y;
+        }
+
         [[nodiscard]] bool isZero() const noexcept
         {
             return x == 0 && y == 0;

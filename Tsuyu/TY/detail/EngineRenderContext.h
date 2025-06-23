@@ -35,6 +35,6 @@ namespace TY::detail
 
         Size FrameBufferSize();
 
-        Mat3x2 WindowToViewport();
+        Mat3x2 WindowToFrameBuffer();
     }
 }

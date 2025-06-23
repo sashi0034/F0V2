@@ -56,7 +56,7 @@ struct EngineRenderContextImpl
 
     Array<CommandListType> m_commandTargetStack{};
 
-    Mat3x2 m_windowToViewport{};
+    Mat3x2 m_windowToFrameBuffer{};
 
     void Init()
     {
@@ -173,13 +173,9 @@ struct EngineRenderContextImpl
 
     void NewFrame()
     {
-        const auto viewport = getViewportRect();
-        m_backBuffer.setViewport(viewport);
+        m_backBuffer.setViewport(getViewportRect());
 
-        m_windowToViewport =
-            Mat3x2::Identity()
-            .scaled(Float2(viewport.size) / m_frameBufferSize) // FIXME!
-            .translated(-viewport.pos);
+        m_windowToFrameBuffer = getWindowToFrameBuffer();
 
         // バックバッファを設定
         const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -253,7 +249,7 @@ private:
             const float width = static_cast<float>(m_frameBufferSize.x);
             const float windowHeightInScene = windowSize.y * static_cast<float>(m_frameBufferSize.x) / windowSize.x;
             const float height = m_frameBufferSize.y * m_frameBufferSize.y / windowHeightInScene;
-            return RectF{0.0f, (m_frameBufferSize.y - height) / 2.0f, width, height};
+            return RectF{0.0f, (m_frameBufferSize.y - height) * 0.5f, width, height};
         }
         else
         {
@@ -261,8 +257,18 @@ private:
             const float height = static_cast<float>(m_frameBufferSize.y);
             const float windowWidthInScene = windowSize.x * static_cast<float>(m_frameBufferSize.y) / windowSize.y;
             const float width = m_frameBufferSize.x * m_frameBufferSize.x / windowWidthInScene;
-            return RectF{(m_frameBufferSize.x - width) / 2.0f, 0.0f, width, height};
+            return RectF{(m_frameBufferSize.x - width) * 0.5f, 0.0f, width, height};
         }
+    }
+
+    Mat3x2 getWindowToFrameBuffer() const
+    {
+        const Float2 windowSize = EngineWindow::WindowSize();
+        const float fameBufferScaling = (Float2(m_frameBufferSize) / windowSize).maxComponent();
+        const Float2 windowSizeInScene = windowSize * fameBufferScaling;
+        return Mat3x2::Identity()
+               .scaled(Float2{fameBufferScaling, fameBufferScaling})
+               .translated((m_frameBufferSize.cast<Float2>() - windowSizeInScene) * 0.5f);
     }
 };
 
@@ -349,8 +355,8 @@ namespace TY::detail
         return s_renderContext.m_frameBufferSize;
     }
 
-    Mat3x2 EngineRenderContext::WindowToViewport()
+    Mat3x2 EngineRenderContext::WindowToFrameBuffer()
     {
-        return s_renderContext.m_windowToViewport;
+        return s_renderContext.m_windowToFrameBuffer;
     }
 }

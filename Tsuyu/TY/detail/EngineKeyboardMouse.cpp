@@ -14,7 +14,7 @@ struct EngineKeyboardMouseImpl
     std::array<BYTE, 256> m_currentState{};
 
     Float2 m_mousePosInWindow{};
-    Float2 m_mousePosInViewport{};
+    Float2 m_mousePosInFrameBuffer{};
 
     void Update()
     {
@@ -33,7 +33,7 @@ struct EngineKeyboardMouseImpl
             m_mousePosInWindow.x = static_cast<float>(mousePos.x);
             m_mousePosInWindow.y = static_cast<float>(mousePos.y);
 
-            m_mousePosInViewport = EngineRenderContext::WindowToViewport().transformPoint(m_mousePosInWindow);
+            m_mousePosInFrameBuffer = EngineRenderContext::WindowToFrameBuffer().transformPoint(m_mousePosInWindow);
         }
     }
 };
@@ -67,6 +67,6 @@ namespace TY::detail
 
     Float2 EngineKeyboardMouse::MousePos()
     {
-        return s_keyboardMouse.m_mousePosInViewport;
+        return s_keyboardMouse.m_mousePosInFrameBuffer;
     }
 }
