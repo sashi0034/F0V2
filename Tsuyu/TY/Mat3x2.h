@@ -20,6 +20,30 @@ namespace TY
             };
         }
 
+        [[nodiscard]]
+        Mat3x2 constexpr translated(Float2 v) const noexcept
+        {
+            Mat3x2 mat = *this;
+            mat._31 += v.x;
+            mat._32 += v.y;
+            return mat;
+        }
+
+        [[nodiscard]]
+        Mat3x2 constexpr scaled(Float2 scale, Float2 center = Float2{0, 0}) const noexcept
+        {
+            const float b_11 = scale.x;
+            const float b_22 = scale.y;
+            const float b_31 = (1.0f - scale.x) * center.x;
+            const float b_32 = (1.0f - scale.y) * center.y;
+
+            return {
+                (_11 * b_11), (_12 * b_22),
+                (_21 * b_11), (_22 * b_22),
+                (_31 * b_11 + b_31), (_32 * b_22 + b_32)
+            };
+        }
+
         static constexpr Mat3x2 Identity()
         {
             return {
