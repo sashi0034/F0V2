@@ -29,7 +29,7 @@ struct RenderTarget::Impl
     std::vector<ComPtr<ID3D12Resource>> m_rtvResources{};
     ComPtr<ID3D12Resource> m_dsvResource{};
 
-    RectF m_scissorRect{};
+    RectF m_viewport{};
 
     // RenderTargetParams m_params{};
 
@@ -155,16 +155,16 @@ struct RenderTarget::Impl
         }
     }
 
-    void CommandSetViewPortAndScissorsRect() const
+    void CommandSetViewportAndScissorsRect() const
     {
         const auto commandList = EngineRenderContext::ActiveCommandList();
 
         // ビューポートの設定
         D3D12_VIEWPORT viewport = {};
-        viewport.TopLeftX = m_scissorRect.x;
-        viewport.TopLeftY = m_scissorRect.y;
-        viewport.Width = m_scissorRect.w;
-        viewport.Height = m_scissorRect.h;
+        viewport.TopLeftX = m_viewport.x;
+        viewport.TopLeftY = m_viewport.y;
+        viewport.Width = m_viewport.w;
+        viewport.Height = m_viewport.h;
         viewport.MinDepth = 0.0f;
         viewport.MaxDepth = 1.0f;
         commandList->RSSetViewports(1, &viewport);
@@ -201,7 +201,7 @@ struct RenderTarget::Impl
         m_lastRtvHandle = rtvHandle;
         m_lastDsvHandle = dsvHandle;
 
-        CommandSetViewPortAndScissorsRect();
+        CommandSetViewportAndScissorsRect();
 
         return ScopedRenderTarget{
             [this, index, commandList]
@@ -221,7 +221,7 @@ struct RenderTarget::Impl
 
                 const auto& prev = s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl;
                 commandList->OMSetRenderTargets(1, &prev->m_lastRtvHandle, false, &prev->m_lastDsvHandle);
-                prev->CommandSetViewPortAndScissorsRect();
+                prev->CommandSetViewportAndScissorsRect();
             }
         };
     }
@@ -249,9 +249,9 @@ namespace TY
         return p_impl ? p_impl->m_size : Size{};
     }
 
-    void RenderTarget::setScissorRect(const RectF& rect)
+    void RenderTarget::setViewport(const RectF& viewport)
     {
-        if (p_impl) p_impl->m_scissorRect = rect;
+        if (p_impl) p_impl->m_viewport = viewport;
     }
 
     ScopedRenderTarget RenderTarget::scopedBind(int index) const

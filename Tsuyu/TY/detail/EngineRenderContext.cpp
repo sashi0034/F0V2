@@ -36,7 +36,7 @@ struct EngineRenderContextImpl
 {
     bool m_valid{};
 
-    Point m_sceneSize{defaultSceneSize};
+    Point m_frameBufferSize{defaultSceneSize};
     ColorF32 m_clearColor{defaultClearColor};
 
     ComPtr<ID3D12Device> m_device;
@@ -129,8 +129,8 @@ struct EngineRenderContextImpl
 
         // スワップチェインの設定
         DXGI_SWAP_CHAIN_DESC1 swapchainDesc = {};
-        swapchainDesc.Width = m_sceneSize.x;
-        swapchainDesc.Height = m_sceneSize.y;
+        swapchainDesc.Width = m_frameBufferSize.x;
+        swapchainDesc.Height = m_frameBufferSize.y;
         swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         swapchainDesc.Stereo = false;
         swapchainDesc.SampleDesc.Count = 1;
@@ -159,7 +159,7 @@ struct EngineRenderContextImpl
         m_backBuffer = RenderTarget{
             {
                 .bufferCount = static_cast<int>(swapchainDesc.BufferCount),
-                .size = m_sceneSize,
+                .size = m_frameBufferSize,
                 .clearColor = m_clearColor,
             },
             m_swapChain.Get()
@@ -170,7 +170,7 @@ struct EngineRenderContextImpl
 
     void NewFrame()
     {
-        m_backBuffer.setScissorRect(getScissorRect());
+        m_backBuffer.setViewport(getViewportRect());
 
         // バックバッファを設定
         const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -225,35 +225,34 @@ struct EngineRenderContextImpl
     }
 
 private:
-    RectF getScissorRect() const
+    RectF getViewportRect() const
     {
         const auto windowSize = EngineWindow::WindowSize();
 
-        if (windowSize == m_sceneSize)
+        if (windowSize == m_frameBufferSize)
         {
             return RectF{0.0f, 0.0f, windowSize};
         }
 
         const auto windowRatio = windowSize.horizontalAspectRatio();
 
-        const auto sceneRatio = m_sceneSize.horizontalAspectRatio();
+        const auto sceneRatio = m_frameBufferSize.horizontalAspectRatio();
 
         if (sceneRatio > windowRatio)
         {
             // 縦長のウィンドウ
-            const auto width = static_cast<float>(m_sceneSize.x);
-            const auto windowHeight = windowSize.y * static_cast<float>(m_sceneSize.x) / windowSize.x;
-            const auto height = static_cast<float>(m_sceneSize.y) * static_cast<float>(m_sceneSize.y) / windowHeight;
-            return RectF{0.0f, (m_sceneSize.y - height) / 2.0f, width, height};
+            const float width = static_cast<float>(m_frameBufferSize.x);
+            const float windowHeightInScene = windowSize.y * static_cast<float>(m_frameBufferSize.x) / windowSize.x;
+            const float height = m_frameBufferSize.y * m_frameBufferSize.y / windowHeightInScene;
+            return RectF{0.0f, (m_frameBufferSize.y - height) / 2.0f, width, height};
         }
         else
         {
             // 横長のウィンドウ
-            const auto height = static_cast<float>(m_sceneSize.y);
-            const auto windowWidth = windowSize.x * static_cast<float>(m_sceneSize.y) / windowSize.y;
-            const auto width = static_cast<float>(m_sceneSize.x) * static_cast<float>(m_sceneSize.x) / windowWidth;
-
-            return RectF{(m_sceneSize.x - width) / 2.0f, 0.0f, width, height};
+            const float height = static_cast<float>(m_frameBufferSize.y);
+            const float windowWidthInScene = windowSize.x * static_cast<float>(m_frameBufferSize.y) / windowSize.y;
+            const float width = m_frameBufferSize.x * m_frameBufferSize.x / windowWidthInScene;
+            return RectF{(m_frameBufferSize.x - width) / 2.0f, 0.0f, width, height};
         }
     }
 };
@@ -336,8 +335,8 @@ namespace TY::detail
         s_renderContext.getActiveCommandList().CloseAndFlush();
     }
 
-    Size EngineRenderContext::GetSceneSize()
+    Size EngineRenderContext::FrameBufferSize()
     {
-        return s_renderContext.m_sceneSize;
+        return s_renderContext.m_frameBufferSize;
     }
 }

@@ -32,6 +32,6 @@ namespace TY::detail
 
         void FlushActiveCommandList();
 
-        Size GetSceneSize();
+        Size FrameBufferSize();
     }
 }

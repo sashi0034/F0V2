@@ -10,7 +10,7 @@ namespace TY
 
     Size Scene::Size()
     {
-        return EngineRenderContext::GetSceneSize();
+        return EngineRenderContext::FrameBufferSize();
     }
 
     Point Scene::Center()

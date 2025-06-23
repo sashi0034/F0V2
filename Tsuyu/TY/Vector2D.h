@@ -70,6 +70,11 @@ namespace TY
             return {x / s, y / s};
         }
 
+        [[nodiscard]] constexpr Vector2D operator /(Vector2D v) const noexcept
+        {
+            return {x / v.x, y / v.y};
+        }
+
         [[nodiscard]] constexpr Vector2D operator %(value_type s) const noexcept
         {
             return {x % s, y % s};
@@ -95,10 +100,19 @@ namespace TY
             return {static_cast<int>(x), static_cast<int>(y)};
         }
 
-        template <class OtherType>
+        template <class OtherType> requires std::is_floating_point_v<OtherType>
         [[nodiscard]] constexpr Vector2D<OtherType> cast() const noexcept
         {
             return {static_cast<OtherType>(x), static_cast<OtherType>(y)};
+        }
+
+        template <class OtherType>
+        [[nodiscard]] constexpr OtherType cast() const noexcept
+        {
+            OtherType other{};
+            other.x = x;
+            other.y = y;
+            return other;
         }
 
         template <typename T = value_type>

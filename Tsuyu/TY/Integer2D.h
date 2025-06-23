@@ -143,10 +143,19 @@ namespace TY
             return x == 0 && y == 0;
         }
 
-        template <class OtherType>
+        template <class OtherType> requires std::is_integral_v<OtherType>
         [[nodiscard]] constexpr Integer2D<OtherType> cast() const noexcept
         {
             return {static_cast<OtherType>(x), static_cast<OtherType>(y)};
+        }
+
+        template <class OtherType>
+        [[nodiscard]] constexpr OtherType cast() const noexcept
+        {
+            OtherType other{};
+            other.x = x;
+            other.y = y;
+            return other;
         }
 
         [[nodiscard]] constexpr float_type horizontalAspectRatio() const noexcept

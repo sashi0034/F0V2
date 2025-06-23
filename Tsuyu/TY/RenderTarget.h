@@ -36,7 +36,7 @@ namespace TY
         [[nodiscard]]
         Size size() const;
 
-        void setScissorRect(const RectF& rect);
+        void setViewport(const RectF& viewport);
 
         [[nodiscard]]
         ScopedRenderTarget scopedBind(int index = 0) const;
