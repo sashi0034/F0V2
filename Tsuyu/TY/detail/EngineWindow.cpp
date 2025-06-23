@@ -15,18 +15,7 @@ namespace
 {
     constexpr Point defaultWindowSize{1280, 720};
 
-    LRESULT windowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-    {
-        if (msg == WM_DESTROY)
-        {
-            PostQuitMessage(0);
-            return 0;
-        }
-
-        if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) return true;
-
-        return DefWindowProc(hwnd, msg, wparam, lparam);
-    }
+    LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
     std::wstring getFullTitle(const std::wstring& title, int fps)
     {
@@ -70,7 +59,7 @@ struct EngineWindowImpl
         m_className = getExecutableFileName();
 
         m_windowClass.cbSize = sizeof(WNDCLASSEX);
-        m_windowClass.lpfnWndProc = static_cast<WNDPROC>(windowProcedure);
+        m_windowClass.lpfnWndProc = static_cast<WNDPROC>(WindowProcedure);
         m_windowClass.lpszClassName = m_className.c_str();
         m_windowClass.hInstance = GetModuleHandle(nullptr);
         RegisterClassEx(&m_windowClass);
@@ -142,6 +131,24 @@ struct EngineWindowImpl
 namespace
 {
     EngineWindowImpl s_engineWindow{};
+
+    LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+    {
+        switch (msg)
+        {
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            return 0;
+        case WM_SIZE: {
+            s_engineWindow.m_windowSize = {LOWORD(lparam), HIWORD(lparam)};
+            break;
+        }
+        }
+
+        if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) return true;
+
+        return DefWindowProc(hwnd, msg, wparam, lparam);
+    }
 }
 
 namespace TY::detail

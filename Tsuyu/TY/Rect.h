@@ -3,14 +3,35 @@
 
 namespace TY
 {
-    template <typename Type>
+    template <typename VectorType>
     struct Rectangle
     {
-        using value_type = Type;
-        using position_type = Vector2D<value_type>;
+        using value_type = VectorType::value_type;
+        using position_type = VectorType;
 
-        position_type pos;
-        position_type size;
+        union
+        {
+            position_type pos;
+
+            struct
+            {
+                value_type x;
+
+                value_type y;
+            };
+        };
+
+        union
+        {
+            position_type size;
+
+            struct
+            {
+                value_type w;
+
+                value_type h;
+            };
+        };
 
         [[nodiscard]]
         Rectangle() = default;
@@ -61,5 +82,7 @@ namespace TY
         }
     };
 
-    using RectF = Rectangle<double>;
+    using Rect = Rectangle<Point>;
+
+    using RectF = Rectangle<Float2>;
 }

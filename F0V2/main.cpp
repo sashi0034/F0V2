@@ -8,5 +8,5 @@
 
 void Main()
 {
-    Demo_Gpgpu();
+    Demo_PointLight();
 }

@@ -12,6 +12,8 @@ namespace TY
 
         value_type y;
 
+        using float_type = typename std::conditional<(sizeof(Type) > 4), double, float>::type;
+
         [[nodiscard]] constexpr Integer2D() = default;
 
         [[nodiscard]] constexpr Integer2D(value_type _x, value_type _y) noexcept
@@ -83,6 +85,49 @@ namespace TY
             return {x % s, y % s};
         }
 
+        [[nodiscard]] constexpr Integer2D operator %(Integer2D v) const noexcept
+        {
+            return {x % v.x, y % v.y};
+        }
+
+        [[nodiscard]] constexpr bool operator ==(const Integer2D& v) const noexcept
+        {
+            return x == v.x && y == v.y;
+        }
+
+        [[nodiscard]] constexpr bool operator !=(const Integer2D& v) const noexcept
+        {
+            return !(*this == v);
+        }
+
+        [[nodiscard]] constexpr Integer2D& operator +=(const Integer2D& v) noexcept
+        {
+            x += v.x;
+            y += v.y;
+            return *this;
+        }
+
+        [[nodiscard]] constexpr Integer2D& operator -=(const Integer2D& v) noexcept
+        {
+            x -= v.x;
+            y -= v.y;
+            return *this;
+        }
+
+        [[nodiscard]] constexpr Integer2D& operator *=(value_type s) noexcept
+        {
+            x *= s;
+            y *= s;
+            return *this;
+        }
+
+        [[nodiscard]] constexpr Integer2D& operator /=(value_type s) noexcept
+        {
+            x /= s;
+            y /= s;
+            return *this;
+        }
+
         [[nodiscard]] constexpr Integer2D withX(value_type newX) const noexcept
         {
             return {newX, y};
@@ -104,10 +149,9 @@ namespace TY
             return {static_cast<OtherType>(x), static_cast<OtherType>(y)};
         }
 
-        template <typename T = float>
-        [[nodiscard]] constexpr T horizontalAspectRatio() const noexcept
+        [[nodiscard]] constexpr float_type horizontalAspectRatio() const noexcept
         {
-            return static_cast<T>(x) / static_cast<T>(y);
+            return static_cast<float_type>(x) / static_cast<float_type>(y);
         }
     };
 

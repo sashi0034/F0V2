@@ -29,6 +29,8 @@ struct RenderTarget::Impl
     std::vector<ComPtr<ID3D12Resource>> m_rtvResources{};
     ComPtr<ID3D12Resource> m_dsvResource{};
 
+    RectF m_scissorRect{};
+
     // RenderTargetParams m_params{};
 
     Impl(const RenderTargetParams& params, IDXGISwapChain* swapChain = nullptr)
@@ -159,10 +161,10 @@ struct RenderTarget::Impl
 
         // ビューポートの設定
         D3D12_VIEWPORT viewport = {};
-        viewport.TopLeftX = 0.0f;
-        viewport.TopLeftY = 0.0f;
-        viewport.Width = static_cast<float>(m_size.x);
-        viewport.Height = static_cast<float>(m_size.y);
+        viewport.TopLeftX = m_scissorRect.x;
+        viewport.TopLeftY = m_scissorRect.y;
+        viewport.Width = m_scissorRect.w;
+        viewport.Height = m_scissorRect.h;
         viewport.MinDepth = 0.0f;
         viewport.MaxDepth = 1.0f;
         commandList->RSSetViewports(1, &viewport);
@@ -245,6 +247,11 @@ namespace TY
     Size RenderTarget::size() const
     {
         return p_impl ? p_impl->m_size : Size{};
+    }
+
+    void RenderTarget::setScissorRect(const RectF& rect)
+    {
+        if (p_impl) p_impl->m_scissorRect = rect;
     }
 
     ScopedRenderTarget RenderTarget::scopedBind(int index) const

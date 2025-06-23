@@ -170,6 +170,8 @@ struct EngineRenderContextImpl
 
     void NewFrame()
     {
+        m_backBuffer.setScissorRect(getScissorRect());
+
         // バックバッファを設定
         const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
         m_scopedBackBuffer = m_backBuffer.scopedBind(backBufferIndex);
@@ -220,6 +222,39 @@ struct EngineRenderContextImpl
     void OnShutdown()
     {
         FlushCommandLists();
+    }
+
+private:
+    RectF getScissorRect() const
+    {
+        const auto windowSize = EngineWindow::WindowSize();
+
+        if (windowSize == m_sceneSize)
+        {
+            return RectF{0.0f, 0.0f, windowSize};
+        }
+
+        const auto windowRatio = windowSize.horizontalAspectRatio();
+
+        const auto sceneRatio = m_sceneSize.horizontalAspectRatio();
+
+        if (sceneRatio > windowRatio)
+        {
+            // 縦長のウィンドウ
+            const auto width = static_cast<float>(m_sceneSize.x);
+            const auto windowHeight = windowSize.y * static_cast<float>(m_sceneSize.x) / windowSize.x;
+            const auto height = static_cast<float>(m_sceneSize.y) * static_cast<float>(m_sceneSize.y) / windowHeight;
+            return RectF{0.0f, (m_sceneSize.y - height) / 2.0f, width, height};
+        }
+        else
+        {
+            // 横長のウィンドウ
+            const auto height = static_cast<float>(m_sceneSize.y);
+            const auto windowWidth = windowSize.x * static_cast<float>(m_sceneSize.y) / windowSize.y;
+            const auto width = static_cast<float>(m_sceneSize.x) * static_cast<float>(m_sceneSize.x) / windowWidth;
+
+            return RectF{(m_sceneSize.x - width) / 2.0f, 0.0f, width, height};
+        }
     }
 };
 

@@ -36,6 +36,8 @@ namespace TY
         [[nodiscard]]
         Size size() const;
 
+        void setScissorRect(const RectF& rect);
+
         [[nodiscard]]
         ScopedRenderTarget scopedBind(int index = 0) const;
 

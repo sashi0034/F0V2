@@ -90,7 +90,7 @@ namespace TY
             return x == 0 && y == 0;
         }
 
-        [[nodiscard]] constexpr Point toPoint() const noexcept
+        [[nodiscard]] constexpr Point asPoint() const noexcept
         {
             return {static_cast<int>(x), static_cast<int>(y)};
         }
