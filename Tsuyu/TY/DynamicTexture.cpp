@@ -19,6 +19,10 @@ struct DynamicTexture::Impl
 
     Impl(const ImageView& image)
     {
+        m_format = image.format;
+
+        m_size = image.size;
+
         D3D12_HEAP_PROPERTIES heapProperties{};
         heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
         heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
@@ -69,10 +73,6 @@ struct DynamicTexture::Impl
         }
 
         Upload(image);
-
-        m_format = resourceDesc.Format;
-
-        m_size = Size{static_cast<int>(resourceDesc.Width), static_cast<int>(resourceDesc.Height)};
 
         m_valid = true;
     }
