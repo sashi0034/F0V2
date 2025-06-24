@@ -40,4 +40,9 @@ namespace TY
             m_active = false;
         }
     }
+
+    bool ScopedDefer::isActive() const
+    {
+        return m_active;
+    }
 }

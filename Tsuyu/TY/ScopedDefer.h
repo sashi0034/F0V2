@@ -21,6 +21,8 @@ namespace TY
 
         void dispose();
 
+        bool isActive() const;
+
     private:
         std::function<void()> m_func;
         bool m_active;

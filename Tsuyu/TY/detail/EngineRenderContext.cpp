@@ -58,6 +58,8 @@ struct EngineRenderContextImpl
 
     Mat3x2 m_windowToFrameBuffer{};
 
+    bool m_previousFullscreen{};
+
     void Init()
     {
 #ifdef _DEBUG
@@ -173,6 +175,18 @@ struct EngineRenderContextImpl
 
     void NewFrame()
     {
+        // フルスクリーン制御
+        {
+            BOOL fullscreen;
+            m_swapChain->GetFullscreenState(&fullscreen, nullptr);
+            if (fullscreen != m_previousFullscreen)
+            {
+                resizeSwapChain(m_frameBufferSize);
+            }
+
+            m_previousFullscreen = fullscreen;
+        }
+
         m_backBuffer.setViewport(calculateViewportRect());
 
         m_windowToFrameBuffer = calculateWindowToFrameBuffer();
@@ -269,6 +283,42 @@ private:
         return Mat3x2::Identity()
                .scaled(Float2{fameBufferScaling, fameBufferScaling})
                .translated((m_frameBufferSize.cast<Float2>() - windowSizeInScene) * 0.5f);
+    }
+
+    void resizeSwapChain(const Size& newSize)
+    {
+        assert(not m_scopedBackBuffer.isActive());
+
+        FlushCommandLists();
+
+        const int bufferCount = m_backBuffer.bufferCount();
+
+        m_backBuffer = {};
+
+        if (const auto hr = m_swapChain->ResizeBuffers(
+                bufferCount,
+                newSize.x,
+                newSize.y,
+                DXGI_FORMAT_R8G8B8A8_UNORM,
+                DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+            FAILED(hr))
+        {
+            LogError.writeln(std::format(
+                "IDXGISwapChain::ResizeBuffers(): Failed with error code: {}",
+                static_cast<int>(hr)));
+            return;
+        }
+
+        m_backBuffer = RenderTarget{
+            {
+                .bufferCount = bufferCount,
+                .size = newSize,
+                .clearColor = m_clearColor,
+            },
+            m_swapChain.Get()
+        };
+
+        m_frameBufferSize = newSize;
     }
 };
 
