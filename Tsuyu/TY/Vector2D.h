@@ -105,6 +105,17 @@ namespace TY
             return x == 0 && y == 0;
         }
 
+        [[nodiscard]] bool inBounds(Vector2D min, Vector2D max) const noexcept
+        {
+            return (min.x <= x && x <= max.x) && (min.y <= y && y <= max.y);
+        }
+
+        template <class MinVector, class MaxVector>
+        [[nodiscard]] bool inBounds(MinVector min, MaxVector max) const noexcept
+        {
+            return (min.x <= x && x <= max.x) && (min.y <= y && y <= max.y);
+        }
+
         [[nodiscard]] constexpr Point asPoint() const noexcept
         {
             return {static_cast<int>(x), static_cast<int>(y)};

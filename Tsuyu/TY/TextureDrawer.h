@@ -7,7 +7,7 @@ namespace TY
 {
     struct TextureDrawerParams
     {
-        TextureSource source; // FIXME? 生から ComPtr はメモリリークするのだろうか
+        TextureSource source;
         PixelShader ps;
         VertexShader vs;
 
@@ -48,6 +48,9 @@ namespace TY
         TextureDrawable2D as2D() const;
 
         void draw3D() const;
+
+        [[nodiscard]]
+        Size size() const;
 
     private:
         struct Impl;

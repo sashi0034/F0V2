@@ -55,7 +55,7 @@ namespace TY
         template <typename FloatingPoint> requires std::is_floating_point_v<FloatingPoint>
         [[nodiscard]] constexpr Integer2D operator *(FloatingPoint s) const noexcept
         {
-            return {x * s, y * s};
+            return {value_type(x * s), value_type(y * s)};
         }
 
         [[nodiscard]] constexpr Integer2D operator *(Integer2D v) const noexcept
@@ -161,6 +161,16 @@ namespace TY
         [[nodiscard]] constexpr float_type horizontalAspectRatio() const noexcept
         {
             return static_cast<float_type>(x) / static_cast<float_type>(y);
+        }
+
+        static constexpr Integer2D Zero() noexcept
+        {
+            return {0, 0};
+        }
+
+        static constexpr Integer2D One() noexcept
+        {
+            return {1, 1};
         }
     };
 

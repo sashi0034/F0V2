@@ -211,6 +211,11 @@ namespace TY
         }
     }
 
+    Size TextureDrawer::size() const
+    {
+        return p_impl ? p_impl->m_sr.size() : Size{};
+    }
+
     TextureDrawable2D& TextureDrawable2D::scaled(float value)
     {
         scaling = Float2{value, value} * scaling;

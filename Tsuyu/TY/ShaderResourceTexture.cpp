@@ -15,9 +15,10 @@ using namespace TY::detail;
 
 struct ShaderResourceTexture::Impl
 {
-    ComPtr<ID3D12Resource> m_textureBuffer{};
     DXGI_FORMAT m_format{};
     Size m_size{};
+
+    ComPtr<ID3D12Resource> m_textureBuffer{};
 
     Impl(const std::wstring& filename)
     {
