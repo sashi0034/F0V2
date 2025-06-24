@@ -5,42 +5,42 @@
 
 namespace TY
 {
-    struct TextureParams
+    struct TextureDrawerParams
     {
         TextureSource source; // FIXME? 生から ComPtr はメモリリークするのだろうか
         PixelShader ps;
         VertexShader vs;
 
-        TextureParams& setSource(const TextureSource& source_)
+        TextureDrawerParams& setSource(const TextureSource& source_)
         {
             source = source_;
             return *this;
         }
 
-        TextureParams& setPS(const PixelShader& ps_)
+        TextureDrawerParams& setPS(const PixelShader& ps_)
         {
             ps = ps_;
             return *this;
         }
 
-        TextureParams& setVS(const VertexShader& vs_)
+        TextureDrawerParams& setVS(const VertexShader& vs_)
         {
             vs = vs_;
             return *this;
         }
     };
 
-    class Texture
+    class TextureDrawer
     {
         friend struct TextureDrawable2D;
 
     public:
-        Texture() = default;
+        TextureDrawer() = default;
 
-        Texture(const TextureParams& params);
+        TextureDrawer(const TextureDrawerParams& params);
 
-        Texture(const TextureSource& source, const PixelShader& ps, const VertexShader& vs)
-            : Texture(TextureParams{source, ps, vs})
+        TextureDrawer(const TextureSource& source, const PixelShader& ps, const VertexShader& vs)
+            : TextureDrawer(TextureDrawerParams{source, ps, vs})
         {
         }
 
@@ -57,7 +57,7 @@ namespace TY
 
     struct TextureDrawable2D
     {
-        Texture texture;
+        TextureDrawer texture;
 
         Float2 scaling{1.0, 1.0};
 

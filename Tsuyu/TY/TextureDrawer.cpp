@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Texture.h"
+#include "TextureDrawer.h"
 
 #include <d3d12.h>
 
@@ -73,7 +73,7 @@ namespace
 
     const DescriptorTable descriptorTable = {{1, 1, 0}};
 
-    GraphicsPipelineState makePipelineState(const TextureParams& options)
+    GraphicsPipelineState makePipelineState(const TextureDrawerParams& options)
     {
         // TODO: キャッシュする?
         return GraphicsPipelineState{
@@ -97,7 +97,7 @@ namespace
     };
 }
 
-struct Texture::Impl : IEngineDrawer
+struct TextureDrawer::Impl : IEngineDrawer
 {
     ShaderResourceTexture m_sr;
 
@@ -113,7 +113,7 @@ struct Texture::Impl : IEngineDrawer
 
     DescriptorHeap m_descriptorHeap{};
 
-    Impl(const TextureParams& options) :
+    Impl(const TextureDrawerParams& options) :
         m_pipelineState(makePipelineState(options))
     {
         m_sr = ShaderResourceTexture{options.source};
@@ -174,7 +174,7 @@ struct Texture::Impl : IEngineDrawer
 
 namespace TY
 {
-    Texture::Texture(const TextureParams& params) :
+    TextureDrawer::TextureDrawer(const TextureDrawerParams& params) :
         p_impl{std::make_shared<Impl>(params)}
     {
     }
@@ -197,12 +197,12 @@ namespace TY
     //     }
     // }
 
-    TextureDrawable2D Texture::as2D() const
+    TextureDrawable2D TextureDrawer::as2D() const
     {
         return TextureDrawable2D{*this};
     }
 
-    void Texture::draw3D() const
+    void TextureDrawer::draw3D() const
     {
         if (p_impl)
         {

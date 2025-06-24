@@ -2,7 +2,7 @@
 #include "RenderTarget.h"
 
 #include "AssertObject.h"
-#include "Texture.h"
+#include "TextureDrawer.h"
 #include "detail/EngineCore.h"
 #include "detail/EngineRenderContext.h"
 

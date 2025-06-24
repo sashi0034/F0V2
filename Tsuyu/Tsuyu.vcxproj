@@ -212,7 +212,7 @@
     <ClInclude Include="TY\Mat3x2.h" />
     <ClInclude Include="TY\Mat4x4.h" />
     <ClInclude Include="TY\Math.h" />
-    <ClInclude Include="TY\Model.h" />
+    <ClInclude Include="TY\ModelDrawer.h" />
     <ClInclude Include="TY\ModelData.h" />
     <ClInclude Include="TY\ModelLoader.h" />
     <ClInclude Include="TY\Rect.h" />
@@ -226,7 +226,7 @@
     <ClInclude Include="TY\UnifiedString.h" />
     <ClInclude Include="TY\System.h" />
     <ClInclude Include="TY\TemplateHelper.h" />
-    <ClInclude Include="TY\Texture.h" />
+    <ClInclude Include="TY\TextureDrawer.h" />
     <ClInclude Include="TY\TextureSource.h" />
     <ClInclude Include="TY\Transformer3D.h" />
     <ClInclude Include="TY\Uncopyable.h" />
@@ -311,7 +311,7 @@
     <ClCompile Include="TY\Mat3x2.cpp" />
     <ClCompile Include="TY\Mat4x4.cpp" />
     <ClCompile Include="TY\Math.cpp" />
-    <ClCompile Include="TY\Model.cpp" />
+    <ClCompile Include="TY\ModelDrawer.cpp" />
     <ClCompile Include="TY\ModelData.cpp" />
     <ClCompile Include="TY\ModelLoader.cpp" />
     <ClCompile Include="TY\Rect.cpp" />
@@ -324,7 +324,7 @@
     <ClCompile Include="TY\SimpleInput.cpp" />
     <ClCompile Include="TY\UnifiedString.cpp" />
     <ClCompile Include="TY\System.cpp" />
-    <ClCompile Include="TY\Texture.cpp" />
+    <ClCompile Include="TY\TextureDrawer.cpp" />
     <ClCompile Include="TY\Transformer3D.cpp" />
     <ClCompile Include="TY\Utils.cpp" />
     <ClCompile Include="TY\Vector2D.cpp" />

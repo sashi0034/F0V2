@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Model.h"
+#include "ModelDrawer.h"
 
 #include "Array.h"
 #include "AssertObject.h"
@@ -28,7 +28,7 @@ namespace
 {
     const DescriptorTable baseDescriptorTable = {{1, 0, 0}, {1, 1, 0}};
 
-    GraphicsPipelineState makePipelineState(const ModelParams& params)
+    GraphicsPipelineState makePipelineState(const ModelDrawerParams& params)
     {
         auto descriptorTable = baseDescriptorTable;
         if (not params.cb2.isEmpty())
@@ -67,7 +67,7 @@ namespace
     };
 }
 
-struct Model::Impl : IEngineDrawer
+struct ModelDrawer::Impl : IEngineDrawer
 {
     ModelData m_modelData{};
     Array<ShapeBuffer> m_shapes{};
@@ -83,7 +83,7 @@ struct Model::Impl : IEngineDrawer
 
     ConstantBufferUploader_impl m_cb2{Empty};
 
-    Impl(const ModelParams& params) :
+    Impl(const ModelDrawerParams& params) :
         m_modelData(params.data),
         m_pipelineState(makePipelineState(params)),
         m_cb2(params.cb2)
@@ -160,37 +160,37 @@ struct Model::Impl : IEngineDrawer
 
 namespace TY
 {
-    ModelParams& ModelParams::loadData(const std::string& filename)
+    ModelDrawerParams& ModelDrawerParams::loadData(const std::string& filename)
     {
         data = ModelLoader::Load(filename);
         return *this;
     }
 
-    ModelParams& ModelParams::setData(const ModelData& data_)
+    ModelDrawerParams& ModelDrawerParams::setData(const ModelData& data_)
     {
         data = data_;
         return *this;
     }
 
-    ModelParams& ModelParams::setShaders(const PixelShader& ps_, const VertexShader& vs_)
+    ModelDrawerParams& ModelDrawerParams::setShaders(const PixelShader& ps_, const VertexShader& vs_)
     {
         ps = ps_;
         vs = vs_;
         return *this;
     }
 
-    ModelParams& ModelParams::setCB2(const ConstantBufferUploader_impl& cb2_)
+    ModelDrawerParams& ModelDrawerParams::setCB2(const ConstantBufferUploader_impl& cb2_)
     {
         cb2 = std::move(cb2_);
         return *this;
     }
 
-    Model::Model(const ModelParams& params) :
+    ModelDrawer::ModelDrawer(const ModelDrawerParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
     }
 
-    void Model::draw() const
+    void ModelDrawer::draw() const
     {
         if (p_impl)
         {
