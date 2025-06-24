@@ -167,6 +167,7 @@
     <ClInclude Include="TY\InlineComponent.h" />
     <ClInclude Include="TY\Integer2D.h" />
     <ClInclude Include="TY\Integer3D.h" />
+    <ClInclude Include="TY\KeyboardMouseInput.h" />
     <ClInclude Include="TY\Mouse.h" />
     <ClInclude Include="TY\Random.h" />
     <ClInclude Include="TY\ScopedDeferStack.h" />
@@ -274,6 +275,7 @@
     <ClCompile Include="TY\detail\EngineCacheContext.cpp" />
     <ClCompile Include="TY\Gpgpu.cpp" />
     <ClCompile Include="TY\InlineComponent.cpp" />
+    <ClCompile Include="TY\KeyboardMouseInput.cpp" />
     <ClCompile Include="TY\Mouse.cpp" />
     <ClCompile Include="TY\Random.cpp" />
     <ClCompile Include="TY\ScopedDeferStack.cpp" />

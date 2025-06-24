@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "KeyboardMouseInput.h"
 
 namespace TY
 {
@@ -9,23 +10,10 @@ namespace TY
 
 namespace TY
 {
-    class KeyboardInput
+    class KeyboardInput : public KeyboardMouseInput
     {
     public:
-        KeyboardInput() = default;
-
-        constexpr KeyboardInput(uint8_t code) : m_code(code)
-        {
-        }
-
-        bool down() const;
-
-        bool pressed() const;
-
-        bool up() const;
-
-    private:
-        uint8_t m_code{};
+        using KeyboardMouseInput::KeyboardMouseInput;
     };
 
     inline constexpr KeyboardInput KeyCancel{0x03};

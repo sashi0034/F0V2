@@ -173,9 +173,9 @@ struct EngineRenderContextImpl
 
     void NewFrame()
     {
-        m_backBuffer.setViewport(getViewportRect());
+        m_backBuffer.setViewport(calculateViewportRect());
 
-        m_windowToFrameBuffer = getWindowToFrameBuffer();
+        m_windowToFrameBuffer = calculateWindowToFrameBuffer();
 
         // バックバッファを設定
         const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -230,7 +230,7 @@ struct EngineRenderContextImpl
     }
 
 private:
-    RectF getViewportRect() const
+    RectF calculateViewportRect() const
     {
         const auto windowSize = EngineWindow::WindowSize();
 
@@ -261,7 +261,7 @@ private:
         }
     }
 
-    Mat3x2 getWindowToFrameBuffer() const
+    Mat3x2 calculateWindowToFrameBuffer() const
     {
         const Float2 windowSize = EngineWindow::WindowSize();
         const float fameBufferScaling = (Float2(m_frameBufferSize) / windowSize).maxComponent();
