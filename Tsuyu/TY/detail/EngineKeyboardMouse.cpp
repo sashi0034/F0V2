@@ -16,6 +16,8 @@ struct EngineKeyboardMouseImpl
     Float2 m_mousePosInWindow{};
     Float2 m_mousePosInFrameBuffer{};
 
+    Float2 m_previousMousePosInFrameBuffer{};
+
     void Update()
     {
         // 前回の状態を保存
@@ -33,6 +35,7 @@ struct EngineKeyboardMouseImpl
             m_mousePosInWindow.x = static_cast<float>(mousePos.x);
             m_mousePosInWindow.y = static_cast<float>(mousePos.y);
 
+            m_previousMousePosInFrameBuffer = m_mousePosInFrameBuffer;
             m_mousePosInFrameBuffer = EngineRenderContext::WindowToFrameBuffer().transformPoint(m_mousePosInWindow);
         }
     }
@@ -68,5 +71,10 @@ namespace TY::detail
     Float2 EngineKeyboardMouse::MousePos()
     {
         return s_keyboardMouse.m_mousePosInFrameBuffer;
+    }
+
+    Float2 EngineKeyboardMouse::PreviousMousePos()
+    {
+        return s_keyboardMouse.m_previousMousePosInFrameBuffer;
     }
 }

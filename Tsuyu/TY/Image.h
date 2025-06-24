@@ -15,6 +15,8 @@ namespace TY
 
         Image(const Size& size, const ColorU8& fillColor);
 
+        void fill(const ColorU8& colorU8);
+
         ColorU8* operator[](int32_t y);
 
         const ColorU8* operator[](int32_t y) const;
@@ -23,11 +25,15 @@ namespace TY
 
         const ColorU8& operator[](const Point& point) const;
 
+        bool inBounds(const Point& point) const;
+
         const Size& size() const { return m_size; }
 
         size_t size_in_bytes() const { return m_size.x * m_size.y * sizeof(ColorU8); }
 
-        const ColorU8* data() const { return m_data.data(); }
+        Array<ColorU8>& data() { return m_data; }
+
+        const Array<ColorU8>& data() const { return m_data; }
 
         ImageView view() const
         {

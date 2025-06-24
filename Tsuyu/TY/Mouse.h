@@ -18,6 +18,10 @@ namespace TY
 
     namespace Mouse
     {
+        Point PreviousPos();
+
+        Float2 PreviousPosF();
+
         Point Pos();
 
         Float2 PosF();

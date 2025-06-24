@@ -8,6 +8,16 @@ using namespace TY::detail;
 
 namespace TY
 {
+    Point Mouse::PreviousPos()
+    {
+        return EngineKeyboardMouse::PreviousMousePos().asPoint();
+    }
+
+    Float2 Mouse::PreviousPosF()
+    {
+        return EngineKeyboardMouse::PreviousMousePos();
+    }
+
     Point Mouse::Pos()
     {
         return EngineKeyboardMouse::MousePos().asPoint();

@@ -14,5 +14,7 @@ namespace TY::detail
         [[nodiscard]] bool KeyUp(uint8_t code);
 
         Float2 MousePos();
+
+        Float2 PreviousMousePos();
     }
 }

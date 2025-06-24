@@ -17,6 +17,14 @@ namespace TY
         }
     }
 
+    void Image::fill(const ColorU8& colorU8)
+    {
+        for (auto& pixel : m_data)
+        {
+            pixel = colorU8;
+        }
+    }
+
     ColorU8* Image::operator[](int32_t y)
     {
         return &m_data[y * m_size.x];
@@ -35,5 +43,10 @@ namespace TY
     const ColorU8& Image::operator[](const Point& point) const
     {
         return m_data[point.y * m_size.x + point.x];
+    }
+
+    bool Image::inBounds(const Point& point) const
+    {
+        return (0 <= point.x && point.x < m_size.x) && (0 <= point.y && point.y < m_size.y);
     }
 }
