@@ -9,7 +9,7 @@
 #include "TY/System.h"
 
 #include "TY/Math.h"
-#include "TY/Model.h"
+#include "TY/ModelDrawer.h"
 #include "TY/ModelLoader.h"
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
@@ -42,7 +42,7 @@ struct Demo_Lambert_impl
     DirectionLight_cb2 m_directionLight{};
     ConstantBufferUploader<DirectionLight_cb2> m_directionLightBuffer{1};
 
-    Model m_model{};
+    ModelDrawer m_model{};
 
     Demo_Lambert_impl()
     {
@@ -60,8 +60,8 @@ struct Demo_Lambert_impl
         m_modelPS = PixelShader{ShaderParams{.filepath = shaderPath, .entryPoint = "PS"}};
         m_modelVS = VertexShader{ShaderParams{.filepath = shaderPath, .entryPoint = "VS"}};
 
-        m_model = Model{
-            ModelParams{
+        m_model = ModelDrawer{
+            ModelDrawerParams{
                 .data = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
                 .ps = m_modelPS,
                 .vs = m_modelVS,

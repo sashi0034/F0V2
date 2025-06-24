@@ -14,7 +14,7 @@
 #include "TY/System.h"
 
 #include "TY/Math.h"
-#include "TY/Model.h"
+#include "TY/ModelDrawer.h"
 #include "TY/ModelLoader.h"
 #include "TY/Mouse.h"
 #include "TY/RenderTarget.h"
@@ -91,14 +91,14 @@ struct Demo_PointLight_impl
 
     ConstantBuffer<DirectionLight_cb2> m_directionLight{};
 
-    Model m_planeModel{};
+    ModelDrawer m_planeModel{};
 
-    Model m_gridPlaneModel{};
+    ModelDrawer m_gridPlaneModel{};
 
-    Model m_fighterModel{};
+    ModelDrawer m_fighterModel{};
     Pose m_fighterPose{};
 
-    Model m_sphereModel{};
+    ModelDrawer m_sphereModel{};
     Pose m_spherePose{};
 
     Demo_PointLight_impl()
@@ -113,8 +113,8 @@ struct Demo_PointLight_impl
         const PixelShader customPS{ShaderParams{.filepath = shader_lambert, .entryPoint = "PS"}};
         const VertexShader customVS{ShaderParams{.filepath = shader_lambert, .entryPoint = "VS"}};
 
-        m_planeModel = Model{
-            ModelParams{
+        m_planeModel = ModelDrawer{
+            ModelDrawerParams{
                 .data = ModelLoader::Load("asset/model/dirty_plane.obj"),
                 .ps = customPS,
                 .vs = customVS,
@@ -124,15 +124,15 @@ struct Demo_PointLight_impl
 
         const auto gridPlaneTexture = makeGridPlane(
             Size{1024, 1024}, 32, ColorF32{0.8}, ColorF32{0.9});
-        m_gridPlaneModel = Model{
-            ModelParams{}
+        m_gridPlaneModel = ModelDrawer{
+            ModelDrawerParams{}
             .setData(Shape3D::TexturePlane(gridPlaneTexture, Float2{100.0f, 100.0f}))
             .setShaders(defaultPS, defaultVS)
             .setCB2(m_planeLight)
         };
 
-        m_fighterModel = Model{
-            ModelParams{
+        m_fighterModel = ModelDrawer{
+            ModelDrawerParams{
                 .data = ModelLoader::Load("asset/model/tie_fighter.obj"),
                 .ps = customPS,
                 .vs = customVS,
@@ -142,8 +142,8 @@ struct Demo_PointLight_impl
 
         m_fighterPose.position.y = 3.0f;
 
-        m_sphereModel = Model{
-            ModelParams{}
+        m_sphereModel = ModelDrawer{
+            ModelDrawerParams{}
             .setData(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
             .setShaders(customPS, customVS)
             .setCB2(m_directionLight)

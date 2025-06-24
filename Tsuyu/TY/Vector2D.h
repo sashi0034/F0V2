@@ -23,6 +23,12 @@ namespace TY
         {
         }
 
+        template <typename ArithmeticType> requires std::is_arithmetic_v<ArithmeticType>
+        [[nodiscard]] constexpr Vector2D(ArithmeticType _x, ArithmeticType _y) noexcept
+            : x(value_type(_x)), y(value_type(_y))
+        {
+        }
+
         template <typename OtherType>
         [[nodiscard]] constexpr Vector2D(const Vector2D<OtherType>& other) noexcept
             : x(other.x), y(other.y)
@@ -98,6 +104,23 @@ namespace TY
         [[nodiscard]] constexpr value_type minComponent() const noexcept
         {
             return (x < y) ? x : y;
+        }
+
+        [[nodiscard]] value_type length() const noexcept
+        {
+            return std::sqrt(x * x + y * y);
+        }
+
+        [[nodiscard]] value_type lengthSq() const noexcept
+        {
+            return x * x + y * y;
+        }
+
+        [[nodiscard]] Vector2D normalized() const noexcept
+        {
+            const auto len = length();
+            if (len == 0) return {0, 0};
+            return {x / len, y / len};
         }
 
         [[nodiscard]] bool isZero() const noexcept

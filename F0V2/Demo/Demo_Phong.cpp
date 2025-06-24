@@ -9,7 +9,7 @@
 #include "TY/System.h"
 
 #include "TY/Math.h"
-#include "TY/Model.h"
+#include "TY/ModelDrawer.h"
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/Transformer3D.h"
@@ -45,7 +45,7 @@ struct Demo_Phong_impl
     PhongLight_cb2 m_directionLight{};
     ConstantBufferUploader<PhongLight_cb2> m_directionLightBuffer{1};
 
-    Model m_model{};
+    ModelDrawer m_model{};
 
     Demo_Phong_impl()
     {
@@ -63,8 +63,8 @@ struct Demo_Phong_impl
         m_modelPS = PixelShader{ShaderParams{.filepath = shaderPath, .entryPoint = "PS"}};
         m_modelVS = VertexShader{ShaderParams{.filepath = shaderPath, .entryPoint = "VS"}};
 
-        m_model = Model{
-            ModelParams{
+        m_model = ModelDrawer{
+            ModelDrawerParams{
                 .ps = m_modelPS,
                 .vs = m_modelVS,
                 .cb2 = m_directionLightBuffer

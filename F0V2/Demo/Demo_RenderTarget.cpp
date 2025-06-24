@@ -9,10 +9,10 @@
 
 #include "TY/Shader.h"
 #include "TY/System.h"
-#include "TY/Texture.h"
+#include "TY/TextureDrawer.h"
 
 #include "TY/Math.h"
-#include "TY/Model.h"
+#include "TY/ModelDrawer.h"
 #include "TY/ModelLoader.h"
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
@@ -38,12 +38,12 @@ void Demo_RenderTarget()
         }
     }
 
-    const Texture noiseTexture{
-        TextureParams{.source = image, .ps = default2dPS, .vs = default2dVS}
+    const TextureDrawer noiseTexture{
+        TextureDrawerParams{.source = image, .ps = default2dPS, .vs = default2dVS}
     };
 
-    const Texture pngTexture{
-        TextureParams{.source = "asset/image/mii.png", .ps = default2dPS, .vs = default2dVS}
+    const TextureDrawer pngTexture{
+        TextureDrawerParams{.source = "asset/image/mii.png", .ps = default2dPS, .vs = default2dVS}
     };
 
     Mat4x4 worldMat = Mat4x4::Identity().rotatedY(45.0_deg);
@@ -60,8 +60,8 @@ void Demo_RenderTarget()
     const PixelShader modelPS{ShaderParams{.filepath = "asset/shader/model_pixel.hlsl", .entryPoint = "PS"}};
     const VertexShader modelVS{ShaderParams{.filepath = "asset/shader/model_vertex.hlsl", .entryPoint = "VS"}};
 
-    const Model model{
-        ModelParams{
+    const ModelDrawer model{
+        ModelDrawerParams{
             .data = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
             .ps = modelPS,
             .vs = modelVS,
@@ -79,7 +79,7 @@ void Demo_RenderTarget()
         }
     };
 
-    Texture renderTargetTexture{
+    TextureDrawer renderTargetTexture{
         {
             .source = renderTarget.getResource(),
             .ps = default2dPS,
