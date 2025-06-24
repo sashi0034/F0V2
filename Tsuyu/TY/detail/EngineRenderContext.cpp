@@ -60,6 +60,8 @@ struct EngineRenderContextImpl
 
     bool m_previousFullscreen{};
 
+    std::optional<Size> m_requestedFrameBufferSize{};
+
     void Init()
     {
 #ifdef _DEBUG
@@ -175,17 +177,8 @@ struct EngineRenderContextImpl
 
     void NewFrame()
     {
-        // フルスクリーン制御
-        {
-            BOOL fullscreen;
-            m_swapChain->GetFullscreenState(&fullscreen, nullptr);
-            if (fullscreen != m_previousFullscreen)
-            {
-                resizeSwapChain(m_frameBufferSize);
-            }
-
-            m_previousFullscreen = fullscreen;
-        }
+        // リサイズ制御
+        checkRecreateSwapchain();
 
         m_backBuffer.setViewport(calculateViewportRect());
 
@@ -285,7 +278,37 @@ private:
                .translated((m_frameBufferSize.cast<Float2>() - windowSizeInScene) * 0.5f);
     }
 
-    void resizeSwapChain(const Size& newSize)
+    void checkRecreateSwapchain()
+    {
+        std::optional<Size> newSize{};
+
+        // フルスクリーン制御
+        {
+            BOOL fullscreen;
+            m_swapChain->GetFullscreenState(&fullscreen, nullptr);
+            if (fullscreen != m_previousFullscreen)
+            {
+                newSize = m_frameBufferSize;
+            }
+
+            m_previousFullscreen = fullscreen;
+        }
+
+        // リサイズのリクエスト対応
+        if (m_requestedFrameBufferSize.has_value())
+        {
+            newSize = m_requestedFrameBufferSize;
+            m_requestedFrameBufferSize = {};
+        }
+
+        if (newSize.has_value())
+        {
+            // リサイズしたものを再作成
+            recreateSwapChain(*newSize);
+        }
+    }
+
+    void recreateSwapChain(const Size& newSize)
     {
         assert(not m_scopedBackBuffer.isActive());
 
@@ -398,6 +421,11 @@ namespace TY::detail
     void EngineRenderContext::FlushActiveCommandList()
     {
         s_renderContext.getActiveCommandList().CloseAndFlush();
+    }
+
+    void EngineRenderContext::RequestFrameBufferSize(Size frameBufferSize)
+    {
+        s_renderContext.m_requestedFrameBufferSize = frameBufferSize;
     }
 
     Size EngineRenderContext::FrameBufferSize()

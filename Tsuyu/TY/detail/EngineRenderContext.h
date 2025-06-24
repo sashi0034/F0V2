@@ -33,6 +33,8 @@ namespace TY::detail
 
         void FlushActiveCommandList();
 
+        void RequestFrameBufferSize(Size frameBufferSize);
+
         Size FrameBufferSize();
 
         Mat3x2 WindowToFrameBuffer();

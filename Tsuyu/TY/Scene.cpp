@@ -8,6 +8,11 @@ namespace TY
 {
     using namespace detail;
 
+    void Scene::RequestResize(TY::Size size)
+    {
+        EngineRenderContext::RequestFrameBufferSize(size);
+    }
+
     Size Scene::Size()
     {
         return EngineRenderContext::FrameBufferSize();

@@ -348,6 +348,8 @@ void Demo_PointLight()
 {
     Demo_PointLight_impl impl{};
 
+    Scene::RequestResize({1920, 1080});
+
     while (System::Update())
     {
 #ifdef _DEBUG

@@ -5,6 +5,8 @@ namespace TY
 {
     namespace Scene
     {
+        void RequestResize(Size size);
+
         [[nodiscard]] TY::Size Size();
 
         [[nodiscard]] Point Center();
