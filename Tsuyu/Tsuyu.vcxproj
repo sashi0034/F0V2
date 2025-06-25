@@ -155,6 +155,10 @@
     <ClInclude Include="..\external\imgui\imstb_truetype.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="TY\ActorBase.h" />
+    <ClInclude Include="TY\ActorContainer.h" />
+    <ClInclude Include="TY\ActorHandle.h" />
+    <ClInclude Include="TY\ActorLifetimeScope.h" />
     <ClInclude Include="TY\Array.h" />
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\Buffer3D.h" />
@@ -270,6 +274,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="pch_helper.cpp" />
+    <ClCompile Include="TY\ActorBase.cpp" />
+    <ClCompile Include="TY\ActorContainer.cpp" />
+    <ClCompile Include="TY\ActorHandle.cpp" />
+    <ClCompile Include="TY\ActorLifetimeScope.cpp" />
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />

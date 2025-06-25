@@ -1,14 +1,14 @@
 ﻿#include "pch.h"
 #include "ActorContainer.h"
 
-namespace Util
+namespace TY
 {
-    void ActorContainer::UpdateEach()
+    void ActorContainer::updateEach()
     {
         // 生存していないオブジェクトを削除
         for (int i = m_actorList.size() - 1; i >= 0; --i)
         {
-            if (not m_actorList[i]->IsAlive())
+            if (not m_actorList[i]->isAlive())
             {
                 m_actorList.erase(m_actorList.begin() + i);
             }
@@ -21,29 +21,29 @@ namespace Util
         m_iterating = true;
         for (int i = 0; i < m_actorList.size(); ++i)
         {
-            if (not m_actorList[i]->IsAlive()) continue;
+            if (not m_actorList[i]->isAlive()) continue;
 
-            m_actorList[i]->Update();
+            m_actorList[i]->update();
 
             if (m_shouldKill) break;
 
             if (needSort) continue;
 
             // 優先度が入れ替わっている部分があれば後からソートする
-            if (i > 0 && previousPriority > m_actorList[i]->OrderPriority())
+            if (i > 0 && previousPriority > m_actorList[i]->orderPriority())
             {
                 needSort = true;
                 continue;
             }
 
-            previousPriority = m_actorList[i]->OrderPriority();
+            previousPriority = m_actorList[i]->orderPriority();
         }
 
         m_iterating = false;
 
         if (m_shouldKill)
         {
-            KillEach();
+            killEach();
             return;
         }
 
@@ -54,23 +54,23 @@ namespace Util
                 m_actorList,
                 [](const std::shared_ptr<ActorBase>& left, const std::shared_ptr<ActorBase>& right)
                 {
-                    return left->OrderPriority() < right->OrderPriority();
+                    return left->orderPriority() < right->orderPriority();
                 });
         }
     }
 
-    void ActorContainer::DrawEach() const
+    void ActorContainer::drawEach() const
     {
         // 描画処理
         for (int i = 0; i < m_actorList.size(); ++i)
         {
-            if (not m_actorList[i]->IsAlive()) continue;
+            if (not m_actorList[i]->isAlive()) continue;
 
-            m_actorList[i]->Draw();
+            m_actorList[i]->draw();
         }
     }
 
-    void ActorContainer::KillEach()
+    void ActorContainer::killEach()
     {
         if (m_iterating)
         {
@@ -81,7 +81,7 @@ namespace Util
         // リストをクリアする前に Kill を呼ぶ
         for (auto& actor : m_actorList)
         {
-            actor->Kill();
+            actor->kill();
         }
 
         m_actorList.clear();
@@ -89,7 +89,7 @@ namespace Util
         m_shouldKill = false;
     }
 
-    void ActorContainer::Birth(const std::shared_ptr<ActorBase>& actor)
+    void ActorContainer::birth(const std::shared_ptr<ActorBase>& actor)
     {
         assert(actor != nullptr);
         m_actorList.push_back(actor);

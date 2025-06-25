@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "CombatScene.h"
 
-#include "Util/ActorContainer.h"
+#include "TY/ActorContainer.h"
 
 using namespace Combat;
 
@@ -9,7 +9,7 @@ struct CombatScene::Impl : ActorBase
 {
     ActorContainer m_children{};
 
-    void Update() override
+    void update() override
     {
         ImGui::Begin("Combat Scene");
 
@@ -18,9 +18,9 @@ struct CombatScene::Impl : ActorBase
         ImGui::End();
     }
 
-    void Killed() override
+    void killed() override
     {
-        m_children.KillEach();
+        m_children.killEach();
     }
 };
 
@@ -31,7 +31,7 @@ namespace Combat
     {
     }
 
-    std::shared_ptr<ActorBase> CombatScene::AsActor() const
+    std::shared_ptr<ActorBase> CombatScene::asActor() const
     {
         return p_impl;
     }

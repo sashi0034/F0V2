@@ -1,37 +1,37 @@
 ﻿#pragma once
 #include "ActorBase.h"
-#include "TY/Array.h"
+#include "Array.h"
 
 using namespace TY;
 
-namespace Util
+namespace TY
 {
     /// @brief Actor のリストを管理するコンテナ
     class ActorContainer
     {
     public:
-        void UpdateEach();
+        void updateEach();
 
-        void DrawEach() const;
+        void drawEach() const;
 
         /// @brief アクターを破棄する
         /// @remarks UpdateEach の最中に呼び出された場合は、遅延実行される
-        void KillEach();
+        void killEach();
 
         template <typename T>
-        T Birth(const T& actor)
+        T birth(const T& actor)
         {
-            if constexpr (requires { actor.AsActor(); })
-                Birth(static_cast<std::shared_ptr<ActorBase>>(actor.AsActor()));
+            if constexpr (requires { actor.asActor(); })
+                birth(static_cast<std::shared_ptr<ActorBase>>(actor.asActor()));
             else
-                Birth(static_cast<std::shared_ptr<ActorBase>>(actor));
+                birth(static_cast<std::shared_ptr<ActorBase>>(actor));
 
             return actor;
         }
 
-        void Birth(const std::shared_ptr<ActorBase>& actor);
+        void birth(const std::shared_ptr<ActorBase>& actor);
 
-        const Array<std::shared_ptr<ActorBase>>& ActorList() const { return m_actorList; }
+        const Array<std::shared_ptr<ActorBase>>& actorList() const { return m_actorList; }
 
     private:
         Array<std::shared_ptr<ActorBase>> m_actorList{};

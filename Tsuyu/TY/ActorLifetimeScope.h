@@ -2,7 +2,7 @@
 #include "TY/Array.h"
 #include "TY/Uncopyable.h"
 
-namespace Util
+namespace TY
 {
     class ActorBase;
 
@@ -17,38 +17,38 @@ namespace Util
         ActorLifetimeScope(ActorLifetimeScope&&) noexcept;
 
         template <typename T>
-        T Append(const T& actor)
+        T append(const T& actor)
         {
-            if constexpr (requires { actor.AsActor(); })
-                Append(static_cast<std::shared_ptr<ActorBase>>(actor.AsActor()));
+            if constexpr (requires { actor.asActor(); })
+                append(static_cast<std::shared_ptr<ActorBase>>(actor.asActor()));
             else
-                Append(static_cast<std::shared_ptr<ActorBase>>(actor));
+                append(static_cast<std::shared_ptr<ActorBase>>(actor));
 
             return actor;
         }
 
-        void Append(const std::shared_ptr<ActorBase>& actor);
+        void append(const std::shared_ptr<ActorBase>& actor);
 
         template <typename T>
         friend T operator >>(const T& left, ActorLifetimeScope& right) noexcept
         {
-            right.Append(left);
+            right.append(left);
             return left;
         }
 
         /// @brief 追加されたアクターをすべて破棄する
-        void Clear();
+        void clear();
 
         /// @brief 既に死んだアクターをリストから除く
-        void CleanUp();
+        void cleanUp();
 
         /// @brief いずれかのアクターが生存しているか
         [[nodiscard]]
-        bool AnyActive() const;
+        bool anyActive() const;
 
         /// @brief リストが空であるか
         [[nodiscard]]
-        bool IsEmpty() const;
+        bool isEmpty() const;
 
     private:
         TY::Array<std::shared_ptr<ActorBase>> m_actorList{};

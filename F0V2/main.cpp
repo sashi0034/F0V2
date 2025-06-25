@@ -2,21 +2,21 @@
 
 #include "Combat/CombatScene.h"
 #include "TY/System.h"
-#include "Util/ActorContainer.h"
+#include "TY/ActorContainer.h"
 
 void Main()
 {
 #if 0
     Demo_PointLight();
 #else
-    using namespace Util;
+    using namespace TY;
 
     ActorContainer actors{};
-    actors.Birth(Combat::CombatScene());
+    actors.birth(Combat::CombatScene());
 
     while (System::Update())
     {
-        actors.UpdateEach();
+        actors.updateEach();
     }
 #endif
 }

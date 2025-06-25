@@ -22,9 +22,9 @@
 	public:
 		$TYPE$();
 
-		void Init();
+		void init();
 
-		std::shared_ptr&lt;ActorBase&gt; AsActor() const override;
+		std::shared_ptr&lt;ActorBase&gt; asActor() const override;
 
 	private:
 		struct Impl;
@@ -77,12 +77,12 @@ namespace $NS$
 	{
 	}
 
-	void $TYPE$::Init()
+	void $TYPE$::init()
 	{
 		p_impl-&gt;Init();
 	}
 
-	std::shared_ptr&lt;ActorBase&gt; $TYPE$::AsActor() const
+	std::shared_ptr&lt;ActorBase&gt; $TYPE$::asActor() const
 	{
 		return p_impl;
 	}
