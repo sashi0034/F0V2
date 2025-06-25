@@ -1,12 +1,22 @@
 #include "pch.h"
 
-#include "Demo/Demo_Gpgpu.h"
-#include "Demo/Demo_Lambert.h"
-#include "Demo/Demo_Phong.h"
-#include "Demo/Demo_PointLight.h"
-#include "Demo/Demo_RenderTarget.h"
+#include "Combat/CombatScene.h"
+#include "TY/System.h"
+#include "Util/ActorContainer.h"
 
 void Main()
 {
+#if 0
     Demo_PointLight();
+#else
+    using namespace Util;
+
+    ActorContainer actors{};
+    actors.Birth(Combat::CombatScene());
+
+    while (System::Update())
+    {
+        actors.UpdateEach();
+    }
+#endif
 }

@@ -145,7 +145,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Util\ActorBase.cpp" />
+    <ClCompile Include="Util\ActorContainer.cpp" />
+    <ClCompile Include="Util\ActorHandle.cpp" />
+    <ClCompile Include="Util\ActorLifetimeScope.cpp" />
     <Content Include="asset\shader\simple_compute.hlsl" />
+    <ClCompile Include="Combat\CombatScene.cpp" />
     <ClCompile Include="Demo\Demo_Gpgpu.cpp" />
     <ClCompile Include="Demo\Demo_Phong.cpp" />
     <ClCompile Include="Demo\Demo_PointLight.cpp" />
@@ -183,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="asset\shader\basic.hlsli" />
     <ClInclude Include="asset\shader\model.hlsli" />
+    <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="LivePPAddon.h" />
     <ClInclude Include="pch.h" />
@@ -190,6 +196,10 @@
     <ClInclude Include="Demo\Demo_RenderTarget.h" />
     <ClInclude Include="Demo\Demo_Phong.h" />
     <ClInclude Include="Demo\Demo_PointLight.h" />
+    <ClInclude Include="Util\ActorBase.h" />
+    <ClInclude Include="Util\ActorContainer.h" />
+    <ClInclude Include="Util\ActorHandle.h" />
+    <ClInclude Include="Util\ActorLifetimeScope.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">

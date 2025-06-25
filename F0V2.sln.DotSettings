@@ -1,0 +1,101 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Description/@EntryValue">Actor declaration</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Field/=NS/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Field/=NS/Expression/@EntryValue">getDefaultNamespace()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Field/=NS/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Field/=TYPE/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Field/=TYPE/Expression/@EntryValue">getFileNameWithoutExtension()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Field/=TYPE/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Scope/=F6696F8185506F41B9C4252540BE9C18/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Scope/=F6696F8185506F41B9C4252540BE9C18/Type/@EntryValue">InCppFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Shortcut/@EntryValue">actorh</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=8B20CAD485FD704A98BDBE4346786A42/Text/@EntryValue">namespace $NS$
+{
+    using namespace Util;
+
+	class $TYPE$ : public ActorHandle
+	{
+	public:
+		$TYPE$();
+
+		void Init();
+
+		std::shared_ptr&lt;ActorBase&gt; AsActor() const override;
+
+	private:
+		struct Impl;
+		std::shared_ptr&lt;Impl&gt; p_impl;
+	};
+}
+</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Description/@EntryValue">Actor for source file</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Field/=NS/Expression/@EntryValue">getDefaultNamespace()</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/IsBlessed/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Reformat/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Shortcut/@EntryValue">actorcpp</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Text/@EntryValue">using namespace $NS$;
+
+namespace 
+{
+}
+
+struct $TYPE$::Impl : ActorBase
+{
+	ActorContainer m_children{};
+    $END$
+	void Init()
+	{
+	}
+
+	void Update() override
+	{
+		m_children.UpdateEach();
+	}
+
+	void Draw() const override
+	{
+		m_children.DrawEach();
+	}
+
+	void Killed() override
+	{
+		m_children.KillEach();
+	}
+};
+
+namespace $NS$
+{
+	$TYPE$::$TYPE$()
+		: p_impl(std::make_shared&lt;Impl&gt;())
+	{
+	}
+
+	void $TYPE$::Init()
+	{
+		p_impl-&gt;Init();
+	}
+
+	std::shared_ptr&lt;ActorBase&gt; $TYPE$::AsActor() const
+	{
+		return p_impl;
+	}
+}
+
+
+</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Field/=NS/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Field/=NS/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Field/=TYPE/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Field/=TYPE/Expression/@EntryValue">getFileNameWithoutExtension()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Field/=TYPE/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Scope/=CF7C2F2066E462418ABD91975B64021C/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Scope/=CF7C2F2066E462418ABD91975B64021C/CustomProperties/=mask/@EntryIndexedValue">*.cpp</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Scope/=CF7C2F2066E462418ABD91975B64021C/Type/@EntryValue">InFileWithMask</s:String>
+</wpf:ResourceDictionary>

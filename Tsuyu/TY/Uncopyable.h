@@ -2,6 +2,17 @@
 
 namespace TY
 {
+    //-----------------------------------------------
+    //
+    //	This file is part of the Siv3D Engine.
+    //
+    //	Copyright (c) 2008-2025 Ryo Suzuki
+    //	Copyright (c) 2016-2025 OpenSiv3D Project
+    //
+    //	Licensed under the MIT License.
+    //
+    //-----------------------------------------------
+
     /// @brief コピー禁止 Mixin | Non-copyable mixin
     /// @remark このクラスを private 継承して使います。
     /// @remark Intended to be used as a private base class.

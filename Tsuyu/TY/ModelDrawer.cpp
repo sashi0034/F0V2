@@ -71,7 +71,6 @@ struct ModelDrawer::Impl : IEngineDrawer
 {
     ModelData m_modelData{};
     Array<ShapeBuffer> m_shapes{};
-    Array<ModelMaterialParameters> m_materials{};
 
     GraphicsPipelineState m_pipelineState;
 
