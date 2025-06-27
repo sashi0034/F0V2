@@ -12,7 +12,9 @@ void Main()
     using namespace TY;
 
     ActorContainer actors{};
-    actors.birth(Combat::CombatScene());
+
+    auto combat = actors.birth(Combat::CombatScene());
+    combat.init();
 
     while (System::Update())
     {

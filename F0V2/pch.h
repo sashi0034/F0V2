@@ -72,6 +72,9 @@
 
 #include "toml.h"
 
+// external libraries used in game
+#include <boost/coroutine2/coroutine.hpp>
+
 using namespace std::string_view_literals;
 
 using Microsoft::WRL::ComPtr;

@@ -10,6 +10,8 @@ namespace Combat
     public:
         CombatScene();
 
+        void init();
+
         std::shared_ptr<ActorBase> asActor() const override;
 
     private:
