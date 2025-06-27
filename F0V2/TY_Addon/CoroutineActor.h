@@ -8,16 +8,16 @@ namespace TY
     class AwaiterContext;
 
     /// @brief boost::coroutine2 Wrapper
-    class CoroActor : public ActorHandle
+    class CoroutineActor : public ActorHandle
     {
     public:
         using yield_type = boost::coroutines2::coroutine<void>::push_type;
         using caller_type = boost::coroutines2::coroutine<void>::pull_type;
         using task_function = std::function<void(AwaiterContext&)>;
 
-        explicit CoroActor();
+        explicit CoroutineActor();
 
-        explicit CoroActor(const task_function& task);
+        explicit CoroutineActor(const task_function& task);
 
         std::shared_ptr<ActorBase> asActor() const override;
 
@@ -28,8 +28,8 @@ namespace TY
         std::shared_ptr<Impl> p_impl;
     };
 
-    inline CoroActor StartCoroutine(ActorContainer& container, const CoroActor::task_function& coroutine)
+    inline CoroutineActor StartCoroutine(ActorContainer& container, const CoroutineActor::task_function& coroutine)
     {
-        return container.birth(CoroActor{coroutine});
+        return container.birth(CoroutineActor{coroutine});
     }
 }

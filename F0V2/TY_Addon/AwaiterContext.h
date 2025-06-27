@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "CoroActor.h"
+#include "CoroutineActor.h"
 #include "GameTime.h"
 #include "TY/Array.h"
 #include "TY/Uncopyable.h"
@@ -11,7 +11,7 @@ namespace TY
     class AwaiterContext : Uncopyable
     {
     public:
-        explicit AwaiterContext(std::reference_wrapper<CoroActor::yield_type> yield);
+        explicit AwaiterContext(std::reference_wrapper<CoroutineActor::yield_type> yield);
 
         /// @brief 指定フレーム待機する
         void WaitForFrames(int frames = 1);
@@ -41,7 +41,7 @@ namespace TY
     protected:
         void yield();
 
-        std::reference_wrapper<CoroActor::yield_type> m_yield;
+        std::reference_wrapper<CoroutineActor::yield_type> m_yield;
         std::function<bool()> m_resumePoller{};
     };
 

@@ -5,7 +5,7 @@ using namespace TY;
 
 namespace TY
 {
-    AwaiterContext::AwaiterContext(std::reference_wrapper<CoroActor::yield_type> yield) :
+    AwaiterContext::AwaiterContext(std::reference_wrapper<CoroutineActor::yield_type> yield) :
         m_yield(yield)
     {
     }
@@ -110,7 +110,7 @@ namespace TY
 
     void AwaiterContext::yield()
     {
-        CoroActor::yield_type& y = m_yield.get();
+        CoroutineActor::yield_type& y = m_yield.get();
         y();
     }
 

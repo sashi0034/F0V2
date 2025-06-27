@@ -4,7 +4,7 @@
 #include "TY/ActorContainer.h"
 #include "TY/Logger.h"
 #include "TY_Addon/AwaiterContext.h"
-#include "TY_Addon/CoroActor.h"
+#include "TY_Addon/CoroutineActor.h"
 
 using namespace Combat;
 
@@ -12,7 +12,7 @@ struct CombatScene::Impl : ActorBase
 {
     ActorContainer m_children{};
 
-    CoroActor m_coro{};
+    CoroutineActor m_coro{};
 
     void Init()
     {

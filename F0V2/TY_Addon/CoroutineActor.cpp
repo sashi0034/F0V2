@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "CoroActor.h"
+#include "CoroutineActor.h"
 
 #include "AwaiterContext.h"
 #include "TY/Array.h"
@@ -88,7 +88,7 @@ namespace
     StackDistributor s_stackDistributor{};
 }
 
-struct CoroActor::Impl : ActorBase
+struct CoroutineActor::Impl : ActorBase
 {
     std::unique_ptr<caller_type> m_task{};
 
@@ -126,13 +126,13 @@ struct CoroActor::Impl : ActorBase
 
 namespace TY
 {
-    CoroActor::CoroActor() :
+    CoroutineActor::CoroutineActor() :
         p_impl(std::make_shared<Impl>())
     {
         p_impl->kill();
     }
 
-    CoroActor::CoroActor(const task_function& task) :
+    CoroutineActor::CoroutineActor(const task_function& task) :
         p_impl(std::make_shared<Impl>())
     {
         auto stack = s_stackDistributor.get();
@@ -153,12 +153,12 @@ namespace TY
         p_impl->m_initialized = true;
     }
 
-    std::shared_ptr<ActorBase> CoroActor::asActor() const
+    std::shared_ptr<ActorBase> CoroutineActor::asActor() const
     {
         return p_impl;
     }
 
-    void CoroActor::update()
+    void CoroutineActor::update()
     {
         if (p_impl && p_impl->isAlive())
         {

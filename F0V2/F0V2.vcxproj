@@ -150,7 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="TY_Addon\AwaiterContext.cpp" />
-    <ClCompile Include="TY_Addon\CoroActor.cpp" />
+    <ClCompile Include="TY_Addon\CoroutineActor.cpp" />
     <ClCompile Include="TY_Addon\GameTime.cpp" />
     <Content Include="asset\shader\simple_compute.hlsl" />
     <ClCompile Include="Combat\CombatScene.cpp" />
@@ -200,7 +200,7 @@
     <ClInclude Include="Demo\Demo_Phong.h" />
     <ClInclude Include="Demo\Demo_PointLight.h" />
     <ClInclude Include="TY_Addon\AwaiterContext.h" />
-    <ClInclude Include="TY_Addon\CoroActor.h" />
+    <ClInclude Include="TY_Addon\CoroutineActor.h" />
     <ClInclude Include="TY_Addon\GameTime.h" />
   </ItemGroup>
   <ItemGroup>
