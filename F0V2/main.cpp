@@ -1,11 +1,14 @@
 #include "pch.h"
 
+#include "LivePPAddon.h"
 #include "Combat/CombatScene.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 
 void Main()
 {
+    Util::InitLivePPAddon();
+
 #if 0
     Demo_PointLight();
 #else

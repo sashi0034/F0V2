@@ -99,10 +99,6 @@ void Title_Phong()
 
     while (System::Update())
     {
-#ifdef _DEBUG
-        Util::AdvanceLivePP();
-#endif
-
         impl.Update();
     }
 }

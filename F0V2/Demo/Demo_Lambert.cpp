@@ -92,10 +92,6 @@ void Demo_Lambert()
 
     while (System::Update())
     {
-#ifdef _DEBUG
-        Util::AdvanceLivePP();
-#endif
-
         impl.Update();
     }
 }

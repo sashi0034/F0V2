@@ -352,10 +352,6 @@ void Demo_PointLight()
 
     while (System::Update())
     {
-#ifdef _DEBUG
-        Util::AdvanceLivePP();
-#endif
-
         impl.Update();
     }
 }

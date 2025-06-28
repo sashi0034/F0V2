@@ -161,6 +161,7 @@
     <ClInclude Include="TY\ActorContainer.h" />
     <ClInclude Include="TY\ActorHandle.h" />
     <ClInclude Include="TY\ActorLifetimeScope.h" />
+    <ClInclude Include="TY\Addon.h" />
     <ClInclude Include="TY\Array.h" />
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\Buffer3D.h" />
@@ -170,6 +171,7 @@
     <ClInclude Include="TY\DynamicTexture.h" />
     <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\GpgpuBuffer.h" />
+    <ClInclude Include="TY\IAddon.h" />
     <ClInclude Include="TY\ImageView.h" />
     <ClInclude Include="TY\InlineComponent.h" />
     <ClInclude Include="TY\Integer2D.h" />
@@ -280,6 +282,7 @@
     <ClCompile Include="TY\ActorContainer.cpp" />
     <ClCompile Include="TY\ActorHandle.cpp" />
     <ClCompile Include="TY\ActorLifetimeScope.cpp" />
+    <ClCompile Include="TY\Addon.cpp" />
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />

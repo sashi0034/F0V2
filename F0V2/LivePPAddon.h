@@ -3,7 +3,7 @@
 #ifdef _DEBUG
 namespace Util
 {
-    void AdvanceLivePP();
+    void InitLivePPAddon();
 
     bool IsLivePPHotReloaded();
 }

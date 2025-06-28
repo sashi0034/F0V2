@@ -31,6 +31,8 @@ struct EngineCoreImpl
 
     Array<std::shared_ptr<IEngineDrawer>> m_drawersInFrame{};
 
+    Array<AddonObject> m_addons{};
+
     void Init()
     {
         EngineTimer::Init();
@@ -75,6 +77,18 @@ struct EngineCoreImpl
                 updatablePtr->Update();
             }
         }
+
+        for (auto addon = m_addons.begin(); addon != m_addons.end();)
+        {
+            if (not addon->addon->update())
+            {
+                addon = m_addons.erase(addon);
+            }
+            else
+            {
+                ++addon;
+            }
+        }
     }
 
     void EndFrame()
@@ -84,6 +98,11 @@ struct EngineCoreImpl
         EngineRenderContext::Render();
 
         m_drawersInFrame.clear();
+
+        for (auto& addon : m_addons)
+        {
+            addon.addon->postPresent();
+        }
 
         m_inFrame = false;
     }
@@ -143,6 +162,16 @@ namespace TY
     void EngineCore::ObserveUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable)
     {
         s_core.m_updatableList.push_back(updatable);
+    }
+
+    void EngineCore::ObserveAddon(AddonObject addon)
+    {
+        s_core.m_addons.push_back(std::move(addon));
+    }
+
+    const Array<AddonObject>& EngineCore::AddonList()
+    {
+        return s_core.m_addons;
     }
 
     void EngineCore::MarkDrawerInFrame(const std::shared_ptr<IEngineDrawer>& updatable)

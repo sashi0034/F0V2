@@ -5,18 +5,20 @@
 
 // include the API for Windows, 64-bit, C++
 #include "../LivePP/API/x64/LPP_API_x64_CPP.h"
+#include "TY/Addon.h"
+
+using namespace TY;
 
 namespace
 {
     bool s_hotReloaded{};
 
-    struct LivePPAddon
+    struct LivePPAddon : IAddon
     {
-        bool m_firstFrame{true};
         bool m_initialized{};
         lpp::LppSynchronizedAgent m_lppAgent;
 
-        bool init()
+        bool init() override
         {
             // create a synchronized agent, loading the Live++ agent from the given path, e.g. "ThirdParty/LivePP""
             m_lppAgent = lpp::LppCreateSynchronizedAgent(nullptr, L"../LivePP");
@@ -36,16 +38,9 @@ namespace
             return true;
         }
 
-        void update()
+        void postPresent() override
         {
-            if (m_firstFrame)
-            {
-                m_firstFrame = false;
-                init();
-            }
-
             if (not m_initialized) return;
-            // -----------------------------------------------
 
             s_hotReloaded = false;
 
@@ -79,9 +74,9 @@ namespace
 
 namespace Util
 {
-    void AdvanceLivePP()
+    void InitLivePPAddon()
     {
-        s_livePP.update();
+        Addon::Register<LivePPAddon>("LivePPAddon");
     }
 
     bool IsLivePPHotReloaded()
