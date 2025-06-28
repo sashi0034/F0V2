@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "GameTime.h"
 
+#include "detail/EngineComponent.h"
 #include "TY/Addon.h"
 #include "TY/IAddon.h"
 #include "TY/System.h"
@@ -18,7 +19,7 @@ namespace
 
     std::array<TimeState, GameTimeCategories_3> s_timeStates{};
 
-    struct GameTimeAddon : IAddon
+    struct GameTimeComponent : IComponent
     {
         bool init() override
         {
@@ -110,9 +111,9 @@ namespace TY
 
     namespace detail
     {
-        void InitGameTimeAddon()
+        void InitGameTimeComponent()
         {
-            Addon::Register<GameTimeAddon>("GameTimeAddon");
+            EngineComponent::Register<GameTimeComponent>("GameTimeAddon");
         }
     }
 }

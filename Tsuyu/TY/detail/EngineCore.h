@@ -7,10 +7,10 @@
 
 namespace TY::detail
 {
-    struct AddonObject
+    struct ComponentObject
     {
         std::string_view name;
-        std::unique_ptr<IAddon> addon;
+        std::unique_ptr<IComponent> addon;
     };
 
     namespace EngineCore
@@ -27,9 +27,9 @@ namespace TY::detail
 
         void ObserveUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable);
 
-        void ObserveAddon(AddonObject addon);
+        void ObserveComponent(ComponentObject addon);
 
-        const Array<AddonObject>& AddonList();
+        const Array<ComponentObject>& ComponentList();
 
         void MarkDrawerInFrame(const std::shared_ptr<IEngineDrawer>& updatable);
     };

@@ -22,15 +22,15 @@ using namespace std::string_view_literals;
 
 namespace TY::detail
 {
-    // predefined addons
-    void InitGameTimeAddon();
+    // predefined components
+    void InitGameTimeComponent();
 }
 
 namespace
 {
-    void initPredefinedAddons()
+    void initPredefinedComponents()
     {
-        InitGameTimeAddon();
+        InitGameTimeComponent();
     }
 }
 
@@ -42,7 +42,7 @@ struct EngineCoreImpl
 
     Array<std::shared_ptr<IEngineDrawer>> m_drawersInFrame{};
 
-    Array<AddonObject> m_addons{};
+    Array<ComponentObject> m_components{};
 
     void Init()
     {
@@ -60,7 +60,7 @@ struct EngineCoreImpl
 
         EngineImGui::Init();
 
-        initPredefinedAddons();
+        initPredefinedComponents();
     }
 
     void BeginFrame()
@@ -91,11 +91,11 @@ struct EngineCoreImpl
             }
         }
 
-        for (auto addon = m_addons.begin(); addon != m_addons.end();)
+        for (auto addon = m_components.begin(); addon != m_components.end();)
         {
             if (not addon->addon->update())
             {
-                addon = m_addons.erase(addon);
+                addon = m_components.erase(addon);
             }
             else
             {
@@ -112,7 +112,7 @@ struct EngineCoreImpl
 
         m_drawersInFrame.clear();
 
-        for (auto& addon : m_addons)
+        for (auto& addon : m_components)
         {
             addon.addon->postPresent();
         }
@@ -126,7 +126,7 @@ struct EngineCoreImpl
 
         m_drawersInFrame.clear();
 
-        m_addons.clear();
+        m_components.clear();
 
         EngineStateContext::Shutdown();
 
@@ -183,14 +183,14 @@ namespace TY
         s_core.m_updatableList.push_back(updatable);
     }
 
-    void EngineCore::ObserveAddon(AddonObject addon)
+    void EngineCore::ObserveComponent(ComponentObject addon)
     {
-        s_core.m_addons.push_back(std::move(addon));
+        s_core.m_components.push_back(std::move(addon));
     }
 
-    const Array<AddonObject>& EngineCore::AddonList()
+    const Array<ComponentObject>& EngineCore::ComponentList()
     {
-        return s_core.m_addons;
+        return s_core.m_components;
     }
 
     void EngineCore::MarkDrawerInFrame(const std::shared_ptr<IEngineDrawer>& updatable)

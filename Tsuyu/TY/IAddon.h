@@ -1,16 +1,9 @@
 #pragma once
+#include "IComponent.h"
 
 namespace TY
 {
-    class IAddon
+    class IAddon : public IComponent
     {
-    public:
-        virtual ~IAddon() = default;
-
-        virtual bool init() { return true; }
-
-        virtual bool update() { return true; }
-
-        virtual void postPresent() { return; }
     };
 }

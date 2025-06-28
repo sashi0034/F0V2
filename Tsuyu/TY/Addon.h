@@ -7,7 +7,7 @@ namespace TY
     {
         namespace detail
         {
-            void OnAlreadyRegistered(std::string_view name);
+            void HandleAlreadyRegistered(std::string_view name);
 
             bool InitializeAndRegister(std::string_view name, std::unique_ptr<IAddon> addon);
         }
@@ -19,7 +19,7 @@ namespace TY
         {
             if (IsRegistered(name))
             {
-                detail::OnAlreadyRegistered(name);
+                detail::HandleAlreadyRegistered(name);
                 return false;
             }
 
