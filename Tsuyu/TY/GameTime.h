@@ -10,8 +10,8 @@ namespace TY
         /// @brief インゲーム用の時間
         InGame,
 
-        /// @brief やむを得ず必要な場合に用いる実時間
-        Realtime,
+        /// @brief システムと同じ実時間
+        Real,
     };
 
     constexpr int GameTimeCategories_3 = 3;
@@ -23,7 +23,7 @@ namespace TY
     double InGameDeltaTime();
 
     [[nodiscard]]
-    double RealtimeDeltaTime();
+    double RealDeltaTime();
 
     [[nodiscard]]
     double StandardElapsedTime();
@@ -32,7 +32,7 @@ namespace TY
     double InGameElapsedTime();
 
     [[nodiscard]]
-    double RealtimeElapsedTime();
+    double RealElapsedTime();
 
     [[nodiscard]]
     double GetDeltaTime(GameTime gameTime);
@@ -51,6 +51,4 @@ namespace TY
     double GetTimeScale(GameTime gameTime);
 
     void ResetTimeScale();
-
-    void InitGameTimeAddon();
 }

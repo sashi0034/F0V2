@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "CoroutineActor.h"
-#include "GameTime.h"
+#include "TY/GameTime.h"
 #include "TY/Array.h"
 #include "TY/Duration.h"
 #include "TY/Uncopyable.h"

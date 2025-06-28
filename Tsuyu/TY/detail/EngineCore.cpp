@@ -15,12 +15,23 @@
 #include "TY/Array.h"
 #include "TY/Logger.h"
 
+using namespace TY;
+using namespace TY::detail;
+
+using namespace std::string_view_literals;
+
+namespace TY::detail
+{
+    // predefined addons
+    void InitGameTimeAddon();
+}
+
 namespace
 {
-    using namespace TY;
-    using namespace TY::detail;
-
-    using namespace std::string_view_literals;
+    void initPredefinedAddons()
+    {
+        InitGameTimeAddon();
+    }
 }
 
 struct EngineCoreImpl
@@ -48,6 +59,8 @@ struct EngineCoreImpl
         EngineGamepad::Init();
 
         EngineImGui::Init();
+
+        initPredefinedAddons();
     }
 
     void BeginFrame()
@@ -109,6 +122,12 @@ struct EngineCoreImpl
 
     void Shutdown()
     {
+        m_updatableList.clear();
+
+        m_drawersInFrame.clear();
+
+        m_addons.clear();
+
         EngineStateContext::Shutdown();
 
         EngineCacheContext::Shutdown();

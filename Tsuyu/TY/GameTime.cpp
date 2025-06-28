@@ -5,6 +5,8 @@
 #include "TY/IAddon.h"
 #include "TY/System.h"
 
+using namespace TY;
+
 namespace
 {
     struct TimeState
@@ -48,9 +50,9 @@ namespace TY
         return s_timeStates[static_cast<int>(GameTime::InGame)].deltaTime;
     }
 
-    double RealtimeDeltaTime()
+    double RealDeltaTime()
     {
-        return s_timeStates[static_cast<int>(GameTime::Realtime)].deltaTime;
+        return s_timeStates[static_cast<int>(GameTime::Real)].deltaTime;
     }
 
     double StandardElapsedTime()
@@ -63,9 +65,9 @@ namespace TY
         return s_timeStates[static_cast<int>(GameTime::InGame)].elapsedTime;
     }
 
-    double RealtimeElapsedTime()
+    double RealElapsedTime()
     {
-        return s_timeStates[static_cast<int>(GameTime::Realtime)].elapsedTime;
+        return s_timeStates[static_cast<int>(GameTime::Real)].elapsedTime;
     }
 
     double GetDeltaTime(GameTime gameTime)
@@ -106,8 +108,11 @@ namespace TY
         }
     }
 
-    void InitGameTimeAddon()
+    namespace detail
     {
-        Addon::Register<GameTimeAddon>("GameTimeAddon");
+        void InitGameTimeAddon()
+        {
+            Addon::Register<GameTimeAddon>("GameTimeAddon");
+        }
     }
 }
