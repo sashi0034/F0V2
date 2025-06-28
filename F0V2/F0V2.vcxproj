@@ -149,9 +149,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="TY_Addon\AwaiterContext.cpp" />
-    <ClCompile Include="TY_Addon\CoroutineActor.cpp" />
-    <ClCompile Include="TY_Addon\GameTime.cpp" />
+    <ClCompile Include="TY_Extension\AwaiterContext.cpp" />
+    <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
+    <ClCompile Include="TY_Extension\GameTime.cpp" />
     <Content Include="asset\shader\simple_compute.hlsl" />
     <ClCompile Include="Combat\CombatScene.cpp" />
     <ClCompile Include="Demo\Demo_Gpgpu.cpp" />
@@ -199,9 +199,9 @@
     <ClInclude Include="Demo\Demo_RenderTarget.h" />
     <ClInclude Include="Demo\Demo_Phong.h" />
     <ClInclude Include="Demo\Demo_PointLight.h" />
-    <ClInclude Include="TY_Addon\AwaiterContext.h" />
-    <ClInclude Include="TY_Addon\CoroutineActor.h" />
-    <ClInclude Include="TY_Addon\GameTime.h" />
+    <ClInclude Include="TY_Extension\AwaiterContext.h" />
+    <ClInclude Include="TY_Extension\CoroutineActor.h" />
+    <ClInclude Include="TY_Extension\GameTime.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">

@@ -3,8 +3,8 @@
 
 #include "TY/ActorContainer.h"
 #include "TY/Logger.h"
-#include "TY_Addon/AwaiterContext.h"
-#include "TY_Addon/CoroutineActor.h"
+#include "TY_Extension/AwaiterContext.h"
+#include "TY_Extension/CoroutineActor.h"
 
 using namespace Combat;
 
