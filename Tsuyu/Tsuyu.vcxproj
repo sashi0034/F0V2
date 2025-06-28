@@ -168,6 +168,7 @@
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\EngineCacheContext.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
+    <ClInclude Include="TY\Duration.h" />
     <ClInclude Include="TY\DynamicTexture.h" />
     <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\GpgpuBuffer.h" />

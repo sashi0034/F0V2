@@ -37,10 +37,10 @@ namespace TY
         yield();
     }
 
-    // void AwaiterContext::WaitForTime(Duration seconds, const std::function<double()>& deltaTime)
-    // {
-    //     WaitForTime(seconds.count(), deltaTime);
-    // }
+    void AwaiterContext::WaitForTime(Duration seconds, const std::function<double()>& deltaTime)
+    {
+        WaitForTime(seconds.count(), deltaTime);
+    }
 
     void AwaiterContext::WaitForever()
     {

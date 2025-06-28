@@ -3,6 +3,7 @@
 #include "CoroutineActor.h"
 #include "GameTime.h"
 #include "TY/Array.h"
+#include "TY/Duration.h"
 #include "TY/Uncopyable.h"
 
 namespace TY
@@ -19,7 +20,7 @@ namespace TY
         /// @brief 指定時間待機する
         void WaitForTime(double seconds, std::function<double()> deltaTime = InGameDeltaTime);
 
-        // void WaitForTime(Duration seconds, const std::function<double()>& deltaTime = InGameDeltaTime);
+        void WaitForTime(Duration seconds, const std::function<double()>& deltaTime = InGameDeltaTime);
 
         void WaitForever();
 
