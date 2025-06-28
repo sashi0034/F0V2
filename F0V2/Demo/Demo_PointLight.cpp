@@ -3,7 +3,6 @@
 #include "imgui/imgui.h"
 #include "Demo_PointLight.h"
 
-#include "LivePPAddon.h"
 #include "TY/ConstantBuffer.h"
 #include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"

@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "Demo_Gpgpu.h"
 
-#include "LivePPAddon.h"
 #include "TY/Gpgpu.h"
 #include "TY/Logger.h"
 #include "TY/System.h"

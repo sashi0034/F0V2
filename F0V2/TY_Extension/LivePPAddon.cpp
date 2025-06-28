@@ -72,7 +72,7 @@ namespace
     } s_livePP{};
 }
 
-namespace Util
+namespace TY
 {
     void InitLivePPAddon()
     {

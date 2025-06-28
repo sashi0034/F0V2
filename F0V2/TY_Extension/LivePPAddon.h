@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #ifdef _DEBUG
-namespace Util
+namespace TY
 {
     void InitLivePPAddon();
 

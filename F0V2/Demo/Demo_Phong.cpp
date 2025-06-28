@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "Demo_Phong.h"
 
-#include "LivePPAddon.h"
 #include "TY/Graphics3D.h"
 #include "TY/Mat4x4.h"
 
