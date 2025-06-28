@@ -4,9 +4,11 @@
 #include "Combat/CombatScene.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
+#include "TY_Extension/GameTime.h"
 
 void Main()
 {
+    InitGameTimeAddon();
     InitLivePPAddon();
 
 #if 0

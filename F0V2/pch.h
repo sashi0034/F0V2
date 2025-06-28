@@ -78,3 +78,9 @@
 using namespace std::string_view_literals;
 
 using Microsoft::WRL::ComPtr;
+
+namespace TY
+{
+}
+
+using namespace TY;

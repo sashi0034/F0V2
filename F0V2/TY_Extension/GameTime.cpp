@@ -1,6 +1,10 @@
 ﻿#include "pch.h"
 #include "GameTime.h"
 
+#include "TY/Addon.h"
+#include "TY/IAddon.h"
+#include "TY/System.h"
+
 namespace
 {
     struct TimeState
@@ -10,26 +14,26 @@ namespace
         double timeScale = 1.0;
     };
 
-    std::array<TimeState, TY::GameTimeCategories_3> s_timeStates{};
+    std::array<TimeState, GameTimeCategories_3> s_timeStates{};
 
-    // struct GameTimeAddon : IAddon
-    // {
-    //     bool init() override
-    //     {
-    //         return true;
-    //     }
-    //
-    //     bool update() override
-    //     {
-    //         for (auto& state : s_timeStates)
-    //         {
-    //             state.deltaTime = state.timeScale * Scene::DeltaTime();
-    //             state.elapsedTime += state.deltaTime;
-    //         }
-    //
-    //         return true;
-    //     }
-    // };
+    struct GameTimeAddon : IAddon
+    {
+        bool init() override
+        {
+            return true;
+        }
+
+        bool update() override
+        {
+            for (auto& state : s_timeStates)
+            {
+                state.deltaTime = state.timeScale * System::DeltaTime();
+                state.elapsedTime += state.deltaTime;
+            }
+
+            return true;
+        }
+    };
 }
 
 namespace TY
@@ -104,6 +108,6 @@ namespace TY
 
     void InitGameTimeAddon()
     {
-        // TODO
+        Addon::Register<GameTimeAddon>("GameTimeAddon");
     }
 }
