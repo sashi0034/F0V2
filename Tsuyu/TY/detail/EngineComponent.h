@@ -1,15 +1,30 @@
 ﻿#pragma once
+#include "TY/Array.h"
 #include "TY/IComponent.h"
 
 namespace TY::detail
 {
+    struct ComponentObject
+    {
+        std::string_view name;
+        std::unique_ptr<IComponent> addon;
+    };
+
     namespace EngineComponent
     {
+        void Update();
+
+        void PostPresent();
+
+        void Shutdown();
+
         bool IsRegistered(std::string_view name);
 
         void HandleAlreadyRegistered(std::string_view name);
 
-        bool InitializeAndRegister(std::string_view name, std::unique_ptr<IComponent> component);
+        bool RegisterInternal(std::string_view name, std::unique_ptr<IComponent> component);
+
+        const Array<ComponentObject>& ComponentList();
 
         template <class AddonType> requires std::derived_from<AddonType, IComponent>
         bool Register(std::string_view name)
@@ -20,7 +35,7 @@ namespace TY::detail
                 return false;
             }
 
-            return InitializeAndRegister(name, std::make_unique<AddonType>());
+            return RegisterInternal(name, std::make_unique<AddonType>());
         }
     }
 }

@@ -16,7 +16,7 @@ namespace TY
 
     bool Addon::detail::InitializeAndRegister(std::string_view name, std::unique_ptr<IAddon> addon)
     {
-        return EngineComponent::InitializeAndRegister(name, std::move(addon));
+        return EngineComponent::RegisterInternal(name, std::move(addon));
     }
 
     bool Addon::IsRegistered(std::string_view name)

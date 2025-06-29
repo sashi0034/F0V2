@@ -2,6 +2,7 @@
 #include "EngineCore.h"
 
 #include "EngineCacheContext.h"
+#include "EngineComponent.h"
 #include "EngineGamepad.h"
 #include "EngineHotReloader.h"
 #include "EngineImGUI.h"
@@ -41,8 +42,6 @@ struct EngineCoreImpl
     Array<std::weak_ptr<IEngineUpdatable>> m_updatableList{};
 
     Array<std::shared_ptr<IEngineDrawer>> m_drawersInFrame{};
-
-    Array<ComponentObject> m_components{};
 
     void Init()
     {
@@ -91,17 +90,7 @@ struct EngineCoreImpl
             }
         }
 
-        for (auto addon = m_components.begin(); addon != m_components.end();)
-        {
-            if (not addon->addon->update())
-            {
-                addon = m_components.erase(addon);
-            }
-            else
-            {
-                ++addon;
-            }
-        }
+        EngineComponent::Update();
     }
 
     void EndFrame()
@@ -112,10 +101,7 @@ struct EngineCoreImpl
 
         m_drawersInFrame.clear();
 
-        for (auto& addon : m_components)
-        {
-            addon.addon->postPresent();
-        }
+        EngineComponent::PostPresent();
 
         m_inFrame = false;
     }
@@ -125,8 +111,6 @@ struct EngineCoreImpl
         m_updatableList.clear();
 
         m_drawersInFrame.clear();
-
-        m_components.clear();
 
         EngineStateContext::Shutdown();
 
@@ -143,6 +127,10 @@ struct EngineCoreImpl
         EngineGamepad::Shutdown();
 
         EngineImGui::Shutdown();
+
+        EngineComponent::Shutdown();
+
+        // FIXME: 順序関係?
     }
 };
 
@@ -181,16 +169,6 @@ namespace TY
     void EngineCore::ObserveUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable)
     {
         s_core.m_updatableList.push_back(updatable);
-    }
-
-    void EngineCore::ObserveComponent(ComponentObject addon)
-    {
-        s_core.m_components.push_back(std::move(addon));
-    }
-
-    const Array<ComponentObject>& EngineCore::ComponentList()
-    {
-        return s_core.m_components;
     }
 
     void EngineCore::MarkDrawerInFrame(const std::shared_ptr<IEngineDrawer>& updatable)
