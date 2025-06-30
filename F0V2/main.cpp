@@ -2,6 +2,7 @@
 
 #include "TY_Extension/LivePPAddon.h"
 #include "Combat/CombatScene.h"
+#include "Demo/Demo_Gpgpu.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 
@@ -9,8 +10,8 @@ void Main()
 {
     InitLivePPAddon();
 
-#if 0
-    Demo_PointLight();
+#if 1
+    Demo_Gpgpu();
 #else
     using namespace TY;
 

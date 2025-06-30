@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "EngineCore.h"
 
-#include "EngineCacheContext.h"
 #include "EngineComponent.h"
 #include "EngineGamepad.h"
 #include "EngineHotReloader.h"
@@ -25,6 +24,8 @@ namespace TY::detail
 {
     // predefined components
     void InitGameTimeComponent();
+
+    void InitGpgpuCacheComponent();
 }
 
 namespace
@@ -32,6 +33,8 @@ namespace
     void initPredefinedComponents()
     {
         InitGameTimeComponent();
+
+        InitGpgpuCacheComponent();
     }
 }
 
@@ -72,8 +75,6 @@ struct EngineCoreImpl
 
         EngineTimer::Update();
 
-        EngineCacheContext::Update();
-
         EngineWindow::Update();
 
         EngineGamepad::Update();
@@ -113,8 +114,6 @@ struct EngineCoreImpl
         m_drawersInFrame.clear();
 
         EngineStateContext::Shutdown();
-
-        EngineCacheContext::Shutdown();
 
         EngineWindow::Shutdown();
 

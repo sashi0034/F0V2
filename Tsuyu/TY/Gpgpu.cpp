@@ -2,10 +2,11 @@
 #include "Gpgpu.h"
 
 #include "ConstantBuffer.h"
+#include "IComponent.h"
 #include "Logger.h"
 #include "detail/ComputePipelineState.h"
 #include "detail/DescriptorHeap.h"
-#include "detail/EngineCacheContext.h"
+#include "detail/EngineComponent.h"
 #include "detail/EngineRenderContext.h"
 
 using namespace TY;
@@ -70,6 +71,124 @@ namespace
 
         return threadGroup;
     }
+
+    struct StructuredBufferUploaderCache
+    {
+        std::weak_ptr<IGpgpuBuffer> lifetime;
+        StructuredBufferUploader structuredBuffer;
+    };
+
+    struct StructuredBufferTransferCache
+    {
+        std::weak_ptr<IGpgpuBuffer> lifetime;
+        StructuredBufferTransfer structuredBuffer;
+    };
+
+    struct GpgpuCacheComponent;
+
+    GpgpuCacheComponent* s_cache{};
+
+    GpgpuCacheComponent& getCache()
+    {
+        assert(s_cache);
+        return *s_cache;
+    }
+
+    struct GpgpuCacheComponent : IComponent
+    {
+        bool init() override
+        {
+            if (s_cache)
+            {
+                assert(false);
+                return false;
+            }
+
+            s_cache = this;
+            return true;
+        }
+
+        ~GpgpuCacheComponent()
+        {
+            if (s_cache == this)
+            {
+                s_cache = nullptr;
+            }
+        }
+
+        bool update() override
+        {
+            cleanUp(m_structuredBufferUploaderCache);
+            cleanUp(m_structuredBufferTransferCache);
+            return true;
+        }
+
+        StructuredBufferUploader FetchStructuredBufferUploader(
+            const std::shared_ptr<IGpgpuBuffer>& key)
+        {
+            if (not key)
+            {
+                return {};
+            }
+
+            auto& cache = m_structuredBufferUploaderCache;
+            if (const auto it = cache.find(key.get()); it != cache.end())
+            {
+                return it->second.structuredBuffer;
+            }
+
+            const auto& cache2 = m_structuredBufferTransferCache;
+            if (const auto it2 = cache2.find(key.get()); it2 != cache2.end())
+            {
+                return it2->second.structuredBuffer;
+            }
+
+            StructuredBufferUploader uploader{StructuredBufferTransferParams::From(key)};
+            cache[key.get()] = {key, uploader};
+            return uploader;
+        }
+
+        StructuredBufferTransfer FetchStructuredBufferTransfer(
+            const std::shared_ptr<IGpgpuBuffer>& key)
+        {
+            if (not key)
+            {
+                return {};
+            }
+
+            auto& cache = m_structuredBufferTransferCache;
+
+            if (const auto it = cache.find(key.get()); it != cache.end())
+            {
+                return it->second.structuredBuffer;
+            }
+
+            StructuredBufferTransfer transfer{StructuredBufferTransferParams::From(key)};
+            cache[key.get()] = {key, transfer};
+            return transfer;
+        }
+
+    private:
+        std::unordered_map<IGpgpuBuffer*, StructuredBufferUploaderCache> m_structuredBufferUploaderCache{};
+
+        std::unordered_map<IGpgpuBuffer*, StructuredBufferTransferCache> m_structuredBufferTransferCache{};
+
+        template <typename Container>
+        void cleanUp(Container& cache)
+        {
+            for (auto it = cache.begin(); it != cache.end();)
+            {
+                if (it->second.lifetime.expired())
+                {
+                    it = cache.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
+    };
 }
 
 struct Gpgpu::Impl
@@ -123,7 +242,7 @@ struct Gpgpu::Impl
         {
             if (access(m_params.readonlyBuffer[i]).getElementCount() > 0)
             {
-                m_sr[i] = EngineCacheContext::FetchStructuredBufferUploader(m_params.readonlyBuffer[i]);
+                m_sr[i] = getCache().FetchStructuredBufferUploader(m_params.readonlyBuffer[i]);
             }
         }
 
@@ -132,7 +251,7 @@ struct Gpgpu::Impl
         {
             if (access(m_params.writableBuffer[i]).getElementCount() > 0)
             {
-                m_ua[i] = EngineCacheContext::FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
+                m_ua[i] = getCache().FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
             }
         }
 
@@ -333,7 +452,7 @@ private:
         {
             if (m_sr[i].elementCount() != access(m_params.readonlyBuffer[i]).getElementCount())
             {
-                m_sr[i] = EngineCacheContext::FetchStructuredBufferTransfer(m_params.readonlyBuffer[i]);
+                m_sr[i] = getCache().FetchStructuredBufferTransfer(m_params.readonlyBuffer[i]);
                 m_descriptorHeap.resetSRV(m_sr[i], 0, i);
 
                 resized = true;
@@ -344,7 +463,7 @@ private:
         {
             if (m_ua[i].elementCount() != access(m_params.writableBuffer[i]).getElementCount())
             {
-                m_ua[i] = EngineCacheContext::FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
+                m_ua[i] = getCache().FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
                 m_descriptorHeap.resetUAV(m_ua[i], 0, i);
 
                 resized = true;
@@ -380,5 +499,13 @@ namespace TY
             list.filter([](const Gpgpu& gpgpu) -> bool { return gpgpu.p_impl != nullptr; })
                 .map([](const Gpgpu& gpgpu) { return gpgpu.p_impl; })
         );
+    }
+
+    namespace detail
+    {
+        void InitGpgpuCacheComponent()
+        {
+            EngineComponent::Register<GpgpuCacheComponent>("GpgpuCacheComponent");
+        }
     }
 }

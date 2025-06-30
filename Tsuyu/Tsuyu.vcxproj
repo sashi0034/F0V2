@@ -166,7 +166,6 @@
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\Color.h" />
-    <ClInclude Include="TY\detail\EngineCacheContext.h" />
     <ClInclude Include="TY\detail\EngineComponent.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Duration.h" />
@@ -290,7 +289,6 @@
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
-    <ClCompile Include="TY\detail\EngineCacheContext.cpp" />
     <ClCompile Include="TY\detail\EngineComponent.cpp" />
     <ClCompile Include="TY\DynamicTexture.cpp" />
     <ClCompile Include="TY\GameTime.cpp" />
