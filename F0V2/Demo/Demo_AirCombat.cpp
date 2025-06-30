@@ -153,16 +153,11 @@ struct Demo_AirCombat_impl
 
     void Update()
     {
-        if (not KeyShift.pressed())
-        {
-            updateCamera();
-        }
-        else
-        {
-            m_fighterPose.position += SimpleInput::GetPlayerMovement3D() * 10.0f * System::DeltaTime();
-        }
+        updateCamera();
 
-        m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
+        m_fighterPose.position += SimpleInput::GetPlayerMovement3D() * 10.0f * System::DeltaTime();
+
+        // m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
 
         m_directionLight->lightDirection = m_camera.matrix().forward().normalized();
         m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
@@ -244,77 +239,6 @@ struct Demo_AirCombat_impl
 
             ImGui::End();
         }
-
-        {
-            ImGui::Begin("Gamepad Info");
-            const auto& state = MainGamepad.rawState();
-
-            ImGui::Text("Buttons:");
-            ImGui::BeginGroup();
-            for (size_t i = 0; i < state.buttons.size(); ++i)
-            {
-                if (state.buttons[i].pressed)
-                {
-                    ImGui::SameLine();
-                    ImGui::Text("[%zu]", i);
-                }
-            }
-
-            ImGui::EndGroup();
-
-            ImGui::Text("POV:");
-            ImGui::BeginGroup();
-            if (state.povUp.pressed)
-            {
-                ImGui::SameLine();
-                ImGui::Text("Up");
-            }
-
-            if (state.povDown.pressed)
-            {
-                ImGui::SameLine();
-                ImGui::Text("Down");
-            }
-
-            if (state.povLeft.pressed)
-            {
-                ImGui::SameLine();
-                ImGui::Text("Left");
-            }
-
-            if (state.povRight.pressed)
-            {
-                ImGui::SameLine();
-                ImGui::Text("Right");
-            }
-
-            ImGui::EndGroup();
-
-            ImGui::Text("Axes:");
-            ImGui::BeginGroup();
-            for (size_t i = 0; i < state.axes.size(); ++i)
-            {
-                if (state.axes[i] != 0.0f)
-                {
-                    ImGui::SameLine();
-                    ImGui::Text("[%d: %.2f]", i, state.axes[i]);
-                }
-            }
-
-            ImGui::EndGroup();
-
-            ImGui::End();
-        }
-
-        {
-            ImGui::Begin("Mouse Info");
-
-            ImGui::Text("Position: (%.2f, %.2f)",
-                        Mouse::PosF().x,
-                        Mouse::PosF().y);
-
-            ImGui::End();
-        }
     }
 
     void resetCamera()
@@ -324,12 +248,10 @@ struct Demo_AirCombat_impl
 
     void updateCamera()
     {
-        if (KeyR.down())
-        {
-            resetCamera();
-        }
-
-        m_camera.update();
+        const auto cameraTarget = m_fighterPose.position;
+        const auto playerForward = m_fighterPose.getMatrix().forward();
+        const auto cameraEye = cameraTarget - playerForward * 10.0f + Float3{0, -0.5f, 0};
+        m_camera.setEyeAndTarget(cameraEye, cameraTarget);
         Graphics3D::SetViewMatrix(m_camera.matrix());
 
         m_projectionMat = Mat4x4::PerspectiveFov(

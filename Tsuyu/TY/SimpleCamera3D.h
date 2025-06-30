@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Mat4x4.h"
 #include "System.h"
+#include "Vector2D.h"
 
 namespace TY
 {
@@ -11,9 +12,13 @@ namespace TY
 
         void reset();
 
-        void reset(Float3 eyePosition, Float3 targetPosition = {}, Float3 upDirection = {0, 1, 0});
+        void reset(const Float3& eyePosition, const Float3& targetPosition = {}, Float3 upDirection = {0, 1, 0});
 
-        void update(float dt = System::DeltaTime());
+        void setEyeAndTarget(const Float3& eyePosition, const Float3& targetPosition);
+
+        void transform(float dt, const Float3& moveVector, const Float2& rotateVector);
+
+        void transformBySimpleInput(float dt = System::DeltaTime(), float moveSpeed = 10.0f, float rotateSpeed = 50.0f);
 
         Float3 eyePosition() const;
 

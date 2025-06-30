@@ -6,6 +6,22 @@
 
 namespace TY
 {
+    Float2 SimpleInput::GetPlayerMovement2D()
+    {
+        Float2 v{};
+        v.x = (KeyD.pressed() ? 1.0f : 0.0f) - (KeyA.pressed() ? 1.0f : 0.0f);
+        v.y = (KeyS.pressed() ? 1.0f : 0.0f) - (KeyW.pressed() ? 1.0f : 0.0f);
+
+        if (v.isZero())
+        {
+            const auto axisL = MainGamepad.axisL();
+            v.x += axisL.x;
+            v.y += axisL.y;
+        }
+
+        return v;
+    }
+
     Float3 SimpleInput::GetPlayerMovement3D()
     {
         Float3 v{};

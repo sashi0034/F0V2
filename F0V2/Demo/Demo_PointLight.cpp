@@ -329,7 +329,7 @@ struct Demo_PointLight_impl
             resetCamera();
         }
 
-        m_camera.update();
+        m_camera.transformBySimpleInput();
         Graphics3D::SetViewMatrix(m_camera.matrix());
 
         m_projectionMat = Mat4x4::PerspectiveFov(

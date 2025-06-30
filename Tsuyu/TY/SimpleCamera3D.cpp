@@ -21,6 +21,12 @@ struct SimpleCamera3D::Impl
     double m_targetY{};
     Float3 m_upDirection{0, 1, 0};
 
+    void SetTargetPosition(Float3 targetPosition)
+    {
+        m_targetY = targetPosition.y;
+        m_yaw = std::atan2(targetPosition.x - m_eyePosition.x, targetPosition.z - m_eyePosition.z);
+    }
+
     Float3 TargetPosition() const
     {
         return Float3{m_eyePosition.x + std::sin(m_yaw), m_targetY, m_eyePosition.z + std::cos(m_yaw)};
@@ -31,26 +37,20 @@ struct SimpleCamera3D::Impl
         m_cameraMatrix = Mat4x4::LookAt(m_eyePosition, TargetPosition(), m_upDirection);
     }
 
-    void Update(float dt)
+    void TransformAndApply(float dt, const Float3& moveVector, const Float2& rotateVector)
     {
-        const Float3 moveVector = SimpleInput::GetPlayerMovement3D();
-        const Float2 rotateVector = SimpleInput::GetCameraRotation();
-
-        constexpr double moveSpeed = 10.0f;
-        constexpr double rotationSpeed = 50.0f;
-
         if (not moveVector.isZero())
         {
             const auto forward = -m_cameraMatrix.forward(); // FIXME?
-            const auto df = forward * moveVector.z * moveSpeed * dt;
+            const auto df = forward * moveVector.z * dt;
             m_eyePosition += df;
 
             const auto right = m_cameraMatrix.right();
-            const auto dr = right * moveVector.x * moveSpeed * dt;
+            const auto dr = right * moveVector.x * dt;
             m_eyePosition += dr;
 
             const auto up = m_cameraMatrix.up();
-            const auto du = up * moveVector.y * moveSpeed * dt;
+            const auto du = up * moveVector.y * dt;
             m_eyePosition += du;
 
             m_targetY += (df + dr + du).y; // Adjust targetY based on movement
@@ -58,11 +58,11 @@ struct SimpleCamera3D::Impl
 
         if (not rotateVector.isZero())
         {
-            m_yaw += Math::ToRadians(rotateVector.x * rotationSpeed * dt);
+            m_yaw += Math::ToRadians(rotateVector.x * dt);
 
             const auto dy = Abs(m_targetY - m_eyePosition.y);
             const auto s = std::sqrt(1 + dy * dy);
-            m_targetY += s * Math::ToRadians(rotateVector.y * rotationSpeed * dt);
+            m_targetY += s * Math::ToRadians(rotateVector.y * dt);
         }
 
         ApplyMatrix();
@@ -82,19 +82,39 @@ namespace TY
         reset(Float3{});
     }
 
-    void SimpleCamera3D::reset(Float3 eyePosition, Float3 targetPosition, Float3 upDirection)
+    void SimpleCamera3D::reset(const Float3& eyePosition, const Float3& targetPosition, Float3 upDirection)
     {
         *p_impl = {};
+
         p_impl->m_eyePosition = eyePosition;
-        p_impl->m_targetY = targetPosition.y;
-        p_impl->m_yaw = std::atan2(targetPosition.x - eyePosition.x, targetPosition.z - eyePosition.z);
+
+        p_impl->SetTargetPosition(targetPosition);
+
         p_impl->m_upDirection = upDirection.normalized();
+
         p_impl->ApplyMatrix();
     }
 
-    void SimpleCamera3D::update(float dt)
+    void SimpleCamera3D::setEyeAndTarget(const Float3& eyePosition, const Float3& targetPosition)
     {
-        p_impl->Update(dt);
+        p_impl->m_eyePosition = eyePosition;
+
+        p_impl->SetTargetPosition(targetPosition);
+
+        p_impl->ApplyMatrix();
+    }
+
+    void SimpleCamera3D::transform(float dt, const Float3& moveVector, const Float2& rotateVector)
+    {
+        p_impl->TransformAndApply(dt, moveVector, rotateVector);
+    }
+
+    void SimpleCamera3D::transformBySimpleInput(float dt, float moveSpeed, float rotateSpeed)
+    {
+        transform(
+            dt,
+            SimpleInput::GetPlayerMovement3D() * moveSpeed,
+            SimpleInput::GetCameraRotation() * rotateSpeed);
     }
 
     Float3 SimpleCamera3D::eyePosition() const
