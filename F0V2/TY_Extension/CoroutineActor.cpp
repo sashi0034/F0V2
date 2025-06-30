@@ -103,7 +103,7 @@ struct CoroutineActor::Impl : ActorBase
         if (m_task == nullptr) return;
 
         // コルーチンが再開可能であるか問い合わせる
-        if (not m_awaiter->ValidateResume()) return;
+        if (not m_awaiter->validateResume()) return;
 
         // コルーチン再開
         if ((*m_task)())
@@ -147,7 +147,7 @@ namespace TY
                 task(*impl->m_awaiter);
 
                 // 生成直後にタスクが終了した場合、1 フレーム待機するようにする
-                if (not impl->m_initialized) impl->m_awaiter->WaitForFrames(1);
+                if (not impl->m_initialized) impl->m_awaiter->waitForFrames(1);
             });
 
         p_impl->m_initialized = true;

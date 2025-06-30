@@ -18,11 +18,11 @@ struct CombatScene::Impl : ActorBase
     {
         m_coro = StartCoroutine(m_children, [this](AwaiterContext& await)
         {
-            await.WaitForTime(2.0s);
+            await.waitForTime(2.0s);
 
             LogInfo("Hello!");
 
-            await.WaitForTime(2.0s);
+            await.waitForTime(2.0s);
 
             LogInfo("World!");
         });

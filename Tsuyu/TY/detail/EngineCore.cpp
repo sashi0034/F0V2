@@ -23,9 +23,9 @@ using namespace std::string_view_literals;
 namespace TY::detail
 {
     // predefined components
-    void InitGameTimeComponent();
+    extern void InitGameTimeComponent();
 
-    void InitGpgpuCacheComponent();
+    extern void InitGpgpuCacheComponent();
 }
 
 namespace

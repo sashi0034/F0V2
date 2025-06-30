@@ -15,29 +15,29 @@ namespace TY
         explicit AwaiterContext(std::reference_wrapper<CoroutineActor::yield_type> yield);
 
         /// @brief 指定フレーム待機する
-        void WaitForFrames(int frames = 1);
+        void waitForFrames(int frames = 1);
 
         /// @brief 指定時間待機する
-        void WaitForTime(double seconds, std::function<double()> deltaTime = InGameDeltaTime);
+        void waitForTime(double seconds, std::function<double()> deltaTime = InGameDeltaTime);
 
-        void WaitForTime(Duration seconds, const std::function<double()>& deltaTime = InGameDeltaTime);
+        void waitForTime(Duration seconds, const std::function<double()>& deltaTime = InGameDeltaTime);
 
-        void WaitForever();
+        void waitForever();
 
         /// @brief true を返すまで待機する
-        void WaitForTrue(const std::function<bool()>& poller);
+        void waitForTrue(const std::function<bool()>& poller);
 
         /// @brief いずれかの関数が true を返すまで待機する
         /// @return true を返した関数のインデックス
         [[nodiscard]]
-        int WaitAnyTrue(const Array<std::function<bool()>>& pollers);
+        int waitAnyTrue(const Array<std::function<bool()>>& pollers);
 
         /// @brief Actor が破棄されるまで待機する
-        void WaitForExpired(const ActorHandle& actor);
+        void waitForExpired(const ActorHandle& actor);
 
-        void WaitForExpired(std::shared_ptr<ActorBase> actor);
+        void waitForExpired(std::shared_ptr<ActorBase> actor);
 
-        void WaitForExpired(std::weak_ptr<ActorBase> actor);
+        void waitForExpired(std::weak_ptr<ActorBase> actor);
 
     protected:
         void yield();
@@ -53,6 +53,6 @@ namespace TY
         using AwaiterContext::AwaiterContext;
 
         /// @brief コルーチン再開可能であるかを調べる
-        [[nodiscard]] bool ValidateResume();
+        [[nodiscard]] bool validateResume();
     };
 }

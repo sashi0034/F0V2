@@ -10,7 +10,7 @@ namespace TY
     {
     }
 
-    void AwaiterContext::WaitForFrames(int frames)
+    void AwaiterContext::waitForFrames(int frames)
     {
         m_resumePoller = [&frames]() -> bool
         {
@@ -26,7 +26,7 @@ namespace TY
         yield();
     }
 
-    void AwaiterContext::WaitForTime(double seconds, std::function<double()> deltaTime)
+    void AwaiterContext::waitForTime(double seconds, std::function<double()> deltaTime)
     {
         m_resumePoller = [&seconds, deltaTime]() -> bool
         {
@@ -37,17 +37,17 @@ namespace TY
         yield();
     }
 
-    void AwaiterContext::WaitForTime(Duration seconds, const std::function<double()>& deltaTime)
+    void AwaiterContext::waitForTime(Duration seconds, const std::function<double()>& deltaTime)
     {
-        WaitForTime(seconds.count(), deltaTime);
+        waitForTime(seconds.count(), deltaTime);
     }
 
-    void AwaiterContext::WaitForever()
+    void AwaiterContext::waitForever()
     {
-        WaitForTrue([]() { return false; });
+        waitForTrue([]() { return false; });
     }
 
-    void AwaiterContext::WaitForTrue(const std::function<bool()>& poller)
+    void AwaiterContext::waitForTrue(const std::function<bool()>& poller)
     {
         if (poller != nullptr && poller()) return;
 
@@ -56,7 +56,7 @@ namespace TY
         yield();
     }
 
-    int AwaiterContext::WaitAnyTrue(const Array<std::function<bool()>>& pollers)
+    int AwaiterContext::waitAnyTrue(const Array<std::function<bool()>>& pollers)
     {
         for (int i = 0; i < pollers.size(); ++i)
         {
@@ -82,18 +82,18 @@ namespace TY
         return result;
     }
 
-    void AwaiterContext::WaitForExpired(const ActorHandle& actor)
+    void AwaiterContext::waitForExpired(const ActorHandle& actor)
     {
-        WaitForExpired(actor.asActor());
+        waitForExpired(actor.asActor());
     }
 
-    void AwaiterContext::WaitForExpired(std::shared_ptr<ActorBase> actor)
+    void AwaiterContext::waitForExpired(std::shared_ptr<ActorBase> actor)
     {
         const std::weak_ptr weakRef = actor;
-        WaitForExpired(weakRef);
+        waitForExpired(weakRef);
     }
 
-    void AwaiterContext::WaitForExpired(std::weak_ptr<ActorBase> actor)
+    void AwaiterContext::waitForExpired(std::weak_ptr<ActorBase> actor)
     {
         const auto actorObject = actor.lock();
         if (not actorObject) return;
@@ -114,7 +114,7 @@ namespace TY
         y();
     }
 
-    bool AwaiterController::ValidateResume()
+    bool AwaiterController::validateResume()
     {
         if (not m_resumePoller) return true;
 
