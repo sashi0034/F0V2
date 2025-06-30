@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Demo\Demo_AirCombat.cpp" />
     <ClCompile Include="TY_Extension\AwaiterContext.cpp" />
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
     <ClCompile Include="TY_Extension\LivePPAddon.cpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="asset\shader\basic.hlsli" />
     <ClInclude Include="asset\shader\model.hlsli" />
     <ClInclude Include="Combat\CombatScene.h" />
+    <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Demo\Demo_Lambert.h" />
@@ -208,6 +210,9 @@
     <ProjectReference Include="..\Tsuyu\Tsuyu.vcxproj">
       <Project>{6ec0451c-6adc-497a-b757-f3f886322c53}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Combat\Player\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
