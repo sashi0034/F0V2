@@ -4,6 +4,7 @@
 #include "Combat/CombatScene.h"
 #include "Demo/Demo_AirCombat.h"
 #include "Demo/Demo_Gpgpu.h"
+#include "Demo/Demo_PointLight.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 

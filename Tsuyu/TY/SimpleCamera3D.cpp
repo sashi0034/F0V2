@@ -41,15 +41,17 @@ struct SimpleCamera3D::Impl
     {
         if (not moveVector.isZero())
         {
-            const auto forward = m_cameraMatrix.forward();
+            const auto t = m_cameraMatrix.transposed();
+
+            const auto forward = t.forward();
             const auto df = forward * moveVector.z * dt;
             m_eyePosition += df;
 
-            const auto right = m_cameraMatrix.right();
+            const auto right = t.right();
             const auto dr = right * moveVector.x * dt;
             m_eyePosition += dr;
 
-            const auto up = m_cameraMatrix.up();
+            const auto up = t.up();
             const auto du = up * moveVector.y * dt;
             m_eyePosition += du;
 

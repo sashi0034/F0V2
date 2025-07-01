@@ -3,6 +3,12 @@
 
 namespace TY
 {
+    Mat4x4 Mat4x4::transposed() const
+    {
+        using namespace DirectX;
+        return Mat4x4{XMMatrixTranspose(mat)};
+    }
+
     Float3 Mat4x4::eulerRotation() const
     {
         using namespace DirectX;
@@ -33,6 +39,18 @@ namespace TY
         }
 
         return Vector3D<float>{pitch, yaw, roll};
+    }
+
+    Float3 Mat4x4::transformPoint(const Float3 pos) const noexcept
+    {
+        using namespace DirectX;
+        const XMVECTOR point = XMVectorSet(pos.x, pos.y, pos.z, 1.0f);
+        const XMVECTOR transformed = XMVector3TransformCoord(point, mat);
+        return Float3{
+            XMVectorGetX(transformed),
+            XMVectorGetY(transformed),
+            XMVectorGetZ(transformed)
+        };
     }
 
     Mat4x4 Mat4x4::RollPitchYaw(Float3 angles)

@@ -45,7 +45,6 @@ namespace
                    .rotatedY(rotation.y)
                    .rotatedZ(rotation.z)
                    .translated(position);
-            // return Mat4x4::RollPitchYaw(rotation).translated(position);
         }
     };
 
@@ -155,9 +154,7 @@ struct Demo_AirCombat_impl
     {
         updateCamera();
 
-        m_fighterPose.position += SimpleInput::GetPlayerMovement3D() * 10.0f * System::DeltaTime();
-
-        // m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
+        updatePlayer();
 
         m_directionLight->lightDirection = m_camera.matrix().forward().normalized();
         m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
@@ -223,6 +220,12 @@ struct Demo_AirCombat_impl
                         m_fighterPose.rotation.y,
                         m_fighterPose.rotation.z);
 
+            const auto forward = m_fighterPose.getMatrix().forward();
+            ImGui::Text("Forward: (%.2f, %.2f, %.2f)",
+                        forward.x,
+                        forward.y,
+                        forward.z);
+
             ImGui::End();
         }
 
@@ -244,6 +247,18 @@ struct Demo_AirCombat_impl
     void resetCamera()
     {
         m_camera.reset(Float3{}.withZ(10.0f));
+    }
+
+    void updatePlayer()
+    {
+        const auto playerMatrix = m_fighterPose.getMatrix();
+        const auto playerForward = playerMatrix.forward();
+        const auto playerRight = playerMatrix.right();
+        m_fighterPose.position += playerForward * -SimpleInput::GetPlayerMovement2D().y * 10.0f * System::DeltaTime();
+        m_fighterPose.position += playerRight * SimpleInput::GetPlayerMovement2D().x * 10.0f * System::DeltaTime();
+
+        m_fighterPose.rotation.y += SimpleInput::GetCameraRotation().x * 1.0f * System::DeltaTime();
+        // m_fighterPose.rotation.z += -SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime(); // TODO: 軸周りの回転
     }
 
     void updateCamera()

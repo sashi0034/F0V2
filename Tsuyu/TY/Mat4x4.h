@@ -54,18 +54,21 @@ namespace TY
 
         [[nodiscard]] Mat4x4 rotatedX(float angle) const
         {
-            return Mat4x4{DirectX::XMMatrixRotationX(angle) * mat};
+            return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixRotationX(angle));
         }
 
         [[nodiscard]] Mat4x4 rotatedY(float angle) const
         {
-            return Mat4x4{DirectX::XMMatrixRotationY(angle) * mat};
+            return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixRotationY(angle));
         }
 
         [[nodiscard]] Mat4x4 rotatedZ(float angle) const
         {
-            return Mat4x4{DirectX::XMMatrixRotationZ(angle) * mat};
+            return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixRotationZ(angle));
         }
+
+        [[nodiscard]]
+        Mat4x4 transposed() const;
 
         [[nodiscard]] Float3 translation() const
         {
@@ -85,9 +88,9 @@ namespace TY
             using namespace DirectX;
 
             return Vector3D<float>{
-                mat.r[0].m128_f32[1],
+                mat.r[1].m128_f32[0],
                 mat.r[1].m128_f32[1],
-                mat.r[2].m128_f32[1]
+                mat.r[1].m128_f32[2]
             };
         }
 
@@ -97,8 +100,8 @@ namespace TY
 
             return Vector3D<float>{
                 mat.r[0].m128_f32[0],
-                mat.r[1].m128_f32[0],
-                mat.r[2].m128_f32[0]
+                mat.r[0].m128_f32[1],
+                mat.r[0].m128_f32[2]
             };
         }
 
@@ -107,8 +110,8 @@ namespace TY
             using namespace DirectX;
 
             return Vector3D<float>{
-                mat.r[0].m128_f32[2],
-                mat.r[1].m128_f32[2],
+                mat.r[2].m128_f32[0],
+                mat.r[2].m128_f32[1],
                 mat.r[2].m128_f32[2]
             };
         }
@@ -123,6 +126,9 @@ namespace TY
         {
             return Vector3D<T>{XMVector3Transform(rhs.toXMV(), mat)};
         }
+
+        [[nodiscard]]
+        Float3 transformPoint(Float3 pos) const noexcept;
 
         [[nodiscard]] static Mat4x4 Identity()
         {
