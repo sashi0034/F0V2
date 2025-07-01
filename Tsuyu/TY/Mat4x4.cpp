@@ -3,6 +3,12 @@
 
 namespace TY
 {
+    Mat4x4 Mat4x4::rotated(Quaternion quaternion) const
+    {
+        using namespace DirectX;
+        return XMMatrixMultiply(mat, XMMatrixRotationQuaternion(quaternion.value));
+    }
+
     Mat4x4 Mat4x4::transposed() const
     {
         using namespace DirectX;

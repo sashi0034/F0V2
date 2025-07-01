@@ -36,15 +36,18 @@ namespace
     struct Pose
     {
         Float3 position{};
-        Float3 rotation{}; // Euler angles in radians
+        Quaternion rotation{}; // Euler angles in radians
 
         Mat4x4 getMatrix() const
         {
             return Mat4x4::Identity()
-                   .rotatedX(rotation.x)
-                   .rotatedY(rotation.y)
-                   .rotatedZ(rotation.z)
+                   .rotated(rotation)
                    .translated(position);
+        }
+
+        Float3 eulerAngles() const
+        {
+            return rotation.eulerAngles();
         }
     };
 
@@ -215,10 +218,8 @@ struct Demo_AirCombat_impl
                         m_fighterPose.position.y,
                         m_fighterPose.position.z);
 
-            ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)",
-                        m_fighterPose.rotation.x,
-                        m_fighterPose.rotation.y,
-                        m_fighterPose.rotation.z);
+            const auto rotation = m_fighterPose.eulerAngles();
+            ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)", rotation.x, rotation.y, rotation.z);
 
             const auto forward = m_fighterPose.getMatrix().forward();
             ImGui::Text("Forward: (%.2f, %.2f, %.2f)",
@@ -257,14 +258,17 @@ struct Demo_AirCombat_impl
         m_fighterPose.position += playerForward * -SimpleInput::GetPlayerMovement2D().y * 10.0f * System::DeltaTime();
         m_fighterPose.position += playerRight * SimpleInput::GetPlayerMovement2D().x * 10.0f * System::DeltaTime();
 
-        m_fighterPose.rotation.y += SimpleInput::GetCameraRotation().x * 1.0f * System::DeltaTime();
-        // m_fighterPose.rotation.z += -SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime(); // TODO: 軸周りの回転
+        m_fighterPose.rotation *=
+            Quaternion::RotateY(SimpleInput::GetCameraRotation().x * 1.0f * System::DeltaTime());
+
+        m_fighterPose.rotation *=
+            Quaternion{playerMatrix.right(), SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime()};
     }
 
     void updateCamera()
     {
         const auto cameraTarget = m_fighterPose.position;
-        const auto playerForward = m_fighterPose.getMatrix().forward();
+        const auto playerForward = m_fighterPose.getMatrix().forward().withY(0.0f).normalized();
         const auto cameraEye = cameraTarget - playerForward * 10.0f + Float3{0, -0.5f, 0};
         m_camera.setEyeAndTarget(cameraEye, cameraTarget);
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());

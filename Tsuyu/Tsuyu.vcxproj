@@ -181,6 +181,7 @@
     <ClInclude Include="TY\Integer3D.h" />
     <ClInclude Include="TY\KeyboardMouseInput.h" />
     <ClInclude Include="TY\Mouse.h" />
+    <ClInclude Include="TY\Quaternion.h" />
     <ClInclude Include="TY\Random.h" />
     <ClInclude Include="TY\ScopedDeferStack.h" />
     <ClInclude Include="TY\Stopwatch.h" />
@@ -296,6 +297,7 @@
     <ClCompile Include="TY\InlineComponent.cpp" />
     <ClCompile Include="TY\KeyboardMouseInput.cpp" />
     <ClCompile Include="TY\Mouse.cpp" />
+    <ClCompile Include="TY\Quaternion.cpp" />
     <ClCompile Include="TY\Random.cpp" />
     <ClCompile Include="TY\ScopedDeferStack.cpp" />
     <ClCompile Include="TY\Stopwatch.cpp" />

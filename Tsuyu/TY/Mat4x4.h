@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "Quaternion.h"
 #include "Vector3D.h"
 
 namespace TY
@@ -66,6 +67,8 @@ namespace TY
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixRotationZ(angle));
         }
+
+        [[nodiscard]] Mat4x4 __vectorcall rotated(Quaternion quaternion) const;
 
         [[nodiscard]]
         Mat4x4 transposed() const;
