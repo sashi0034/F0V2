@@ -14,7 +14,8 @@ namespace
 
 struct SimpleCamera3D::Impl
 {
-    Mat4x4 m_cameraMatrix{};
+    Mat4x4 m_viewMatrix{};
+    Mat4x4 m_worldMatrix{};
 
     Float3 m_eyePosition{};
     double m_yaw{};
@@ -34,24 +35,23 @@ struct SimpleCamera3D::Impl
 
     void ApplyMatrix()
     {
-        m_cameraMatrix = Mat4x4::LookAt(m_eyePosition, TargetPosition(), m_upDirection);
+        m_viewMatrix = Mat4x4::LookAt(m_eyePosition, TargetPosition(), m_upDirection);
+        m_worldMatrix = m_viewMatrix.transposed();
     }
 
     void TransformAndApply(float dt, const Float3& moveVector, const Float2& rotateVector)
     {
         if (not moveVector.isZero())
         {
-            const auto t = m_cameraMatrix.transposed();
-
-            const auto forward = t.forward();
+            const auto forward = m_viewMatrix.forward();
             const auto df = forward * moveVector.z * dt;
             m_eyePosition += df;
 
-            const auto right = t.right();
+            const auto right = m_viewMatrix.right();
             const auto dr = right * moveVector.x * dt;
             m_eyePosition += dr;
 
-            const auto up = t.up();
+            const auto up = m_viewMatrix.up();
             const auto du = up * moveVector.y * dt;
             m_eyePosition += du;
 
@@ -129,8 +129,13 @@ namespace TY
         return p_impl->TargetPosition();
     }
 
-    const Mat4x4& SimpleCamera3D::matrix() const
+    const Mat4x4& SimpleCamera3D::viewMatrix() const
     {
-        return p_impl->m_cameraMatrix;
+        return p_impl->m_viewMatrix;
+    }
+
+    const Mat4x4& SimpleCamera3D::worldMatrix() const
+    {
+        return p_impl->m_worldMatrix;
     }
 }

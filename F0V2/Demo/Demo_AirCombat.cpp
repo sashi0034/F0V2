@@ -156,7 +156,7 @@ struct Demo_AirCombat_impl
 
         updatePlayer();
 
-        m_directionLight->lightDirection = m_camera.matrix().forward().normalized();
+        m_directionLight->lightDirection = m_camera.worldMatrix().forward().normalized();
         m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
         m_directionLight.upload();
 
@@ -267,7 +267,7 @@ struct Demo_AirCombat_impl
         const auto playerForward = m_fighterPose.getMatrix().forward();
         const auto cameraEye = cameraTarget - playerForward * 10.0f + Float3{0, -0.5f, 0};
         m_camera.setEyeAndTarget(cameraEye, cameraTarget);
-        Graphics3D::SetViewMatrix(m_camera.matrix());
+        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
 
         m_projectionMat = Mat4x4::PerspectiveFov(
             90.0_deg,

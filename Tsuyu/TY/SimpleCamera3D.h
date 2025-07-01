@@ -24,7 +24,9 @@ namespace TY
 
         Float3 targetPosition() const;
 
-        const Mat4x4& matrix() const;
+        const Mat4x4& viewMatrix() const;
+
+        const Mat4x4& worldMatrix() const;
 
     private:
         struct Impl;

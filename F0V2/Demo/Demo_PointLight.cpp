@@ -164,7 +164,7 @@ struct Demo_PointLight_impl
 
         m_fighterPose.rotation.y += Math::ToRadians(System::DeltaTime() * 90);
 
-        m_directionLight->lightDirection = m_camera.matrix().forward().normalized();
+        m_directionLight->lightDirection = m_camera.worldMatrix().forward().normalized();
         m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
         m_directionLight.upload();
 
@@ -330,7 +330,7 @@ struct Demo_PointLight_impl
         }
 
         m_camera.transformBySimpleInput();
-        Graphics3D::SetViewMatrix(m_camera.matrix());
+        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
 
         m_projectionMat = Mat4x4::PerspectiveFov(
             90.0_deg,
