@@ -15,6 +15,8 @@ namespace TY
         {
         }
 
+        explicit Mat4x4(Quaternion q);
+
         [[nodiscard]] Mat4x4 translated(const Float3& v) const
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(v.x, v.y, v.z));

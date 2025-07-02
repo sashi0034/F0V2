@@ -99,6 +99,8 @@ struct Demo_AirCombat_impl
     ModelDrawer m_fighterModel{};
     Pose m_fighterPose{};
 
+    float m_playerYaw{};
+
     ModelDrawer m_sphereModel{};
     Pose m_spherePose{};
 
@@ -179,7 +181,9 @@ struct Demo_AirCombat_impl
         }
 
         {
-            const Transformer3D t3d{m_fighterPose.getMatrix()};
+            const auto matrix = m_fighterPose.getMatrix();
+            const Transformer3D t3d{Mat4x4{Quaternion::RotateZ(m_playerYaw)} * matrix};
+
             m_fighterModel.draw();
         }
 
@@ -263,6 +267,11 @@ struct Demo_AirCombat_impl
 
         m_fighterPose.rotation *=
             Quaternion{playerMatrix.right(), SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime()};
+
+        if (SimpleInput::GetCameraRotation().x != 0)
+        {
+            m_playerYaw = -SimpleInput::GetCameraRotation().x * 45.0_deg;
+        }
     }
 
     void updateCamera()
