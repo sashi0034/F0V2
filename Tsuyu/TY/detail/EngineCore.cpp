@@ -25,6 +25,8 @@ namespace TY::detail
     // predefined components
     extern void InitGameTimeComponent();
 
+    extern void InitGameStepComponent();
+
     extern void InitGpgpuCacheComponent();
 }
 
@@ -33,6 +35,8 @@ namespace
     void initPredefinedComponents()
     {
         InitGameTimeComponent();
+
+        InitGameStepComponent();
 
         InitGpgpuCacheComponent();
     }

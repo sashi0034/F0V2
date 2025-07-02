@@ -170,6 +170,7 @@
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Duration.h" />
     <ClInclude Include="TY\DynamicTexture.h" />
+    <ClInclude Include="TY\GameStep.h" />
     <ClInclude Include="TY\GameTime.h" />
     <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\GpgpuBuffer.h" />
@@ -292,6 +293,7 @@
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\detail\EngineComponent.cpp" />
     <ClCompile Include="TY\DynamicTexture.cpp" />
+    <ClCompile Include="TY\GameStep.cpp" />
     <ClCompile Include="TY\GameTime.cpp" />
     <ClCompile Include="TY\Gpgpu.cpp" />
     <ClCompile Include="TY\InlineComponent.cpp" />

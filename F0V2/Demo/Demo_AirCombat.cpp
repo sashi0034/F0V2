@@ -5,6 +5,7 @@
 
 #include "TY/ConstantBuffer.h"
 #include "TY/Gamepad.h"
+#include "TY/GameStep.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
@@ -268,9 +269,10 @@ struct Demo_AirCombat_impl
         m_fighterPose.rotation *=
             Quaternion{playerMatrix.right(), SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime()};
 
-        if (SimpleInput::GetCameraRotation().x != 0)
+        const float targetYaw = -SimpleInput::GetCameraRotation().x * 15.0_deg;
+        for (const auto dt : StandardStep_60Hz())
         {
-            m_playerYaw = -SimpleInput::GetCameraRotation().x * 45.0_deg;
+            m_playerYaw = Math::Lerp(m_playerYaw, targetYaw, 10.0f * dt);
         }
     }
 
