@@ -77,15 +77,13 @@ namespace
         return ShaderResourceTexture{image};
     }
 
-    const std::string shader_lambert = "asset/shader/lambert.hlsl";
-
     struct CommonResource : IInlineComponent
     {
         PixelShader modelPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
         VertexShader modelVS{ShaderParams::VS("asset/shader/model_vertex.hlsl")};
 
-        PixelShader lambertPS{ShaderParams::PS(shader_lambert)};
-        VertexShader lambertVS{ShaderParams::VS(shader_lambert)};
+        PixelShader lambertPS{ShaderParams::PS("asset/shader/lambert.hlsl")};
+        VertexShader lambertVS{ShaderParams::VS("asset/shader/lambert.hlsl")};
 
         ConstantBuffer<DirectionLight_cb2> directionLight{};
     };
@@ -98,43 +96,43 @@ class Player
 public:
     void Init()
     {
-        m_fighterModel = ModelDrawer{
+        m_model = ModelDrawer{
             ModelDrawerParams{}
             .setData(ModelLoader::Load("asset/model/tie_fighter.obj"))
             .setShaders(s_resource->lambertPS, s_resource->lambertVS)
             .setCB2(s_resource->directionLight)
         };
 
-        m_fighterPose.position.y = 3.0f;
+        m_pose.position.y = 3.0f;
     }
 
     void Update()
     {
-        const auto playerMatrix = m_fighterPose.getMatrix();
+        const auto playerMatrix = m_pose.getMatrix();
         const auto playerForward = playerMatrix.forward();
         const auto playerRight = playerMatrix.right();
-        m_fighterPose.position += playerForward * -SimpleInput::GetPlayerMovement2D().y * 10.0f * System::DeltaTime();
-        m_fighterPose.position += playerRight * SimpleInput::GetPlayerMovement2D().x * 10.0f * System::DeltaTime();
+        m_pose.position += playerForward * -SimpleInput::GetPlayerMovement2D().y * 10.0f * System::DeltaTime();
+        m_pose.position += playerRight * SimpleInput::GetPlayerMovement2D().x * 10.0f * System::DeltaTime();
 
-        m_fighterPose.rotation *=
+        m_pose.rotation *=
             Quaternion::RotateY(SimpleInput::GetCameraRotation().x * 1.0f * System::DeltaTime());
 
-        m_fighterPose.rotation *=
+        m_pose.rotation *=
             Quaternion{playerMatrix.right(), SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime()};
 
         const float targetYaw = -SimpleInput::GetCameraRotation().x * 15.0_deg;
         for (const auto dt : StandardStep_60Hz())
         {
-            m_playerYaw = Math::Lerp(m_playerYaw, targetYaw, 10.0f * dt);
+            m_yaw = Math::Lerp(m_yaw, targetYaw, 10.0f * dt);
         }
     }
 
     void Draw() const
     {
-        const auto matrix = m_fighterPose.getMatrix();
-        const Transformer3D t3d{Mat4x4{Quaternion::RotateZ(m_playerYaw)} * matrix};
+        const auto matrix = m_pose.getMatrix();
+        const Transformer3D t3d{Mat4x4{Quaternion::RotateZ(m_yaw)} * matrix};
 
-        m_fighterModel.draw();
+        m_model.draw();
     }
 
     void DebugUI() const
@@ -142,14 +140,14 @@ public:
         ImGui::Begin("Player Info");
 
         ImGui::Text("Position: (%.2f, %.2f, %.2f)",
-                    m_fighterPose.position.x,
-                    m_fighterPose.position.y,
-                    m_fighterPose.position.z);
+                    m_pose.position.x,
+                    m_pose.position.y,
+                    m_pose.position.z);
 
-        const auto rotation = m_fighterPose.eulerAngles();
+        const auto rotation = m_pose.eulerAngles();
         ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)", rotation.x, rotation.y, rotation.z);
 
-        const auto forward = m_fighterPose.getMatrix().forward();
+        const auto forward = m_pose.getMatrix().forward();
         ImGui::Text("Forward: (%.2f, %.2f, %.2f)",
                     forward.x,
                     forward.y,
@@ -160,14 +158,14 @@ public:
 
     Pose GetPose() const
     {
-        return m_fighterPose;
+        return m_pose;
     }
 
 private:
-    ModelDrawer m_fighterModel{};
-    Pose m_fighterPose{};
+    ModelDrawer m_model{};
+    Pose m_pose{};
 
-    float m_playerYaw{};
+    float m_yaw{};
 };
 
 struct Demo_AirCombat_impl
