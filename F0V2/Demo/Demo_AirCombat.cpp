@@ -7,7 +7,7 @@
 #include "TY/Gamepad.h"
 #include "TY/GameStep.h"
 #include "TY/Graphics3D.h"
-#include "TY/KeyboardInput.h"
+#include "TY/InlineComponent.h"
 #include "TY/Mat4x4.h"
 
 #include "TY/Shader.h"
@@ -78,7 +78,97 @@ namespace
     }
 
     const std::string shader_lambert = "asset/shader/lambert.hlsl";
+
+    struct CommonResource : IInlineComponent
+    {
+        PixelShader modelPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
+        VertexShader modelVS{ShaderParams::VS("asset/shader/model_vertex.hlsl")};
+
+        PixelShader lambertPS{ShaderParams::PS(shader_lambert)};
+        VertexShader lambertVS{ShaderParams::VS(shader_lambert)};
+
+        ConstantBuffer<DirectionLight_cb2> directionLight{};
+    };
+
+    InlineComponent<CommonResource> s_resource{};
 }
+
+class Player
+{
+public:
+    void Init()
+    {
+        m_fighterModel = ModelDrawer{
+            ModelDrawerParams{}
+            .setData(ModelLoader::Load("asset/model/tie_fighter.obj"))
+            .setShaders(s_resource->lambertPS, s_resource->lambertVS)
+            .setCB2(s_resource->directionLight)
+        };
+
+        m_fighterPose.position.y = 3.0f;
+    }
+
+    void Update()
+    {
+        const auto playerMatrix = m_fighterPose.getMatrix();
+        const auto playerForward = playerMatrix.forward();
+        const auto playerRight = playerMatrix.right();
+        m_fighterPose.position += playerForward * -SimpleInput::GetPlayerMovement2D().y * 10.0f * System::DeltaTime();
+        m_fighterPose.position += playerRight * SimpleInput::GetPlayerMovement2D().x * 10.0f * System::DeltaTime();
+
+        m_fighterPose.rotation *=
+            Quaternion::RotateY(SimpleInput::GetCameraRotation().x * 1.0f * System::DeltaTime());
+
+        m_fighterPose.rotation *=
+            Quaternion{playerMatrix.right(), SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime()};
+
+        const float targetYaw = -SimpleInput::GetCameraRotation().x * 15.0_deg;
+        for (const auto dt : StandardStep_60Hz())
+        {
+            m_playerYaw = Math::Lerp(m_playerYaw, targetYaw, 10.0f * dt);
+        }
+    }
+
+    void Draw() const
+    {
+        const auto matrix = m_fighterPose.getMatrix();
+        const Transformer3D t3d{Mat4x4{Quaternion::RotateZ(m_playerYaw)} * matrix};
+
+        m_fighterModel.draw();
+    }
+
+    void DebugUI() const
+    {
+        ImGui::Begin("Player Info");
+
+        ImGui::Text("Position: (%.2f, %.2f, %.2f)",
+                    m_fighterPose.position.x,
+                    m_fighterPose.position.y,
+                    m_fighterPose.position.z);
+
+        const auto rotation = m_fighterPose.eulerAngles();
+        ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)", rotation.x, rotation.y, rotation.z);
+
+        const auto forward = m_fighterPose.getMatrix().forward();
+        ImGui::Text("Forward: (%.2f, %.2f, %.2f)",
+                    forward.x,
+                    forward.y,
+                    forward.z);
+
+        ImGui::End();
+    }
+
+    Pose GetPose() const
+    {
+        return m_fighterPose;
+    }
+
+private:
+    ModelDrawer m_fighterModel{};
+    Pose m_fighterPose{};
+
+    float m_playerYaw{};
+};
 
 struct Demo_AirCombat_impl
 {
@@ -91,16 +181,11 @@ struct Demo_AirCombat_impl
 
     ConstantBuffer<DirectionLight_cb2> m_planeLight{};
 
-    ConstantBuffer<DirectionLight_cb2> m_directionLight{};
-
     ModelDrawer m_planeModel{};
 
     ModelDrawer m_gridPlaneModel{};
 
-    ModelDrawer m_fighterModel{};
-    Pose m_fighterPose{};
-
-    float m_playerYaw{};
+    Player m_player{};
 
     ModelDrawer m_sphereModel{};
     Pose m_spherePose{};
@@ -111,19 +196,11 @@ struct Demo_AirCombat_impl
 
         resetCamera();
 
-        const PixelShader defaultPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
-        const VertexShader defaultVS{ShaderParams::VS("asset/shader/model_vertex.hlsl")};
-
-        const PixelShader customPS{ShaderParams{.filepath = shader_lambert, .entryPoint = "PS"}};
-        const VertexShader customVS{ShaderParams{.filepath = shader_lambert, .entryPoint = "VS"}};
-
         m_planeModel = ModelDrawer{
-            ModelDrawerParams{
-                .data = ModelLoader::Load("asset/model/dirty_plane.obj"),
-                .ps = customPS,
-                .vs = customVS,
-                .cb2 = m_planeLight
-            }
+            ModelDrawerParams{}
+            .setData(ModelLoader::Load("asset/model/dirty_plane.obj"))
+            .setShaders(s_resource->lambertPS, s_resource->lambertVS)
+            .setCB2(m_planeLight)
         };
 
         const auto gridPlaneTexture = makeGridPlane(
@@ -131,26 +208,16 @@ struct Demo_AirCombat_impl
         m_gridPlaneModel = ModelDrawer{
             ModelDrawerParams{}
             .setData(Shape3D::TexturePlane(gridPlaneTexture, Float2{100.0f, 100.0f}))
-            .setShaders(defaultPS, defaultVS)
-            .setCB2(m_planeLight)
+            .setShaders(s_resource->modelPS, s_resource->modelVS)
         };
 
-        m_fighterModel = ModelDrawer{
-            ModelDrawerParams{
-                .data = ModelLoader::Load("asset/model/tie_fighter.obj"),
-                .ps = customPS,
-                .vs = customVS,
-                .cb2 = m_directionLight
-            }
-        };
-
-        m_fighterPose.position.y = 3.0f;
+        m_player.Init();
 
         m_sphereModel = ModelDrawer{
             ModelDrawerParams{}
             .setData(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
-            .setShaders(customPS, customVS)
-            .setCB2(m_directionLight)
+            .setShaders(s_resource->lambertPS, s_resource->lambertVS)
+            .setCB2(s_resource->directionLight)
         };
 
         m_spherePose.position.y = 5.0f;
@@ -160,11 +227,11 @@ struct Demo_AirCombat_impl
     {
         updateCamera();
 
-        updatePlayer();
+        m_player.Update();
 
-        m_directionLight->lightDirection = m_camera.worldMatrix().forward().normalized();
-        m_directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-        m_directionLight.upload();
+        s_resource->directionLight->lightDirection = m_camera.worldMatrix().forward().normalized();
+        s_resource->directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
+        s_resource->directionLight.upload();
 
         m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
         m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
@@ -181,12 +248,7 @@ struct Demo_AirCombat_impl
             m_gridPlaneModel.draw();
         }
 
-        {
-            const auto matrix = m_fighterPose.getMatrix();
-            const Transformer3D t3d{Mat4x4{Quaternion::RotateZ(m_playerYaw)} * matrix};
-
-            m_fighterModel.draw();
-        }
+        m_player.Draw();
 
         {
             const Transformer3D t3d{m_spherePose.getMatrix()};
@@ -208,32 +270,14 @@ struct Demo_AirCombat_impl
                         targetPosition.z);
 
             ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
-                        m_directionLight->lightDirection.x,
-                        m_directionLight->lightDirection.y,
-                        m_directionLight->lightDirection.z);
+                        s_resource->directionLight->lightDirection.x,
+                        s_resource->directionLight->lightDirection.y,
+                        s_resource->directionLight->lightDirection.z);
 
             ImGui::End();
         }
 
-        {
-            ImGui::Begin("Fighter Pose");
-
-            ImGui::Text("Position: (%.2f, %.2f, %.2f)",
-                        m_fighterPose.position.x,
-                        m_fighterPose.position.y,
-                        m_fighterPose.position.z);
-
-            const auto rotation = m_fighterPose.eulerAngles();
-            ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)", rotation.x, rotation.y, rotation.z);
-
-            const auto forward = m_fighterPose.getMatrix().forward();
-            ImGui::Text("Forward: (%.2f, %.2f, %.2f)",
-                        forward.x,
-                        forward.y,
-                        forward.z);
-
-            ImGui::End();
-        }
+        m_player.DebugUI();
 
         {
             ImGui::Begin("System Settings");
@@ -255,31 +299,11 @@ struct Demo_AirCombat_impl
         m_camera.reset(Float3{}.withZ(10.0f));
     }
 
-    void updatePlayer()
-    {
-        const auto playerMatrix = m_fighterPose.getMatrix();
-        const auto playerForward = playerMatrix.forward();
-        const auto playerRight = playerMatrix.right();
-        m_fighterPose.position += playerForward * -SimpleInput::GetPlayerMovement2D().y * 10.0f * System::DeltaTime();
-        m_fighterPose.position += playerRight * SimpleInput::GetPlayerMovement2D().x * 10.0f * System::DeltaTime();
-
-        m_fighterPose.rotation *=
-            Quaternion::RotateY(SimpleInput::GetCameraRotation().x * 1.0f * System::DeltaTime());
-
-        m_fighterPose.rotation *=
-            Quaternion{playerMatrix.right(), SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime()};
-
-        const float targetYaw = -SimpleInput::GetCameraRotation().x * 15.0_deg;
-        for (const auto dt : StandardStep_60Hz())
-        {
-            m_playerYaw = Math::Lerp(m_playerYaw, targetYaw, 10.0f * dt);
-        }
-    }
-
     void updateCamera()
     {
-        const auto cameraTarget = m_fighterPose.position;
-        const auto playerForward = m_fighterPose.getMatrix().forward().withY(0.0f).normalized();
+        const auto playerPose = m_player.GetPose();
+        const auto cameraTarget = playerPose.position;
+        const auto playerForward = playerPose.getMatrix().forward().withY(0.0f).normalized();
         const auto cameraEye = cameraTarget - playerForward * 10.0f + Float3{0, -0.5f, 0};
         m_camera.setEyeAndTarget(cameraEye, cameraTarget);
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());

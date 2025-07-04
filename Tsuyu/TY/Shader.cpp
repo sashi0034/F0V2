@@ -100,19 +100,19 @@ namespace
 
 namespace TY
 {
-    ShaderParams ShaderParams::PS(const std::string& filename, const std::string& entryPoint)
+    ShaderParams ShaderParams::PS(const std::string& filename)
     {
-        return ShaderParams{.filepath = filename, .entryPoint = entryPoint,};
+        return ShaderParams{.filepath = filename, .entryPoint = "PS",};
     }
 
-    ShaderParams ShaderParams::VS(const std::string& filename, const std::string& entryPoint)
+    ShaderParams ShaderParams::VS(const std::string& filename)
     {
-        return ShaderParams{.filepath = filename, .entryPoint = entryPoint,};
+        return ShaderParams{.filepath = filename, .entryPoint = "VS",};
     }
 
-    ShaderParams ShaderParams::CS(const std::string& filename, const std::string& entryPoint)
+    ShaderParams ShaderParams::CS(const std::string& filename)
     {
-        return ShaderParams{.filepath = filename, .entryPoint = entryPoint,};
+        return ShaderParams{.filepath = filename, .entryPoint = "CS",};
     }
 
     PixelShader::PixelShader(const ShaderParams& params)
