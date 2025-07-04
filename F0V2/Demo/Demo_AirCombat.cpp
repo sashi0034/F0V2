@@ -92,7 +92,7 @@ namespace
     InlineComponent<CommonResource> s_resource{};
 }
 
-class Player
+class AirCombat_Player
 {
 public:
     void Init()
@@ -196,9 +196,47 @@ private:
     float m_roll{};
 };
 
+class AirCombat_Camera
+{
+public:
+    void Update(const AirCombat_Player& player)
+    {
+        const auto playerPose = player.GetPose();
+        m_targetPosition = playerPose.position;
+
+        const auto playerForward = playerPose.getMatrix().forward().withY(0.0f).normalized();
+        m_eyePosition = m_targetPosition - playerForward * 10.0f + Float3{0, -0.5f, 0};
+
+        m_viewMatrix = Mat4x4::LookAt(
+            m_eyePosition,
+            m_targetPosition,
+            Float3{0, 1, 0} // Up direction
+        );
+
+        m_worldMatrix = m_viewMatrix.transposed();
+
+        Graphics3D::SetViewMatrix(m_viewMatrix);
+    }
+
+    Float3 EyePosition() const { return m_eyePosition; }
+
+    Float3 TargetPosition() const { return m_targetPosition; }
+
+    const Mat4x4& ViewMatrix() const { return m_viewMatrix; }
+
+    const Mat4x4& WorldMatrix() const { return m_worldMatrix; }
+
+private:
+    Float3 m_eyePosition{};
+    Float3 m_targetPosition{};
+
+    Mat4x4 m_viewMatrix{};
+    Mat4x4 m_worldMatrix{};
+};
+
 struct Demo_AirCombat_impl
 {
-    SimpleCamera3D m_camera{};
+    AirCombat_Camera m_camera{};
 
     Mat4x4 m_projectionMat{};
 
@@ -211,7 +249,7 @@ struct Demo_AirCombat_impl
 
     ModelDrawer m_gridPlaneModel{};
 
-    Player m_player{};
+    AirCombat_Player m_player{};
 
     ModelDrawer m_sphereModel{};
     Pose m_spherePose{};
@@ -219,8 +257,6 @@ struct Demo_AirCombat_impl
     Demo_AirCombat_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
-
-        resetCamera();
 
         m_planeModel = ModelDrawer{
             ModelDrawerParams{}
@@ -253,9 +289,20 @@ struct Demo_AirCombat_impl
     {
         m_player.Update();
 
-        updateCamera();
+        m_camera.Update(m_player);
 
-        s_resource->directionLight->lightDirection = m_camera.worldMatrix().forward().normalized();
+        {
+            m_projectionMat = Mat4x4::PerspectiveFov(
+                90.0_deg,
+                Scene::Size().horizontalAspectRatio(),
+                0.1f,
+                100.0f
+            );
+
+            Graphics3D::SetProjectionMatrix(m_projectionMat);
+        }
+
+        s_resource->directionLight->lightDirection = m_camera.WorldMatrix().forward().normalized();
         s_resource->directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
         s_resource->directionLight.upload();
 
@@ -285,11 +332,11 @@ struct Demo_AirCombat_impl
             ImGui::Begin("Camera Info");
 
             ImGui::Text("Eye Position: (%.2f, %.2f, %.2f)",
-                        m_camera.eyePosition().x,
-                        m_camera.eyePosition().y,
-                        m_camera.eyePosition().z);
+                        m_camera.EyePosition().x,
+                        m_camera.EyePosition().y,
+                        m_camera.EyePosition().z);
 
-            const auto targetPosition = m_camera.targetPosition();
+            const auto targetPosition = m_camera.TargetPosition();
             ImGui::Text("Target Position: (%.2f, %.2f, %.2f)",
                         targetPosition.x,
                         targetPosition.y,
@@ -318,30 +365,6 @@ struct Demo_AirCombat_impl
 
             ImGui::End();
         }
-    }
-
-    void resetCamera()
-    {
-        m_camera.reset(Float3{}.withZ(10.0f));
-    }
-
-    void updateCamera()
-    {
-        const auto playerPose = m_player.GetPose();
-        const auto cameraTarget = playerPose.position;
-        const auto playerForward = playerPose.getMatrix().forward().withY(0.0f).normalized();
-        const auto cameraEye = cameraTarget - playerForward * 10.0f + Float3{0, -0.5f, 0};
-        m_camera.setEyeAndTarget(cameraEye, cameraTarget);
-        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
-
-        m_projectionMat = Mat4x4::PerspectiveFov(
-            90.0_deg,
-            Scene::Size().horizontalAspectRatio(),
-            0.1f,
-            100.0f
-        );
-
-        Graphics3D::SetProjectionMatrix(m_projectionMat);
     }
 };
 
