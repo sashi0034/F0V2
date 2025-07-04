@@ -8,6 +8,7 @@
 #include "TY/GameStep.h"
 #include "TY/Graphics3D.h"
 #include "TY/InlineComponent.h"
+#include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 
 #include "TY/Shader.h"
@@ -103,41 +104,53 @@ public:
             .setCB2(s_resource->directionLight)
         };
 
-        m_pose.position.y = 3.0f;
+        resetParameters();
     }
 
     void Update()
     {
-        const auto playerMatrix = m_pose.getMatrix();
-        const auto playerForward = playerMatrix.forward();
-        const auto playerRight = playerMatrix.right();
-        m_pose.position += playerForward * -SimpleInput::GetPlayerMovement2D().y * 10.0f * System::DeltaTime();
-        m_pose.position += playerRight * SimpleInput::GetPlayerMovement2D().x * 10.0f * System::DeltaTime();
-
-        m_pose.rotation *=
-            Quaternion::RotateY(SimpleInput::GetCameraRotation().x * 1.0f * System::DeltaTime());
-
-        m_pose.rotation *=
-            Quaternion{playerMatrix.right(), SimpleInput::GetCameraRotation().y * 1.0f * System::DeltaTime()};
-
-        const float targetYaw = -SimpleInput::GetCameraRotation().x * 15.0_deg;
+        // ロール更新
+        const float targetYaw = -SimpleInput::GetPlayerMovement2D().x * 15.0_deg;
         for (const auto dt : StandardStep_60Hz())
         {
-            m_yaw = Math::Lerp(m_yaw, targetYaw, 10.0f * dt);
+            m_roll = Math::Lerp(m_roll, targetYaw, 10.0f * dt);
         }
+
+        // 速度更新
+        m_forwardSpeed += 1.0f * (KeyUp.pressed() - KeyDown.pressed());
+        m_forwardSpeed = Math::Clamp(m_forwardSpeed, 0.0f, 100.0f);
+
+        // 機体正面方向へ前進
+        const auto playerMatrix = m_pose.getMatrix();
+        const auto playerForward = playerMatrix.forward();
+        m_pose.position += playerForward * m_forwardSpeed * System::DeltaTime();
+
+        // ヨー回転
+        m_pose.rotation *=
+            Quaternion::RotateY(-m_roll * 2.0f * System::DeltaTime());
+
+        // ピッチ回転
+        m_pose.rotation *=
+            Quaternion{playerMatrix.right(), -SimpleInput::GetPlayerMovement2D().y * 1.0f * System::DeltaTime()};
     }
 
     void Draw() const
     {
         const auto matrix = m_pose.getMatrix();
-        const Transformer3D t3d{Mat4x4{Quaternion::RotateZ(m_yaw)} * matrix};
+        const Transformer3D t3d{Mat4x4{Quaternion::RotateZ(m_roll)} * matrix};
 
         m_model.draw();
     }
 
-    void DebugUI() const
+    void DebugUI()
     {
         ImGui::Begin("Player Info");
+
+        ImGui::Text("Speed: %.2f", m_forwardSpeed);
+
+        ImGui::Text("Altitude: %.2f", m_pose.position.y);
+
+        ImGui::Separator();
 
         ImGui::Text("Position: (%.2f, %.2f, %.2f)",
                     m_pose.position.x,
@@ -148,10 +161,14 @@ public:
         ImGui::Text("Rotation (rad): (%.2f, %.2f, %.2f)", rotation.x, rotation.y, rotation.z);
 
         const auto forward = m_pose.getMatrix().forward();
-        ImGui::Text("Forward: (%.2f, %.2f, %.2f)",
-                    forward.x,
-                    forward.y,
-                    forward.z);
+        ImGui::Text("Forward: (%.2f, %.2f, %.2f)", forward.x, forward.y, forward.z);
+
+        ImGui::Separator();
+
+        if (ImGui::Button("Reset"))
+        {
+            resetParameters();
+        }
 
         ImGui::End();
     }
@@ -162,10 +179,21 @@ public:
     }
 
 private:
+    void resetParameters()
+    {
+        m_pose = {};
+        m_pose.position.y = 3.0f;
+
+        m_forwardSpeed = 5.0f;
+
+        m_roll = 0.0f;
+    }
+
     ModelDrawer m_model{};
     Pose m_pose{};
 
-    float m_yaw{};
+    float m_forwardSpeed{};
+    float m_roll{};
 };
 
 struct Demo_AirCombat_impl
@@ -205,7 +233,7 @@ struct Demo_AirCombat_impl
             Size{1024, 1024}, 32, ColorF32{0.8}, ColorF32{0.9});
         m_gridPlaneModel = ModelDrawer{
             ModelDrawerParams{}
-            .setData(Shape3D::TexturePlane(gridPlaneTexture, Float2{100.0f, 100.0f}))
+            .setData(Shape3D::TexturePlane(gridPlaneTexture, Float2{100000.0f, 100000.0f}))
             .setShaders(s_resource->modelPS, s_resource->modelVS)
         };
 
@@ -223,9 +251,9 @@ struct Demo_AirCombat_impl
 
     void Update()
     {
-        updateCamera();
-
         m_player.Update();
+
+        updateCamera();
 
         s_resource->directionLight->lightDirection = m_camera.worldMatrix().forward().normalized();
         s_resource->directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
