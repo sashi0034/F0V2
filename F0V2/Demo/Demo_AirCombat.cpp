@@ -202,15 +202,18 @@ public:
     void Update(const AirCombat_Player& player)
     {
         const auto playerPose = player.GetPose();
-        m_targetPosition = playerPose.position;
 
-        const auto playerForward = playerPose.getMatrix().forward().withY(0.0f).normalized();
-        m_eyePosition = m_targetPosition - playerForward * 10.0f + Float3{0, -0.5f, 0};
+        const auto upDirection = playerPose.getMatrix().up();
+
+        m_targetPosition = playerPose.position + upDirection * 4.0f;
+
+        const auto playerForward = playerPose.getMatrix().forward().normalized();
+        m_eyePosition = m_targetPosition - playerForward * 8.0f;
 
         m_viewMatrix = Mat4x4::LookAt(
             m_eyePosition,
             m_targetPosition,
-            Float3{0, 1, 0} // Up direction
+            upDirection
         );
 
         m_worldMatrix = m_viewMatrix.transposed();
@@ -296,7 +299,7 @@ struct Demo_AirCombat_impl
                 90.0_deg,
                 Scene::Size().horizontalAspectRatio(),
                 0.1f,
-                100.0f
+                1000.0f
             );
 
             Graphics3D::SetProjectionMatrix(m_projectionMat);
