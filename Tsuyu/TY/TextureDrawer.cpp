@@ -84,6 +84,7 @@ namespace
                     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT}
                 },
+                .hasDepth = options.hasDepth,
                 .descriptorTable = descriptorTable,
             }
         };
@@ -225,6 +226,12 @@ namespace TY
     TextureDrawable2D& TextureDrawable2D::scaled(Float2 scaling_)
     {
         scaling = scaling * scaling_;
+        return *this;
+    }
+
+    TextureDrawable2D& TextureDrawable2D::resized(Float2 size)
+    {
+        scaling = size / texture.size().cast<Float2>();
         return *this;
     }
 

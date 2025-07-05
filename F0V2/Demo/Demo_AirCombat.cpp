@@ -78,8 +78,34 @@ namespace
         return ShaderResourceTexture{image};
     }
 
+    ShaderResourceTexture makeAimIcon(const Size& size, const UnifiedColor& color)
+    {
+        Image image{size, ColorU8{}};
+
+        for (int y = 0; y < size.y; y += size.y - 1)
+        {
+            for (int x = 0; x < size.x; ++x)
+            {
+                image[Point{x, y}] = color;
+            }
+        }
+
+        for (int y = 0; y < size.y; ++y)
+        {
+            for (int x = 0; x < size.x; x += size.x - 1)
+            {
+                image[Point{x, y}] = color;
+            }
+        }
+
+        return ShaderResourceTexture{image};
+    }
+
     struct CommonResource : IInlineComponent
     {
+        PixelShader default2d_ps{ShaderParams::PS("asset/shader/default2d.hlsl")};
+        VertexShader default2d_vs{ShaderParams::VS("asset/shader/default2d.hlsl")};
+
         PixelShader modelPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
         VertexShader modelVS{ShaderParams::VS("asset/shader/model_vertex.hlsl")};
 
@@ -249,9 +275,6 @@ struct Demo_AirCombat_impl
 
     Mat4x4 m_projectionMat{};
 
-    PixelShader m_modelPS{};
-    VertexShader m_modelVS{};
-
     ConstantBuffer<DirectionLight_cb2> m_planeLight{};
 
     ModelDrawer m_planeModel{};
@@ -262,6 +285,8 @@ struct Demo_AirCombat_impl
 
     ModelDrawer m_sphereModel{};
     Pose m_spherePose{};
+
+    TextureDrawer m_greenAimIcon{};
 
     Demo_AirCombat_impl()
     {
@@ -292,6 +317,12 @@ struct Demo_AirCombat_impl
         };
 
         m_spherePose.position.y = 5.0f;
+
+        m_greenAimIcon = TextureDrawer{
+            TextureDrawerParams{}
+            .setShaders(s_resource->default2d_ps, s_resource->default2d_vs)
+            .setSource(makeAimIcon(Size{32, 32}, ColorF32{0.3f, 1.0f, 0.3f}).getResource())
+        };
     }
 
     void Update()
@@ -319,6 +350,8 @@ struct Demo_AirCombat_impl
         m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
         m_planeLight.upload();
 
+        // -----------------------------------------------
+
         {
             m_planeModel.draw();
         }
@@ -335,6 +368,10 @@ struct Demo_AirCombat_impl
         {
             const Transformer3D t3d{m_spherePose.getMatrix()};
             m_sphereModel.draw();
+        }
+
+        {
+            m_greenAimIcon.as2D().resized({48, 48}).drawAt(Scene::Center());
         }
 
         {

@@ -92,9 +92,24 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.BlendState.IndependentBlendEnable = false;
 
         D3D12_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc = {};
-        renderTargetBlendDesc.BlendEnable = false;
-        renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-        renderTargetBlendDesc.LogicOpEnable = false;
+
+        if (params.hasDepth)
+        {
+            renderTargetBlendDesc.BlendEnable = false;
+            renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+            renderTargetBlendDesc.LogicOpEnable = false;
+        }
+        else
+        {
+            renderTargetBlendDesc.BlendEnable = true;
+            renderTargetBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+            renderTargetBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+            renderTargetBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+            renderTargetBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+            renderTargetBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+            renderTargetBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+            renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+        }
 
         pipelineDesc.BlendState.RenderTarget[0] = renderTargetBlendDesc;
 

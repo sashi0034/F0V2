@@ -10,6 +10,7 @@ namespace TY
         TextureSource source;
         PixelShader ps;
         VertexShader vs;
+        bool hasDepth{false};
 
         TextureDrawerParams& setSource(const TextureSource& source_)
         {
@@ -26,6 +27,19 @@ namespace TY
         TextureDrawerParams& setVS(const VertexShader& vs_)
         {
             vs = vs_;
+            return *this;
+        }
+
+        TextureDrawerParams& setShaders(const PixelShader& ps_, const VertexShader& vs_)
+        {
+            ps = ps_;
+            vs = vs_;
+            return *this;
+        }
+
+        TextureDrawerParams& setHasDepth(bool hasDepth_)
+        {
+            hasDepth = hasDepth_;
             return *this;
         }
     };
@@ -67,6 +81,8 @@ namespace TY
         TextureDrawable2D& scaled(float value);
 
         TextureDrawable2D& scaled(Float2 scaling_);
+
+        TextureDrawable2D& resized(Float2 size);
 
         void draw(const Vec2& position) const;
 
