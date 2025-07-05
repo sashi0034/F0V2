@@ -112,42 +112,64 @@ namespace
         PixelShader lambertPS{ShaderParams::PS("asset/shader/lambert.hlsl")};
         VertexShader lambertVS{ShaderParams::VS("asset/shader/lambert.hlsl")};
 
+        ModelData fighterModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
+
         ConstantBuffer<DirectionLight_cb2> directionLight{};
     };
 
     InlineComponent<CommonResource> s_resource{};
+
+    class Internal
+    {
+    public:
+        struct FighterBody;
+        class Player;
+        class Camera;
+    };
 }
 
-class AirCombat_Player
+struct Internal::FighterBody
 {
-public:
-    void Init()
+    Float3 m_initialPosition{};
+
+    ModelDrawer m_model{};
+    Pose m_pose{};
+
+    float m_forwardSpeed{};
+    float m_roll{};
+
+    void Init(const ModelData& model, const Float3& initialPosition)
     {
+        m_initialPosition = initialPosition;
+
         m_model = ModelDrawer{
             ModelDrawerParams{}
-            .setData(ModelLoader::Load("asset/model/tie_fighter.obj"))
+            .setData(model)
             .setShaders(s_resource->lambertPS, s_resource->lambertVS)
             .setCB2(s_resource->directionLight)
         };
 
-        resetParameters();
+        ResetParameters();
     }
 
-    void Update()
+    struct Input
+    {
+        float roll{}; // 左右の傾き [-1.0, 1.0]
+        float pitch{}; // 上昇・下降 [-1.0, 1.0]
+        float speed{}; // 前進・後退の速度 [-1.0, 1.0]
+    };
+
+    void Update(const Input& input)
     {
         // ロール更新
-        const float targetYaw = -SimpleInput::GetPlayerMovement2D().x * 15.0_deg;
+        const float targetRoll = input.roll * 15.0_deg;
         for (const auto dt : StandardStep_60Hz())
         {
-            m_roll = Math::Lerp(m_roll, targetYaw, 10.0f * dt);
+            m_roll = Math::Lerp(m_roll, targetRoll, 10.0f * dt);
         }
 
         // 速度更新
-        const float speedInput =
-            IsGamepadPreferred()
-                ? (MainGamepad.rt().pressed - MainGamepad.lt().pressed)
-                : (KeyUp.pressed() - KeyDown.pressed());
-        m_forwardSpeed += 5.0f * speedInput * System::DeltaTime();
+        m_forwardSpeed += 5.0f * input.speed * System::DeltaTime();
         m_forwardSpeed = Math::Clamp(m_forwardSpeed, 0.0f, 50.0f);
 
         // 機体正面方向へ前進
@@ -161,7 +183,7 @@ public:
 
         // ピッチ回転
         m_pose.rotation *=
-            Quaternion{playerMatrix.right(), -SimpleInput::GetPlayerMovement2D().y * 1.0f * System::DeltaTime()};
+            Quaternion{playerMatrix.right(), input.pitch * 1.0f * System::DeltaTime()};
     }
 
     void Draw() const
@@ -172,18 +194,8 @@ public:
         m_model.draw();
     }
 
-    void DebugUI()
+    void DebugGUI()
     {
-        ImGui::Begin("Player Info");
-
-        ImGui::Text("Speed: %.2f", m_forwardSpeed);
-
-        ImGui::Text("Altitude: %.2f", m_pose.position.y);
-
-        ImGui::Separator();
-
-        ImGui::Text("%s", IsGamepadPreferred() ? "Gamepad" : "Keyboard & Mouse");
-
         ImGui::Text("Position: (%.2f, %.2f, %.2f)",
                     m_pose.position.x,
                     m_pose.position.y,
@@ -195,43 +207,71 @@ public:
         const auto forward = m_pose.getMatrix().forward();
         ImGui::Text("Forward: (%.2f, %.2f, %.2f)", forward.x, forward.y, forward.z);
 
-        ImGui::Separator();
-
         if (ImGui::Button("Reset"))
         {
-            resetParameters();
+            ResetParameters();
         }
-
-        ImGui::End();
     }
 
-    Pose GetPose() const
-    {
-        return m_pose;
-    }
-
-private:
-    void resetParameters()
+    void ResetParameters()
     {
         m_pose = {};
-        m_pose.position.y = 3.0f;
+        m_pose.position = m_initialPosition;
 
         m_forwardSpeed = 5.0f;
 
         m_roll = 0.0f;
     }
-
-    ModelDrawer m_model{};
-    Pose m_pose{};
-
-    float m_forwardSpeed{};
-    float m_roll{};
 };
 
-class AirCombat_Camera
+class Internal::Player
 {
 public:
-    void Update(const AirCombat_Player& player)
+    void Init()
+    {
+        m_body.Init(s_resource->fighterModel, Float3{}.withY(3.0f));
+    }
+
+    void Update()
+    {
+        FighterBody::Input input{};
+        input.roll = -SimpleInput::GetPlayerMovement2D().x;
+        input.pitch = -SimpleInput::GetPlayerMovement2D().y;
+        input.speed = IsGamepadPreferred()
+                          ? (MainGamepad.rt().pressed - MainGamepad.lt().pressed)
+                          : (KeyUp.pressed() - KeyDown.pressed());
+        m_body.Update(input);
+    }
+
+    void Draw() const { m_body.Draw(); }
+
+    void DebugUI()
+    {
+        ImGui::Begin("Player Info");
+
+        ImGui::Text("Speed: %.2f", m_body.m_forwardSpeed);
+
+        ImGui::Text("Altitude: %.2f", m_body.m_pose.position.y);
+
+        ImGui::Separator();
+
+        ImGui::Text("%s", IsGamepadPreferred() ? "Gamepad" : "Keyboard & Mouse");
+
+        m_body.DebugGUI();
+
+        ImGui::End();
+    }
+
+    Pose GetPose() const { return m_body.m_pose; }
+
+private:
+    FighterBody m_body{};
+};
+
+class Internal::Camera
+{
+public:
+    void Update(const Player& player)
     {
         const auto playerPose = player.GetPose();
 
@@ -271,7 +311,7 @@ private:
 
 struct Demo_AirCombat_impl
 {
-    AirCombat_Camera m_camera{};
+    Internal::Camera m_camera{};
 
     Mat4x4 m_projectionMat{};
 
@@ -281,7 +321,7 @@ struct Demo_AirCombat_impl
 
     ModelDrawer m_gridPlaneModel{};
 
-    AirCombat_Player m_player{};
+    Internal::Player m_player{};
 
     ModelDrawer m_sphereModel{};
     Pose m_spherePose{};
