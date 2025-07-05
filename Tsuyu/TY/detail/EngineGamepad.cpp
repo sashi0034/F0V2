@@ -91,7 +91,7 @@ struct EngineGamepadImpl
 
     GamepadInputState m_inputState{};
 
-    bool m_usingGamepad{};
+    bool m_gamepadPreferred{};
 
     void Init()
     {
@@ -163,10 +163,10 @@ struct EngineGamepadImpl
             return;
         }
 
-        if (m_usingGamepad && not KeyboardMouse::GetAllInputs().empty())
+        if (m_gamepadPreferred && not KeyboardMouse::GetAllInputs().empty())
         {
             // キーボードやマウスの入力があった場合、ゲームパッド使用フラグを解除
-            m_usingGamepad = false;
+            m_gamepadPreferred = false;
         }
 
         if (SUCCEEDED(m_gamepad->GetDeviceState(sizeof(DIJOYSTATE), &js)))
@@ -196,15 +196,15 @@ struct EngineGamepadImpl
                 updateButtonState(m_inputState.buttons[i], pressed);
             }
 
-            if (not m_usingGamepad)
+            if (not m_gamepadPreferred)
             {
-                m_usingGamepad =
+                m_gamepadPreferred =
                     isGamepadButtonActivated(m_inputState) || isGamepadAxesActivated(previousAces, m_inputState);
             }
         }
         else
         {
-            m_usingGamepad = false;
+            m_gamepadPreferred = false;
         }
     }
 
@@ -256,8 +256,8 @@ namespace TY::detail
         return s_gamepad.m_inputState;
     }
 
-    bool EngineGamepad::IsUsingGamepad()
+    bool EngineGamepad::IsGamepadPreferred()
     {
-        return s_gamepad.m_usingGamepad;
+        return s_gamepad.m_gamepadPreferred;
     }
 }

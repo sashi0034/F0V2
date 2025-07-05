@@ -117,8 +117,12 @@ public:
         }
 
         // 速度更新
-        m_forwardSpeed += 1.0f * (KeyUp.pressed() - KeyDown.pressed());
-        m_forwardSpeed = Math::Clamp(m_forwardSpeed, 0.0f, 100.0f);
+        const float speedInput =
+            IsGamepadPreferred()
+                ? (MainGamepad.rt().pressed - MainGamepad.lt().pressed)
+                : (KeyUp.pressed() - KeyDown.pressed());
+        m_forwardSpeed += 5.0f * speedInput * System::DeltaTime();
+        m_forwardSpeed = Math::Clamp(m_forwardSpeed, 0.0f, 50.0f);
 
         // 機体正面方向へ前進
         const auto playerMatrix = m_pose.getMatrix();
@@ -152,7 +156,7 @@ public:
 
         ImGui::Separator();
 
-        ImGui::Text("%s", IsUsingGamepad() ? "Gamepad" : "Keyboard & Mouse");
+        ImGui::Text("%s", IsGamepadPreferred() ? "Gamepad" : "Keyboard & Mouse");
 
         ImGui::Text("Position: (%.2f, %.2f, %.2f)",
                     m_pose.position.x,
