@@ -112,9 +112,22 @@ namespace
         PixelShader lambertPS{ShaderParams::PS("asset/shader/lambert.hlsl")};
         VertexShader lambertVS{ShaderParams::VS("asset/shader/lambert.hlsl")};
 
-        ModelData fighterModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
+        ModelData playerModel{};
+        ModelData enemyModel{};
 
         ConstantBuffer<DirectionLight_cb2> directionLight{};
+
+        CommonResource()
+        {
+            playerModel = ModelLoader::Load("asset/model/tie_fighter.obj");
+
+            enemyModel = playerModel;
+            for (int i = 0; i < playerModel.materials.size(); ++i)
+            {
+                enemyModel.materials[i].parameters.diffuse =
+                    Float3::One() - enemyModel.materials[i].parameters.diffuse;
+            }
+        }
     };
 
     InlineComponent<CommonResource> s_resource{};
@@ -125,9 +138,13 @@ namespace
         struct FighterBody;
         class Player;
         class Camera;
+        class Enemy;
     };
+
+    constexpr float groundPositionY = -10.0f;
 }
 
+// 戦闘機
 struct Internal::FighterBody
 {
     Float3 m_initialPosition{};
@@ -177,6 +194,13 @@ struct Internal::FighterBody
         const auto playerForward = playerMatrix.forward();
         m_pose.position += playerForward * m_forwardSpeed * System::DeltaTime();
 
+        if (m_pose.position.y < groundPositionY)
+        {
+            // 地面に衝突
+            m_pose.position.y = groundPositionY;
+            m_forwardSpeed = 0.0f;
+        }
+
         // ヨー回転
         m_pose.rotation *=
             Quaternion::RotateY(-m_roll * 2.0f * System::DeltaTime());
@@ -218,7 +242,7 @@ struct Internal::FighterBody
         m_pose = {};
         m_pose.position = m_initialPosition;
 
-        m_forwardSpeed = 5.0f;
+        m_forwardSpeed = 0.0f;
 
         m_roll = 0.0f;
     }
@@ -229,7 +253,9 @@ class Internal::Player
 public:
     void Init()
     {
-        m_body.Init(s_resource->fighterModel, Float3{}.withY(3.0f));
+        m_body.Init(s_resource->playerModel, Float3{}.withY(3.0f));
+
+        m_body.m_forwardSpeed = 5.0f;
     }
 
     void Update()
@@ -263,6 +289,27 @@ public:
     }
 
     Pose GetPose() const { return m_body.m_pose; }
+
+private:
+    FighterBody m_body{};
+};
+
+class Internal::Enemy
+{
+public:
+    void Init(const Float3 position)
+    {
+        m_body.Init(s_resource->enemyModel, position);
+    }
+
+    void Update()
+    {
+        FighterBody::Input input{};
+        // TODO
+        m_body.Update(input);
+    }
+
+    void Draw() const { m_body.Draw(); }
 
 private:
     FighterBody m_body{};
@@ -323,6 +370,8 @@ struct Demo_AirCombat_impl
 
     Internal::Player m_player{};
 
+    Array<Internal::Enemy> m_enemies{};
+
     ModelDrawer m_sphereModel{};
     Pose m_spherePose{};
 
@@ -343,11 +392,18 @@ struct Demo_AirCombat_impl
             Size{1024, 1024}, 32, ColorF32{0.8}, ColorF32{0.9});
         m_gridPlaneModel = ModelDrawer{
             ModelDrawerParams{}
-            .setData(Shape3D::TexturePlane(gridPlaneTexture, Float2{100000.0f, 100000.0f}))
+            .setData(Shape3D::TexturePlane(gridPlaneTexture, Float2{10000.0f, 10000.0f}))
             .setShaders(s_resource->modelPS, s_resource->modelVS)
         };
 
         m_player.Init();
+
+        m_enemies.resize(5);
+        m_enemies[0].Init(Float3{30.0f, 10.0f, 20.0f});
+        m_enemies[1].Init(Float3{-30.0f, 20.0f, 30.0f});
+        m_enemies[2].Init(Float3{20.0f, 10.0f, 30.0f});
+        m_enemies[3].Init(Float3{-20.0f, 20.0f, 20.0f});
+        m_enemies[4].Init(Float3{20.0f, 10.0f, -20.0f});
 
         m_sphereModel = ModelDrawer{
             ModelDrawerParams{}
@@ -368,6 +424,11 @@ struct Demo_AirCombat_impl
     void Update()
     {
         m_player.Update();
+
+        for (auto& enemy : m_enemies)
+        {
+            enemy.Update();
+        }
 
         m_camera.Update(m_player);
 
@@ -398,12 +459,17 @@ struct Demo_AirCombat_impl
 
         {
             Pose pose{};
-            pose.position.y = -10.0f;
+            pose.position.y = groundPositionY;
             const Transformer3D t3d{pose.getMatrix()};
             m_gridPlaneModel.draw();
         }
 
         m_player.Draw();
+
+        for (const auto& enemy : m_enemies)
+        {
+            enemy.Draw();
+        }
 
         {
             const Transformer3D t3d{m_spherePose.getMatrix()};

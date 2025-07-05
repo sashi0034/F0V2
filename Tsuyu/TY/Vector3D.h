@@ -183,6 +183,18 @@ namespace TY
             const auto tmp = toXMF();
             return DirectX::XMLoadFloat3(&tmp);
         }
+
+        [[nodiscard]]
+        static Vector3D Zero()
+        {
+            return Vector3D(0, 0, 0);
+        }
+
+        [[nodiscard]]
+        static Vector3D One()
+        {
+            return Vector3D(1, 1, 1);
+        }
     };
 
     using Vec3 = Vector3D<double>;
