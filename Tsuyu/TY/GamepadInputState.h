@@ -12,6 +12,8 @@ namespace TY
 
     struct GamepadInputState
     {
+        using axes_type = std::array<float, 6>; // lx, ly, lz, lRx, lRy, lRz
+
         std::array<GamepadButtonState, 32> buttons;
 
         GamepadButtonState povUp{};
@@ -22,6 +24,6 @@ namespace TY
 
         GamepadButtonState povRight{};
 
-        std::array<float, 6> axes; // lx, ly, lz, lRx, lRy, lRz
+        axes_type axes;
     };
 }

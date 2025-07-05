@@ -6,8 +6,10 @@
 
 #include "EngineWindow.h"
 #include "TY/GamepadInputState.h"
+#include "TY/KeyboardMouseInput.h"
 
 #include "TY/Logger.h"
+#include "TY/Math.h"
 
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -51,6 +53,35 @@ namespace
         if (deg >= 135 && deg < 225) down = true;
         if (deg >= 225 && deg < 315) left = true;
     }
+
+    bool isGamepadButtonActivated(const GamepadInputState& state)
+    {
+        for (const auto& button : state.buttons)
+        {
+            if (button.down) return true;
+        }
+
+        if (state.povUp.down || state.povDown.down || state.povLeft.down || state.povRight.down)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isGamepadAxesActivated(const GamepadInputState::axes_type& previousAxes, const GamepadInputState& state)
+    {
+        for (int i = 0; i < state.axes.size(); ++i)
+        {
+            const auto diff = Abs(state.axes[i] - previousAxes[i]);
+            if (diff > 0.5f)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 struct EngineGamepadImpl
@@ -59,6 +90,8 @@ struct EngineGamepadImpl
     LPDIRECTINPUTDEVICE8 m_gamepad = nullptr;
 
     GamepadInputState m_inputState{};
+
+    bool m_usingGamepad{};
 
     void Init()
     {
@@ -130,8 +163,17 @@ struct EngineGamepadImpl
             return;
         }
 
+        if (m_usingGamepad && not KeyboardMouse::GetAllInputs().empty())
+        {
+            // キーボードやマウスの入力があった場合、ゲームパッド使用フラグを解除
+            m_usingGamepad = false;
+        }
+
         if (SUCCEEDED(m_gamepad->GetDeviceState(sizeof(DIJOYSTATE), &js)))
         {
+            // 入力状態を更新
+            const auto previousAces = m_inputState.axes;
+
             m_inputState.axes[0] = normalizeAxis(js.lX);
             m_inputState.axes[1] = normalizeAxis(js.lY);
             m_inputState.axes[2] = normalizeAxis(js.lZ);
@@ -153,6 +195,16 @@ struct EngineGamepadImpl
                 const bool pressed = js.rgbButtons[i] & 0x80;
                 updateButtonState(m_inputState.buttons[i], pressed);
             }
+
+            if (not m_usingGamepad)
+            {
+                m_usingGamepad =
+                    isGamepadButtonActivated(m_inputState) || isGamepadAxesActivated(previousAces, m_inputState);
+            }
+        }
+        else
+        {
+            m_usingGamepad = false;
         }
     }
 
@@ -202,5 +254,10 @@ namespace TY::detail
     const GamepadInputState& EngineGamepad::GetInputState()
     {
         return s_gamepad.m_inputState;
+    }
+
+    bool EngineGamepad::IsUsingGamepad()
+    {
+        return s_gamepad.m_usingGamepad;
     }
 }

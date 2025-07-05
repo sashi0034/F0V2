@@ -12,5 +12,7 @@ namespace TY::detail
         void Shutdown();
 
         const GamepadInputState& GetInputState();
+
+        bool IsUsingGamepad();
     };
 }

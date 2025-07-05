@@ -33,5 +33,8 @@ namespace TY
         int m_index{};
     };
 
+    [[nodiscard]]
+    bool IsUsingGamepad();
+
     inline constexpr GamepadInput MainGamepad{};
 }

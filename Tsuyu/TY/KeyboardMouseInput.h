@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Array.h"
 
 namespace TY
 {
@@ -17,7 +18,14 @@ namespace TY
 
         bool up() const;
 
+        uint8_t code() const;
+
     private:
         uint8_t m_code{};
     };
+
+    namespace KeyboardMouse
+    {
+        const Array<KeyboardMouseInput>& GetAllInputs();
+    }
 }

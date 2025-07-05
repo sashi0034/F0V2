@@ -13,10 +13,17 @@ struct EngineKeyboardMouseImpl
     std::array<BYTE, 256> m_previousState{};
     std::array<BYTE, 256> m_currentState{};
 
+    Array<uint8_t> m_changedCodes{};
+
     Float2 m_mousePosInWindow{};
     Float2 m_mousePosInFrameBuffer{};
 
     Float2 m_previousMousePosInFrameBuffer{};
+
+    EngineKeyboardMouseImpl()
+    {
+        m_changedCodes.reserve(256);
+    }
 
     void Update()
     {
@@ -25,6 +32,16 @@ struct EngineKeyboardMouseImpl
 
         // 現在の状態を取得
         GetKeyboardState(m_currentState.data());
+
+        // 状態が変化したキーを収集
+        m_changedCodes.clear();
+        for (int i = 0; i < m_currentState.size(); ++i)
+        {
+            if ((m_currentState[i] & 0x80) != (m_previousState[i] & 0x80))
+            {
+                m_changedCodes.push_back(static_cast<uint8_t>(i));
+            }
+        }
 
         // マウスの座標を取得
         POINT mousePos{};
@@ -66,6 +83,11 @@ namespace TY::detail
     bool EngineKeyboardMouse::KeyUp(uint8_t code)
     {
         return not(s_keyboardMouse.m_currentState[code] & 0x80) && (s_keyboardMouse.m_previousState[code] & 0x80);
+    }
+
+    const Array<uint8_t>& EngineKeyboardMouse::ChangedCodes()
+    {
+        return s_keyboardMouse.m_changedCodes;
     }
 
     Float2 EngineKeyboardMouse::MousePos()

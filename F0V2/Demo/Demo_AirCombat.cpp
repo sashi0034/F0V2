@@ -152,6 +152,8 @@ public:
 
         ImGui::Separator();
 
+        ImGui::Text("%s", IsUsingGamepad() ? "Gamepad" : "Keyboard & Mouse");
+
         ImGui::Text("Position: (%.2f, %.2f, %.2f)",
                     m_pose.position.x,
                     m_pose.position.y,
