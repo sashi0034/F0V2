@@ -333,7 +333,7 @@ struct Demo_AirCombat_impl
 
         {
             m_projectionMat = Mat4x4::PerspectiveFov(
-                90.0_deg,
+                75.0_deg,
                 Scene::Size().horizontalAspectRatio(),
                 0.1f,
                 1000.0f
