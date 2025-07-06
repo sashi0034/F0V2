@@ -112,20 +112,26 @@ namespace
         PixelShader lambertPS{ShaderParams::PS("asset/shader/lambert.hlsl")};
         VertexShader lambertVS{ShaderParams::VS("asset/shader/lambert.hlsl")};
 
-        ModelData playerModel{};
-        ModelData enemyModel{};
+        ModelBuffer playerModel{};
+        ModelBuffer enemyModel{};
 
         ConstantBuffer<DirectionLight_cb2> directionLight{};
 
         CommonResource()
         {
-            playerModel = ModelLoader::Load("asset/model/tie_fighter.obj");
-
-            enemyModel = playerModel;
-            for (int i = 0; i < playerModel.materials.size(); ++i)
+            // モデル
             {
-                enemyModel.materials[i].parameters.diffuse =
-                    Float3::One() - enemyModel.materials[i].parameters.diffuse;
+                auto modelData = ModelLoader::Load("asset/model/tie_fighter.obj");
+
+                playerModel = modelData;
+
+                for (int i = 0; i < modelData.materials.size(); ++i)
+                {
+                    modelData.materials[i].parameters.diffuse =
+                        Float3::One() - modelData.materials[i].parameters.diffuse;
+                }
+
+                enemyModel = modelData;
             }
         }
     };
@@ -155,13 +161,13 @@ struct Internal::FighterBody
     float m_forwardSpeed{};
     float m_roll{};
 
-    void Init(const ModelData& model, const Float3& initialPosition)
+    void Init(const ModelBuffer& model, const Float3& initialPosition)
     {
         m_initialPosition = initialPosition;
 
         m_model = ModelDrawer{
             ModelDrawerParams{}
-            .setData(model)
+            .setModel(model)
             .setShaders(s_resource->lambertPS, s_resource->lambertVS)
             .setCB2(s_resource->directionLight)
         };
@@ -381,7 +387,7 @@ struct Demo_AirCombat_impl
 
         m_planeModel = ModelDrawer{
             ModelDrawerParams{}
-            .setData(ModelLoader::Load("asset/model/dirty_plane.obj"))
+            .setModel(ModelLoader::Load("asset/model/dirty_plane.obj"))
             .setShaders(s_resource->lambertPS, s_resource->lambertVS)
             .setCB2(m_planeLight)
         };
@@ -390,7 +396,7 @@ struct Demo_AirCombat_impl
             Size{1024, 1024}, 32, ColorF32{0.8}, ColorF32{0.9});
         m_gridPlaneModel = ModelDrawer{
             ModelDrawerParams{}
-            .setData(Shape3D::TexturePlane(gridPlaneTexture, Float2{10000.0f, 10000.0f}))
+            .setModel(Shape3D::TexturePlane(gridPlaneTexture, Float2{10000.0f, 10000.0f}))
             .setShaders(s_resource->modelPS, s_resource->modelVS)
         };
 
@@ -405,7 +411,7 @@ struct Demo_AirCombat_impl
 
         m_sphereModel = ModelDrawer{
             ModelDrawerParams{}
-            .setData(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
+            .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
             .setShaders(s_resource->lambertPS, s_resource->lambertVS)
             .setCB2(s_resource->directionLight)
         };

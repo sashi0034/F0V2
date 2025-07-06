@@ -67,7 +67,7 @@ struct Demo_Phong_impl
                 .ps = m_modelPS,
                 .vs = m_modelVS,
                 .cb2 = m_directionLightBuffer
-            }.loadData("asset/model/robot_head.obj")
+            }.loadModel("asset/model/robot_head.obj")
         };
 
         Graphics3D::SetViewMatrix(m_viewMat);

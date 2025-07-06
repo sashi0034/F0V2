@@ -61,7 +61,7 @@ struct Demo_Lambert_impl
 
         m_model = ModelDrawer{
             ModelDrawerParams{
-                .data = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
+                .model = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
                 .ps = m_modelPS,
                 .vs = m_modelVS,
                 .cb2 = m_directionLightBuffer

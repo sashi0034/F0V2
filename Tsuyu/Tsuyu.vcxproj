@@ -181,6 +181,7 @@
     <ClInclude Include="TY\Integer2D.h" />
     <ClInclude Include="TY\Integer3D.h" />
     <ClInclude Include="TY\KeyboardMouseInput.h" />
+    <ClInclude Include="TY\ModelBuffer.h" />
     <ClInclude Include="TY\Mouse.h" />
     <ClInclude Include="TY\Quaternion.h" />
     <ClInclude Include="TY\Random.h" />
@@ -298,6 +299,7 @@
     <ClCompile Include="TY\Gpgpu.cpp" />
     <ClCompile Include="TY\InlineComponent.cpp" />
     <ClCompile Include="TY\KeyboardMouseInput.cpp" />
+    <ClCompile Include="TY\ModelBuffer.cpp" />
     <ClCompile Include="TY\Mouse.cpp" />
     <ClCompile Include="TY\Quaternion.cpp" />
     <ClCompile Include="TY\Random.cpp" />

@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "ConstantBufferUploader.h"
 #include "Mat4x4.h"
+#include "ModelBuffer.h"
 #include "ModelData.h"
 #include "Shader.h"
 
@@ -8,14 +9,14 @@ namespace TY
 {
     struct ModelDrawerParams
     {
-        ModelData data;
+        ModelBuffer model;
         PixelShader ps;
         VertexShader vs;
         ConstantBufferUploader_impl cb2{Empty};
 
-        ModelDrawerParams& loadData(const std::string& filename);
+        ModelDrawerParams& loadModel(const std::string& filename);
 
-        ModelDrawerParams& setData(const ModelData& data_);
+        ModelDrawerParams& setModel(const ModelBuffer& data_);
 
         ModelDrawerParams& setShaders(const PixelShader& ps_, const VertexShader& vs_);
 

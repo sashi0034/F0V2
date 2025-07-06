@@ -2,17 +2,11 @@
 #include "ModelDrawer.h"
 
 #include "Array.h"
-#include "AssertObject.h"
 #include "ConstantBufferUploader.h"
 #include "Graphics3D.h"
-#include "IndexBuffer.h"
-#include "Logger.h"
 #include "Mat4x4.h"
 #include "ModelData.h"
 #include "ModelLoader.h"
-#include "Utils.h"
-#include "Vector2D.h"
-#include "Vector3D.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
 #include "detail/EngineCore.h"
@@ -58,19 +52,11 @@ namespace
         Mat4x4 viewMat;
         Mat4x4 projectionMat;
     };
-
-    struct ShapeBuffer
-    {
-        uint16_t materialIndex;
-        VertexBuffer<ModelVertex> vertexBuffer;
-        IndexBuffer indexBuffer;
-    };
 }
 
 struct ModelDrawer::Impl : IEngineDrawer
 {
-    ModelData m_modelData{};
-    Array<ShapeBuffer> m_shapes{};
+    ModelBuffer m_modelBuffer{};
 
     GraphicsPipelineState m_pipelineState;
 
@@ -78,48 +64,24 @@ struct ModelDrawer::Impl : IEngineDrawer
 
     ConstantBufferUploader<SceneState_b0> m_cb0{Empty};
 
-    ConstantBufferUploader<ModelMaterialParameters> m_cb1{Empty};
-
     ConstantBufferUploader_impl m_cb2{Empty};
 
     Impl(const ModelDrawerParams& params) :
-        m_modelData(params.data),
+        m_modelBuffer(params.model),
         m_pipelineState(makePipelineState(params)),
         m_cb2(params.cb2)
     {
-        m_shapes.clear();
-        for (auto& shape : m_modelData.shapes)
-        {
-            ShapeBuffer shapeBuffer{};
-            shapeBuffer.materialIndex = shape.materialIndex;
-            shapeBuffer.vertexBuffer = VertexBuffer(shape.vertexBuffer);
-            shapeBuffer.indexBuffer = IndexBuffer{shape.indexBuffer};
-            m_shapes.push_back(shapeBuffer);
-        }
-
-        // -----------------------------------------------
-
         m_cb0 = ConstantBufferUploader<SceneState_b0>{1};
 
-        const auto materials = m_modelData.materials.map([](const ModelMaterial& material)
-        {
-            return material.parameters;
-        });
-
-        m_cb1 = ConstantBufferUploader<ModelMaterialParameters>{materials};
-
         // -----------------------------------------------
-
-        const Array<ShaderResourceType> diffuseTextureList =
-            m_modelData.materials.map([](const ModelMaterial& material)
-            {
-                return ShaderResourceType(material.diffuseTexture);
-            });
 
         auto descriptorHeapParam = DescriptorHeapParams{
             .table = m_pipelineState.descriptorTable(),
-            .materialCounts = {1, m_modelData.materials.size()},
-            .descriptors = {CbSrUaSet{{m_cb0}, {}, {}}, CbSrUaSet{{m_cb1}, {diffuseTextureList}, {}}},
+            .materialCounts = {1, m_modelBuffer.materialCount()},
+            .descriptors = {
+                CbSrUaSet{{m_cb0}, {}, {}},
+                CbSrUaSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}}
+            },
         };
 
         if (not params.cb2.isEmpty())
@@ -148,26 +110,27 @@ struct ModelDrawer::Impl : IEngineDrawer
         if (not m_cb2.isEmpty()) m_descriptorHeap.commandSetTable(PipelineType::Graphics, 2);
 
         // 形状ごとに描画
-        for (size_t shapeId = 0; shapeId < m_shapes.size(); ++shapeId)
+        for (size_t shapeId = 0; shapeId < m_modelBuffer.materialCount(); ++shapeId)
         {
-            m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1, m_shapes[shapeId].materialIndex);
+            const auto& shape = m_modelBuffer.shapeBuffer().shapes()[shapeId];
+            m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1, shape.materialIndex);
 
-            Graphics3D::DrawTriangles(m_shapes[shapeId].vertexBuffer, m_shapes[shapeId].indexBuffer);
+            Graphics3D::DrawTriangles(shape.vertexBuffer, shape.indexBuffer);
         }
     }
 };
 
 namespace TY
 {
-    ModelDrawerParams& ModelDrawerParams::loadData(const std::string& filename)
+    ModelDrawerParams& ModelDrawerParams::loadModel(const std::string& filename)
     {
-        data = ModelLoader::Load(filename);
+        model = ModelLoader::Load(filename);
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setData(const ModelData& data_)
+    ModelDrawerParams& ModelDrawerParams::setModel(const ModelBuffer& data_)
     {
-        data = data_;
+        model = data_;
         return *this;
     }
 

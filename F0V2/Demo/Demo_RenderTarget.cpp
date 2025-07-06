@@ -62,7 +62,7 @@ void Demo_RenderTarget()
 
     const ModelDrawer model{
         ModelDrawerParams{
-            .data = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
+            .model = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
             .ps = modelPS,
             .vs = modelVS,
         }
