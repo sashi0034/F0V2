@@ -41,7 +41,7 @@ namespace TY
                 reinterpret_cast<const uint8_t*>(m_data.data()),
                 m_size,
                 size_in_bytes(),
-                DXGI_FORMAT_B8G8R8A8_UNORM
+                DXGI_FORMAT_R8G8B8A8_UNORM
             };
         }
 
