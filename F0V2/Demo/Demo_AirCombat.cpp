@@ -18,6 +18,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY/ModelLoader.h"
 #include "TY/Mouse.h"
+#include "TY/Random.h"
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/Shape3D.h"
@@ -304,12 +305,16 @@ public:
     void Init(const Float3 position)
     {
         m_body.Init(s_resource->enemyModel, position);
+
+        m_body.m_forwardSpeed = 3.0f;
+
+        m_rollInput = Random::Float(-1.0f, 1.0f);
     }
 
     void Update()
     {
         FighterBody::Input input{};
-        // TODO
+        input.roll = m_rollInput;
         m_body.Update(input);
     }
 
@@ -317,6 +322,7 @@ public:
 
 private:
     FighterBody m_body{};
+    float m_rollInput{0.0f};
 };
 
 class Internal::Camera
