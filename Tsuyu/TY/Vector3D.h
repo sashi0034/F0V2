@@ -161,6 +161,11 @@ namespace TY
                 this->x * rhs.y - this->y * rhs.x);
         }
 
+        [[nodiscard]] value_type lengthSq() const
+        {
+            return this->dot(*this);
+        }
+
         [[nodiscard]] value_type length() const
         {
             return std::sqrt(this->dot(*this));

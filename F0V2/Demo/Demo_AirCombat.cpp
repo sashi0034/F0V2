@@ -116,6 +116,8 @@ namespace
         ModelBuffer playerModel{};
         ModelBuffer enemyModel{};
 
+        ModelBuffer missileModel{Shape3D::Sphere(0.5f, ColorF32{0.3, 0.5, 1.0})};
+
         ConstantBuffer<DirectionLight_cb2> directionLight{};
 
         CommonResource()
@@ -143,6 +145,7 @@ namespace
     {
     public:
         struct FighterBody;
+        class Missile;
         class Player;
         class Camera;
         class Enemy;
@@ -253,6 +256,46 @@ struct Internal::FighterBody
     }
 };
 
+class Internal::Missile
+{
+public:
+    void Init(const Pose& pose)
+    {
+        m_model = ModelDrawer{
+            ModelDrawerParams{}
+            .setModel(s_resource->missileModel)
+            .setShaders(s_resource->modelPS, s_resource->modelVS)
+        };
+
+        m_pose = pose;
+    }
+
+    bool Update()
+    {
+        const auto forward = m_pose.getMatrix().forward();
+        m_pose.position += forward * 20.0f * System::DeltaTime();
+
+        m_lifetime += System::DeltaTime();
+        return m_lifetime < 5.0f;
+    }
+
+    void Draw() const
+    {
+        m_model.draw(m_pose.getMatrix());
+    }
+
+    bool CollideWith(const Pose& targetPose, float radius = 5.0f) const
+    {
+        const auto distance = (m_pose.position - targetPose.position).lengthSq();
+        return distance < radius;
+    }
+
+private:
+    ModelDrawer m_model{};
+    Pose m_pose{};
+    float m_lifetime{};
+};
+
 class Internal::Player
 {
 public:
@@ -319,6 +362,8 @@ public:
     }
 
     void Draw() const { m_body.Draw(); }
+
+    Pose GetPose() const { return m_body.m_pose; }
 
 private:
     FighterBody m_body{};
@@ -387,6 +432,8 @@ struct Demo_AirCombat_impl
 
     TextureDrawer m_greenAimIcon{};
 
+    Array<Internal::Missile> m_missiles{};
+
     Demo_AirCombat_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
@@ -440,6 +487,35 @@ struct Demo_AirCombat_impl
             enemy.Update();
         }
 
+        {
+            if (KeyEnter.down())
+            {
+                m_missiles.push_back(Internal::Missile{});
+                m_missiles.back().Init(m_player.GetPose());
+            }
+
+            for (int i = m_missiles.size() - 1; i >= 0; --i)
+            {
+                if (not m_missiles[i].Update())
+                {
+                    // ミサイルの寿命が尽きた
+                    m_missiles.remove_at(i);
+                    continue;
+                }
+
+                for (int j = m_enemies.size() - 1; j >= 0; --j)
+                {
+                    if (m_missiles[i].CollideWith(m_enemies[j].GetPose()))
+                    {
+                        // ミサイルが敵に当たった
+                        m_missiles.remove_at(i);
+                        m_enemies.remove_at(j);
+                        break;
+                    }
+                }
+            }
+        }
+
         m_camera.Update(m_player);
 
         {
@@ -476,6 +552,11 @@ struct Demo_AirCombat_impl
         for (const auto& enemy : m_enemies)
         {
             enemy.Draw();
+        }
+
+        for (const auto& missile : m_missiles)
+        {
+            missile.Draw();
         }
 
         m_sphereModel.draw(m_spherePose.getMatrix());
