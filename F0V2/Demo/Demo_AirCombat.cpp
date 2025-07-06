@@ -22,9 +22,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/Shape3D.h"
-#include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
-#include "TY/Transformer3D.h"
 
 using namespace TY;
 
@@ -54,10 +52,20 @@ namespace
         }
     };
 
-    ShaderResourceTexture makeGridPlane(
+    ShaderResourceTexture makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
+        const ColorU8 backColor2 = backColor.toColorU8().multiplied(0.9f);
+
+        for (int x = 0; x < size.x; x += 2)
+        {
+            for (int y = 0; y < size.y; y += 2)
+            {
+                image[Point{x, y}] = backColor2;
+            }
+        }
+
         const Size padding = (size % lineSpacing) / 2;
 
         for (int x = padding.x; x < size.x; x += lineSpacing)
@@ -273,7 +281,7 @@ public:
     bool Update()
     {
         const auto forward = m_pose.getMatrix().forward();
-        m_pose.position += forward * 20.0f * System::DeltaTime();
+        m_pose.position += forward * 50.0f * System::DeltaTime();
 
         m_lifetime += System::DeltaTime();
         return m_lifetime < 5.0f;
@@ -419,9 +427,7 @@ struct Demo_AirCombat_impl
 
     ConstantBuffer<DirectionLight_cb2> m_planeLight{};
 
-    ModelDrawer m_planeModel{};
-
-    ModelDrawer m_gridPlaneModel{};
+    ModelDrawer m_groundPlaneModel{};
 
     Internal::Player m_player{};
 
@@ -438,18 +444,11 @@ struct Demo_AirCombat_impl
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
-        m_planeModel = ModelDrawer{
+        const auto groundPlaneTexture = makeGroundPlane(
+            Size{1024, 1024}, 32, ColorF32{0.9}, ColorF32{0.3});
+        m_groundPlaneModel = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(ModelLoader::Load("asset/model/dirty_plane.obj"))
-            .setShaders(s_resource->lambertPS, s_resource->lambertVS)
-            .setCB2(m_planeLight)
-        };
-
-        const auto gridPlaneTexture = makeGridPlane(
-            Size{1024, 1024}, 32, ColorF32{0.8}, ColorF32{0.9});
-        m_gridPlaneModel = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(Shape3D::TexturePlane(gridPlaneTexture, Float2{10000.0f, 10000.0f}))
+            .setModel(Shape3D::TexturePlane(groundPlaneTexture, Float2{10000.0f, 10000.0f}))
             .setShaders(s_resource->modelPS, s_resource->modelVS)
         };
 
@@ -539,12 +538,10 @@ struct Demo_AirCombat_impl
 
         // -----------------------------------------------
 
-        m_planeModel.draw(Mat4x4::Identity());
-
         {
             Pose pose{};
             pose.position.y = groundPositionY;
-            m_gridPlaneModel.draw(pose.getMatrix());
+            m_groundPlaneModel.draw(pose.getMatrix());
         }
 
         m_player.Draw();
@@ -558,8 +555,6 @@ struct Demo_AirCombat_impl
         {
             missile.Draw();
         }
-
-        m_sphereModel.draw(m_spherePose.getMatrix());
 
         m_greenAimIcon.as2D().resized({48, 48}).drawAt(Scene::Center());
 

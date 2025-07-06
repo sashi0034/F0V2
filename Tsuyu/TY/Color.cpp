@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "Color.h"
 
+#include "Math.h"
+
 namespace TY
 {
     ColorU8 ColorF32::toColorU8() const
@@ -20,6 +22,16 @@ namespace TY
             static_cast<float>(g) / 255.0f,
             static_cast<float>(b) / 255.0f,
             static_cast<float>(a) / 255.0f
+        };
+    }
+
+    ColorU8 ColorU8::multiplied(float rgbFactor, float alphaFactor) const
+    {
+        return ColorU8{
+            static_cast<uint8_t>(Math::Clamp(static_cast<float>(r) * rgbFactor, 0.0f, 255.0f)),
+            static_cast<uint8_t>(Math::Clamp(static_cast<float>(g) * rgbFactor, 0.0f, 255.0f)),
+            static_cast<uint8_t>(Math::Clamp(static_cast<float>(b) * rgbFactor, 0.0f, 255.0f)),
+            static_cast<uint8_t>(Math::Clamp(static_cast<float>(a) * alphaFactor, 0.0f, 255.0f))
         };
     }
 
