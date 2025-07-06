@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "ConstantBufferUploader.h"
+#include "Mat4x4.h"
 #include "ModelData.h"
 #include "Shader.h"
 
@@ -28,7 +29,7 @@ namespace TY
 
         ModelDrawer(const ModelDrawerParams& params);
 
-        void draw() const;
+        void draw(const Mat4x4& worldMatrix) const;
 
     private:
         struct Impl;

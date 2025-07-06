@@ -120,9 +120,7 @@ void Demo_RenderTarget()
             const auto rt = renderTarget.scopedBind();
 
             worldMat = worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
-            const Transformer3D t3d{worldMat};
-
-            model.draw();
+            model.draw(worldMat);
         }
 
         constexpr Point someMargin = Point{64, 64};

@@ -173,24 +173,21 @@ struct Demo_PointLight_impl
         m_planeLight.upload();
 
         {
-            m_planeModel.draw();
+            m_planeModel.draw(Mat4x4::Identity());
         }
 
         {
             Pose pose{};
             pose.position.y = -10.0f;
-            const Transformer3D t3d{pose.getMatrix()};
-            m_gridPlaneModel.draw();
+            m_gridPlaneModel.draw(pose.getMatrix());
         }
 
         {
-            const Transformer3D t3d{m_fighterPose.getMatrix()};
-            m_fighterModel.draw();
+            m_fighterModel.draw(m_fighterPose.getMatrix());
         }
 
         {
-            const Transformer3D t3d{m_spherePose.getMatrix()};
-            m_sphereModel.draw();
+            m_sphereModel.draw(m_spherePose.getMatrix());
         }
 
         {

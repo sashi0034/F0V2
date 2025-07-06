@@ -12,6 +12,7 @@ namespace TY::detail
         void PushWorldMatrix(const Mat4x4& worldMatrix);
         void PopWorldMatrix();
         [[nodiscard]] Mat4x4 GetWorldMatrix();
+        [[nodiscard]] Mat4x4 ApplyWorldMatrix(const Mat4x4& matrix);
 
         void SetViewMatrix(const Mat4x4& viewMatrix);
         [[nodiscard]] Mat4x4 GetViewMatrix();

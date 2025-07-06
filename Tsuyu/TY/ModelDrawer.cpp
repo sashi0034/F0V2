@@ -131,10 +131,10 @@ struct ModelDrawer::Impl : IEngineDrawer
         m_descriptorHeap = DescriptorHeap(descriptorHeapParam);
     }
 
-    void Draw() const
+    void Draw(const Mat4x4& worldMatrix) const
     {
         SceneState_b0 sceneState{};
-        sceneState.worldMat = EngineStateContext::GetWorldMatrix().mat;
+        sceneState.worldMat = EngineStateContext::ApplyWorldMatrix(worldMatrix).mat;
         sceneState.viewMat = EngineStateContext::GetViewMatrix().mat;
         sceneState.projectionMat = EngineStateContext::GetProjectionMatrix().mat;
         m_cb0.upload(sceneState);
@@ -189,11 +189,11 @@ namespace TY
     {
     }
 
-    void ModelDrawer::draw() const
+    void ModelDrawer::draw(const Mat4x4& worldMatrix) const
     {
         if (p_impl)
         {
-            p_impl->Draw();
+            p_impl->Draw(worldMatrix);
             EngineCore::MarkDrawerInFrame(p_impl);
         }
     }

@@ -29,7 +29,14 @@ namespace TY::detail
 
     void EngineStateContext::PushWorldMatrix(const Mat4x4& worldMatrix)
     {
-        s_stateContext.m_worldMatStack.push_back(worldMatrix);
+        if (s_stateContext.m_worldMatStack.empty())
+        {
+            s_stateContext.m_worldMatStack.push_back(worldMatrix);
+        }
+        else
+        {
+            s_stateContext.m_worldMatStack.push_back(s_stateContext.m_worldMatStack.back() * worldMatrix);
+        }
     }
 
     void EngineStateContext::PopWorldMatrix()
@@ -41,6 +48,18 @@ namespace TY::detail
     [[nodiscard]] Mat4x4 EngineStateContext::GetWorldMatrix()
     {
         return s_stateContext.m_worldMatStack.empty() ? Mat4x4::Identity() : s_stateContext.m_worldMatStack.back();
+    }
+
+    Mat4x4 EngineStateContext::ApplyWorldMatrix(const Mat4x4& matrix)
+    {
+        if (s_stateContext.m_worldMatStack.empty())
+        {
+            return matrix;
+        }
+        else
+        {
+            return s_stateContext.m_worldMatStack.back() * matrix;
+        }
     }
 
     void EngineStateContext::SetViewMatrix(const Mat4x4& viewMatrix)

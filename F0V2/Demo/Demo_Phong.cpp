@@ -77,7 +77,6 @@ struct Demo_Phong_impl
     void Update()
     {
         m_worldMat = m_worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
-        const Transformer3D t3d{m_worldMat};
 
         m_directionLight.lightDirection = m_worldMat.forward().normalized();
         m_directionLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
@@ -88,7 +87,7 @@ struct Demo_Phong_impl
 
         m_directionLightBuffer.upload(m_directionLight);
 
-        m_model.draw();
+        m_model.draw(m_worldMat);
     }
 };
 

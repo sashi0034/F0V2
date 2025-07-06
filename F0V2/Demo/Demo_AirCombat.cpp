@@ -213,9 +213,7 @@ struct Internal::FighterBody
     void Draw() const
     {
         const auto matrix = m_pose.getMatrix();
-        const Transformer3D t3d{Mat4x4{Quaternion::RotateZ(m_roll)} * matrix};
-
-        m_model.draw();
+        m_model.draw(Mat4x4{Quaternion::RotateZ(m_roll)} * matrix);
     }
 
     void DebugGUI()
@@ -453,15 +451,12 @@ struct Demo_AirCombat_impl
 
         // -----------------------------------------------
 
-        {
-            m_planeModel.draw();
-        }
+        m_planeModel.draw(Mat4x4::Identity());
 
         {
             Pose pose{};
             pose.position.y = groundPositionY;
-            const Transformer3D t3d{pose.getMatrix()};
-            m_gridPlaneModel.draw();
+            m_gridPlaneModel.draw(pose.getMatrix());
         }
 
         m_player.Draw();
@@ -471,14 +466,9 @@ struct Demo_AirCombat_impl
             enemy.Draw();
         }
 
-        {
-            const Transformer3D t3d{m_spherePose.getMatrix()};
-            m_sphereModel.draw();
-        }
+        m_sphereModel.draw(m_spherePose.getMatrix());
 
-        {
-            m_greenAimIcon.as2D().resized({48, 48}).drawAt(Scene::Center());
-        }
+        m_greenAimIcon.as2D().resized({48, 48}).drawAt(Scene::Center());
 
         {
             ImGui::Begin("Camera Info");
