@@ -5,6 +5,7 @@
 #include <dxgi1_6.h>
 
 #include "CommandList.h"
+#include "EngineStateContext.h"
 #include "EngineWindow.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
@@ -61,6 +62,8 @@ struct EngineRenderContextImpl
     bool m_previousFullscreen{};
 
     std::optional<Size> m_requestedFrameBufferSize{};
+
+    ConstantBufferUploader<SceneState3D_b0> m_sceneState3D{Empty};
 
     void Init()
     {
@@ -172,6 +175,9 @@ struct EngineRenderContextImpl
             m_swapChain.Get()
         };
 
+        // 共通コンスタントバッファの初期化
+        m_sceneState3D = ConstantBufferUploader<SceneState3D_b0>{1};
+
         m_valid = true;
     }
 
@@ -192,6 +198,14 @@ struct EngineRenderContextImpl
     void Render()
     {
         assert(m_commandTargetStack.empty());
+
+        // コンスタントバッファのアップロード
+        {
+            SceneState3D_b0 b{};
+            b.projectionMatrix = EngineStateContext::GetProjectionMatrix();
+            b.viewMatrix = EngineStateContext::GetViewMatrix();
+            m_sceneState3D.upload(b);
+        }
 
         // バックバッファ反映
         m_scopedBackBuffer.dispose();
@@ -436,5 +450,10 @@ namespace TY::detail
     Mat3x2 EngineRenderContext::WindowToFrameBuffer()
     {
         return s_renderContext.m_windowToFrameBuffer;
+    }
+
+    ConstantBufferUploader<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
+    {
+        return s_renderContext.m_sceneState3D;
     }
 }

@@ -66,7 +66,7 @@ struct Demo_Phong_impl
             ModelDrawerParams{
                 .ps = m_modelPS,
                 .vs = m_modelVS,
-                .cb2 = m_directionLightBuffer
+                .cb4 = m_directionLightBuffer
             }.loadModel("asset/model/robot_head.obj")
         };
 
@@ -87,7 +87,7 @@ struct Demo_Phong_impl
 
         m_directionLightBuffer.upload(m_directionLight);
 
-        m_model.draw(m_worldMat);
+        m_model.uploadWorldMatrix(m_worldMat).draw();
     }
 };
 

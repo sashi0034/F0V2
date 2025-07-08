@@ -73,6 +73,8 @@ namespace TY
         uint8_t* getPointer() { return &r; }
 
         ColorF32 toColorF32() const;
+
+        ColorU8 multiplied(float rgbFactor, float alphaFactor = 1.0f) const;
     };
 
     struct UnifiedColor

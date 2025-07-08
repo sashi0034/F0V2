@@ -120,7 +120,7 @@ void Demo_RenderTarget()
             const auto rt = renderTarget.scopedBind();
 
             worldMat = worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
-            model.draw(worldMat);
+            model.uploadWorldMatrix(worldMat).draw();
         }
 
         constexpr Point someMargin = Point{64, 64};

@@ -4,12 +4,16 @@ SamplerState g_sampler0 : register(s0);
 
 cbuffer SceneState : register(b0)
 {
-    float4x4 g_worldMat;
-    float4x4 g_viewMat;
-    float4x4 g_projectionMat;
+    float4x4 g_projectionMatrix;
+    float4x4 g_viewMatrix;
 }
 
-cbuffer ModelMaterial : register(b1)
+cbuffer ModelState : register(b1)
+{
+    float4x4 g_worldMatrix;
+}
+
+cbuffer ModelMaterial : register(b2)
 {
     float3 g_ambient;
     float3 g_diffuse;
@@ -17,7 +21,7 @@ cbuffer ModelMaterial : register(b1)
     float g_shininess;
 }
 
-cbuffer Phong : register(b2)
+cbuffer Phong : register(b4)
 {
     float3 g_lightDirection;
     float3 g_lightColor;
@@ -37,9 +41,9 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
 {
     PSInput result;
 
-    result.position = mul(g_worldMat, position);
-    result.position = mul(g_viewMat, result.position);
-    result.position = mul(g_projectionMat, result.position);
+    result.position = mul(g_worldMatrix, position);
+    result.position = mul(g_viewMatrix, result.position);
+    result.position = mul(g_projectionMatrix, result.position);
 
     result.normal = normal;
 

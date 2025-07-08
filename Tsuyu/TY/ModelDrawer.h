@@ -12,7 +12,7 @@ namespace TY
         ModelBuffer model;
         PixelShader ps;
         VertexShader vs;
-        ConstantBufferUploader_impl cb2{Empty};
+        ConstantBufferUploader_impl cb4{Empty};
 
         ModelDrawerParams& loadModel(const std::string& filename);
 
@@ -20,7 +20,7 @@ namespace TY
 
         ModelDrawerParams& setShaders(const PixelShader& ps_, const VertexShader& vs_);
 
-        ModelDrawerParams& setCB2(const ConstantBufferUploader_impl& cb2_);
+        ModelDrawerParams& setCB4(const ConstantBufferUploader_impl& cb2_);
     };
 
     class ModelDrawer
@@ -30,7 +30,9 @@ namespace TY
 
         ModelDrawer(const ModelDrawerParams& params);
 
-        void draw(const Mat4x4& worldMatrix) const;
+        const ModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
+
+        void draw() const;
 
     private:
         struct Impl;
