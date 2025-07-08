@@ -117,7 +117,7 @@ struct Demo_PointLight_impl
                 .model = ModelLoader::Load("asset/model/dirty_plane.obj"),
                 .ps = customPS,
                 .vs = customVS,
-                .cb2 = m_planeLight
+                .cb4 = m_planeLight
             }
         };
 
@@ -127,7 +127,7 @@ struct Demo_PointLight_impl
             ModelDrawerParams{}
             .setModel(Shape3D::TexturePlane(gridPlaneTexture, Float2{100.0f, 100.0f}))
             .setShaders(defaultPS, defaultVS)
-            .setCB2(m_planeLight)
+            .setCB4(m_planeLight)
         };
 
         m_fighterModel = ModelDrawer{
@@ -135,7 +135,7 @@ struct Demo_PointLight_impl
                 .model = ModelLoader::Load("asset/model/tie_fighter.obj"),
                 .ps = customPS,
                 .vs = customVS,
-                .cb2 = m_directionLight
+                .cb4 = m_directionLight
             }
         };
 
@@ -145,7 +145,7 @@ struct Demo_PointLight_impl
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
             .setShaders(customPS, customVS)
-            .setCB2(m_directionLight)
+            .setCB4(m_directionLight)
         };
 
         m_spherePose.position.y = 5.0f;

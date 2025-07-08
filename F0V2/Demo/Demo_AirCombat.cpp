@@ -181,7 +181,7 @@ struct Internal::FighterBody
             ModelDrawerParams{}
             .setModel(model)
             .setShaders(s_resource->lambertPS, s_resource->lambertVS)
-            .setCB2(s_resource->directionLight)
+            .setCB4(s_resource->directionLight)
         };
 
         ResetParameters();
@@ -465,7 +465,7 @@ struct Demo_AirCombat_impl
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
             .setShaders(s_resource->lambertPS, s_resource->lambertVS)
-            .setCB2(s_resource->directionLight)
+            .setCB4(s_resource->directionLight)
         };
 
         m_spherePose.position.y = 5.0f;

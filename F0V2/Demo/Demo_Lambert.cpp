@@ -64,7 +64,7 @@ struct Demo_Lambert_impl
                 .model = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
                 .ps = m_modelPS,
                 .vs = m_modelVS,
-                .cb2 = m_directionLightBuffer
+                .cb4 = m_directionLightBuffer
             }
         };
 

@@ -20,16 +20,16 @@ using namespace TY::detail;
 
 namespace
 {
-    const DescriptorTable baseDescriptorTable = {{1, 0, 0}, {1, 1, 0}};
+    const DescriptorTable descriptorTable = {
+        {1, 0, 0},
+        {1, 1, 0},
+        {1, 0, 0},
+        {1, 0, 0},
+        {1, 0, 0} // b4: user-defined constant buffer
+    };
 
     GraphicsPipelineState makePipelineState(const ModelDrawerParams& params)
     {
-        auto descriptorTable = baseDescriptorTable;
-        if (not params.cb2.isEmpty())
-        {
-            descriptorTable.push_back({1, 0, 0});;
-        }
-
         // TODO: キャッシュする?
         return GraphicsPipelineState{
             PipelineStateParams{
@@ -64,33 +64,26 @@ struct ModelDrawer::Impl : IEngineDrawer
 
     ConstantBufferUploader<SceneState_b0> m_cb0{Empty};
 
-    ConstantBufferUploader_impl m_cb2{Empty};
+    ConstantBufferUploader_impl m_cb4{Empty};
 
     Impl(const ModelDrawerParams& params) :
         m_modelBuffer(params.model),
         m_pipelineState(makePipelineState(params)),
-        m_cb2(params.cb2)
+        m_cb4(params.cb4)
     {
         m_cb0 = ConstantBufferUploader<SceneState_b0>{1};
 
-        // -----------------------------------------------
-
-        auto descriptorHeapParam = DescriptorHeapParams{
+        m_descriptorHeap = DescriptorHeap(DescriptorHeapParams{
             .table = m_pipelineState.descriptorTable(),
-            .materialCounts = {1, m_modelBuffer.materialCount()},
+            .materialCounts = {1, m_modelBuffer.materialCount(), 1, 1, 1},
             .descriptors = {
                 CbSrUaSet{{m_cb0}, {}, {}},
-                CbSrUaSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}}
+                CbSrUaSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}},
+                CbSrUaSet{{ConstantBufferUploader_impl{Empty}}, {}, {}},
+                CbSrUaSet{{ConstantBufferUploader_impl{Empty}}, {}, {}},
+                CbSrUaSet{{params.cb4}, {}, {}}
             },
-        };
-
-        if (not params.cb2.isEmpty())
-        {
-            descriptorHeapParam.materialCounts.push_back(1);
-            descriptorHeapParam.descriptors.push_back(CbSrUaSet{{params.cb2}, {}, {}});
-        }
-
-        m_descriptorHeap = DescriptorHeap(descriptorHeapParam);
+        });
     }
 
     void Draw(const Mat4x4& worldMatrix) const
@@ -107,7 +100,7 @@ struct ModelDrawer::Impl : IEngineDrawer
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
 
-        if (not m_cb2.isEmpty()) m_descriptorHeap.commandSetTable(PipelineType::Graphics, 2);
+        m_descriptorHeap.commandSetTable(PipelineType::Graphics, 4);
 
         // 形状ごとに描画
         for (size_t shapeId = 0; shapeId < m_modelBuffer.materialCount(); ++shapeId)
@@ -141,9 +134,9 @@ namespace TY
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setCB2(const ConstantBufferUploader_impl& cb2_)
+    ModelDrawerParams& ModelDrawerParams::setCB4(const ConstantBufferUploader_impl& cb2_)
     {
-        cb2 = std::move(cb2_);
+        cb4 = std::move(cb2_);
         return *this;
     }
 

@@ -17,7 +17,7 @@ cbuffer ModelMaterial : register(b1)
     float g_shininess;
 }
 
-cbuffer Phong : register(b2)
+cbuffer Phong : register(b4)
 {
     float3 g_lightDirection;
     float3 g_lightColor;
