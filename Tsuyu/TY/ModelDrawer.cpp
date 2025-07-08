@@ -5,13 +5,12 @@
 #include "ConstantBufferUploader.h"
 #include "Graphics3D.h"
 #include "Mat4x4.h"
-#include "ModelData.h"
 #include "ModelLoader.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
 #include "detail/EngineCore.h"
 #include "detail/EnginePresetAsset.h"
-#include "detail/EngineStateContext.h"
+#include "detail/EngineRenderContext.h"
 #include "detail/IEngineDrawer.h"
 #include "detail/GraphicsPipelineState.h"
 
@@ -22,8 +21,8 @@ namespace
 {
     const DescriptorTable descriptorTable = {
         {1, 0, 0},
-        {1, 1, 0},
         {1, 0, 0},
+        {1, 1, 0},
         {1, 0, 0},
         {1, 0, 0} // b4: user-defined constant buffer
     };
@@ -46,11 +45,9 @@ namespace
         };
     }
 
-    struct SceneState_b0
+    struct ModelState_b1
     {
-        Mat4x4 worldMat;
-        Mat4x4 viewMat;
-        Mat4x4 projectionMat;
+        Mat4x4 worldMatrix;
     };
 }
 
@@ -62,7 +59,7 @@ struct ModelDrawer::Impl : IEngineDrawer
 
     DescriptorHeap m_descriptorHeap{};
 
-    ConstantBufferUploader<SceneState_b0> m_cb0{Empty};
+    ConstantBufferUploader<ModelState_b1> m_cb1{1};
 
     ConstantBufferUploader_impl m_cb4{Empty};
 
@@ -71,15 +68,13 @@ struct ModelDrawer::Impl : IEngineDrawer
         m_pipelineState(makePipelineState(params)),
         m_cb4(params.cb4)
     {
-        m_cb0 = ConstantBufferUploader<SceneState_b0>{1};
-
         m_descriptorHeap = DescriptorHeap(DescriptorHeapParams{
             .table = m_pipelineState.descriptorTable(),
-            .materialCounts = {1, m_modelBuffer.materialCount(), 1, 1, 1},
+            .materialCounts = {1, 1, m_modelBuffer.materialCount(), 1, 1},
             .descriptors = {
-                CbSrUaSet{{m_cb0}, {}, {}},
+                CbSrUaSet{{EngineRenderContext::GetSceneState3D_CB0()}, {}, {}},
+                CbSrUaSet{{m_cb1}, {}, {}},
                 CbSrUaSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}},
-                CbSrUaSet{{ConstantBufferUploader_impl{Empty}}, {}, {}},
                 CbSrUaSet{{ConstantBufferUploader_impl{Empty}}, {}, {}},
                 CbSrUaSet{{params.cb4}, {}, {}}
             },
@@ -88,17 +83,18 @@ struct ModelDrawer::Impl : IEngineDrawer
 
     void Draw(const Mat4x4& worldMatrix) const
     {
-        SceneState_b0 sceneState{};
-        sceneState.worldMat = EngineStateContext::ApplyWorldMatrix(worldMatrix).mat;
-        sceneState.viewMat = EngineStateContext::GetViewMatrix().mat;
-        sceneState.projectionMat = EngineStateContext::GetProjectionMatrix().mat;
-        m_cb0.upload(sceneState);
+        {
+            ModelState_b1 b{};
+            b.worldMatrix = worldMatrix;
+            m_cb1.upload(b);
+        }
 
         m_pipelineState.commandSet();
 
         // カメラ行列設定
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
+        m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1);
 
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 4);
 
@@ -106,7 +102,7 @@ struct ModelDrawer::Impl : IEngineDrawer
         for (size_t shapeId = 0; shapeId < m_modelBuffer.materialCount(); ++shapeId)
         {
             const auto& shape = m_modelBuffer.shapeBuffer().shapes()[shapeId];
-            m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1, shape.materialIndex);
+            m_descriptorHeap.commandSetTable(PipelineType::Graphics, 2, shape.materialIndex);
 
             Graphics3D::DrawTriangles(shape.vertexBuffer, shape.indexBuffer);
         }
