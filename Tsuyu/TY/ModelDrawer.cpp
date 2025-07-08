@@ -81,14 +81,15 @@ struct ModelDrawer::Impl : IEngineDrawer
         });
     }
 
-    void Draw(const Mat4x4& worldMatrix) const
+    void UploadWorldMatrix(const Mat4x4& worldMatrix)
     {
-        {
-            ModelState_b1 b{};
-            b.worldMatrix = worldMatrix;
-            m_cb1.upload(b);
-        }
+        ModelState_b1 b{};
+        b.worldMatrix = worldMatrix;
+        m_cb1.upload(b);
+    }
 
+    void Draw() const
+    {
         m_pipelineState.commandSet();
 
         // カメラ行列設定
@@ -141,11 +142,17 @@ namespace TY
     {
     }
 
-    void ModelDrawer::draw(const Mat4x4& worldMatrix) const
+    const ModelDrawer& ModelDrawer::uploadWorldMatrix(const Mat4x4& worldMatrix) const
+    {
+        if (p_impl) p_impl->UploadWorldMatrix(worldMatrix);
+        return *this;
+    }
+
+    void ModelDrawer::draw() const
     {
         if (p_impl)
         {
-            p_impl->Draw(worldMatrix);
+            p_impl->Draw();
             EngineCore::MarkDrawerInFrame(p_impl);
         }
     }

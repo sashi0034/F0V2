@@ -30,7 +30,9 @@ namespace TY
 
         ModelDrawer(const ModelDrawerParams& params);
 
-        void draw(const Mat4x4& worldMatrix) const;
+        const ModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
+
+        void draw() const;
 
     private:
         struct Impl;

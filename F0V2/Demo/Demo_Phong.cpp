@@ -87,7 +87,7 @@ struct Demo_Phong_impl
 
         m_directionLightBuffer.upload(m_directionLight);
 
-        m_model.draw(m_worldMat);
+        m_model.uploadWorldMatrix(m_worldMat).draw();
     }
 };
 

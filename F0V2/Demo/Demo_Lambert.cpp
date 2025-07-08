@@ -80,7 +80,7 @@ struct Demo_Lambert_impl
         m_directionLight.lightColor = Float3{1.0f, 1.0f, 0.5f};
         m_directionLightBuffer.upload(m_directionLight);
 
-        m_model.draw(m_worldMat);
+        m_model.uploadWorldMatrix(m_worldMat).draw();
     }
 };
 

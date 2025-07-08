@@ -173,21 +173,21 @@ struct Demo_PointLight_impl
         m_planeLight.upload();
 
         {
-            m_planeModel.draw(Mat4x4::Identity());
+            m_planeModel.uploadWorldMatrix(Mat4x4::Identity()).draw();
         }
 
         {
             Pose pose{};
             pose.position.y = -10.0f;
-            m_gridPlaneModel.draw(pose.getMatrix());
+            m_gridPlaneModel.uploadWorldMatrix(pose.getMatrix()).draw();
         }
 
         {
-            m_fighterModel.draw(m_fighterPose.getMatrix());
+            m_fighterModel.uploadWorldMatrix(m_fighterPose.getMatrix()).draw();
         }
 
         {
-            m_sphereModel.draw(m_spherePose.getMatrix());
+            m_sphereModel.uploadWorldMatrix(m_spherePose.getMatrix()).draw();
         }
 
         {
