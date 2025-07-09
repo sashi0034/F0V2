@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "ConstantBufferUploader.h"
+#include "GraphicsOptions.h"
 #include "Mat4x4.h"
 #include "ModelBuffer.h"
-#include "ModelData.h"
 #include "Shader.h"
 
 namespace TY
@@ -13,6 +13,7 @@ namespace TY
         PixelShader ps;
         VertexShader vs;
         ConstantBufferUploader_impl cb4{Empty};
+        GraphicsOptions options{GraphicsOptions::Default3D()};
 
         ModelDrawerParams& loadModel(const std::string& filename);
 
@@ -21,6 +22,8 @@ namespace TY
         ModelDrawerParams& setShaders(const PixelShader& ps_, const VertexShader& vs_);
 
         ModelDrawerParams& setCB4(const ConstantBufferUploader_impl& cb2_);
+
+        ModelDrawerParams& setOptions(const GraphicsOptions& options_);
     };
 
     class ModelDrawer

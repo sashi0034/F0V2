@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
 #include "TY/Array.h"
-#include "TY/GraphicsSettings.h"
+#include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"
 
 namespace TY::detail
@@ -27,8 +27,7 @@ namespace TY::detail
         PixelShader pixelShader;
         VertexShader vertexShader;
         std::vector<VertexInputElement> vertexInput;
-        GraphicsRasterizerSettings rasterizer{};
-        GraphicsDepthSettings depth{};
+        GraphicsOptions options;
         DescriptorTable descriptorTable{};
     };
 

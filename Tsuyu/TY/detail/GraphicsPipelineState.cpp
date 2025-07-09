@@ -109,7 +109,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
         D3D12_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc = {};
 
-        if (params.depth.enable)
+        if (params.options.depth.enable)
         {
             renderTargetBlendDesc.BlendEnable = false;
             renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
@@ -130,7 +130,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.BlendState.RenderTarget[0] = renderTargetBlendDesc;
 
         pipelineDesc.RasterizerState.MultisampleEnable = false;
-        pipelineDesc.RasterizerState.CullMode = getCullMode(params.rasterizer.cull);
+        pipelineDesc.RasterizerState.CullMode = getCullMode(params.options.rasterizer.cull);
         pipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         pipelineDesc.RasterizerState.DepthClipEnable = true;
 
@@ -142,12 +142,12 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.RasterizerState.ForcedSampleCount = 0;
         pipelineDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        if (params.depth.enable)
+        if (params.options.depth.enable)
         {
             pipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
             pipelineDesc.DepthStencilState.DepthEnable = true;
             pipelineDesc.DepthStencilState.DepthWriteMask =
-                params.depth.writeMask ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+                params.options.depth.writeMask ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
             pipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS; // デプステスト
             pipelineDesc.DepthStencilState.StencilEnable = false;
         }

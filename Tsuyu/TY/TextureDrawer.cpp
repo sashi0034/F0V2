@@ -76,6 +76,10 @@ namespace
     GraphicsPipelineState makePipelineState(const TextureDrawerParams& options)
     {
         // TODO: キャッシュする?
+
+        const auto graphicsOptions = GraphicsOptions{}
+            .setDepth((options.hasDepth ? GraphicsDepthOptions::Default3D() : GraphicsDepthOptions{}));
+
         return GraphicsPipelineState{
             GraphicsPipelineStateParams{
                 .pixelShader = options.ps,
@@ -84,7 +88,7 @@ namespace
                     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT}
                 },
-                .depth = options.hasDepth ? GraphicsDepthSettings::Default3D() : GraphicsDepthSettings{},
+                .options = graphicsOptions,
                 .descriptorTable = descriptorTable,
             }
         };

@@ -39,8 +39,7 @@ namespace
                     {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT}
                 },
-                .rasterizer = GraphicsRasterizerSettings::Default3D(),
-                .depth = GraphicsDepthSettings::Default3D(),
+                .options = params.options,
                 .descriptorTable = descriptorTable,
             }
         };
@@ -135,6 +134,12 @@ namespace TY
     ModelDrawerParams& ModelDrawerParams::setCB4(const ConstantBufferUploader_impl& cb2_)
     {
         cb4 = std::move(cb2_);
+        return *this;
+    }
+
+    ModelDrawerParams& ModelDrawerParams::setOptions(const GraphicsOptions& options_)
+    {
+        options = options_;
         return *this;
     }
 
