@@ -121,6 +121,9 @@ namespace
         PixelShader lambertPS{ShaderParams::PS("asset/shader/lambert.hlsl")};
         VertexShader lambertVS{ShaderParams::VS("asset/shader/lambert.hlsl")};
 
+        PixelShader skydomePS{ShaderParams::PS("asset/shader/skydome.hlsl")};
+        VertexShader skydomeVS{ShaderParams::VS("asset/shader/skydome.hlsl")};
+
         ModelBuffer playerModel{};
         ModelBuffer enemyModel{};
 
@@ -451,7 +454,7 @@ struct Demo_AirCombat_impl
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShaders(s_resource->modelPS, s_resource->modelVS)
+            .setShaders(s_resource->skydomePS, s_resource->skydomeVS)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
