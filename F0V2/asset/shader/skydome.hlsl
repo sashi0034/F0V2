@@ -21,11 +21,12 @@ cbuffer ModelMaterial : register(b2)
     float g_shininess;
 }
 
-// cbuffer DirectionLight : register(b4)
-// {
-//     float3 g_lightDirection;
-//     float3 g_lightColor;
-// }
+cbuffer Skydome : register(b4)
+{
+    float4 g_topColor;
+    float4 g_bottomColor;
+    float g_sphereRadius;
+}
 
 struct PSInput
 {
@@ -41,19 +42,13 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
     result.position = mul(g_viewMatrix, result.position);
     result.position = mul(g_projectionMatrix, result.position);
 
-    result.localPosition = position / 1000.0;
+    result.localPosition = position / g_sphereRadius;
 
     return result;
 }
 
 float4 PS(PSInput input) : SV_TARGET
 {
-    // const float4 g_bottomColor = float4(0.84, 0.98, 0.98, 1.0);
-    // const float4 g_topColor = float4(0.03, 0.52, 0.94, 1.0);
-
-    const float4 g_bottomColor = float4(1, 1, 1, 1);
-    const float4 g_topColor = float4(0.3, 0, 1, 1);
-
     const float4 finalColor = lerp(g_bottomColor, g_topColor, input.localPosition.y * 0.5 + 0.5);
     return finalColor;
 }

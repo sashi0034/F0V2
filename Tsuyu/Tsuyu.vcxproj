@@ -250,6 +250,7 @@
     <ClInclude Include="TY\Vector2D.h" />
     <ClInclude Include="TY\Vector3D.h" />
     <ClInclude Include="TY\Variant.h" />
+    <ClInclude Include="TY\Vector4D.h" />
     <ClInclude Include="TY\VertexBuffer.h" />
     <ClInclude Include="TY\Window.h" />
   </ItemGroup>
@@ -356,6 +357,7 @@
     <ClCompile Include="TY\Utils.cpp" />
     <ClCompile Include="TY\Vector2D.cpp" />
     <ClCompile Include="TY\Vector3D.cpp" />
+    <ClCompile Include="TY\Vector4D.cpp" />
     <ClCompile Include="TY\VertexBuffer.cpp" />
     <ClCompile Include="TY\Window.cpp" />
   </ItemGroup>

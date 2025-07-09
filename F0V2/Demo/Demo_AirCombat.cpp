@@ -28,10 +28,17 @@ using namespace TY;
 
 namespace
 {
-    struct DirectionLight_cb2
+    struct DirectionLight_b4
     {
         alignas(16) Float3 lightDirection;
         alignas(16) Float3 lightColor{};
+    };
+
+    struct Skydome_b4
+    {
+        alignas(16) ColorF32 topColor;
+        alignas(16) ColorF32 bottomColor;
+        float sphereRadius{};
     };
 
     struct Pose
@@ -129,7 +136,7 @@ namespace
 
         ModelBuffer missileModel{Shape3D::Sphere(0.5f, ColorF32{0.3, 0.5, 1.0})};
 
-        ConstantBuffer<DirectionLight_cb2> directionLight{};
+        ConstantBuffer<DirectionLight_b4> directionLight{};
 
         CommonResource()
         {
@@ -432,7 +439,7 @@ struct Demo_AirCombat_impl
 
     Mat4x4 m_projectionMat{};
 
-    ConstantBuffer<DirectionLight_cb2> m_planeLight{};
+    ConstantBuffer<DirectionLight_b4> m_planeLight{};
 
     ModelDrawer m_groundPlaneModel{};
 
@@ -451,6 +458,12 @@ struct Demo_AirCombat_impl
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
+        auto skydome_b4 = ConstantBuffer<Skydome_b4>{};
+        skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
+        skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
+        skydome_b4->sphereRadius = fovFarZ;
+        skydome_b4.upload();
+
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
@@ -459,6 +472,7 @@ struct Demo_AirCombat_impl
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
             )
+            .setCB4(skydome_b4)
         };
 
         const auto groundPlaneTexture = makeGroundPlane(

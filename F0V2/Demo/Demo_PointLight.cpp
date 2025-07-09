@@ -27,7 +27,7 @@ using namespace TY;
 
 namespace
 {
-    struct DirectionLight_cb2
+    struct DirectionLight_b4
     {
         alignas(16) Float3 lightDirection;
         alignas(16) Float3 lightColor{};
@@ -86,9 +86,9 @@ struct Demo_PointLight_impl
     PixelShader m_modelPS{};
     VertexShader m_modelVS{};
 
-    ConstantBuffer<DirectionLight_cb2> m_planeLight{};
+    ConstantBuffer<DirectionLight_b4> m_planeLight{};
 
-    ConstantBuffer<DirectionLight_cb2> m_directionLight{};
+    ConstantBuffer<DirectionLight_b4> m_directionLight{};
 
     ModelDrawer m_planeModel{};
 
