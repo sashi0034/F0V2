@@ -59,13 +59,13 @@ namespace TY
 
                 // 上三角形
                 shape.indexBuffer.push_back(i0);
-                shape.indexBuffer.push_back(i2);
                 shape.indexBuffer.push_back(i1);
+                shape.indexBuffer.push_back(i2);
 
                 // 下三角形
                 shape.indexBuffer.push_back(i1);
-                shape.indexBuffer.push_back(i2);
                 shape.indexBuffer.push_back(i3);
+                shape.indexBuffer.push_back(i2);
             }
         }
 
