@@ -13,6 +13,8 @@ namespace TY
     {
         GraphicsCullMode cull{GraphicsCullMode::None};
 
+        GraphicsRasterizerOptions& setCull(GraphicsCullMode cull_);
+
         static GraphicsRasterizerOptions Default3D();
     };
 
@@ -21,9 +23,9 @@ namespace TY
         bool enable{};
         bool writeMask{};
 
-        static GraphicsDepthOptions Default3D();
-
         GraphicsDepthOptions& setWriteMask(bool writeMask_);
+
+        static GraphicsDepthOptions Default3D();
     };
 
     struct GraphicsOptions

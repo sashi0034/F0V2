@@ -160,6 +160,8 @@ namespace
     };
 
     constexpr float groundPositionY = -10.0f;
+
+    constexpr float fovFarZ = 1000.0f;
 }
 
 // 戦闘機
@@ -423,6 +425,8 @@ struct Demo_AirCombat_impl
 {
     Internal::Camera m_camera{};
 
+    ModelDrawer m_skydomeModel{};
+
     Mat4x4 m_projectionMat{};
 
     ConstantBuffer<DirectionLight_cb2> m_planeLight{};
@@ -443,6 +447,16 @@ struct Demo_AirCombat_impl
     Demo_AirCombat_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
+
+        m_skydomeModel = ModelDrawer{
+            ModelDrawerParams{}
+            .setModel(Shape3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
+            .setShaders(s_resource->modelPS, s_resource->modelVS)
+            .setOptions(GraphicsOptions::Default3D()
+                        .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
+                        .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
+            )
+        };
 
         const auto groundPlaneTexture = makeGroundPlane(
             Size{1024, 1024}, 32, ColorF32{0.9}, ColorF32{0.3});
@@ -522,7 +536,7 @@ struct Demo_AirCombat_impl
                 75.0_deg,
                 Scene::Size().horizontalAspectRatio(),
                 0.1f,
-                1000.0f
+                fovFarZ
             );
 
             Graphics3D::SetProjectionMatrix(m_projectionMat);
@@ -537,6 +551,8 @@ struct Demo_AirCombat_impl
         m_planeLight.upload();
 
         // -----------------------------------------------
+
+        m_skydomeModel.uploadWorldMatrix(Mat4x4::Translate(m_camera.EyePosition())).draw();
 
         {
             Pose pose{};

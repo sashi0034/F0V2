@@ -3,11 +3,23 @@
 
 namespace TY
 {
+    GraphicsRasterizerOptions& GraphicsRasterizerOptions::setCull(GraphicsCullMode cull_)
+    {
+        cull = cull_;
+        return *this;
+    }
+
     GraphicsRasterizerOptions GraphicsRasterizerOptions::Default3D()
     {
         GraphicsRasterizerOptions settings{};
         settings.cull = GraphicsCullMode::Back;
         return settings;
+    }
+
+    GraphicsDepthOptions& GraphicsDepthOptions::setWriteMask(bool writeMask_)
+    {
+        writeMask = writeMask_;
+        return *this;
     }
 
     GraphicsDepthOptions GraphicsDepthOptions::Default3D()
@@ -16,12 +28,6 @@ namespace TY
         settings.enable = true;
         settings.writeMask = true;
         return settings;
-    }
-
-    GraphicsDepthOptions& GraphicsDepthOptions::setWriteMask(bool writeMask_)
-    {
-        writeMask = writeMask_;
-        return *this;
     }
 
     GraphicsOptions& GraphicsOptions::setRasterizer(const GraphicsRasterizerOptions& rasterizer_)
