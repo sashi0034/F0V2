@@ -84,7 +84,7 @@ namespace
                     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT}
                 },
-                .hasDepth = options.hasDepth,
+                .depth = options.hasDepth ? GraphicsDepthSettings::Default3D() : GraphicsDepthSettings{},
                 .descriptorTable = descriptorTable,
             }
         };

@@ -39,7 +39,8 @@ namespace
                     {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT}
                 },
-                .hasDepth = true,
+                .rasterizer = GraphicsRasterizerSettings::Default3D(),
+                .depth = GraphicsDepthSettings::Default3D(),
                 .descriptorTable = descriptorTable,
             }
         };
