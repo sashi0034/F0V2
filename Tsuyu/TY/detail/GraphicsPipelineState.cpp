@@ -43,9 +43,9 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
     ComPtr<ID3D12PipelineState> m_pipelineState;
     RootSignature m_rootSignature;
-    PipelineStateParams m_params;
+    GraphicsPipelineStateParams m_params;
 
-    Impl(const PipelineStateParams& params) :
+    Impl(const GraphicsPipelineStateParams& params) :
         m_params(params)
     {
         Impl::HotReload();
@@ -73,7 +73,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         throw std::runtime_error("failed to create pipeline state");
     }
 
-    HRESULT createPipelineState(const PipelineStateParams& params)
+    HRESULT createPipelineState(const GraphicsPipelineStateParams& params)
     {
         const auto device = EngineRenderContext::GetDevice();
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc = {};
@@ -167,7 +167,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
 namespace TY
 {
-    GraphicsPipelineState::GraphicsPipelineState(const PipelineStateParams& params) :
+    GraphicsPipelineState::GraphicsPipelineState(const GraphicsPipelineStateParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
 #ifdef _DEBUG

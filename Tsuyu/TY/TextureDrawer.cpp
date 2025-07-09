@@ -77,7 +77,7 @@ namespace
     {
         // TODO: キャッシュする?
         return GraphicsPipelineState{
-            PipelineStateParams{
+            GraphicsPipelineStateParams{
                 .pixelShader = options.ps,
                 .vertexShader = options.vs,
                 .vertexInput = {

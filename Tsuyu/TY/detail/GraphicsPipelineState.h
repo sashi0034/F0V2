@@ -21,7 +21,7 @@ namespace TY::detail
         }
     };
 
-    struct PipelineStateParams
+    struct GraphicsPipelineStateParams
     {
         PixelShader pixelShader;
         VertexShader vertexShader;
@@ -35,7 +35,7 @@ namespace TY::detail
     class GraphicsPipelineState
     {
     public:
-        GraphicsPipelineState(const PipelineStateParams& params);
+        GraphicsPipelineState(const GraphicsPipelineStateParams& params);
 
         DescriptorTable descriptorTable() const;
 
