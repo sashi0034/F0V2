@@ -106,8 +106,8 @@ struct Demo_PointLight_impl
 
         resetCamera();
 
-        const PixelShader defaultPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
-        const VertexShader defaultVS{ShaderParams::VS("asset/shader/model_vertex.hlsl")};
+        const PixelShader defaultPS{ShaderParams::PS("asset/shader/model.hlsl")};
+        const VertexShader defaultVS{ShaderParams::VS("asset/shader/model.hlsl")};
 
         const PixelShader customPS{ShaderParams{.filepath = shader_lambert, .entryPoint = "PS"}};
         const VertexShader customVS{ShaderParams{.filepath = shader_lambert, .entryPoint = "VS"}};

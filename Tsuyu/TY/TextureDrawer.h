@@ -37,6 +37,13 @@ namespace TY
             return *this;
         }
 
+        TextureDrawerParams& setShaders(const GraphicsShader& shader)
+        {
+            ps = shader.ps;
+            vs = shader.vs;
+            return *this;
+        }
+
         TextureDrawerParams& setHasDepth(bool hasDepth_)
         {
             hasDepth = hasDepth_;

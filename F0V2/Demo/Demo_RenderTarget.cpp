@@ -57,8 +57,8 @@ void Demo_RenderTarget()
         10.0f
     );
 
-    const PixelShader modelPS{ShaderParams{.filepath = "asset/shader/model_pixel.hlsl", .entryPoint = "PS"}};
-    const VertexShader modelVS{ShaderParams{.filepath = "asset/shader/model_vertex.hlsl", .entryPoint = "VS"}};
+    const PixelShader modelPS{ShaderParams{.filepath = "asset/shader/model.hlsl", .entryPoint = "PS"}};
+    const VertexShader modelVS{ShaderParams{.filepath = "asset/shader/model.hlsl", .entryPoint = "VS"}};
 
     const ModelDrawer model{
         ModelDrawerParams{

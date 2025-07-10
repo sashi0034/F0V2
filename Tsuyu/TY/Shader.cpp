@@ -14,22 +14,6 @@
 using namespace TY;
 using namespace TY::detail;
 
-namespace
-{
-    // constexpr int csWritableBufferCapacity = 16;
-    // constexpr int csReadonlyBufferCapacity = 16;
-    //
-    // const std::string csWritableBufferCapacityString = std::to_string(csWritableBufferCapacity);
-    // const std::string csReadonlyBufferCapacityString = std::to_string(csReadonlyBufferCapacity);
-    //
-    // const std::vector<D3D_SHADER_MACRO> csDefaultMacros
-    // {
-    //     {"WRITABLE_BUFFER_CAPACITY", csWritableBufferCapacityString.c_str()},
-    //     {"READONLY_BUFFER_CAPACITY", csReadonlyBufferCapacityString.c_str()},
-    //     {nullptr, nullptr} // End of macros
-    // };
-}
-
 struct TY::Shader_impl : IEngineHotReloadable
 {
     uint64_t m_timestamp{};
@@ -100,19 +84,43 @@ namespace
 
 namespace TY
 {
-    ShaderParams ShaderParams::PS(const std::string& filename)
-    {
-        return ShaderParams{.filepath = filename, .entryPoint = "PS",};
-    }
-
     ShaderParams ShaderParams::VS(const std::string& filename)
     {
         return ShaderParams{.filepath = filename, .entryPoint = "VS",};
     }
 
+    ShaderParams ShaderParams::PS(const std::string& filename)
+    {
+        return ShaderParams{.filepath = filename, .entryPoint = "PS",};
+    }
+
     ShaderParams ShaderParams::CS(const std::string& filename)
     {
         return ShaderParams{.filepath = filename, .entryPoint = "CS",};
+    }
+
+    VertexShader::VertexShader(const ShaderParams& params)
+        : p_impl{std::make_shared<Shader_impl>(params, "vs_5_0"sv)}
+    {
+#ifdef _DEBUG
+        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
+#endif
+    }
+
+    bool VertexShader::isEmpty() const
+    {
+        return p_impl == nullptr || p_impl->shaderBlob == nullptr;
+    }
+
+    std::shared_ptr<ITimestamp> VertexShader::timestamp() const
+    {
+        if (not p_impl) return InvalidTimestamp;
+        return p_impl;
+    }
+
+    ID3D10Blob* VertexShader::getBlob() const
+    {
+        return p_impl ? p_impl->shaderBlob.Get() : nullptr;
     }
 
     PixelShader::PixelShader(const ShaderParams& params)
@@ -139,28 +147,26 @@ namespace TY
         return p_impl ? p_impl->shaderBlob.Get() : nullptr;
     }
 
-    VertexShader::VertexShader(const ShaderParams& params)
-        : p_impl{std::make_shared<Shader_impl>(params, "vs_5_0"sv)}
+    GraphicsShader GraphicsShader::withVS(const VertexShader& vs_) const
     {
-#ifdef _DEBUG
-        EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
-#endif
+        auto clone = *this;
+        clone.vs = vs_;
+        return clone;
     }
 
-    bool VertexShader::isEmpty() const
+    GraphicsShader GraphicsShader::withPS(const PixelShader& ps_) const
     {
-        return p_impl == nullptr || p_impl->shaderBlob == nullptr;
+        auto clone = *this;
+        clone.ps = ps_;
+        return clone;
     }
 
-    std::shared_ptr<ITimestamp> VertexShader::timestamp() const
+    GraphicsShader GraphicsShader::VS_PS(const std::string& filepath)
     {
-        if (not p_impl) return InvalidTimestamp;
-        return p_impl;
-    }
-
-    ID3D10Blob* VertexShader::getBlob() const
-    {
-        return p_impl ? p_impl->shaderBlob.Get() : nullptr;
+        return GraphicsShader{
+            VertexShader{ShaderParams::VS(filepath)},
+            PixelShader{ShaderParams::PS(filepath)}
+        };
     }
 
     ComputeShader::ComputeShader(const ShaderParams& params)

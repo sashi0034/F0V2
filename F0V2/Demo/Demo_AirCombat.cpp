@@ -119,17 +119,13 @@ namespace
 
     struct CommonResource : IInlineComponent
     {
-        PixelShader default2d_ps{ShaderParams::PS("asset/shader/default2d.hlsl")};
-        VertexShader default2d_vs{ShaderParams::VS("asset/shader/default2d.hlsl")};
+        GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
 
-        PixelShader modelPS{ShaderParams::PS("asset/shader/model_pixel.hlsl")};
-        VertexShader modelVS{ShaderParams::VS("asset/shader/model_vertex.hlsl")};
+        GraphicsShader model{GraphicsShader::VS_PS("asset/shader/model.hlsl")};
 
-        PixelShader lambertPS{ShaderParams::PS("asset/shader/lambert.hlsl")};
-        VertexShader lambertVS{ShaderParams::VS("asset/shader/lambert.hlsl")};
+        GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
 
-        PixelShader skydomePS{ShaderParams::PS("asset/shader/skydome.hlsl")};
-        VertexShader skydomeVS{ShaderParams::VS("asset/shader/skydome.hlsl")};
+        GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
 
         ModelBuffer playerModel{};
         ModelBuffer enemyModel{};
@@ -192,7 +188,7 @@ struct Internal::FighterBody
         m_model = ModelDrawer{
             ModelDrawerParams{}
             .setModel(model)
-            .setShaders(s_resource->lambertPS, s_resource->lambertVS)
+            .setShaders(s_resource->lambert)
             .setCB4(s_resource->directionLight)
         };
 
@@ -284,7 +280,7 @@ public:
         m_model = ModelDrawer{
             ModelDrawerParams{}
             .setModel(s_resource->missileModel)
-            .setShaders(s_resource->modelPS, s_resource->modelVS)
+            .setShaders(s_resource->model)
         };
 
         m_pose = pose;
@@ -467,7 +463,7 @@ struct Demo_AirCombat_impl
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShaders(s_resource->skydomePS, s_resource->skydomeVS)
+            .setShaders(s_resource->skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
@@ -480,7 +476,7 @@ struct Demo_AirCombat_impl
         m_groundPlaneModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::TexturePlane(groundPlaneTexture, Float2{10000.0f, 10000.0f}))
-            .setShaders(s_resource->modelPS, s_resource->modelVS)
+            .setShaders(s_resource->model)
         };
 
         m_player.Init();
@@ -495,7 +491,7 @@ struct Demo_AirCombat_impl
         m_sphereModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
-            .setShaders(s_resource->lambertPS, s_resource->lambertVS)
+            .setShaders(s_resource->lambert)
             .setCB4(s_resource->directionLight)
         };
 
@@ -503,7 +499,7 @@ struct Demo_AirCombat_impl
 
         m_greenAimIcon = TextureDrawer{
             TextureDrawerParams{}
-            .setShaders(s_resource->default2d_ps, s_resource->default2d_vs)
+            .setShaders(s_resource->default2d)
             .setSource(makeAimIcon(Size{32, 32}, ColorF32{0.3f, 1.0f, 0.3f}).getResource())
         };
     }

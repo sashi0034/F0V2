@@ -21,6 +21,8 @@ namespace TY
 
         ModelDrawerParams& setShaders(const PixelShader& ps_, const VertexShader& vs_);
 
+        ModelDrawerParams& setShaders(const GraphicsShader& shader);
+
         ModelDrawerParams& setCB4(const ConstantBufferUploader_impl& cb2_);
 
         ModelDrawerParams& setOptions(const GraphicsOptions& options_);

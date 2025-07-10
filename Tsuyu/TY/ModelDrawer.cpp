@@ -131,6 +131,13 @@ namespace TY
         return *this;
     }
 
+    ModelDrawerParams& ModelDrawerParams::setShaders(const GraphicsShader& shader)
+    {
+        ps = shader.ps;
+        vs = shader.vs;
+        return *this;
+    }
+
     ModelDrawerParams& ModelDrawerParams::setCB4(const ConstantBufferUploader_impl& cb2_)
     {
         cb4 = std::move(cb2_);

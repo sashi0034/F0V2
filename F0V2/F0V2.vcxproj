@@ -186,12 +186,10 @@
     <Content Include="asset\model\robot_head.obj" />
     <Content Include="asset\shader\basic_pixel.hlsl" />
     <Content Include="asset\shader\basic_vertex.hlsl" />
-    <Content Include="asset\shader\model_pixel.hlsl" />
-    <Content Include="asset\shader\model_vertex.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asset\shader\basic.hlsli" />
-    <ClInclude Include="asset\shader\model.hlsli" />
+    <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
