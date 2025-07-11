@@ -42,7 +42,7 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
     result.position = mul(g_viewMatrix, result.position);
     result.position = mul(g_projectionMatrix, result.position);
 
-    result.normal = mul(g_worldMatrix, normal.xyz);
+    result.normal = normalize(mul(g_worldMatrix, normal.xyz));
 
     result.uv = uv;
     return result;

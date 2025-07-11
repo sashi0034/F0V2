@@ -133,7 +133,7 @@ namespace
 
         // GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
 
-        GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
+        GraphicsShader blinn_phong{GraphicsShader::VS_PS("asset/shader/blinn_phong.hlsl")};
 
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
 
@@ -198,7 +198,7 @@ struct Internal::FighterBody
         m_model = ModelDrawer{
             ModelDrawerParams{}
             .setModel(model)
-            .setShaders(s_resource->phong)
+            .setShaders(s_resource->blinn_phong)
             .setCB4(s_resource->phongLight)
         };
 
@@ -501,7 +501,7 @@ struct Demo_AirCombat_impl
         m_sphereModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
-            .setShaders(s_resource->phong)
+            .setShaders(s_resource->blinn_phong)
             .setCB4(s_resource->phongLight)
         };
 
