@@ -14,7 +14,7 @@ namespace
         uint16_t v;
         uint16_t t;
         uint16_t n;
-        uint16_t padding;
+        uint16_t padding{};
 
         bool operator==(const IndexKey& other) const
         {
@@ -27,7 +27,7 @@ namespace
         size_t operator()(const IndexKey& key) const
         {
             static_assert(sizeof(size_t) == sizeof(IndexKey));
-            return *reinterpret_cast<const size_t*>(&key);
+            return std::bit_cast<size_t>(key);
         }
     };
 
@@ -65,13 +65,14 @@ namespace
             normals.emplace_back(attrib.normals[i], attrib.normals[i + 1], attrib.normals[i + 2]);
         }
 
-        // 面データの取得
         ModelData modelData{};
+
+        Array<std::unordered_map<IndexKey, unsigned int, IndexKeyHash>> indicesMapByMaterial(materials.size());
+
+        // 面データの取得
         for (const auto& shape : shapes)
         {
             if (shape.mesh.num_face_vertices.empty()) continue;;
-
-            std::unordered_map<IndexKey, unsigned int, IndexKeyHash> indexMap{};
 
             ShapeData* shapeData{nullptr};
             size_t indexOffset = 0;
@@ -79,9 +80,13 @@ namespace
             {
                 if (not shapeData || shapeData->materialIndex != shape.mesh.material_ids[f])
                 {
+                    // マテリアルに応じたシェイプの取得
                     shapeData = &modelData.takeShapeByMaterialIndex(shape.mesh.material_ids[f]);
                     assert(shapeData->materialIndex == shape.mesh.material_ids[f]);
                 }
+
+                std::unordered_map<IndexKey, unsigned int, IndexKeyHash>& indicesMap =
+                    indicesMapByMaterial[shapeData->materialIndex];
 
                 const int fv = shape.mesh.num_face_vertices[f]; // 1 つの面の頂点数（三角形なら 3）
                 for (int v = 0; v < fv; ++v)
@@ -92,8 +97,8 @@ namespace
                     key.t = index.texcoord_index;
                     key.n = index.normal_index;
 
-                    const auto iter = indexMap.find(key);
-                    if (iter == indexMap.end())
+                    const auto iter = indicesMap.find(key);
+                    if (iter == indicesMap.end())
                     {
                         ModelVertex vertex{};
                         vertex.position = positions[index.vertex_index];
@@ -101,6 +106,7 @@ namespace
                         {
                             vertex.texCoord = texCoords[index.texcoord_index];
                         }
+
                         if (index.normal_index >= 0)
                         {
                             vertex.normal = normals[index.normal_index];
@@ -108,7 +114,7 @@ namespace
 
                         const auto newIndex = shapeData->vertexBuffer.size();
                         shapeData->vertexBuffer.push_back(vertex);
-                        indexMap[key] = newIndex;
+                        indicesMap[key] = newIndex;
                         shapeData->indexBuffer.push_back(newIndex);
                     }
                     else
