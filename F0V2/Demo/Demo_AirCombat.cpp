@@ -28,10 +28,18 @@ using namespace TY;
 
 namespace
 {
-    struct DirectionLight_b4
+    struct LambertLight_b4
     {
         alignas(16) Float3 lightDirection;
         alignas(16) Float3 lightColor{};
+    };
+
+    struct PhongLight_b4
+    {
+        alignas(16) Float3 lightDirection;
+        alignas(16) Float3 lightColor{};
+        alignas(16) Float3 eyePosition{};
+        alignas(16) Float3 ambientColor{};
     };
 
     struct Skydome_b4
@@ -123,7 +131,9 @@ namespace
 
         GraphicsShader model{GraphicsShader::VS_PS("asset/shader/model.hlsl")};
 
-        GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
+        // GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
+
+        GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
 
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
 
@@ -132,7 +142,7 @@ namespace
 
         ModelBuffer missileModel{Shape3D::Sphere(0.5f, ColorF32{0.3, 0.5, 1.0})};
 
-        ConstantBuffer<DirectionLight_b4> directionLight{};
+        ConstantBuffer<PhongLight_b4> phongLight{};
 
         CommonResource()
         {
@@ -188,8 +198,8 @@ struct Internal::FighterBody
         m_model = ModelDrawer{
             ModelDrawerParams{}
             .setModel(model)
-            .setShaders(s_resource->lambert)
-            .setCB4(s_resource->directionLight)
+            .setShaders(s_resource->phong)
+            .setCB4(s_resource->phongLight)
         };
 
         ResetParameters();
@@ -435,7 +445,7 @@ struct Demo_AirCombat_impl
 
     Mat4x4 m_projectionMat{};
 
-    ConstantBuffer<DirectionLight_b4> m_planeLight{};
+    ConstantBuffer<LambertLight_b4> m_planeLight{};
 
     ModelDrawer m_groundPlaneModel{};
 
@@ -491,8 +501,8 @@ struct Demo_AirCombat_impl
         m_sphereModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
-            .setShaders(s_resource->lambert)
-            .setCB4(s_resource->directionLight)
+            .setShaders(s_resource->phong)
+            .setCB4(s_resource->phongLight)
         };
 
         m_spherePose.position.y = 5.0f;
@@ -555,9 +565,12 @@ struct Demo_AirCombat_impl
             Graphics3D::SetProjectionMatrix(m_projectionMat);
         }
 
-        s_resource->directionLight->lightDirection = m_camera.WorldMatrix().forward().normalized();
-        s_resource->directionLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-        s_resource->directionLight.upload();
+        s_resource->phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
+        s_resource->phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
+        s_resource->phongLight->eyePosition = m_camera.EyePosition();
+        s_resource->phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
+
+        s_resource->phongLight.upload();
 
         m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
         m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
@@ -602,9 +615,9 @@ struct Demo_AirCombat_impl
                         targetPosition.z);
 
             ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
-                        s_resource->directionLight->lightDirection.x,
-                        s_resource->directionLight->lightDirection.y,
-                        s_resource->directionLight->lightDirection.z);
+                        s_resource->phongLight->lightDirection.x,
+                        s_resource->phongLight->lightDirection.y,
+                        s_resource->phongLight->lightDirection.z);
 
             ImGui::End();
         }

@@ -17,7 +17,7 @@ using namespace TY;
 
 namespace
 {
-    struct PhongLight_cb2
+    struct PhongLight_b4
     {
         alignas(16) Float3 lightDirection;
         alignas(16) Float3 lightColor{};
@@ -41,8 +41,8 @@ struct Demo_Phong_impl
     PixelShader m_modelPS{};
     VertexShader m_modelVS{};
 
-    PhongLight_cb2 m_directionLight{};
-    ConstantBufferUploader<PhongLight_cb2> m_directionLightBuffer{1};
+    PhongLight_b4 m_directionLight{};
+    ConstantBufferUploader<PhongLight_b4> m_directionLightBuffer{1};
 
     ModelDrawer m_model{};
 

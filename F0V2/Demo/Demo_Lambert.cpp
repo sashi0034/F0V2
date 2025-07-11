@@ -18,7 +18,7 @@ using namespace TY;
 
 namespace
 {
-    struct DirectionLight_b4
+    struct LambertLight_b4
     {
         alignas(16) Float3 lightDirection;
         alignas(16) Float3 lightColor{};
@@ -38,8 +38,8 @@ struct Demo_Lambert_impl
     PixelShader m_modelPS{};
     VertexShader m_modelVS{};
 
-    DirectionLight_b4 m_directionLight{};
-    ConstantBufferUploader<DirectionLight_b4> m_directionLightBuffer{1};
+    LambertLight_b4 m_directionLight{};
+    ConstantBufferUploader<LambertLight_b4> m_directionLightBuffer{1};
 
     ModelDrawer m_model{};
 

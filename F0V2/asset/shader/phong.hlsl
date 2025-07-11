@@ -21,7 +21,7 @@ cbuffer ModelMaterial : register(b2)
     float g_shininess;
 }
 
-cbuffer Phong : register(b4)
+cbuffer PhongLight : register(b4)
 {
     float3 g_lightDirection;
     float3 g_lightColor;
@@ -34,18 +34,21 @@ struct PSInput
     float4 position : SV_POSITION;
     float3 normal: NORMAL;
     float3 color : COLOR;
-    float2 uv : TEXCOORD;
+    float2 uv : TEXCOORD0;
+    float4 worldPosition : TEXCOORD1;
 };
 
 PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD)
 {
     PSInput result;
 
-    result.position = mul(g_worldMatrix, position);
+    result.worldPosition = mul(g_worldMatrix, position);
+
+    result.position = result.worldPosition;
     result.position = mul(g_viewMatrix, result.position);
     result.position = mul(g_projectionMatrix, result.position);
 
-    result.normal = normal;
+    result.normal = mul(g_worldMatrix, normal.xyz);
 
     result.color = g_diffuse;
 
@@ -64,7 +67,7 @@ float4 PS(PSInput input) : SV_TARGET
     const float3 reflectVector = reflect(g_lightDirection, input.normal);
 
     // 光が当たった物体の表面から視線へ伸びるベクトル
-    const float3 toEye = normalize(g_eyePosition - input.position.xyz);
+    const float3 toEye = normalize(g_eyePosition - input.worldPosition.xyz);
 
     float t2 = dot(reflectVector, toEye);
     t2 = max(t2, 0.0f);
