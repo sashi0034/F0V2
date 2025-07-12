@@ -22,10 +22,12 @@ struct SimpleCamera3D::Impl
     double m_targetY{};
     Float3 m_upDirection{0, 1, 0};
 
-    void SetTargetPosition(Float3 targetPosition)
+    void SetTargetPosition(const Float3& targetPosition)
     {
-        m_targetY = targetPosition.y;
-        m_yaw = std::atan2(targetPosition.x - m_eyePosition.x, targetPosition.z - m_eyePosition.z);
+        const auto eyeToTarget = targetPosition - m_eyePosition;
+        const float h = eyeToTarget.y / std::sqrt(eyeToTarget.x * eyeToTarget.x + eyeToTarget.z * eyeToTarget.z);
+        m_targetY = m_eyePosition.y + h;
+        m_yaw = std::atan2(eyeToTarget.x, eyeToTarget.z);
     }
 
     Float3 TargetPosition() const
@@ -43,15 +45,15 @@ struct SimpleCamera3D::Impl
     {
         if (not moveVector.isZero())
         {
-            const auto forward = m_viewMatrix.forward();
+            const auto forward = m_worldMatrix.forward();
             const auto df = forward * moveVector.z * dt;
             m_eyePosition += df;
 
-            const auto right = m_viewMatrix.right();
+            const auto right = m_worldMatrix.right();
             const auto dr = right * moveVector.x * dt;
             m_eyePosition += dr;
 
-            const auto up = m_viewMatrix.up();
+            const auto up = m_worldMatrix.up();
             const auto du = up * moveVector.y * dt;
             m_eyePosition += du;
 
