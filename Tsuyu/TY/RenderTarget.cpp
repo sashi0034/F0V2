@@ -72,7 +72,7 @@ struct RenderTarget::Impl
                         &heapProperties,
                         D3D12_HEAP_FLAG_NONE,
                         &resourceDesc,
-                        D3D12_RESOURCE_STATE_RENDER_TARGET,
+                        D3D12_RESOURCE_STATE_PRESENT,
                         &clearValue,
                         IID_PPV_ARGS(&m_rtvResources[i]));
             }
