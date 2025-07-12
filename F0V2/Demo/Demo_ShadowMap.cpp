@@ -50,6 +50,11 @@ namespace
         float sphereRadius{};
     };
 
+    struct ShadowMapDrawer_b4
+    {
+        alignas(16) Mat4x4 worldToShadowProjection;
+    };
+
     struct Pose
     {
         Float3 position{};
@@ -115,11 +120,15 @@ namespace
 
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
 
+        GraphicsShader shadowMapDrawer{GraphicsShader::VS_PS("asset/shader/shadow_map_drawer.hlsl")};
+
         ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
 
         ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
 
         ConstantBuffer<PhongLight_b4> phongLight{};
+
+        ConstantBuffer<ShadowMapDrawer_b4> shadowMapDrawer_b4{};
 
         CommonResource()
         {
@@ -146,9 +155,13 @@ struct Demo_ShadowMap_impl
     ModelDrawer m_groundPlaneDrawer{};
 
     ModelDrawer m_playerDrawer{};
+    ModelDrawer m_playerShadowDrawer{};
     Pose m_playerPose{};
 
     ModelDrawer m_mountainDrawer{};
+
+    RenderTarget m_shadowMap{};
+    TextureDrawer m_shadowMapTexture{};
 
     Demo_ShadowMap_impl()
     {
@@ -181,12 +194,21 @@ struct Demo_ShadowMap_impl
             .setShaders(s_resource->model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
-        m_playerDrawer = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(s_resource->playerModel)
-            .setShaders(s_resource->phong)
-            .setCB4(s_resource->phongLight)
-        };
+        {
+            m_playerDrawer = ModelDrawer{
+                ModelDrawerParams{}
+                .setModel(s_resource->playerModel)
+                .setShaders(s_resource->phong)
+                .setCB4(s_resource->phongLight)
+            };
+
+            m_playerShadowDrawer = ModelDrawer{
+                ModelDrawerParams{}
+                .setModel(s_resource->playerModel)
+                .setShaders(s_resource->shadowMapDrawer)
+                .setCB4(s_resource->shadowMapDrawer_b4)
+            };
+        }
 
         m_playerPose.position.y = groundPositionY + 15.0f;
 
@@ -196,12 +218,23 @@ struct Demo_ShadowMap_impl
             .setShaders(s_resource->phong)
             .setCB4(s_resource->phongLight)
         };
+
+        m_shadowMap = RenderTarget{
+            RenderTargetParams{
+                .size = Size{1024, 1024},
+                .clearColor = ColorF32{1.0f, 1.0f},
+            }
+        };
+
+        m_shadowMapTexture = TextureDrawer{
+            TextureDrawerParams{}
+            .setSource(m_shadowMap.getResource())
+            .setShaders(s_resource->default2d)
+        };
     }
 
     void Update()
     {
-        m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
-
         if (not KeyShift.pressed())
         {
             m_camera.transformBySimpleInput();
@@ -254,9 +287,38 @@ struct Demo_ShadowMap_impl
 
         m_groundPlaneDrawer.draw();
 
-        m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
+        m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
 
-        m_playerDrawer.draw();
+        const auto shadowEyePosition = -s_resource->phongLight->lightDirection * 100.0f;
+
+        {
+            const auto rt = m_shadowMap.scopedBind();
+
+            const auto shadowProjection = Mat4x4::PerspectiveFov(
+                75.0_deg,
+                m_shadowMap.size().horizontalAspectRatio(),
+                0.1f,
+                1000.0f
+            );
+
+            const auto shadowView = Mat4x4::LookAt(
+                shadowEyePosition,
+                Float3{},
+                Float3{0.0f, 1.0f, 0.0f}
+            );
+
+            s_resource->shadowMapDrawer_b4->worldToShadowProjection = shadowView * shadowProjection;
+            s_resource->shadowMapDrawer_b4.upload();
+
+            // 影の対象のオブジェクトを描画
+            {
+                m_playerShadowDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
+            }
+        }
+
+        m_shadowMapTexture.as2D().resized({200.0f, 200.0f}).draw({});
+
+        m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
         {
             ImGui::Begin("Camera");
