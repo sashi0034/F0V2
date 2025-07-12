@@ -3,8 +3,10 @@
 #include "TY_Extension/LivePPAddon.h"
 #include "Combat/CombatScene.h"
 #include "Demo/Demo_AirCombat.h"
+#include "Demo/Demo_Basic3D.h"
 #include "Demo/Demo_Gpgpu.h"
 #include "Demo/Demo_PointLight.h"
+#include "Demo/Demo_RenderTarget.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 
@@ -13,7 +15,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_AirCombat();
+    Demo_Basic3D();
 #else
     using namespace TY;
 

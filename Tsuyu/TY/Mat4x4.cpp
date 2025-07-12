@@ -64,6 +64,16 @@ namespace TY
         };
     }
 
+    Mat4x4 Mat4x4::Translate(const Float3& v) noexcept
+    {
+        return DirectX::XMMatrixTranslation(v.x, v.y, v.z);
+    }
+
+    Mat4x4 Mat4x4::Scale(const Float3& v) noexcept
+    {
+        return DirectX::XMMatrixScaling(v.x, v.y, v.z);
+    }
+
     Mat4x4 Mat4x4::RollPitchYaw(Float3 angles)
     {
         return DirectX::XMMatrixRotationRollPitchYaw(angles.x, angles.y, angles.z);

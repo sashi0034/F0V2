@@ -153,10 +153,9 @@ namespace TY
             return Mat4x4{DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ)};
         }
 
-        [[nodiscard]] static Mat4x4 Translate(const Float3 v) noexcept
-        {
-            return DirectX::XMMatrixTranslation(v.x, v.y, v.z);
-        }
+        [[nodiscard]] static Mat4x4 Translate(const Float3& v) noexcept;
+
+        [[nodiscard] ] static Mat4x4 Scale(const Float3& v) noexcept;
 
         [[nodiscard]] static Mat4x4 RollPitchYaw(Float3 angles);
 

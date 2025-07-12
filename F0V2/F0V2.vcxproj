@@ -152,6 +152,7 @@
     <Content Include="asset\shader\blinn_phong.hlsl" />
     <Content Include="asset\shader\skydome.hlsl" />
     <ClCompile Include="Demo\Demo_AirCombat.cpp" />
+    <ClCompile Include="Demo\Demo_Basic3D.cpp" />
     <ClCompile Include="TY_Extension\AwaiterContext.cpp" />
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
     <ClCompile Include="TY_Extension\LivePPAddon.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
+    <ClInclude Include="Demo\Demo_Basic3D.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Demo\Demo_Lambert.h" />
