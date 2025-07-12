@@ -44,6 +44,8 @@ struct RenderTarget::Impl
         if (not swapChain)
         {
             // 通常のレンダーターゲット
+            m_viewport.size = params.size;
+
             CD3DX12_RESOURCE_DESC resourceDesc{};
             resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
             resourceDesc.Width = params.size.x;
