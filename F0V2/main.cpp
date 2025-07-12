@@ -7,6 +7,7 @@
 #include "Demo/Demo_Gpgpu.h"
 #include "Demo/Demo_PointLight.h"
 #include "Demo/Demo_RenderTarget.h"
+#include "Demo/Demo_ShadowMap.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 
@@ -15,7 +16,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_Basic3D();
+    Demo_ShadowMap();
 #else
     using namespace TY;
 
