@@ -97,7 +97,7 @@ namespace TY
         return p_impl->m_materialCB;
     }
 
-    const Array<detail::ShaderResourceType>& ModelBuffer::materialTextures() const
+    const Array<ShaderResourceType>& ModelBuffer::materialTextures() const
     {
         return p_impl->m_materialTextures;
     }

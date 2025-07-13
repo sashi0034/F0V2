@@ -1,19 +1,14 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
 #include "PipelineType.h"
-#include "TY/ShaderResourceTexture.h"
+#include "TY/CbSrUa.h"
 #include "TY/ConstantBufferUploader.h"
-#include "TY/StructuredBufferUploader.h"
 
 namespace TY::detail
 {
-    using ShaderResourceType = Variant<ShaderResourceTexture, StructuredBufferUploader>;
-
-    using UnorderedAccessType = StructuredBufferTransfer;
-
     struct CbSrUaSet
     {
-        Array<ConstantBufferUploader_impl> cb; /* [cbvCount], ConstantBuffer::count()=materialCount */
+        Array<ConstantBufferUploader_impl> cb; /* [cbvCount], ConstantBuffer::count() = materialCount */
         Array<Array<ShaderResourceType>> sr; /* [srvCount][materialCount] */
         Array<Array<UnorderedAccessType>> ua; /* [uavCount][materialCount] */
     };

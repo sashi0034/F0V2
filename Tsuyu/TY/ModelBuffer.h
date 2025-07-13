@@ -43,7 +43,7 @@ namespace TY
 
         const ConstantBufferUploader<ModelMaterialParameters>& materialCB() const;
 
-        const Array<detail::ShaderResourceType>& materialTextures() const;
+        const Array<ShaderResourceType>& materialTextures() const;
 
     private:
         struct Impl;

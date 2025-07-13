@@ -165,6 +165,7 @@
     <ClInclude Include="TY\Array.h" />
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\Buffer3D.h" />
+    <ClInclude Include="TY\CbSrUa.h" />
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\EngineComponent.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
