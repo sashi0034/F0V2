@@ -151,7 +151,7 @@
   <ItemGroup>
     <Content Include="asset\shader\blinn_phong.hlsl" />
     <Content Include="asset\shader\skydome.hlsl" />
-    <Content Include="asset\shader\shadow_map_drawer.hlsl" />
+    <Content Include="asset\shader\shadow_caster.hlsl" />
     <ClCompile Include="Demo\Demo_AirCombat.cpp" />
     <ClCompile Include="Demo\Demo_Basic3D.cpp" />
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />

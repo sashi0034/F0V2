@@ -21,7 +21,7 @@ cbuffer ModelMaterial : register(b2)
     float g_shininess;
 }
 
-cbuffer ShadowMapDrawer : register(b4)
+cbuffer ShadowMap : register(b4)
 {
     float4x4 g_worldToShadowProjection;
 }

@@ -50,7 +50,7 @@ namespace
         float sphereRadius{};
     };
 
-    struct ShadowMapDrawer_b4
+    struct ShadowMap_cb
     {
         alignas(16) Mat4x4 worldToShadowProjection;
     };
@@ -120,7 +120,7 @@ namespace
 
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
 
-        GraphicsShader shadowMapDrawer{GraphicsShader::VS_PS("asset/shader/shadow_map_drawer.hlsl")};
+        GraphicsShader shadowMapCaster{GraphicsShader::VS_PS("asset/shader/shadow_caster.hlsl")};
 
         ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
 
@@ -128,7 +128,7 @@ namespace
 
         ConstantBuffer<PhongLight_b4> phongLight{};
 
-        ConstantBuffer<ShadowMapDrawer_b4> shadowMapDrawer_b4{};
+        ConstantBuffer<ShadowMap_cb> shadowMap_cb{};
 
         CommonResource()
         {
@@ -205,8 +205,8 @@ struct Demo_ShadowMap_impl
             m_playerShadowDrawer = ModelDrawer{
                 ModelDrawerParams{}
                 .setModel(s_resource->playerModel)
-                .setShaders(s_resource->shadowMapDrawer)
-                .setCB4(s_resource->shadowMapDrawer_b4)
+                .setShaders(s_resource->shadowMapCaster)
+                .setCB4(s_resource->shadowMap_cb)
             };
         }
 
@@ -307,8 +307,8 @@ struct Demo_ShadowMap_impl
                 Float3{0.0f, 1.0f, 0.0f}
             );
 
-            s_resource->shadowMapDrawer_b4->worldToShadowProjection = shadowView * shadowProjection;
-            s_resource->shadowMapDrawer_b4.upload();
+            s_resource->shadowMap_cb->worldToShadowProjection = shadowView * shadowProjection;
+            s_resource->shadowMap_cb.upload();
 
             // 影の対象のオブジェクトを描画
             {
