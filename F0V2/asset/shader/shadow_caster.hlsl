@@ -36,14 +36,8 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
     PSInput result;
 
     result.position = mul(g_worldMatrix, position);
-
-    // result.position = mul(g_shadowView, result.position);
-    // result.position = mul(g_shadowProjection, result.position);
-
     result.position = mul(g_worldToShadowProjection, result.position);
 
-    // result.position = mul(g_viewMatrix, result.position);
-    // result.position = mul(g_projectionMatrix, result.position);
     return result;
 }
 

@@ -231,6 +231,11 @@ struct Demo_ShadowMap_impl
             ModelDrawerParams{}
             .setModel(s_resource->mountainModel)
             .setShaders(s_resource->phong_shadow)
+            .setOptions(GraphicsOptions::Default3D().setSamplers({
+                GraphicsSamplerOptions{}
+                .setAddress(GraphicsAddressMode::Border)
+                .setFilter(GraphicsFilterMode::Linear)
+            }))
             .setCB4(s_resource->phongLight)
             .setCB5(s_resource->shadowMap_cb)
             .setSR1(ShaderResourceTexture{m_shadowMap.getResource()})
