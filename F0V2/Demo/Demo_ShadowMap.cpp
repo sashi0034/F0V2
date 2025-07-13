@@ -118,6 +118,8 @@ namespace
 
         GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
 
+        GraphicsShader phong_shadow{GraphicsShader::VS_PS("asset/shader/phong_shadow.hlsl")};
+
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
 
         GraphicsShader shadowMapCaster{GraphicsShader::VS_PS("asset/shader/shadow_caster.hlsl")};
@@ -186,6 +188,19 @@ struct Demo_ShadowMap_impl
             .setCB4(skydome_b4)
         };
 
+        m_shadowMap = RenderTarget{
+            RenderTargetParams{
+                .size = Size{1024, 1024},
+                .clearColor = ColorF32{1.0f, 1.0f},
+            }
+        };
+
+        m_shadowMapTexture = TextureDrawer{
+            TextureDrawerParams{}
+            .setSource(m_shadowMap.getResource())
+            .setShaders(s_resource->default2d)
+        };
+
         const auto groundPlaneTexture = makeGroundPlane(
             Size{1024, 1024}, 32, ColorF32{0.9}, ColorF32{0.3});
         m_groundPlaneDrawer = ModelDrawer{
@@ -215,21 +230,10 @@ struct Demo_ShadowMap_impl
         m_mountainDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(s_resource->mountainModel)
-            .setShaders(s_resource->phong)
+            .setShaders(s_resource->phong_shadow)
             .setCB4(s_resource->phongLight)
-        };
-
-        m_shadowMap = RenderTarget{
-            RenderTargetParams{
-                .size = Size{1024, 1024},
-                .clearColor = ColorF32{1.0f, 1.0f},
-            }
-        };
-
-        m_shadowMapTexture = TextureDrawer{
-            TextureDrawerParams{}
-            .setSource(m_shadowMap.getResource())
-            .setShaders(s_resource->default2d)
+            .setCB5(s_resource->shadowMap_cb)
+            .setSR1(ShaderResourceTexture{m_shadowMap.getResource()})
         };
     }
 

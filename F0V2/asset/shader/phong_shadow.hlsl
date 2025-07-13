@@ -1,5 +1,7 @@
 Texture2D<float4> g_texture0 : register(t0);
 
+Texture2D<float4> g_shadowMapTexture : register(t1);
+
 SamplerState g_sampler0 : register(s0);
 
 cbuffer SceneState : register(b0)
@@ -29,6 +31,11 @@ cbuffer PhongLight : register(b4)
     float3 g_ambientLight;
 }
 
+cbuffer ShadowMap : register(b5)
+{
+    float4x4 g_worldToShadowProjection;
+}
+
 struct PSInput
 {
     float4 position : SV_POSITION;
@@ -36,6 +43,7 @@ struct PSInput
     float3 color : COLOR;
     float2 uv : TEXCOORD0;
     float4 worldPosition : TEXCOORD1;
+    float2 shadowUV : TEXCOORD2;
 };
 
 PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD)
@@ -53,6 +61,11 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
     result.color = g_diffuse;
 
     result.uv = uv;
+
+    const float4 shadowPosition = mul(g_worldToShadowProjection, result.worldPosition);
+    result.shadowUV = shadowPosition.xy / shadowPosition.w;
+    result.shadowUV = result.shadowUV * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
+
     return result;
 }
 
@@ -79,6 +92,10 @@ float4 PS(PSInput input) : SV_TARGET
 
     // 乗算して最終的な色を求める
     finalColor.xyz *= (diffuseLight.xyz + specularLight.xyz + g_ambientLight);
+
+    // 影
+    float3 shadowValue = g_shadowMapTexture.Sample(g_sampler0, input.shadowUV).xyz;
+    finalColor *= float4(shadowValue, 1.0f);
 
     return finalColor;
 }
