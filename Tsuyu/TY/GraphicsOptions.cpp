@@ -3,6 +3,20 @@
 
 namespace TY
 {
+    GraphicsSamplerOptions& GraphicsSamplerOptions::setAddress(GraphicsAddressMode mode)
+    {
+        addressU = mode;
+        addressV = mode;
+        addressW = mode;
+        return *this;
+    }
+
+    GraphicsSamplerOptions& GraphicsSamplerOptions::setFilter(GraphicsFilterMode mode)
+    {
+        filter = mode;
+        return *this;
+    }
+
     GraphicsRasterizerOptions& GraphicsRasterizerOptions::setCull(GraphicsCullMode cull_)
     {
         cull = cull_;
@@ -28,6 +42,12 @@ namespace TY
         settings.enable = true;
         settings.writeMask = true;
         return settings;
+    }
+
+    GraphicsOptions& GraphicsOptions::setSamplers(const Array<GraphicsSamplerOptions>& samplers_)
+    {
+        samplers = samplers_;
+        return *this;
     }
 
     GraphicsOptions& GraphicsOptions::setRasterizer(const GraphicsRasterizerOptions& rasterizer_)

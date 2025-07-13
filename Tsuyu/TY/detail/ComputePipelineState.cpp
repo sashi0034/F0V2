@@ -35,7 +35,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
     {
         m_timestamp = System::FrameCount();
 
-        m_rootSignature = RootSignature{{m_params.descriptorTable}};
+        m_rootSignature = RootSignature{{{GraphicsSamplerOptions{}}, m_params.descriptorTable}};
 
         D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
         desc.pRootSignature = m_rootSignature.getPointer();

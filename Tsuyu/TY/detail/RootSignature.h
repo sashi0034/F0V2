@@ -1,10 +1,12 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
+#include "TY/GraphicsOptions.h"
 
 namespace TY::detail
 {
     struct RootSignatureParams
     {
+        Array<GraphicsSamplerOptions> samplers;
         Array<DescriptorTableElement> descriptorTable;
     };
 

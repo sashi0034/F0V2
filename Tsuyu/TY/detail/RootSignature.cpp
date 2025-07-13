@@ -6,6 +6,40 @@
 #include "TY/System.h"
 #include "TY/Utils.h"
 
+using namespace TY;
+using namespace TY::detail;
+
+namespace
+{
+    D3D12_TEXTURE_ADDRESS_MODE getAddressMode(GraphicsAddressMode mode)
+    {
+        switch (mode)
+        {
+        case GraphicsAddressMode::Wrap: return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        case GraphicsAddressMode::Clamp: return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        case GraphicsAddressMode::Mirror: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+        case GraphicsAddressMode::Border: return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+        case GraphicsAddressMode::MirrorOnce: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+        }
+
+        assert(false);
+        return {};
+    }
+
+    D3D12_FILTER getFilterMode(GraphicsFilterMode filter)
+    {
+        switch (filter)
+        {
+        case GraphicsFilterMode::Nearest: return D3D12_FILTER_MIN_MAG_MIP_POINT;
+        case GraphicsFilterMode::Linear: return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+        case GraphicsFilterMode::Aniso: return D3D12_FILTER_ANISOTROPIC;
+        }
+
+        assert(false);
+        return {};
+    }
+}
+
 namespace TY::detail
 {
     RootSignature::RootSignature(const RootSignatureParams& params)
@@ -73,19 +107,26 @@ namespace TY::detail
 
         // -----------------------------------------------
         // サンプラーの設定
-        D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
-        samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP; // 横繰り返し
-        samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP; // 縦繰り返し
-        samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP; // 奥行繰り返し
-        samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK; // ボーダーの時は黒
-        samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT; // ニアレストネイバー
-        samplerDesc.MaxLOD = D3D12_FLOAT32_MAX; // ミップマップ最大値
-        samplerDesc.MinLOD = 0.0f; // ミップマップ最小値
-        samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER; // ?
-        samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // ピクセルシェーダからアクセス
+        Array<D3D12_STATIC_SAMPLER_DESC> samplerDescList{};
+        samplerDescList.reserve(params.samplers.size());
+        for (const auto& sampler : params.samplers)
+        {
+            D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+            samplerDesc.AddressU = getAddressMode(sampler.addressU);
+            samplerDesc.AddressV = getAddressMode(sampler.addressV);
+            samplerDesc.AddressW = getAddressMode(sampler.addressW);
+            samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK; // ボーダーの時は透明
+            samplerDesc.Filter = getFilterMode(sampler.filter);
+            samplerDesc.MaxLOD = D3D12_FLOAT32_MAX; // ミップマップ最大値
+            samplerDesc.MinLOD = 0.0f; // ミップマップ最小値
+            samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER; // ?
+            samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // ピクセルシェーダからアクセス
 
-        rootSignatureDesc.NumStaticSamplers = 1;
-        rootSignatureDesc.pStaticSamplers = &samplerDesc;
+            samplerDescList.push_back(samplerDesc);
+        }
+
+        rootSignatureDesc.NumStaticSamplers = static_cast<UINT>(samplerDescList.size());
+        rootSignatureDesc.pStaticSamplers = &samplerDescList[0];
 
         // -----------------------------------------------
         // ルートシグネチャの作成

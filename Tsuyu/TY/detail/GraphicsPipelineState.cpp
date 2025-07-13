@@ -165,7 +165,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.SampleDesc.Count = 1; // マルチサンプリングなし
         pipelineDesc.SampleDesc.Quality = 0; // クオリティ最低
 
-        m_rootSignature = RootSignature({params.descriptorTable});
+        m_rootSignature = RootSignature({params.options.samplers, params.descriptorTable});
 
         pipelineDesc.pRootSignature = m_rootSignature.getPointer();
 
