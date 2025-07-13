@@ -24,7 +24,7 @@ namespace TY
         GraphicsAddressMode addressU{GraphicsAddressMode::Wrap};
         GraphicsAddressMode addressV{GraphicsAddressMode::Wrap};
         GraphicsAddressMode addressW{GraphicsAddressMode::Wrap};
-        GraphicsFilterMode filter{GraphicsFilterMode::Linear};
+        GraphicsFilterMode filter{GraphicsFilterMode::Nearest};
 
         GraphicsSamplerOptions& setAddress(GraphicsAddressMode mode);
 

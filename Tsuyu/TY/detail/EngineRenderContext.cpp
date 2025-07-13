@@ -21,7 +21,7 @@ namespace
 {
     constexpr ColorF32 defaultClearColor = {0.5f, 0.5f, 0.5f, 1.0f};
 
-    constexpr Size defaultSceneSize = {1280, 720};
+    constexpr Size defaultSceneSize = {1920, 1080};
 
     void enableDebugLayer()
     {
@@ -311,7 +311,11 @@ private:
         // リサイズのリクエスト対応
         if (m_requestedFrameBufferSize.has_value())
         {
-            newSize = m_requestedFrameBufferSize;
+            if (m_requestedFrameBufferSize != m_frameBufferSize)
+            {
+                newSize = m_requestedFrameBufferSize;
+            }
+
             m_requestedFrameBufferSize = {};
         }
 
