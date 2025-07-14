@@ -45,32 +45,32 @@ namespace
 
     bool checkTableValid(const DescriptorHeapParams& params, int tableId)
     {
-        if (params.descriptors[tableId].cb.size() != params.table[tableId].cbvCount)
+        if (params.descriptors[tableId].cbv.size() != params.table[tableId].cbvCount)
         {
             LogError(std::format(
                 "DescriptorHeap: Constant buffer count mismatch for table {}: {} != {}",
                 tableId,
-                params.descriptors[tableId].cb.size(),
+                params.descriptors[tableId].cbv.size(),
                 params.table[tableId].cbvCount));
             return false;
         }
 
-        if (params.descriptors[tableId].sr.size() != params.table[tableId].srvCount)
+        if (params.descriptors[tableId].srv.size() != params.table[tableId].srvCount)
         {
             LogError(std::format(
                 "DescriptorHeap: Shader resource count mismatch for table {}: {} != {}",
                 tableId,
-                params.descriptors[tableId].sr.size(),
+                params.descriptors[tableId].srv.size(),
                 params.table[tableId].srvCount));
             return false;
         }
 
-        if (params.descriptors[tableId].ua.size() != params.table[tableId].uavCount)
+        if (params.descriptors[tableId].uav.size() != params.table[tableId].uavCount)
         {
             LogError(std::format(
                 "DescriptorHeap: Unordered access count mismatch for table {}: {} != {}",
                 tableId,
-                params.descriptors[tableId].ua.size(),
+                params.descriptors[tableId].uav.size(),
                 params.table[tableId].uavCount));
             return false;
         }
@@ -85,7 +85,7 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& cb = params.descriptors[tableId].cb[cbvId];
+        const auto& cb = params.descriptors[tableId].cbv[cbvId];
         if (not cb.isEmpty() && cb.materialCount() != params.materialCounts[tableId])
         {
             LogError(std::format(
@@ -147,7 +147,7 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& srArray = params.descriptors[tableId].sr[srvId];
+        const auto& srArray = params.descriptors[tableId].srv[srvId];
         if (srArray.size() != params.materialCounts[tableId])
         {
             LogError(std::format(
@@ -186,7 +186,7 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& uaArray = params.descriptors[tableId].ua[uavId];
+        const auto& uaArray = params.descriptors[tableId].uav[uavId];
         if (uaArray.size() != params.materialCounts[tableId])
         {
             LogError(std::format(
@@ -215,7 +215,7 @@ struct DescriptorHeap::Impl
 
     ComPtr<ID3D12DescriptorHeap> m_descriptorHeap{};
 
-    Array<CbSrUaSet> m_descriptors{}; // for resource lifetime
+    Array<CbvSrvUavSet> m_descriptors{}; // for resource lifetime
 
     Array<Array<size_t>> m_handleOffsets{}; // tableId, materialId
 
@@ -294,7 +294,7 @@ struct DescriptorHeap::Impl
         m_valid = true;
     }
 
-    void ResetSRV(const ShaderResourceType& sr, int tableId, int srvId, int materialId)
+    void ResetSRV(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
     {
         auto heapHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
@@ -303,15 +303,15 @@ struct DescriptorHeap::Impl
             EngineRenderContext::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
-        heapHandle.ptr += incrementSize * m_descriptors[tableId].cb.size();
+        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
 
         // SRV
         heapHandle.ptr += incrementSize * srvId;
 
-        createShaderResourceViewInternal(heapHandle, sr);
+        createShaderResourceViewInternal(heapHandle, srv);
     }
 
-    void ResetUAV(const UnorderedAccessType& ua, int tableId, int uavId, int materialId)
+    void ResetUAV(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
     {
         auto heapHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
@@ -320,15 +320,15 @@ struct DescriptorHeap::Impl
             EngineRenderContext::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
-        heapHandle.ptr += incrementSize * m_descriptors[tableId].cb.size();
+        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
 
         // SRV
-        heapHandle.ptr += incrementSize * m_descriptors[tableId].sr.size();
+        heapHandle.ptr += incrementSize * m_descriptors[tableId].srv.size();
 
         // UAV
         heapHandle.ptr += incrementSize * uavId;
 
-        createUnorderedAccessViewInternal(heapHandle, ua);
+        createUnorderedAccessViewInternal(heapHandle, uav);
     }
 
     void CommandSet() const
@@ -366,14 +366,14 @@ namespace TY::detail
         }
     }
 
-    void DescriptorHeap::resetSRV(const ShaderResourceType& sr, int tableId, int srvId, int materialId)
+    void DescriptorHeap::resetSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
     {
-        if (p_impl) p_impl->ResetSRV(sr, tableId, srvId, materialId);
+        if (p_impl) p_impl->ResetSRV(srv, tableId, srvId, materialId);
     }
 
-    void DescriptorHeap::resetUAV(const UnorderedAccessType& ua, int tableId, int uavId, int materialId)
+    void DescriptorHeap::resetUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
     {
-        if (p_impl) p_impl->ResetUAV(ua, tableId, uavId, materialId);
+        if (p_impl) p_impl->ResetUAV(uav, tableId, uavId, materialId);
     }
 
     void DescriptorHeap::commandSet() const

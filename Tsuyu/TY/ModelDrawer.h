@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "CbSrUa.h"
+#include "CbvSrvUav.h"
 #include "ConstantBufferUploader.h"
 #include "GraphicsOptions.h"
 #include "Mat4x4.h"

@@ -265,7 +265,7 @@ struct Gpgpu::Impl
             .table = m_computePipelineState.descriptorTable(),
             .materialCounts = {1},
             .descriptors = {
-                CbSrUaSet{
+                CbvSrvUavSet{
                     {m_cb0, m_cb1, m_params.cb2},
                     m_sr.toColumnVector<ShaderResourceType>(),
                     m_ua.toColumnVector<UnorderedAccessType>()
@@ -453,7 +453,7 @@ private:
             if (m_sr[i].elementCount() != access(m_params.readonlyBuffer[i]).getElementCount())
             {
                 m_sr[i] = getCache().FetchStructuredBufferTransfer(m_params.readonlyBuffer[i]);
-                m_descriptorHeap.resetSRV(m_sr[i], 0, i);
+                m_descriptorHeap.resetSrv(m_sr[i], 0, i);
 
                 resized = true;
             }
@@ -464,7 +464,7 @@ private:
             if (m_ua[i].elementCount() != access(m_params.writableBuffer[i]).getElementCount())
             {
                 m_ua[i] = getCache().FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
-                m_descriptorHeap.resetUAV(m_ua[i], 0, i);
+                m_descriptorHeap.resetUav(m_ua[i], 0, i);
 
                 resized = true;
             }

@@ -128,7 +128,7 @@ struct TextureDrawer::Impl : IEngineDrawer
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,
             .materialCounts = {1},
-            .descriptors = {CbSrUaSet{{m_cb0}, {{m_sr}}}}
+            .descriptors = {CbvSrvUavSet{{m_cb0}, {{m_sr}}}}
         });
     }
 

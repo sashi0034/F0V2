@@ -1,23 +1,23 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
 #include "PipelineType.h"
-#include "TY/CbSrUa.h"
+#include "TY/CbvSrvUav.h"
 #include "TY/ConstantBufferUploader.h"
 
 namespace TY::detail
 {
-    struct CbSrUaSet
+    struct CbvSrvUavSet
     {
-        Array<ConstantBufferUploader_impl> cb; /* [cbvCount], ConstantBuffer::count() = materialCount */
-        Array<Array<ShaderResourceType>> sr; /* [srvCount][materialCount] */
-        Array<Array<UnorderedAccessType>> ua; /* [uavCount][materialCount] */
+        Array<ConstantBufferUploader_impl> cbv; /* [cbvCount], ConstantBuffer::count() = materialCount */
+        Array<Array<ShaderResourceType>> srv; /* [srvCount][materialCount] */
+        Array<Array<UnorderedAccessType>> uav; /* [uavCount][materialCount] */
     };
 
     struct DescriptorHeapParams
     {
         DescriptorTable table;
         Array<size_t> materialCounts;
-        Array<CbSrUaSet> descriptors;
+        Array<CbvSrvUavSet> descriptors;
     };
 
     class DescriptorHeap
@@ -27,9 +27,9 @@ namespace TY::detail
 
         DescriptorHeap(const DescriptorHeapParams& params);
 
-        void resetSRV(const ShaderResourceType& sr, int tableId, int srvId, int materialId = 0);
+        void resetSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId = 0);
 
-        void resetUAV(const UnorderedAccessType& ua, int tableId, int uavId, int materialId = 0);
+        void resetUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId = 0);
 
         void commandSet() const;
 

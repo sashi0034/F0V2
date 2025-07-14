@@ -122,11 +122,11 @@ struct ModelDrawer::Impl : IEngineDrawer
             .table = m_pipelineState.descriptorTable(),
             .materialCounts = {1, 1, m_modelBuffer.materialCount(), 1, 1},
             .descriptors = {
-                CbSrUaSet{{EngineRenderContext::GetSceneState3D_CB0()}, {}, {}},
-                CbSrUaSet{{m_cb1}, {}, {}},
-                CbSrUaSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}},
-                CbSrUaSet{{ConstantBufferUploader_impl{Empty}}, {}, {}},
-                CbSrUaSet{cb, sr.toColumnVector(), {}}
+                CbvSrvUavSet{{EngineRenderContext::GetSceneState3D_CB0()}, {}, {}},
+                CbvSrvUavSet{{m_cb1}, {}, {}},
+                CbvSrvUavSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}},
+                CbvSrvUavSet{{ConstantBufferUploader_impl{Empty}}, {}, {}},
+                CbvSrvUavSet{cb, sr.toColumnVector(), {}}
             },
         });
     }
