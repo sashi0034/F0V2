@@ -1,22 +1,21 @@
 ﻿#pragma once
 #include "Rect.h"
 #include "Shader.h"
+#include "ShaderResourceTexture.h"
 #include "TextureSource.h"
 
 namespace TY
 {
     struct TextureDrawerParams
     {
-        TextureSource source;
+        ShaderResourceTexture texture;
         PixelShader ps;
         VertexShader vs;
         bool hasDepth{false};
 
-        TextureDrawerParams& setSource(const TextureSource& source_)
-        {
-            source = source_;
-            return *this;
-        }
+        TextureDrawerParams& loadTexture(const TextureSource& source);
+
+        TextureDrawerParams& setTexture(const ShaderResourceTexture& texture_);
 
         TextureDrawerParams& setPS(const PixelShader& ps_)
         {

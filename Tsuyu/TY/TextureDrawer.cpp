@@ -121,7 +121,7 @@ struct TextureDrawer::Impl : IEngineDrawer
     Impl(const TextureDrawerParams& options) :
         m_pipelineState(makePipelineState(options))
     {
-        m_sr = ShaderResourceTexture{options.source};
+        m_sr = ShaderResourceTexture{options.texture};
 
         m_cb0 = ConstantBufferUploader<SceneState_b0>{1};
 
@@ -179,6 +179,18 @@ struct TextureDrawer::Impl : IEngineDrawer
 
 namespace TY
 {
+    TextureDrawerParams& TextureDrawerParams::loadTexture(const TextureSource& source)
+    {
+        texture = ShaderResourceTexture{source};
+        return *this;
+    }
+
+    TextureDrawerParams& TextureDrawerParams::setTexture(const ShaderResourceTexture& texture_)
+    {
+        texture = ShaderResourceTexture{texture_};
+        return *this;
+    }
+
     TextureDrawer::TextureDrawer(const TextureDrawerParams& params) :
         p_impl{std::make_shared<Impl>(params)}
     {

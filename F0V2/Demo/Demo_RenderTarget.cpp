@@ -39,11 +39,11 @@ void Demo_RenderTarget()
     }
 
     const TextureDrawer noiseTexture{
-        TextureDrawerParams{.source = image, .ps = default2dPS, .vs = default2dVS}
+        TextureDrawerParams{.texture = image, .ps = default2dPS, .vs = default2dVS}
     };
 
     const TextureDrawer pngTexture{
-        TextureDrawerParams{.source = "asset/image/mii.png", .ps = default2dPS, .vs = default2dVS}
+        TextureDrawerParams{.texture = "asset/image/mii.png", .ps = default2dPS, .vs = default2dVS}
     };
 
     Mat4x4 worldMat = Mat4x4::Identity().rotatedY(45.0_deg);
@@ -81,7 +81,7 @@ void Demo_RenderTarget()
 
     TextureDrawer renderTargetTexture{
         {
-            .source = renderTarget.getResource(),
+            .texture = renderTarget.asShaderResource(),
             .ps = default2dPS,
             .vs = default2dVS
         }

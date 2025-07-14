@@ -510,7 +510,7 @@ struct Demo_AirCombat_impl
         m_greenAimIcon = TextureDrawer{
             TextureDrawerParams{}
             .setShaders(s_resource->default2d)
-            .setSource(makeAimIcon(Size{32, 32}, ColorF32{0.3f, 1.0f, 0.3f}).getResource())
+            .loadTexture(makeAimIcon(Size{32, 32}, ColorF32{0.3f, 1.0f, 0.3f}).getResource())
         };
     }
 

@@ -26,8 +26,10 @@ struct RenderTarget::Impl
     ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap{};
     ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap{};
 
-    std::vector<ComPtr<ID3D12Resource>> m_rtvResources{};
+    Array<ComPtr<ID3D12Resource>> m_rtvResources{};
     ComPtr<ID3D12Resource> m_dsvResource{};
+
+    Array<ShaderResourceTexture> m_rtvAsShaderResource{};
 
     RectF m_viewport{};
 
@@ -155,6 +157,11 @@ struct RenderTarget::Impl
                 nullptr,
                 dsvHandle);
         }
+
+        for (int i = 0; i < params.bufferCount; ++i)
+        {
+            m_rtvAsShaderResource.push_back(ShaderResourceTexture{m_rtvResources[i].Get()});
+        }
     }
 
     void CommandSetViewportAndScissorsRect() const
@@ -269,9 +276,14 @@ namespace TY
         return p_impl->ScopedBind(index);
     }
 
-    ID3D12Resource* RenderTarget::getResource(int index) const
+    ShaderResourceTexture RenderTarget::asShaderResource(int index) const
     {
-        return p_impl ? p_impl->m_rtvResources[index].Get() : nullptr;
+        if (not p_impl || index < 0 || index >= p_impl->m_rtvAsShaderResource.size())
+        {
+            return ShaderResourceTexture{};
+        }
+
+        return p_impl->m_rtvAsShaderResource[index];
     }
 
     RenderTarget RenderTarget::Current()

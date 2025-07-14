@@ -200,7 +200,7 @@ struct Demo_ShadowMap_impl
 
         m_shadowMapTexture = TextureDrawer{
             TextureDrawerParams{}
-            .setSource(m_shadowMap.getResource())
+            .setTexture(m_shadowMap.asShaderResource())
             .setShaders(s_resource->default2d)
         };
 
@@ -242,7 +242,7 @@ struct Demo_ShadowMap_impl
             }))
             .setCB4(s_resource->phongLight)
             .setCB5(s_resource->shadowMap_cb)
-            .setSR1(ShaderResourceTexture{m_shadowMap.getResource()})
+            .setSR1(m_shadowMap.asShaderResource())
         };
     }
 

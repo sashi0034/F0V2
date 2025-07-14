@@ -3,6 +3,7 @@
 #include "GraphicsOptions.h"
 #include "ScopedDefer.h"
 #include "Shader.h"
+#include "ShaderResourceTexture.h"
 #include "TextureDrawer.h"
 #include "Vector2D.h"
 
@@ -46,7 +47,7 @@ namespace TY
         ScopedRenderTarget scopedBind(int index = 0) const;
 
         [[nodiscard]]
-        ID3D12Resource* getResource(int index = 0) const;
+        ShaderResourceTexture asShaderResource(int index = 0) const;
 
         [[nodiscard]]
         static RenderTarget Current();
