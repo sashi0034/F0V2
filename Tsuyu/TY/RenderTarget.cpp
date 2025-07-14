@@ -52,13 +52,13 @@ struct RenderTarget::Impl
             resourceDesc.Height = params.size.y;
             resourceDesc.DepthOrArraySize = 1;
             resourceDesc.MipLevels = 1;
-            resourceDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            resourceDesc.Format = params.format;
             resourceDesc.SampleDesc = {1, 0};
             resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
             resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
             D3D12_CLEAR_VALUE clearValue{};
-            clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            clearValue.Format = params.format;
             clearValue.Color[0] = m_clearColor.r;
             clearValue.Color[1] = m_clearColor.g;
             clearValue.Color[2] = m_clearColor.b;

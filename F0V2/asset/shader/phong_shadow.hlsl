@@ -43,7 +43,7 @@ struct PSInput
     float3 color : COLOR;
     float2 uv : TEXCOORD0;
     float4 worldPosition : TEXCOORD1;
-    float2 shadowUV : TEXCOORD2;
+    float4 shadowPosition : TEXCOORD2;
 };
 
 PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD)
@@ -62,9 +62,7 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
 
     result.uv = uv;
 
-    const float4 shadowPosition = mul(g_worldToShadowProjection, result.worldPosition);
-    result.shadowUV = shadowPosition.xy / shadowPosition.w;
-    result.shadowUV = result.shadowUV * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
+    result.shadowPosition = mul(g_worldToShadowProjection, result.worldPosition);
 
     return result;
 }
@@ -94,8 +92,17 @@ float4 PS(PSInput input) : SV_TARGET
     finalColor.xyz *= (diffuseLight.xyz + specularLight.xyz + g_ambientLight);
 
     // 影
-    float3 shadowValue = g_shadowMapTexture.Sample(g_sampler0, input.shadowUV).xyz;
-    finalColor *= float4(shadowValue, 1.0f);
+    float2 shadowUV = input.shadowPosition.xy / input.shadowPosition.w;
+    shadowUV = shadowUV * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
+
+    const float shadowValue = g_shadowMapTexture.Sample(g_sampler0, shadowUV).x;
+
+    const float shadowZ = input.shadowPosition.z / input.shadowPosition.w;
+    if (shadowZ > shadowValue)
+    {
+        // 影の反映
+        finalColor.xyz *= 0.5f;
+    }
 
     return finalColor;
 }

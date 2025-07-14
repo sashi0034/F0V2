@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Color.h"
+#include "GraphicsOptions.h"
 #include "ScopedDefer.h"
 #include "Shader.h"
 #include "TextureDrawer.h"
@@ -12,6 +13,7 @@ namespace TY
         int bufferCount{1};
         Size size;
         ColorF32 clearColor;
+        GraphicsFormat format{DXGI_FORMAT_R8G8B8A8_UNORM};
     };
 
     class ScopedRenderTarget : public ScopedDefer

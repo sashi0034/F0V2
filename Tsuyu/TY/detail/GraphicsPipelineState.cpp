@@ -159,8 +159,18 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED; // ストリップ時のカットなし
         pipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // 三角形で構成
 
-        pipelineDesc.NumRenderTargets = 1;
-        pipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        auto rtvFormats = params.options.rtvFormats;
+        if (params.options.rtvFormats.size() >= 8)
+        {
+            LogError(L"Too many render target formats specified. Maximum is 8.");
+            rtvFormats.resize(8);
+        }
+
+        pipelineDesc.NumRenderTargets = static_cast<UINT>(rtvFormats.size());
+        for (size_t i = 0; i < rtvFormats.size(); ++i)
+        {
+            pipelineDesc.RTVFormats[i] = rtvFormats[i];
+        }
 
         pipelineDesc.SampleDesc.Count = 1; // マルチサンプリングなし
         pipelineDesc.SampleDesc.Quality = 0; // クオリティ最低

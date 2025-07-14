@@ -1,8 +1,11 @@
 ﻿#pragma once
 #include "Array.h"
+#include "DXGIFormat.h"
 
 namespace TY
 {
+    using GraphicsFormat = DXGI_FORMAT;
+
     enum class GraphicsAddressMode : uint8_t
     {
         Wrap, // Repeats texture coordinates for tiling.
@@ -62,12 +65,15 @@ namespace TY
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
         GraphicsRasterizerOptions rasterizer{};
         GraphicsDepthOptions depth{};
+        Array<GraphicsFormat> rtvFormats{DXGI_FORMAT_R8G8B8A8_UNORM};
 
         GraphicsOptions& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
 
         GraphicsOptions& setRasterizer(const GraphicsRasterizerOptions& rasterizer_);
 
         GraphicsOptions& setDepth(const GraphicsDepthOptions& depth_);
+
+        GraphicsOptions& setRtvFormats(const Array<GraphicsFormat>& formats);
 
         static GraphicsOptions Default3D();
     };

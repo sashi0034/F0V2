@@ -142,6 +142,8 @@ namespace
     constexpr float groundPositionY = -10.0f;
 
     constexpr float fovFarZ = 1000.0f;
+
+    constexpr GraphicsFormat shadowMapFormat = DXGI_FORMAT_R32_FLOAT;
 }
 
 struct Demo_ShadowMap_impl
@@ -192,6 +194,7 @@ struct Demo_ShadowMap_impl
             RenderTargetParams{
                 .size = Size{1024, 1024},
                 .clearColor = ColorF32{1.0f, 1.0f},
+                .format = shadowMapFormat
             }
         };
 
@@ -221,6 +224,7 @@ struct Demo_ShadowMap_impl
                 ModelDrawerParams{}
                 .setModel(s_resource->playerModel)
                 .setShaders(s_resource->shadowMapCaster)
+                .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
                 .setCB4(s_resource->shadowMap_cb)
             };
         }
@@ -325,9 +329,9 @@ struct Demo_ShadowMap_impl
             }
         }
 
-        m_shadowMapTexture.as2D().resized({200.0f, 200.0f}).draw({});
-
         m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
+
+        m_shadowMapTexture.as2D().resized({200.0f, 200.0f}).draw({});
 
         {
             ImGui::Begin("Camera");

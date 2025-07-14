@@ -43,5 +43,6 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
 
 float4 PS(PSInput input) : SV_TARGET
 {
-    return float4(0.5f, 0.5f, 0.5f, 1.0f);
+    const float z = input.position.z; // perspective divide to get depth value
+    return float4(z, z, z, 1.0);
 }
