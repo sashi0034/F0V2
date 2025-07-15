@@ -124,6 +124,8 @@ namespace
 
         GraphicsShader shadowMapCaster{GraphicsShader::VS_PS("asset/shader/shadow_caster.hlsl")};
 
+        GraphicsShader r32_float_visualizer{GraphicsShader::VS_PS("asset/shader/r32_float_visualizer.hlsl")};
+
         ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
 
         ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
@@ -165,7 +167,7 @@ struct Demo_ShadowMap_impl
     ModelDrawer m_mountainDrawer{};
 
     RenderTarget m_shadowMap{};
-    TextureDrawer m_shadowMapTexture{};
+    TextureDrawer m_shadowMapDebugDrawer{};
 
     Demo_ShadowMap_impl()
     {
@@ -198,10 +200,10 @@ struct Demo_ShadowMap_impl
             }
         };
 
-        m_shadowMapTexture = TextureDrawer{
+        m_shadowMapDebugDrawer = TextureDrawer{
             TextureDrawerParams{}
             .setTexture(m_shadowMap.asShaderResource())
-            .setShaders(s_resource->default2d)
+            .setShaders(s_resource->r32_float_visualizer)
         };
 
         const auto groundPlaneTexture = makeGroundPlane(
@@ -331,7 +333,7 @@ struct Demo_ShadowMap_impl
 
         m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
-        m_shadowMapTexture.as2D().resized({200.0f, 200.0f}).draw({});
+        m_shadowMapDebugDrawer.as2D().resized({200.0f, 200.0f}).draw({});
 
         {
             ImGui::Begin("Camera");

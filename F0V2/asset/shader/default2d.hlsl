@@ -1,3 +1,6 @@
+Texture2D<float4> g_texture0 : register(t0);
+
+SamplerState g_sampler0 : register(s0);
 
 struct PSInput
 {
@@ -12,10 +15,6 @@ PSInput VS(float4 position : POSITION, float2 uv : TEXCOORD)
     result.uv = uv;
     return result;
 }
-
-Texture2D<float4> g_texture0 : register(t0);
-
-SamplerState g_sampler0 : register(s0);
 
 float4 PS(PSInput input) : SV_TARGET
 {
