@@ -240,7 +240,11 @@ struct Demo_ShadowMap_impl
             .setOptions(GraphicsOptions::Default3D().setSamplers({
                 GraphicsSamplerOptions{}
                 .setAddress(GraphicsAddressMode::Border)
+                .setFilter(GraphicsFilterMode::Linear),
+                GraphicsSamplerOptions{}
                 .setFilter(GraphicsFilterMode::Linear)
+                .setComparison(GraphicsComparisonFunction::Greater)
+                .setMaxAnisotropy(1)
             }))
             .setCB4(s_resource->phongLight)
             .setCB5(s_resource->shadowMap_cb)

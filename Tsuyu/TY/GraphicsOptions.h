@@ -22,16 +22,34 @@ namespace TY
         Aniso
     };
 
+    enum class GraphicsComparisonFunction : uint8_t
+    {
+        Never,
+        Less,
+        Equal,
+        LessEqual,
+        Greater,
+        NotEqual,
+        GreaterEqual,
+        Always
+    };
+
     struct GraphicsSamplerOptions
     {
+        GraphicsFilterMode filter{GraphicsFilterMode::Nearest};
         GraphicsAddressMode addressU{GraphicsAddressMode::Wrap};
         GraphicsAddressMode addressV{GraphicsAddressMode::Wrap};
         GraphicsAddressMode addressW{GraphicsAddressMode::Wrap};
-        GraphicsFilterMode filter{GraphicsFilterMode::Nearest};
+        GraphicsComparisonFunction comparison{GraphicsComparisonFunction::Never};
+        int maxAnisotropy{};
 
         GraphicsSamplerOptions& setAddress(GraphicsAddressMode mode);
 
         GraphicsSamplerOptions& setFilter(GraphicsFilterMode mode);
+
+        GraphicsSamplerOptions& setComparison(GraphicsComparisonFunction comparison_);
+
+        GraphicsSamplerOptions& setMaxAnisotropy(int maxAnisotropy_);
     };
 
     enum class GraphicsCullMode : uint8_t
@@ -68,6 +86,8 @@ namespace TY
         Array<GraphicsFormat> rtvFormats{DXGI_FORMAT_R8G8B8A8_UNORM};
 
         GraphicsOptions& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
+
+        // GraphicsOptions& addSampler(const GraphicsSamplerOptions& samplers_);
 
         GraphicsOptions& setRasterizer(const GraphicsRasterizerOptions& rasterizer_);
 

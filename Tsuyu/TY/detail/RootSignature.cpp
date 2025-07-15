@@ -26,13 +26,52 @@ namespace
         return {};
     }
 
-    D3D12_FILTER getFilterMode(GraphicsFilterMode filter)
+    enum class FilterGroup : uint8_t
+    {
+        Normal,
+        Comparison,
+    };
+
+    D3D12_FILTER getFilterMode(GraphicsFilterMode filter, FilterGroup group)
     {
         switch (filter)
         {
-        case GraphicsFilterMode::Nearest: return D3D12_FILTER_MIN_MAG_MIP_POINT;
-        case GraphicsFilterMode::Linear: return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-        case GraphicsFilterMode::Aniso: return D3D12_FILTER_ANISOTROPIC;
+        case GraphicsFilterMode::Nearest:
+            switch (group)
+            {
+            case FilterGroup::Normal: return D3D12_FILTER_MIN_MAG_MIP_POINT;
+            case FilterGroup::Comparison: return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+            }
+        case GraphicsFilterMode::Linear:
+            switch (group)
+            {
+            case FilterGroup::Normal: return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+            case FilterGroup::Comparison: return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+            }
+        case GraphicsFilterMode::Aniso:
+            switch (group)
+            {
+            case FilterGroup::Normal: return D3D12_FILTER_ANISOTROPIC;
+            case FilterGroup::Comparison: return D3D12_FILTER_COMPARISON_ANISOTROPIC;
+            }
+        }
+
+        assert(false);
+        return {};
+    }
+
+    D3D12_COMPARISON_FUNC getComparisonFunction(GraphicsComparisonFunction comparison)
+    {
+        switch (comparison)
+        {
+        case GraphicsComparisonFunction::Never: return D3D12_COMPARISON_FUNC_NEVER;
+        case GraphicsComparisonFunction::Less: return D3D12_COMPARISON_FUNC_LESS;
+        case GraphicsComparisonFunction::Equal: return D3D12_COMPARISON_FUNC_EQUAL;
+        case GraphicsComparisonFunction::LessEqual: return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+        case GraphicsComparisonFunction::Greater: return D3D12_COMPARISON_FUNC_GREATER;
+        case GraphicsComparisonFunction::NotEqual: return D3D12_COMPARISON_FUNC_NOT_EQUAL;
+        case GraphicsComparisonFunction::GreaterEqual: return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+        case GraphicsComparisonFunction::Always: return D3D12_COMPARISON_FUNC_ALWAYS;
         }
 
         assert(false);
@@ -109,17 +148,30 @@ namespace TY::detail
         // サンプラーの設定
         Array<D3D12_STATIC_SAMPLER_DESC> samplerDescList{};
         samplerDescList.reserve(params.samplers.size());
-        for (const auto& sampler : params.samplers)
+        for (int i = 0; i < params.samplers.size(); ++i)
         {
+            const auto& sampler = params.samplers[i];
+
             D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
             samplerDesc.AddressU = getAddressMode(sampler.addressU);
             samplerDesc.AddressV = getAddressMode(sampler.addressV);
             samplerDesc.AddressW = getAddressMode(sampler.addressW);
+
             samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK; // ボーダーの時は透明
-            samplerDesc.Filter = getFilterMode(sampler.filter);
+
+            const bool hasComparisonFunction = sampler.comparison != GraphicsComparisonFunction::Never;
+            const auto filterGroup = hasComparisonFunction ? FilterGroup::Comparison : FilterGroup::Normal;
+            samplerDesc.Filter = getFilterMode(sampler.filter, filterGroup);
+
             samplerDesc.MaxLOD = D3D12_FLOAT32_MAX; // ミップマップ最大値
             samplerDesc.MinLOD = 0.0f; // ミップマップ最小値
-            samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER; // ?
+
+            samplerDesc.MaxAnisotropy = sampler.maxAnisotropy;
+
+            samplerDesc.ComparisonFunc = getComparisonFunction(sampler.comparison);
+
+            samplerDesc.ShaderRegister = i;
+
             samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // ピクセルシェーダからアクセス
 
             samplerDescList.push_back(samplerDesc);

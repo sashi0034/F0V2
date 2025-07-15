@@ -4,6 +4,8 @@ Texture2D<float4> g_shadowMapTexture : register(t1);
 
 SamplerState g_sampler0 : register(s0);
 
+SamplerComparisonState g_shadowMapSampler : register(s1);
+
 cbuffer SceneState : register(b0)
 {
     float4x4 g_projectionMatrix;
@@ -95,14 +97,11 @@ float4 PS(PSInput input) : SV_TARGET
     float2 shadowUV = input.shadowPosition.xy / input.shadowPosition.w;
     shadowUV = shadowUV * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
 
-    const float shadowValue = g_shadowMapTexture.Sample(g_sampler0, shadowUV).x;
-
     const float shadowZ = input.shadowPosition.z / input.shadowPosition.w;
-    if (shadowZ > shadowValue)
-    {
-        // 影の反映
-        finalColor.xyz *= 0.5f;
-    }
+    const float shadowValue = g_shadowMapTexture.SampleCmpLevelZero(g_shadowMapSampler, shadowUV, shadowZ);
+
+    // 影の反映
+    finalColor.xyz *= lerp(1.0f, 0.5f, shadowValue);
 
     return finalColor;
 }

@@ -17,6 +17,18 @@ namespace TY
         return *this;
     }
 
+    GraphicsSamplerOptions& GraphicsSamplerOptions::setComparison(GraphicsComparisonFunction comparison_)
+    {
+        comparison = comparison_;
+        return *this;
+    }
+
+    GraphicsSamplerOptions& GraphicsSamplerOptions::setMaxAnisotropy(int maxAnisotropy_)
+    {
+        maxAnisotropy = maxAnisotropy_;
+        return *this;
+    }
+
     GraphicsRasterizerOptions& GraphicsRasterizerOptions::setCull(GraphicsCullMode cull_)
     {
         cull = cull_;
@@ -49,6 +61,12 @@ namespace TY
         samplers = samplers_;
         return *this;
     }
+
+    // GraphicsOptions& GraphicsOptions::addSampler(const GraphicsSamplerOptions& samplers_)
+    // {
+    //     samplers.push_back(samplers_);
+    //     return *this;
+    // }
 
     GraphicsOptions& GraphicsOptions::setRasterizer(const GraphicsRasterizerOptions& rasterizer_)
     {
