@@ -97,8 +97,18 @@ float4 PS(PSInput input) : SV_TARGET
     float2 shadowUV = input.shadowPosition.xy / input.shadowPosition.w;
     shadowUV = shadowUV * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
 
-    const float shadowZ = input.shadowPosition.z / input.shadowPosition.w;
-    const float shadowValue = g_shadowMapTexture.SampleCmpLevelZero(g_shadowMapSampler, shadowUV, shadowZ);
+    float shadowValue;
+    if (0.0 <= shadowUV.x && shadowUV.x <= 1.0 && 0.0 <= shadowUV.y && shadowUV.y <= 1.0)
+    {
+        // 影マップの範囲内
+        const float shadowZ = input.shadowPosition.z / input.shadowPosition.w;
+        shadowValue = g_shadowMapTexture.SampleCmpLevelZero(g_shadowMapSampler, shadowUV, shadowZ);
+    }
+    else
+    {
+        // 範囲外は影なし
+        shadowValue = 0.0f;
+    }
 
     // 影の反映
     finalColor.xyz *= lerp(1.0f, 0.5f, shadowValue);
