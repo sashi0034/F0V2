@@ -12,6 +12,17 @@ namespace TY
             m_uploader.upload(m_value);
         }
 
+        void uploadValue(const T& value)
+        {
+            m_value = value;
+            m_uploader.upload(m_value);
+        }
+
+        const T& value() const
+        {
+            return m_value;
+        }
+
         T* operator ->()
         {
             return &m_value;

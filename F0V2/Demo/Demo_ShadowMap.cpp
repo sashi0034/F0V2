@@ -29,6 +29,20 @@ using namespace TY;
 
 namespace
 {
+    constexpr float groundPositionY = -10.0f;
+
+    constexpr float fovAngle = 75.0_deg;
+    constexpr float fovNearZ = 0.1f;
+    constexpr float fovFarZ = 1000.0f;
+
+    constexpr GraphicsFormat shadowMapFormat = DXGI_FORMAT_R32_FLOAT;
+
+    constexpr int cascadeShadowMapCount = 3;
+
+    constexpr std::array<float, cascadeShadowMapCount> cascadeShadowMapSplits = {
+        0.05 * fovFarZ, 0.15 * fovFarZ, fovFarZ
+    };
+
     struct LambertLight_b4
     {
         alignas(16) Float3 lightDirection;
@@ -52,7 +66,7 @@ namespace
 
     struct ShadowMap_cb
     {
-        alignas(16) Mat4x4 worldToShadowProjection;
+        alignas(16) Mat4x4 worldToShadowProjection[cascadeShadowMapCount];
     };
 
     struct Pose
@@ -140,12 +154,6 @@ namespace
     };
 
     InlineComponent<CommonResource> s_resource{};
-
-    constexpr float groundPositionY = -10.0f;
-
-    constexpr float fovFarZ = 1000.0f;
-
-    constexpr GraphicsFormat shadowMapFormat = DXGI_FORMAT_R32_FLOAT;
 }
 
 struct Demo_ShadowMap_impl
@@ -161,13 +169,15 @@ struct Demo_ShadowMap_impl
     ModelDrawer m_groundPlaneDrawer{};
 
     ModelDrawer m_playerDrawer{};
-    ModelDrawer m_playerShadowDrawer{};
+    std::array<ModelDrawer, cascadeShadowMapCount> m_playerShadowDrawers{}; // FIXME
+    std::array<ConstantBuffer<Mat4x4>, cascadeShadowMapCount> m_playerShadowDrawerConstantBuffers{}; // FIXME
     Pose m_playerPose{};
 
     ModelDrawer m_mountainDrawer{};
 
-    RenderTarget m_shadowMap{};
-    TextureDrawer m_shadowMapDebugDrawer{};
+    std::array<RenderTarget, cascadeShadowMapCount> m_shadowMaps{};
+
+    std::array<TextureDrawer, cascadeShadowMapCount> m_shadowMapDebugDrawers{};
 
     Demo_ShadowMap_impl()
     {
@@ -192,19 +202,25 @@ struct Demo_ShadowMap_impl
             .setCB4(skydome_b4)
         };
 
-        m_shadowMap = RenderTarget{
-            RenderTargetParams{
-                .size = Size{1024, 1024},
-                .clearColor = ColorF32{1.0f, 1.0f},
-                .format = shadowMapFormat
-            }
-        };
+        for (int i = 0; i < cascadeShadowMapCount; ++i)
+        {
+            m_shadowMaps[i] = RenderTarget{
+                RenderTargetParams{
+                    .size = Size{1024, 1024},
+                    .clearColor = ColorF32{1.0f, 1.0f},
+                    .format = shadowMapFormat
+                }
+            };
+        }
 
-        m_shadowMapDebugDrawer = TextureDrawer{
-            TextureDrawerParams{}
-            .setTexture(m_shadowMap.asShaderResource())
-            .setShaders(s_resource->r32_float_visualizer)
-        };
+        for (int i = 0; i < cascadeShadowMapCount; ++i)
+        {
+            m_shadowMapDebugDrawers[i] = TextureDrawer{
+                TextureDrawerParams{}
+                .setTexture(m_shadowMaps[i].asShaderResource())
+                .setShaders(s_resource->r32_float_visualizer)
+            };
+        }
 
         const auto groundPlaneTexture = makeGroundPlane(
             Size{1024, 1024}, 32, ColorF32{0.9}, ColorF32{0.3});
@@ -222,13 +238,23 @@ struct Demo_ShadowMap_impl
                 .setCB4(s_resource->phongLight)
             };
 
-            m_playerShadowDrawer = ModelDrawer{
-                ModelDrawerParams{}
-                .setModel(s_resource->playerModel)
-                .setShaders(s_resource->shadowMapCaster)
-                .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
-                .setCB4(s_resource->shadowMap_cb)
-            };
+            // m_playerShadowDrawer = ModelDrawer{
+            //     ModelDrawerParams{}
+            //     .setModel(s_resource->playerModel)
+            //     .setShaders(s_resource->shadowMapCaster)
+            //     .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
+            //     .setCB4(s_resource->shadowMap_cb)
+            // };
+            for (int i = 0; i < cascadeShadowMapCount; ++i)
+            {
+                m_playerShadowDrawers[i] = ModelDrawer{
+                    ModelDrawerParams{}
+                    .setModel(s_resource->playerModel)
+                    .setShaders(s_resource->shadowMapCaster)
+                    .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
+                    .setCB4(m_playerShadowDrawerConstantBuffers[i])
+                };
+            }
         }
 
         m_playerPose.position.y = groundPositionY + 15.0f;
@@ -248,7 +274,9 @@ struct Demo_ShadowMap_impl
             }))
             .setCB4(s_resource->phongLight)
             .setCB5(s_resource->shadowMap_cb)
-            .setSR1(m_shadowMap.asShaderResource())
+            .setSR1(m_shadowMaps[0].asShaderResource())
+            .setSR2(m_shadowMaps[1].asShaderResource())
+            .setSR3(m_shadowMaps[2].asShaderResource())
         };
     }
 
@@ -280,9 +308,9 @@ struct Demo_ShadowMap_impl
 
         {
             m_projectionMat = Mat4x4::PerspectiveFov(
-                75.0_deg,
+                fovAngle,
                 Scene::Size().horizontalAspectRatio(),
-                0.1f,
+                fovNearZ,
                 fovFarZ
             );
 
@@ -308,36 +336,29 @@ struct Demo_ShadowMap_impl
 
         m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
 
-        const auto shadowEyePosition = -s_resource->phongLight->lightDirection * 100.0f;
-
+        // 影の更新
         {
-            const auto rt = m_shadowMap.scopedBind();
+            updateCascadeShadowMapMatrix();
 
-            const auto shadowProjection = Mat4x4::PerspectiveFov(
-                75.0_deg,
-                m_shadowMap.size().horizontalAspectRatio(),
-                0.1f,
-                1000.0f
-            );
-
-            const auto shadowView = Mat4x4::LookAt(
-                shadowEyePosition,
-                Float3{},
-                Float3{0.0f, 1.0f, 0.0f}
-            );
-
-            s_resource->shadowMap_cb->worldToShadowProjection = shadowView * shadowProjection;
-            s_resource->shadowMap_cb.upload();
-
-            // 影の対象のオブジェクトを描画
+            for (int i = 0; i < m_shadowMaps.size(); ++i)
             {
-                m_playerShadowDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
+                const auto rt = m_shadowMaps[i].scopedBind();
+
+                // 影の対象のオブジェクトを描画
+                {
+                    m_playerShadowDrawerConstantBuffers[i]
+                        .uploadValue(s_resource->shadowMap_cb->worldToShadowProjection[i]);
+                    m_playerShadowDrawers[i].uploadWorldMatrix(m_playerPose.getMatrix()).draw();
+                }
             }
+
+            m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
         }
 
-        m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
-
-        m_shadowMapDebugDrawer.as2D().resized({200.0f, 200.0f}).draw({});
+        for (int i = 0; i < m_shadowMaps.size(); ++i)
+        {
+            m_shadowMapDebugDrawers[i].as2D().resized({196.0f, 196.0f}).draw({200.0f * i, 0.0});
+        }
 
         {
             ImGui::Begin("Camera");
@@ -387,6 +408,96 @@ private:
     void resetCamera()
     {
         m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
+    }
+
+    void updateCascadeShadowMapMatrix()
+    {
+        const auto shadowEyePosition = -s_resource->phongLight->lightDirection * 100.0f;
+
+        const auto shadowProjection = Mat4x4::PerspectiveFov(
+            75.0_deg,
+            1.0f,
+            0.1f,
+            fovFarZ
+        );
+
+        const auto shadowView = Mat4x4::LookAt(
+            shadowEyePosition,
+            Float3{},
+            Float3{0.0f, 1.0f, 0.0f}
+        );
+
+        const auto shadowViewProjection = shadowView * shadowProjection;
+
+        // -----------------------------------------------
+
+        const Float3 cameraForward = m_camera.worldMatrix().forward();
+        const Float3 cameraRight = m_camera.worldMatrix().right();
+        const Float3 cameraUp = m_camera.worldMatrix().up();
+
+        const Float3 cameraEye = m_camera.eyePosition();
+        float nearDepth = fovNearZ;
+        for (int i = 0; i < cascadeShadowMapCount; ++i)
+        {
+            //                 /|                ---
+            //                / |                 |
+            //               /  |                 |
+            //              /   |                 | farHalfH 
+            //             /|   |  ---            |
+            //            / |   |   | nearHalfH   |
+            // cameraEye |--|---|  ---           ---
+            //            \ |   |
+            //             \|   |
+            //              \   |
+            //               \  |
+            //                \ |
+            //                 \|
+
+            const float farDepth = cascadeShadowMapSplits[i];
+
+            const float nearHalfH = tanf(fovAngle / 2.0f) * nearDepth;
+            const float nearHalfW = nearHalfH * Scene::Size().horizontalAspectRatio();
+
+            const float farHalfH = tanf(fovAngle / 2.0f) * farDepth;
+            const float farHalfW = farHalfH * Scene::Size().horizontalAspectRatio();
+
+            const Float3 nearCenter = cameraEye + cameraForward * nearDepth;
+            const Float3 farCenter = cameraEye + cameraForward * farDepth;
+
+            std::array<Float3, 8> frustumCorners{};
+            frustumCorners[0] = nearCenter + cameraRight * nearHalfW - cameraUp * nearHalfH;
+            frustumCorners[1] = nearCenter + cameraRight * nearHalfW + cameraUp * nearHalfH;
+            frustumCorners[2] = nearCenter - cameraRight * nearHalfW + cameraUp * nearHalfH;
+            frustumCorners[3] = nearCenter - cameraRight * nearHalfW - cameraUp * nearHalfH;
+            frustumCorners[4] = farCenter + cameraRight * farHalfW - cameraUp * farHalfH;
+            frustumCorners[5] = farCenter + cameraRight * farHalfW + cameraUp * farHalfH;
+            frustumCorners[6] = farCenter - cameraRight * farHalfW + cameraUp * farHalfH;
+            frustumCorners[7] = farCenter - cameraRight * farHalfW - cameraUp * farHalfH;
+
+            Float3 minP{FLT_MAX, FLT_MAX, FLT_MAX};
+            Float3 maxP{-FLT_MAX, -FLT_MAX, -FLT_MAX};
+            for (const auto& corner : frustumCorners)
+            {
+                const auto v = shadowViewProjection.transformPoint(corner);
+                minP = MinVector3(minP, v);
+                maxP = MaxVector3(maxP, v);
+            }
+
+            // クロップ行列を作成
+            Float2 scaling = Float2{2.0f, 2.0f} / (maxP.xy() - minP.xy());
+            Float2 translation = -(minP.xy() + maxP.xy()) * Float2{0.5f, 0.5f} * scaling;
+            Mat4x4 cropMatrix = Mat4x4::Identity();
+            cropMatrix.mat.r[0].m128_f32[0] = scaling.x;
+            cropMatrix.mat.r[1].m128_f32[1] = scaling.y;
+            cropMatrix.mat.r[3].m128_f32[0] = translation.x;
+            cropMatrix.mat.r[3].m128_f32[1] = translation.y;
+
+            s_resource->shadowMap_cb->worldToShadowProjection[i] = shadowViewProjection * cropMatrix;
+
+            nearDepth = farDepth; // 次の分割のために更新
+        }
+
+        s_resource->shadowMap_cb.upload();
     }
 };
 

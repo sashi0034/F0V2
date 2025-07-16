@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include "DirectXMath.h"
-#include "TemplateHelper.h"
+#include "Vector2D.h"
 
 namespace TY
+
 {
     template <class Type>
     struct Vector3D
@@ -49,6 +50,11 @@ namespace TY
             DirectX::XMFLOAT3 tmp;
             XMStoreFloat3(&tmp, xmv);
             *this = tmp;
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> xy() const
+        {
+            return Vector2D<value_type>(x, y);
         }
 
         [[nodiscard]] constexpr Vector3D operator+() const

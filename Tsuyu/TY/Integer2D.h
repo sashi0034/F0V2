@@ -158,6 +158,7 @@ namespace TY
             return other;
         }
 
+        /// @brief x / y
         [[nodiscard]] constexpr float_type horizontalAspectRatio() const noexcept
         {
             return static_cast<float_type>(x) / static_cast<float_type>(y);

@@ -22,6 +22,44 @@ namespace TY
         return (value < 0) ? -value : value;
     }
 
+    template <typename T>
+    constexpr T MinVector2(T a, T b) noexcept
+    {
+        T result;
+        result.x = Min(a.x, b.x);
+        result.y = Min(a.y, b.y);
+        return result;
+    }
+
+    template <typename T>
+    constexpr T MaxVector2(T a, T b) noexcept
+    {
+        T result;
+        result.x = Max(a.x, b.x);
+        result.y = Max(a.y, b.y);
+        return result;
+    }
+
+    template <typename T>
+    constexpr T MinVector3(T a, T b) noexcept
+    {
+        T result;
+        result.x = Min(a.x, b.x);
+        result.y = Min(a.y, b.y);
+        result.z = Min(a.z, b.z);
+        return result;
+    }
+
+    template <typename T>
+    constexpr T MaxVector3(T a, T b) noexcept
+    {
+        T result;
+        result.x = Max(a.x, b.x);
+        result.y = Max(a.y, b.y);
+        result.z = Max(a.z, b.z);
+        return result;
+    }
+
     namespace Math
     {
         template <FloatingPoint Float>
