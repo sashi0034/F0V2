@@ -40,7 +40,7 @@ namespace
     constexpr int cascadeShadowMapCount = 3;
 
     constexpr std::array<float, cascadeShadowMapCount> cascadeShadowMapSplits = {
-        0.05 * fovFarZ, 0.15 * fovFarZ, fovFarZ
+        0.05 * fovFarZ, 0.25 * fovFarZ, fovFarZ
     };
 
     struct LambertLight_b4
@@ -206,7 +206,7 @@ struct Demo_ShadowMap_impl
         {
             m_shadowMaps[i] = RenderTarget{
                 RenderTargetParams{
-                    .size = Size{1024, 1024},
+                    .size = Size{2048, 2048},
                     .clearColor = ColorF32{1.0f, 1.0f},
                     .format = shadowMapFormat
                 }
@@ -412,18 +412,26 @@ private:
 
     void updateCascadeShadowMapMatrix()
     {
-        const auto shadowEyePosition = -s_resource->phongLight->lightDirection * 100.0f;
+        const Float3 cameraForward = m_camera.worldMatrix().forward();
+        const Float3 cameraRight = m_camera.worldMatrix().right();
+        const Float3 cameraUp = m_camera.worldMatrix().up();
+
+        const Float3 cameraEye = m_camera.eyePosition();
+
+        // -----------------------------------------------
+
+        const auto shadowEyePosition = cameraEye - s_resource->phongLight->lightDirection * (fovFarZ * 0.5f);
 
         const auto shadowProjection = Mat4x4::PerspectiveFov(
-            75.0_deg,
+            45.0_deg,
             1.0f,
-            0.1f,
+            fovNearZ,
             fovFarZ
         );
 
         const auto shadowView = Mat4x4::LookAt(
             shadowEyePosition,
-            Float3{},
+            cameraEye,
             Float3{0.0f, 1.0f, 0.0f}
         );
 
@@ -431,11 +439,6 @@ private:
 
         // -----------------------------------------------
 
-        const Float3 cameraForward = m_camera.worldMatrix().forward();
-        const Float3 cameraRight = m_camera.worldMatrix().right();
-        const Float3 cameraUp = m_camera.worldMatrix().up();
-
-        const Float3 cameraEye = m_camera.eyePosition();
         float nearDepth = fovNearZ;
         for (int i = 0; i < cascadeShadowMapCount; ++i)
         {
@@ -476,11 +479,11 @@ private:
 
             Float3 minP{FLT_MAX, FLT_MAX, FLT_MAX};
             Float3 maxP{-FLT_MAX, -FLT_MAX, -FLT_MAX};
-            for (const auto& corner : frustumCorners)
+            for (auto& corner : frustumCorners)
             {
-                const auto v = shadowViewProjection.transformPoint(corner);
-                minP = MinVector3(minP, v);
-                maxP = MaxVector3(maxP, v);
+                corner = shadowViewProjection.transformPoint(corner);
+                minP = MinVector3(minP, corner);
+                maxP = MaxVector3(maxP, corner);
             }
 
             // クロップ行列を作成

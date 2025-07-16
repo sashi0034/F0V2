@@ -2,7 +2,11 @@
 
 Texture2D<float4> g_texture0 : register(t0);
 
-Texture2D<float4> g_shadowMapTexture : register(t1);
+Texture2D<float4> g_shadowMapTexture0 : register(t1);
+
+Texture2D<float4> g_shadowMapTexture1 : register(t2);
+
+Texture2D<float4> g_shadowMapTexture2 : register(t3);
 
 SamplerState g_sampler0 : register(s0);
 
@@ -99,18 +103,22 @@ float4 PS(PSInput input) : SV_TARGET
     finalColor.xyz *= (diffuseLight.xyz + specularLight.xyz + g_ambientLight);
 
     // 影
+    Texture2D<float4> shadowMaps[SHADOW_MAP_COUNT] = {g_shadowMapTexture0, g_shadowMapTexture1, g_shadowMapTexture2};
     for (int i = 0; i < SHADOW_MAP_COUNT; ++i)
     {
-        float2 shadowUV = input.shadowPosition[i].xy / input.shadowPosition[i].w;
-        shadowUV = shadowUV * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
-
-        if (0.0 <= shadowUV.x && shadowUV.x <= 1.0 && 0.0 <= shadowUV.y && shadowUV.y <= 1.0)
+        const float shadowZ = input.shadowPosition[i].z / input.shadowPosition[i].w;
+        if (0.0f < shadowZ && shadowZ < 1.0f)
         {
-            // 影マップの範囲内
-            const float shadowZ = input.shadowPosition[i].z / input.shadowPosition[i].w;
-            const float shadowValue = g_shadowMapTexture.SampleCmpLevelZero(g_shadowMapSampler, shadowUV, shadowZ);
-            finalColor.xyz *= lerp(1.0f, 0.5f, shadowValue);
-            break;
+            float2 shadowUV = input.shadowPosition[i].xy / input.shadowPosition[i].w;
+            shadowUV = shadowUV * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
+
+            if (0.0 <= shadowUV.x && shadowUV.x <= 1.0 && 0.0 <= shadowUV.y && shadowUV.y <= 1.0)
+            {
+                // 影マップの範囲内
+                const float shadowValue = shadowMaps[i].SampleCmpLevelZero(g_shadowMapSampler, shadowUV, shadowZ);
+                finalColor.xyz *= lerp(1.0f, 0.5f, shadowValue);
+                break;
+            }
         }
     }
 
