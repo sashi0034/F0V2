@@ -26,55 +26,13 @@ namespace
         {1, 0, 0},
     };
 
-    Array<ConstantBufferUploader_impl> getExpandedConstantBuffers(
-        const ModelDrawerParams& params)
-    {
-        Array<ConstantBufferUploader_impl> result{params.cb4};
-
-        if (params.cb5.isEmpty()) return result;
-        result.push_back(params.cb5);
-
-        if (params.cb6.isEmpty()) return result;
-        result.push_back(params.cb6);
-
-        if (params.cb7.isEmpty()) return result;
-        result.push_back(params.cb7);
-
-        return result;
-    }
-
-    Array<ShaderResourceType> getExpandedShaderResources(const ModelDrawerParams& params)
-    {
-        Array<ShaderResourceType> result{params.sr1};
-
-        if (params.sr2.isEmpty()) return result;
-        result.push_back(params.sr2);
-
-        if (params.sr3.isEmpty()) return result;
-        result.push_back(params.sr3);
-
-        if (params.sr4.isEmpty()) return result;
-        result.push_back(params.sr4);
-
-        if (params.sr5.isEmpty()) return result;
-        result.push_back(params.sr5);
-
-        if (params.sr6.isEmpty()) return result;
-        result.push_back(params.sr6);
-
-        if (params.sr7.isEmpty()) return result;
-        result.push_back(params.sr7);
-
-        return result;
-    }
-
     GraphicsPipelineState makePipelineState(const ModelDrawerParams& params)
     {
-        const auto cb = getExpandedConstantBuffers(params);
-        const auto sr = getExpandedShaderResources(params);
+        const auto& cbv = params.cb4AndLater;
+        const auto& srv = params.sr1AndLater;
 
         auto descriptorTable = basicDescriptorTable;
-        descriptorTable.push_back({cb.size(), sr.size(), 0});;
+        descriptorTable.push_back({cbv.size(), srv.size(), 0});;
 
         // TODO: キャッシュする?
         return GraphicsPipelineState{
@@ -108,16 +66,10 @@ struct ModelDrawer::Impl : IEngineDrawer
 
     ConstantBufferUploader<ModelState_b1> m_cb1{1};
 
-    ConstantBufferUploader_impl m_cb4{Empty};
-
     Impl(const ModelDrawerParams& params) :
         m_modelBuffer(params.model),
-        m_pipelineState(makePipelineState(params)),
-        m_cb4(params.cb4)
+        m_pipelineState(makePipelineState(params))
     {
-        const auto cb = getExpandedConstantBuffers(params);
-        const auto sr = getExpandedShaderResources(params);
-
         m_descriptorHeap = DescriptorHeap(DescriptorHeapParams{
             .table = m_pipelineState.descriptorTable(),
             .materialCounts = {1, 1, m_modelBuffer.materialCount(), 1, 1},
@@ -126,7 +78,7 @@ struct ModelDrawer::Impl : IEngineDrawer
                 CbvSrvUavSet{{m_cb1}, {}, {}},
                 CbvSrvUavSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}},
                 CbvSrvUavSet{{ConstantBufferUploader_impl{Empty}}, {}, {}},
-                CbvSrvUavSet{cb, sr.toColumnVector(), {}}
+                CbvSrvUavSet{params.cb4AndLater, params.sr1AndLater.toColumnVector(), {}}
             },
         });
     }
@@ -195,29 +147,21 @@ ModelDrawerParams& ModelDrawerParams::setCB##n(const ConstantBufferUploader_impl
     return *this; \
 }
 
-#define DEFINE_SET_SR(n) \
-ModelDrawerParams& ModelDrawerParams::setSR##n(const ShaderResourceType& sr) \
-{ \
-    sr##n = sr; \
-    return *this; \
-}
-
-    DEFINE_SET_CB(4)
-    DEFINE_SET_CB(5)
-    DEFINE_SET_CB(6)
-    DEFINE_SET_CB(7)
-
-    DEFINE_SET_SR(1)
-    DEFINE_SET_SR(2)
-    DEFINE_SET_SR(3)
-    DEFINE_SET_SR(4)
-    DEFINE_SET_SR(5)
-    DEFINE_SET_SR(6)
-    DEFINE_SET_SR(7)
-
     ModelDrawerParams& ModelDrawerParams::setOptions(const GraphicsOptions& options_)
     {
         options = options_;
+        return *this;
+    }
+
+    ModelDrawerParams& ModelDrawerParams::setCbv4AndLater(const Array<ConstantBufferUploader_impl>& cbv)
+    {
+        cb4AndLater = cbv;
+        return *this;
+    }
+
+    ModelDrawerParams& ModelDrawerParams::setSrv1AndLater(const Array<ShaderResourceType>& srv)
+    {
+        sr1AndLater = srv;
         return *this;
     }
 

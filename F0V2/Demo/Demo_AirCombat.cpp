@@ -199,7 +199,7 @@ struct Internal::FighterBody
             ModelDrawerParams{}
             .setModel(model)
             .setShaders(s_resource->blinn_phong)
-            .setCB4(s_resource->phongLight)
+            .setCbv4AndLater({s_resource->phongLight})
         };
 
         ResetParameters();
@@ -478,7 +478,7 @@ struct Demo_AirCombat_impl
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
             )
-            .setCB4(skydome_b4)
+            .setCbv4AndLater({skydome_b4})
         };
 
         const auto groundPlaneTexture = makeGroundPlane(
@@ -502,7 +502,7 @@ struct Demo_AirCombat_impl
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
             .setShaders(s_resource->blinn_phong)
-            .setCB4(s_resource->phongLight)
+            .setCbv4AndLater({s_resource->phongLight})
         };
 
         m_spherePose.position.y = 5.0f;
