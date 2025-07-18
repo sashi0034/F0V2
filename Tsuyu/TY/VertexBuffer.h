@@ -3,12 +3,12 @@
 
 namespace TY
 {
-    class VertexBuffer_impl
+    class VertexBufferCore
     {
     public:
-        VertexBuffer_impl() = default;
+        VertexBufferCore() = default;
 
-        VertexBuffer_impl(int sizeInBytes, int strideInBytes);
+        VertexBufferCore(int sizeInBytes, int strideInBytes);
 
         void upload(const void* data);
 
@@ -20,12 +20,12 @@ namespace TY
     };
 
     template <typename Vertex>
-    class VertexBuffer : public VertexBuffer_impl
+    class VertexBuffer : public VertexBufferCore
     {
     public:
         VertexBuffer() = default;
 
-        VertexBuffer(int count) : VertexBuffer_impl(count * sizeof(Vertex), sizeof(Vertex))
+        VertexBuffer(int count) : VertexBufferCore(count * sizeof(Vertex), sizeof(Vertex))
         {
         }
 
@@ -34,6 +34,6 @@ namespace TY
             upload(data);
         }
 
-        void upload(const Array<Vertex>& data) { VertexBuffer_impl::upload(data.data()); }
+        void upload(const Array<Vertex>& data) { VertexBufferCore::upload(data.data()); }
     };
 }

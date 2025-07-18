@@ -7,7 +7,7 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct VertexBuffer_impl::Impl
+struct VertexBufferCore::Impl
 {
     bool m_valid{};
     ComPtr<ID3D12Resource> m_vertBuffer{};
@@ -69,7 +69,7 @@ struct VertexBuffer_impl::Impl
 
 namespace TY
 {
-    VertexBuffer_impl::VertexBuffer_impl(int sizeInBytes, int strideInBytes) :
+    VertexBufferCore::VertexBufferCore(int sizeInBytes, int strideInBytes) :
         p_impl(std::make_shared<Impl>(sizeInBytes, strideInBytes))
     {
         if (not p_impl->m_valid)
@@ -78,13 +78,13 @@ namespace TY
         }
     }
 
-    void VertexBuffer_impl::upload(const void* data)
+    void VertexBufferCore::upload(const void* data)
     {
         if (not p_impl) return;
         p_impl->Upload(data);
     }
 
-    void VertexBuffer_impl::commandSet() const
+    void VertexBufferCore::commandSet() const
     {
         if (not p_impl) return;
         p_impl->CommandSet();

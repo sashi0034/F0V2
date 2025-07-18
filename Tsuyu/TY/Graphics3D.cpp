@@ -21,7 +21,7 @@ namespace TY
         EngineStateContext::SetProjectionMatrix(projectionMatrix);
     }
 
-    void Graphics3D::DrawTriangles(const VertexBuffer_impl& vertexBuffer, const IndexBuffer& indexBuffer)
+    void Graphics3D::DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer)
     {
         vertexBuffer.commandSet();
         indexBuffer.commandSet();

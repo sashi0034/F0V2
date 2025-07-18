@@ -3,7 +3,7 @@
 
 namespace TY
 {
-    class VertexBuffer_impl;
+    class VertexBufferCore;
     class IndexBuffer;
 
     namespace Graphics3D
@@ -12,6 +12,6 @@ namespace TY
 
         void SetProjectionMatrix(const Mat4x4& projectionMatrix);
 
-        void DrawTriangles(const VertexBuffer_impl& vertexBuffer, const IndexBuffer& indexBuffer);
+        void DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer);
     }
 }
