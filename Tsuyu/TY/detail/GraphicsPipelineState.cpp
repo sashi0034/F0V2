@@ -204,6 +204,12 @@ namespace
     size_t hashParams(const GraphicsPipelineStateParams& params)
     {
         size_t hash = params.descriptorTable.size();
+        for (auto& d : params.descriptorTable)
+        {
+            const size_t h = d.cbvCount << 16 | d.srvCount << 8 | d.uavCount;
+            hash = combineHash(hash, h);
+        }
+
         hash = combineHash(hash, params.shader.vs.unique_id());
         hash = combineHash(hash, params.shader.ps.unique_id());
         return hash;
