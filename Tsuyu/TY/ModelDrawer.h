@@ -12,9 +12,7 @@ namespace TY
     {
         ModelBuffer model;
 
-        PixelShader ps;
-
-        VertexShader vs;
+        GraphicsShader shader;
 
         GraphicsOptions options{GraphicsOptions::Default3D()};
 
@@ -26,9 +24,9 @@ namespace TY
 
         ModelDrawerParams& setModel(const ModelBuffer& data_);
 
-        ModelDrawerParams& setShaders(const PixelShader& ps_, const VertexShader& vs_);
+        ModelDrawerParams& setShader(const VertexShader& vs_, const PixelShader& ps_);
 
-        ModelDrawerParams& setShaders(const GraphicsShader& shader);
+        ModelDrawerParams& setShader(const GraphicsShader& shader_);
 
         ModelDrawerParams& setOptions(const GraphicsOptions& options_);
 

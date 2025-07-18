@@ -198,7 +198,7 @@ struct Internal::FighterBody
         m_model = ModelDrawer{
             ModelDrawerParams{}
             .setModel(model)
-            .setShaders(s_resource->blinn_phong)
+            .setShader(s_resource->blinn_phong)
             .setCbv4AndLater({s_resource->phongLight})
         };
 
@@ -290,7 +290,7 @@ public:
         m_model = ModelDrawer{
             ModelDrawerParams{}
             .setModel(s_resource->missileModel)
-            .setShaders(s_resource->model)
+            .setShader(s_resource->model)
         };
 
         m_pose = pose;
@@ -473,7 +473,7 @@ struct Demo_AirCombat_impl
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShaders(s_resource->skydome)
+            .setShader(s_resource->skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
@@ -486,7 +486,7 @@ struct Demo_AirCombat_impl
         m_groundPlaneModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::TexturePlane(groundPlaneTexture, Float2{10000.0f, 10000.0f}))
-            .setShaders(s_resource->model)
+            .setShader(s_resource->model)
         };
 
         m_player.Init();
@@ -501,7 +501,7 @@ struct Demo_AirCombat_impl
         m_sphereModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
-            .setShaders(s_resource->blinn_phong)
+            .setShader(s_resource->blinn_phong)
             .setCbv4AndLater({s_resource->phongLight})
         };
 
@@ -509,7 +509,7 @@ struct Demo_AirCombat_impl
 
         m_greenAimIcon = TextureDrawer{
             TextureDrawerParams{}
-            .setShaders(s_resource->default2d)
+            .setShader(s_resource->default2d)
             .loadTexture(makeAimIcon(Size{32, 32}, ColorF32{0.3f, 1.0f, 0.3f}).getResource())
         };
     }

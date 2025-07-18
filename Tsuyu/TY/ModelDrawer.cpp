@@ -37,8 +37,7 @@ namespace
         // TODO: キャッシュする?
         return GraphicsPipelineState{
             GraphicsPipelineStateParams{
-                .pixelShader = params.ps,
-                .vertexShader = params.vs,
+                .shader = params.shader,
                 .vertexInput = {
                     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                     {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT},
@@ -126,17 +125,17 @@ namespace TY
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setShaders(const PixelShader& ps_, const VertexShader& vs_)
+    ModelDrawerParams& ModelDrawerParams::setShader(const VertexShader& vs_, const PixelShader& ps_)
     {
-        ps = ps_;
-        vs = vs_;
+        shader.vs = vs_;
+        shader.ps = ps_;
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setShaders(const GraphicsShader& shader)
+    ModelDrawerParams& ModelDrawerParams::setShader(const GraphicsShader& shader_)
     {
-        ps = shader.ps;
-        vs = shader.vs;
+        shader.ps = shader_.ps;
+        shader.vs = shader_.vs;
         return *this;
     }
 

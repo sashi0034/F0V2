@@ -24,8 +24,7 @@ namespace TY::detail
 
     struct GraphicsPipelineStateParams
     {
-        PixelShader pixelShader;
-        VertexShader vertexShader;
+        GraphicsShader shader;
         std::vector<VertexInputElement> vertexInput;
         GraphicsOptions options;
         DescriptorTable descriptorTable{};

@@ -165,7 +165,7 @@ struct Demo_Basic3D_impl
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShaders(s_resource->skydome)
+            .setShader(s_resource->skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
@@ -178,13 +178,13 @@ struct Demo_Basic3D_impl
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
-            .setShaders(s_resource->model)
+            .setShader(s_resource->model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
         m_playerDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(s_resource->playerModel)
-            .setShaders(s_resource->phong)
+            .setShader(s_resource->phong)
             .setCbv4AndLater({s_resource->phongLight})
         };
 
@@ -193,7 +193,7 @@ struct Demo_Basic3D_impl
         m_mountainDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(s_resource->mountainModel)
-            .setShaders(s_resource->phong)
+            .setShader(s_resource->phong)
             .setCbv4AndLater({s_resource->phongLight})
         };
     }

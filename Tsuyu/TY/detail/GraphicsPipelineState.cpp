@@ -81,8 +81,8 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         LogWarning.writeln(L"failed to create pipeline state with user shaders, using stub shaders instead");
 
         auto params2 = m_params;
-        params2.pixelShader = EnginePresetAsset::GetStubPS();
-        params2.vertexShader = EnginePresetAsset::GetStubVS();
+        params2.shader.ps = EnginePresetAsset::GetStubPS();
+        params2.shader.vs = EnginePresetAsset::GetStubVS();
 
         if (SUCCEEDED(createPipelineState(params2))) return;
 
@@ -94,11 +94,11 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         const auto device = EngineRenderContext::GetDevice();
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc = {};
 
-        const auto vs = params.vertexShader.isEmpty() ? EnginePresetAsset::GetStubVS() : params.vertexShader;
+        const auto vs = params.shader.vs.isEmpty() ? EnginePresetAsset::GetStubVS() : params.shader.vs;
         pipelineDesc.VS.pShaderBytecode = vs.getBlob()->GetBufferPointer();
         pipelineDesc.VS.BytecodeLength = vs.getBlob()->GetBufferSize();
 
-        const auto ps = params.pixelShader.isEmpty() ? EnginePresetAsset::GetStubPS() : params.pixelShader;
+        const auto ps = params.shader.ps.isEmpty() ? EnginePresetAsset::GetStubPS() : params.shader.ps;
         pipelineDesc.PS.pShaderBytecode = ps.getBlob()->GetBufferPointer();
         pipelineDesc.PS.BytecodeLength = ps.getBlob()->GetBufferSize();
 
@@ -199,7 +199,7 @@ namespace TY
     {
 #ifdef _DEBUG
         EngineHotReloader::TrackAsset(
-            p_impl, {p_impl->m_params.pixelShader.timestamp(), p_impl->m_params.vertexShader.timestamp()});
+            p_impl, {p_impl->m_params.shader.ps.timestamp(), p_impl->m_params.shader.vs.timestamp()});
 #endif
     }
 

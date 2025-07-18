@@ -39,11 +39,11 @@ void Demo_RenderTarget()
     }
 
     const TextureDrawer noiseTexture{
-        TextureDrawerParams{.texture = image, .ps = default2dPS, .vs = default2dVS}
+        TextureDrawerParams{.texture = image, .shader = {default2dVS, default2dPS,}}
     };
 
     const TextureDrawer pngTexture{
-        TextureDrawerParams{.texture = "asset/image/mii.png", .ps = default2dPS, .vs = default2dVS}
+        TextureDrawerParams{.texture = "asset/image/mii.png", .shader = {default2dVS, default2dPS}}
     };
 
     Mat4x4 worldMat = Mat4x4::Identity().rotatedY(45.0_deg);
@@ -63,9 +63,7 @@ void Demo_RenderTarget()
     const ModelDrawer model{
         ModelDrawerParams{
             .model = ModelLoader::Load("asset/model/robot_head.obj"), // "asset/model/cinnamon.obj"
-            .ps = modelPS,
-            .vs = modelVS,
-        }
+        }.setShader(modelVS, modelPS)
     };
 
     Graphics3D::SetViewMatrix(viewMat);
@@ -82,8 +80,10 @@ void Demo_RenderTarget()
     TextureDrawer renderTargetTexture{
         {
             .texture = renderTarget.asShaderResource(),
-            .ps = default2dPS,
-            .vs = default2dVS
+            .shader = {
+                .vs = default2dVS,
+                .ps = default2dPS,
+            },
         }
     };
 

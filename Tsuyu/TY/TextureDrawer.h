@@ -9,8 +9,9 @@ namespace TY
     struct TextureDrawerParams
     {
         ShaderResourceTexture texture;
-        PixelShader ps;
-        VertexShader vs;
+
+        GraphicsShader shader;
+
         bool hasDepth{false};
 
         TextureDrawerParams& loadTexture(const TextureSource& source);
@@ -19,27 +20,27 @@ namespace TY
 
         TextureDrawerParams& setPS(const PixelShader& ps_)
         {
-            ps = ps_;
+            shader.ps = ps_;
             return *this;
         }
 
         TextureDrawerParams& setVS(const VertexShader& vs_)
         {
-            vs = vs_;
+            shader.vs = vs_;
             return *this;
         }
 
-        TextureDrawerParams& setShaders(const PixelShader& ps_, const VertexShader& vs_)
+        TextureDrawerParams& setShader(const PixelShader& ps_, const VertexShader& vs_)
         {
-            ps = ps_;
-            vs = vs_;
+            shader.ps = ps_;
+            shader.vs = vs_;
             return *this;
         }
 
-        TextureDrawerParams& setShaders(const GraphicsShader& shader)
+        TextureDrawerParams& setShader(const GraphicsShader& shader_)
         {
-            ps = shader.ps;
-            vs = shader.vs;
+            shader.ps = shader_.ps;
+            shader.vs = shader_.vs;
             return *this;
         }
 
@@ -58,11 +59,6 @@ namespace TY
         TextureDrawer() = default;
 
         TextureDrawer(const TextureDrawerParams& params);
-
-        TextureDrawer(const TextureSource& source, const PixelShader& ps, const VertexShader& vs)
-            : TextureDrawer(TextureDrawerParams{source, ps, vs})
-        {
-        }
 
         [[nodiscard]]
         TextureDrawable2D as2D() const;

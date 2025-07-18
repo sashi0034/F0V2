@@ -82,8 +82,7 @@ namespace
 
         return GraphicsPipelineState{
             GraphicsPipelineStateParams{
-                .pixelShader = options.ps,
-                .vertexShader = options.vs,
+                .shader = options.shader,
                 .vertexInput = {
                     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT}
