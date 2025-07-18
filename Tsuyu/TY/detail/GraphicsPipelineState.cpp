@@ -1,12 +1,14 @@
 ﻿#include "pch.h"
 #include "GraphicsPipelineState.h"
 
+#include "EngineComponent.h"
 #include "TY/AssertObject.h"
 #include "EngineHotReloader.h"
 #include "EnginePresetAsset.h"
 #include "EngineRenderContext.h"
 #include "IEngineHotReloadable.h"
 #include "RootSignature.h"
+#include "TY/IComponent.h"
 #include "TY/Logger.h"
 #include "TY/System.h"
 
@@ -192,15 +194,129 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
     }
 };
 
+namespace
+{
+    size_t combineHash(size_t h1, size_t h2)
+    {
+        return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+    }
+
+    size_t hashParams(const GraphicsPipelineStateParams& params)
+    {
+        size_t hash = params.descriptorTable.size();
+        hash = combineHash(hash, params.shader.vs.unique_id());
+        hash = combineHash(hash, params.shader.ps.unique_id());
+        return hash;
+    }
+}
+
+class GraphicsPipelineState::Internal
+{
+public:
+    struct GraphicsPipelineStateCacheComponent : IComponent
+    {
+        bool init() override
+        {
+            if (s_cache)
+            {
+                assert(false);
+                return false;
+            }
+
+            s_cache = this;
+            return true;
+        }
+
+        ~GraphicsPipelineStateCacheComponent()
+        {
+            if (s_cache == this)
+            {
+                s_cache = nullptr;
+            }
+        }
+
+        bool update() override
+        {
+            for (auto it = m_cache.begin(); it != m_cache.end();)
+            {
+                if (it->second.expired())
+                {
+                    it = m_cache.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+
+            return true;
+        }
+
+        std::shared_ptr<Impl> Fetch(const GraphicsPipelineStateParams& params)
+        {
+            const auto hash = hashParams(params);
+            auto range = m_cache.equal_range(hash);
+
+            for (auto it = range.first; it != range.second; ++it)
+            {
+                if (auto impl = it->second.lock())
+                {
+                    if (not impl->m_params.equalsTo(params))
+                    {
+                        continue;
+                    }
+
+                    if (impl->m_params.vertexInput != params.vertexInput)
+                    {
+                        LogError.writeln(
+                            L"GraphicsPipelineStateCacheComponent: Vertex input layout mismatch in cached GraphicsPipelineState.");
+                    }
+
+                    LogInfo(std::format(
+                        "GraphicsPipelineStateCacheComponent: Reusing cached GraphicsPipelineState with hash: 0x{:016x}",
+                        hash));
+
+                    return impl;
+                }
+            }
+
+            auto impl = std::make_shared<Impl>(params);
+
+#ifdef _DEBUG
+            EngineHotReloader::TrackAsset(
+                impl, {impl->m_params.shader.ps.timestamp(), impl->m_params.shader.vs.timestamp()});
+#endif
+
+            m_cache.emplace(hash, impl);
+
+            LogInfo(std::format(
+                "GraphicsPipelineStateCacheComponent: Created new GraphicsPipelineState with hash: 0x{:016x}",
+                hash));
+
+            return impl;
+        }
+
+    private:
+        std::unordered_multimap<size_t, std::weak_ptr<Impl>> m_cache{};
+    };
+
+    static inline GraphicsPipelineStateCacheComponent* s_cache{};
+};
+
 namespace TY
 {
-    GraphicsPipelineState::GraphicsPipelineState(const GraphicsPipelineStateParams& params) :
-        p_impl(std::make_shared<Impl>(params))
+    bool GraphicsPipelineStateParams::equalsTo(const GraphicsPipelineStateParams& other) const
     {
-#ifdef _DEBUG
-        EngineHotReloader::TrackAsset(
-            p_impl, {p_impl->m_params.shader.ps.timestamp(), p_impl->m_params.shader.vs.timestamp()});
-#endif
+        if (shader.ps.unique_id() != other.shader.ps.unique_id()) return false;
+        if (shader.vs.unique_id() != other.shader.vs.unique_id()) return false;
+        if (options != other.options) return false;
+        if (descriptorTable != other.descriptorTable) return false;
+        return true;
+    }
+
+    GraphicsPipelineState::GraphicsPipelineState(const GraphicsPipelineStateParams& params) :
+        p_impl(Internal::s_cache->Fetch(params))
+    {
     }
 
     DescriptorTable GraphicsPipelineState::descriptorTable() const
@@ -211,5 +327,14 @@ namespace TY
     void GraphicsPipelineState::commandSet() const
     {
         if (p_impl) p_impl->CommandSet();
+    }
+
+    namespace detail
+    {
+        void InitializeGraphicsPipelineStateCacheComponent()
+        {
+            EngineComponent::Register<GraphicsPipelineState::Internal::GraphicsPipelineStateCacheComponent>(
+                "GraphicsPipelineStateCacheComponent");
+        }
     }
 }

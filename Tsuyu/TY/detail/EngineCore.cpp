@@ -27,6 +27,8 @@ namespace TY::detail
 
     extern void InitGameStepComponent();
 
+    extern void InitializeGraphicsPipelineStateCacheComponent();
+
     extern void InitGpgpuCacheComponent();
 }
 
@@ -37,6 +39,8 @@ namespace
         InitGameTimeComponent();
 
         InitGameStepComponent();
+
+        InitializeGraphicsPipelineStateCacheComponent();
 
         InitGpgpuCacheComponent();
     }

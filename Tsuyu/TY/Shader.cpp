@@ -123,6 +123,11 @@ namespace TY
         return p_impl ? p_impl->shaderBlob.Get() : nullptr;
     }
 
+    size_t VertexShader::unique_id() const
+    {
+        return reinterpret_cast<size_t>(p_impl.get());
+    }
+
     PixelShader::PixelShader(const ShaderParams& params)
         : p_impl{std::make_shared<Shader_impl>(params, "ps_5_0"sv)}
     {
@@ -145,6 +150,11 @@ namespace TY
     ID3D10Blob* PixelShader::getBlob() const
     {
         return p_impl ? p_impl->shaderBlob.Get() : nullptr;
+    }
+
+    size_t PixelShader::unique_id() const
+    {
+        return reinterpret_cast<size_t>(p_impl.get());
     }
 
     GraphicsShader GraphicsShader::withVS(const VertexShader& vs_) const
@@ -191,5 +201,10 @@ namespace TY
     ID3D10Blob* ComputeShader::getBlob() const
     {
         return p_impl ? p_impl->shaderBlob.Get() : nullptr;
+    }
+
+    size_t ComputeShader::unique_id() const
+    {
+        return reinterpret_cast<size_t>(p_impl.get());
     }
 }

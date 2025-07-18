@@ -15,6 +15,8 @@ namespace TY::detail
             uavCount(uavCount)
         {
         }
+
+        bool operator==(const DescriptorTableElement& other) const = default;
     };
 
     using DescriptorTable = Array<DescriptorTableElement>;

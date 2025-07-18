@@ -95,7 +95,6 @@ struct ModelDrawer::Impl : IEngineDrawer
             descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, params.srv1AndLater.toColumnVector(), {}});
         }
 
-        // TODO: キャッシュする?
         m_pipelineState = GraphicsPipelineState{
             GraphicsPipelineStateParams{
                 .shader = params.shader,
@@ -148,7 +147,7 @@ struct ModelDrawer::Impl : IEngineDrawer
         {
             if (materialIndexOfCbv4AndLater > 0)
             {
-                LogError("ModelDrawer: materialIndexOfCbv4AndLater is set but no cbv4AndLater is defined.");
+                LogError("ModelDrawer: materialIndexOfCbv4AndLater is set but cbv4AndLater is not defined.");
             }
         }
 

@@ -75,8 +75,6 @@ namespace
 
     GraphicsPipelineState makePipelineState(const TextureDrawerParams& options)
     {
-        // TODO: キャッシュする?
-
         const auto graphicsOptions = GraphicsOptions{}
             .setDepth((options.hasDepth ? GraphicsDepthOptions::Default3D() : GraphicsDepthOptions{}));
 

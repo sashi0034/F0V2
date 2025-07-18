@@ -20,14 +20,21 @@ namespace TY::detail
             format(format)
         {
         }
+
+        bool operator==(const VertexInputElement& other) const = default;
     };
 
     struct GraphicsPipelineStateParams
     {
         GraphicsShader shader;
-        std::vector<VertexInputElement> vertexInput;
+
+        Array<VertexInputElement> vertexInput;
+
         GraphicsOptions options;
+
         DescriptorTable descriptorTable{};
+
+        bool equalsTo(const GraphicsPipelineStateParams& other) const;
     };
 
     struct PipelineState_impl;
@@ -42,6 +49,8 @@ namespace TY::detail
         DescriptorTable descriptorTable() const;
 
         void commandSet() const;
+
+        class Internal;
 
     private:
         struct Impl;

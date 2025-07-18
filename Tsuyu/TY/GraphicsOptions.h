@@ -50,6 +50,8 @@ namespace TY
         GraphicsSamplerOptions& setComparison(GraphicsComparisonFunction comparison_);
 
         GraphicsSamplerOptions& setMaxAnisotropy(int maxAnisotropy_);
+
+        bool operator ==(const GraphicsSamplerOptions& other) const = default;
     };
 
     enum class GraphicsCullMode : uint8_t
@@ -65,6 +67,8 @@ namespace TY
 
         GraphicsRasterizerOptions& setCull(GraphicsCullMode cull_);
 
+        bool operator ==(const GraphicsRasterizerOptions& other) const = default;
+
         static GraphicsRasterizerOptions Default3D();
     };
 
@@ -74,6 +78,8 @@ namespace TY
         bool writeMask{};
 
         GraphicsDepthOptions& setWriteMask(bool writeMask_);
+
+        bool operator ==(const GraphicsDepthOptions& other) const = default;
 
         static GraphicsDepthOptions Default3D();
     };
@@ -94,6 +100,8 @@ namespace TY
         GraphicsOptions& setDepth(const GraphicsDepthOptions& depth_);
 
         GraphicsOptions& setRtvFormats(const Array<GraphicsFormat>& formats);
+
+        bool operator ==(const GraphicsOptions& other) const = default;
 
         static GraphicsOptions Default3D();
     };
