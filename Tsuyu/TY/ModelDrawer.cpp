@@ -28,8 +28,8 @@ namespace
 
     GraphicsPipelineState makePipelineState(const ModelDrawerParams& params)
     {
-        const auto& cbv = params.cb4AndLater;
-        const auto& srv = params.sr1AndLater;
+        const auto& cbv = params.cbv4AndLater;
+        const auto& srv = params.srv1AndLater;
 
         auto descriptorTable = basicDescriptorTable;
         descriptorTable.push_back({cbv.size(), srv.size(), 0});;
@@ -76,8 +76,8 @@ struct ModelDrawer::Impl : IEngineDrawer
                 CbvSrvUavSet{{EngineRenderContext::GetSceneState3D_CB0()}, {}, {}},
                 CbvSrvUavSet{{m_cb1}, {}, {}},
                 CbvSrvUavSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}},
-                CbvSrvUavSet{{ConstantBufferUploader_impl{Empty}}, {}, {}},
-                CbvSrvUavSet{params.cb4AndLater, params.sr1AndLater.toColumnVector(), {}}
+                CbvSrvUavSet{{ConstantBufferUploaderCore{Empty}}, {}, {}},
+                CbvSrvUavSet{params.cbv4AndLater, params.srv1AndLater.toColumnVector(), {}}
             },
         });
     }
@@ -152,15 +152,15 @@ ModelDrawerParams& ModelDrawerParams::setCB##n(const ConstantBufferUploader_impl
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setCbv4AndLater(const Array<ConstantBufferUploader_impl>& cbv)
+    ModelDrawerParams& ModelDrawerParams::setCbv4AndLater(const Array<ConstantBufferUploaderCore>& cbv)
     {
-        cb4AndLater = cbv;
+        cbv4AndLater = cbv;
         return *this;
     }
 
     ModelDrawerParams& ModelDrawerParams::setSrv1AndLater(const Array<ShaderResourceType>& srv)
     {
-        sr1AndLater = srv;
+        srv1AndLater = srv;
         return *this;
     }
 

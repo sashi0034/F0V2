@@ -4,14 +4,14 @@
 
 namespace TY
 {
-    class ConstantBufferUploader_impl
+    class ConstantBufferUploaderCore
     {
     public:
-        ConstantBufferUploader_impl(Empty_t)
+        ConstantBufferUploaderCore(Empty_t)
         {
         }
 
-        ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t materialCount = 1);
+        ConstantBufferUploaderCore(uint32_t sizeInBytes, uint32_t materialCount = 1);
 
         bool isEmpty() const;
 
@@ -31,16 +31,16 @@ namespace TY
     };
 
     template <typename T>
-    class ConstantBufferUploader : public ConstantBufferUploader_impl
+    class ConstantBufferUploader : public ConstantBufferUploaderCore
     {
     public:
         static constexpr uint32_t sizeInBytes = sizeof(T);
 
-        ConstantBufferUploader(Empty_t) : ConstantBufferUploader_impl(Empty)
+        ConstantBufferUploader(Empty_t) : ConstantBufferUploaderCore(Empty)
         {
         }
 
-        ConstantBufferUploader(int materialCount = 1) : ConstantBufferUploader_impl(sizeInBytes, materialCount)
+        ConstantBufferUploader(int materialCount = 1) : ConstantBufferUploaderCore(sizeInBytes, materialCount)
         {
         }
 
@@ -56,12 +56,12 @@ namespace TY
 
         void upload(const T& data) const
         {
-            ConstantBufferUploader_impl::upload(&data, 1);
+            ConstantBufferUploaderCore::upload(&data, 1);
         }
 
         void upload(const Array<T>& data) const
         {
-            ConstantBufferUploader_impl::upload(data.data(), data.size());
+            ConstantBufferUploaderCore::upload(data.data(), data.size());
         }
     };
 }

@@ -16,9 +16,9 @@ namespace TY
 
         GraphicsOptions options{GraphicsOptions::Default3D()};
 
-        Array<ConstantBufferUploader_impl> cb4AndLater{Empty};
+        Array<ConstantBufferUploaderCore> cbv4AndLater{Empty};
 
-        Array<ShaderResourceType> sr1AndLater{};
+        Array<ShaderResourceType> srv1AndLater{};
 
         ModelDrawerParams& loadModel(const std::string& filename);
 
@@ -30,7 +30,7 @@ namespace TY
 
         ModelDrawerParams& setOptions(const GraphicsOptions& options_);
 
-        ModelDrawerParams& setCbv4AndLater(const Array<ConstantBufferUploader_impl>& cbv);
+        ModelDrawerParams& setCbv4AndLater(const Array<ConstantBufferUploaderCore>& cbv);
 
         ModelDrawerParams& setSrv1AndLater(const Array<ShaderResourceType>& srv);
     };

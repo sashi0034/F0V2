@@ -12,7 +12,7 @@ namespace TY
         ComputeShader cs{};
         Array<std::shared_ptr<detail::IReadonlyGpgpu>> readonlyBuffer{};
         Array<std::shared_ptr<detail::IWritableGpgpu>> writableBuffer{};
-        ConstantBufferUploader_impl cb2{Empty};
+        ConstantBufferUploaderCore cb2{Empty};
 
         GpgpuParams& setCS(const ComputeShader& cs_)
         {
@@ -32,7 +32,7 @@ namespace TY
             return *this;
         }
 
-        GpgpuParams& setCB2(const ConstantBufferUploader_impl& cb)
+        GpgpuParams& setCB2(const ConstantBufferUploaderCore& cb)
         {
             cb2 = cb;
             return *this;

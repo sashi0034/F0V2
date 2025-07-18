@@ -197,8 +197,8 @@ struct Gpgpu::Impl
 
     GpgpuParams m_params{};
 
-    ConstantBufferUploader_impl m_cb0{Empty};
-    ConstantBufferUploader_impl m_cb1{Empty};
+    ConstantBufferUploaderCore m_cb0{Empty};
+    ConstantBufferUploaderCore m_cb1{Empty};
 
     Array<StructuredBufferUploader> m_sr{};
     Array<StructuredBufferTransfer> m_ua{};
@@ -234,8 +234,8 @@ struct Gpgpu::Impl
 
     void Setup()
     {
-        m_cb0 = ConstantBufferUploader_impl(sizeof(uint32_t) * 4 * m_params.readonlyBuffer.size());
-        m_cb1 = ConstantBufferUploader_impl(sizeof(uint32_t) * 4 * m_params.writableBuffer.size());
+        m_cb0 = ConstantBufferUploaderCore(sizeof(uint32_t) * 4 * m_params.readonlyBuffer.size());
+        m_cb1 = ConstantBufferUploaderCore(sizeof(uint32_t) * 4 * m_params.writableBuffer.size());
 
         m_sr.resize(m_params.readonlyBuffer.size());
         for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)

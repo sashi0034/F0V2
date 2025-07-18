@@ -8,7 +8,7 @@ namespace TY::detail
 {
     struct CbvSrvUavSet
     {
-        Array<ConstantBufferUploader_impl> cbv; /* [cbvCount], ConstantBuffer::count() = materialCount */
+        Array<ConstantBufferUploaderCore> cbv; /* [cbvCount], ConstantBuffer::count() = materialCount */
         Array<Array<ShaderResourceType>> srv; /* [srvCount][materialCount] */
         Array<Array<UnorderedAccessType>> uav; /* [uavCount][materialCount] */
     };

@@ -12,7 +12,7 @@ namespace
 {
 }
 
-struct ConstantBufferUploader_impl::Impl
+struct ConstantBufferUploaderCore::Impl
 {
     bool m_valid{};
 
@@ -94,7 +94,7 @@ struct ConstantBufferUploader_impl::Impl
 
 namespace TY
 {
-    ConstantBufferUploader_impl::ConstantBufferUploader_impl(uint32_t sizeInBytes, uint32_t materialCount)
+    ConstantBufferUploaderCore::ConstantBufferUploaderCore(uint32_t sizeInBytes, uint32_t materialCount)
         : p_impl(std::make_shared<Impl>(sizeInBytes, materialCount))
     {
         if (not p_impl->m_valid)
@@ -103,32 +103,32 @@ namespace TY
         }
     }
 
-    bool ConstantBufferUploader_impl::isEmpty() const
+    bool ConstantBufferUploaderCore::isEmpty() const
     {
         return not p_impl;
     }
 
-    void ConstantBufferUploader_impl::upload(const void* data, uint32_t materialCount) const
+    void ConstantBufferUploaderCore::upload(const void* data, uint32_t materialCount) const
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount);
     }
 
-    uint32_t ConstantBufferUploader_impl::materialCount() const
+    uint32_t ConstantBufferUploaderCore::materialCount() const
     {
         return p_impl ? p_impl->m_materialCount : 0;
     }
 
-    size_t ConstantBufferUploader_impl::sizeInBytes() const
+    size_t ConstantBufferUploaderCore::sizeInBytes() const
     {
         return p_impl ? p_impl->m_sizeInBytes : 0;
     }
 
-    size_t ConstantBufferUploader_impl::alignedSize() const
+    size_t ConstantBufferUploaderCore::alignedSize() const
     {
         return p_impl ? p_impl->m_alignedSize : 0;
     }
 
-    uint64_t ConstantBufferUploader_impl::bufferLocation() const
+    uint64_t ConstantBufferUploaderCore::bufferLocation() const
     {
         return p_impl ? p_impl->m_uploadBuffer->GetGPUVirtualAddress() : 0;
     }
