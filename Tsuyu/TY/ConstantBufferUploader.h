@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <span>
+
 #include "Array.h"
 #include "Empty.h"
 
@@ -62,6 +64,11 @@ namespace TY
         void upload(const Array<T>& data) const
         {
             ConstantBufferUploaderCore::upload(data.data(), data.size());
+        }
+
+        void upload(std::span<const T> data) const
+        {
+            ConstantBufferUploaderCore::upload(data.data(), static_cast<uint32_t>(data.size()));
         }
     };
 }

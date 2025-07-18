@@ -66,7 +66,7 @@ namespace
 
     struct ShadowMap_cb
     {
-        alignas(16) Mat4x4 worldToShadowProjection[cascadeShadowMapCount];
+        alignas(16) std::array<Mat4x4, cascadeShadowMapCount> worldToShadowProjection;
     };
 
     struct Pose
@@ -169,8 +169,8 @@ struct Demo_ShadowMap_impl
     ModelDrawer m_groundPlaneDrawer{};
 
     ModelDrawer m_playerDrawer{};
-    std::array<ModelDrawer, cascadeShadowMapCount> m_playerShadowDrawers{}; // FIXME
-    std::array<ConstantBuffer<Mat4x4>, cascadeShadowMapCount> m_playerShadowDrawerConstantBuffers{}; // FIXME
+    ModelDrawer m_playerShadowDrawer{};
+    ConstantBufferUploader<Mat4x4> m_playerShadowDrawerConstantBuffers{};
     Pose m_playerPose{};
 
     ModelDrawer m_mountainDrawer{};
@@ -245,16 +245,15 @@ struct Demo_ShadowMap_impl
             //     .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
             //     .setCB4(s_resource->shadowMap_cb)
             // };
-            for (int i = 0; i < cascadeShadowMapCount; ++i)
-            {
-                m_playerShadowDrawers[i] = ModelDrawer{
-                    ModelDrawerParams{}
-                    .setModel(s_resource->playerModel)
-                    .setShader(s_resource->shadowMapCaster)
-                    .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
-                    .setCbv4AndLater({m_playerShadowDrawerConstantBuffers[i]})
-                };
-            }
+
+            m_playerShadowDrawerConstantBuffers = ConstantBufferUploader<Mat4x4>{cascadeShadowMapCount};
+            m_playerShadowDrawer = ModelDrawer{
+                ModelDrawerParams{}
+                .setModel(s_resource->playerModel)
+                .setShader(s_resource->shadowMapCaster)
+                .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
+                .setCbv4AndLater({m_playerShadowDrawerConstantBuffers})
+            };
         }
 
         m_playerPose.position.y = groundPositionY + 15.0f;
@@ -341,15 +340,15 @@ struct Demo_ShadowMap_impl
         {
             updateCascadeShadowMapMatrix();
 
+            m_playerShadowDrawerConstantBuffers.upload({s_resource->shadowMap_cb->worldToShadowProjection});
+
             for (int i = 0; i < m_shadowMaps.size(); ++i)
             {
                 const auto rt = m_shadowMaps[i].scopedBind();
 
                 // 影の対象のオブジェクトを描画
                 {
-                    m_playerShadowDrawerConstantBuffers[i]
-                        .uploadValue(s_resource->shadowMap_cb->worldToShadowProjection[i]);
-                    m_playerShadowDrawers[i].uploadWorldMatrix(m_playerPose.getMatrix()).draw();
+                    m_playerShadowDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw(i);
                 }
             }
 

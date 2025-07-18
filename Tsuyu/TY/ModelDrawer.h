@@ -16,7 +16,7 @@ namespace TY
 
         GraphicsOptions options{GraphicsOptions::Default3D()};
 
-        Array<ConstantBufferUploaderCore> cbv4AndLater{Empty};
+        Array<ConstantBufferUploaderCore> cbv4AndLater{};
 
         Array<ShaderResourceType> srv1AndLater{};
 
@@ -45,6 +45,8 @@ namespace TY
         const ModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
 
         void draw() const;
+
+        void draw(int materialIndexOfCbv4AndLater) const;
 
     private:
         struct Impl;

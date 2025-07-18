@@ -35,6 +35,8 @@ namespace TY::detail
     class GraphicsPipelineState
     {
     public:
+        GraphicsPipelineState() = default;
+
         GraphicsPipelineState(const GraphicsPipelineStateParams& params);
 
         DescriptorTable descriptorTable() const;

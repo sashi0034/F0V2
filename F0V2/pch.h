@@ -46,6 +46,7 @@
 #include <ratio>
 #include <regex>
 #include <scoped_allocator>
+#include <span>
 #include <system_error>
 #include <thread>
 #include <tuple>
