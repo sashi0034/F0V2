@@ -168,6 +168,7 @@
     <ClInclude Include="TY\CbvSrvUav.h" />
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\EngineComponent.h" />
+    <ClInclude Include="TY\detail\GenericModelDrawer.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Duration.h" />
     <ClInclude Include="TY\DynamicTexture.h" />
@@ -296,6 +297,7 @@
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\detail\EngineComponent.cpp" />
+    <ClCompile Include="TY\detail\GenericModelDrawer.cpp" />
     <ClCompile Include="TY\DynamicTexture.cpp" />
     <ClCompile Include="TY\GameStep.cpp" />
     <ClCompile Include="TY\GameTime.cpp" />
