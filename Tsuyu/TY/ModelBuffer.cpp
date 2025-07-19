@@ -25,13 +25,13 @@ struct ModelShapeBuffer::Impl
     }
 };
 
-struct ModelBuffer::Impl
+struct ModelBuffer::Impl : IGenericModelBuffer
 {
     ModelShapeBuffer m_shapeBuffer{};
 
-    ConstantBufferUploader<ModelMaterialParameters> m_materialCB{Empty};
+    ConstantBufferUploader<ModelMaterialParameters> m_materialCbv{Empty};
 
-    Array<Array<ShaderResourceType>> m_materialTextures{};
+    Array<Array<ShaderResourceType>> m_materialSrv{};
 
     Impl(const ModelData& modelData)
         : m_shapeBuffer(modelData.shapes)
@@ -47,24 +47,58 @@ struct ModelBuffer::Impl
 
     void initializeMaterial(const Array<ModelMaterial>& materials)
     {
-        m_materialCB = ConstantBufferUploader<ModelMaterialParameters>{
+        m_materialCbv = ConstantBufferUploader<ModelMaterialParameters>{
             materials.map([](const ModelMaterial& material)
             {
                 return material.parameters;
             })
         };
 
-        m_materialTextures.push_back(materials.map([](const ModelMaterial& material)
+        m_materialSrv.push_back(materials.map([](const ModelMaterial& material)
         {
             return ShaderResourceType(material.diffuseTexture);
         }));
 
         // TODO: Add another texture types if needed
     }
+
+    [[nodiscard]] int shapeCount() const override
+    {
+        return static_cast<int>(m_shapeBuffer.shapes().size());
+    }
+
+    [[nodiscard]] GenericModelShapeBufferElement shapeAt(int index) const override
+    {
+        return m_shapeBuffer.shapes()[index].asGeneric();
+    }
+
+    [[nodiscard]] int materialCount() const override
+    {
+        return static_cast<int>(m_materialCbv.materialCount());
+    }
+
+    [[nodiscard]] ConstantBufferUploaderCore materialCbv() const override
+    {
+        return m_materialCbv;
+    }
+
+    const Array<Array<ShaderResourceType>>& materialSrv() const override
+    {
+        return m_materialSrv;
+    }
 };
 
 namespace TY
 {
+    GenericModelShapeBufferElement ModelShapeBufferElement::asGeneric() const
+    {
+        GenericModelShapeBufferElement element;
+        element.indexBuffer = indexBuffer;
+        element.vertexBuffer = vertexBuffer;
+        element.materialIndex = materialIndex;
+        return element;
+    }
+
     ModelShapeBuffer::ModelShapeBuffer(const Array<ModelShape>& shapes)
         : p_impl(std::make_shared<Impl>(shapes))
     {
@@ -89,18 +123,13 @@ namespace TY
         return p_impl->m_shapeBuffer;
     }
 
-    size_t ModelBuffer::materialCount() const
+    const ConstantBufferUploader<ModelMaterialParameters>& ModelBuffer::materialCbv() const
     {
-        return p_impl->m_materialCB.materialCount();
+        return p_impl->m_materialCbv;
     }
 
-    const ConstantBufferUploader<ModelMaterialParameters>& ModelBuffer::materialCB() const
+    std::shared_ptr<IGenericModelBuffer> ModelBuffer::asGeneric() const
     {
-        return p_impl->m_materialCB;
-    }
-
-    const Array<Array<ShaderResourceType>>& ModelBuffer::materialTextures() const
-    {
-        return p_impl->m_materialTextures;
+        return p_impl;
     }
 }

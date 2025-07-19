@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "CbvSrvUav.h"
 #include "ConstantBufferUploader.h"
+#include "GenericModelDrawer.h"
 #include "GraphicsOptions.h"
 #include "Mat4x4.h"
 #include "ModelBuffer.h"
@@ -22,7 +23,7 @@ namespace TY
 
         ModelDrawerParams& loadModel(const std::string& filename);
 
-        ModelDrawerParams& setModel(const ModelBuffer& data_);
+        ModelDrawerParams& setModel(const ModelBuffer& model_);
 
         ModelDrawerParams& setShader(const VertexShader& vs_, const PixelShader& ps_);
 
@@ -49,7 +50,6 @@ namespace TY
         void draw(int materialIndexOfCbv10AndLater) const;
 
     private:
-        struct Impl;
-        std::shared_ptr<Impl> p_impl;
+        GenericModelDrawer m_impl{};
     };
 }

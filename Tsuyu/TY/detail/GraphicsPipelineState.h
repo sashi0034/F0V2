@@ -4,27 +4,10 @@
 #include "TY/Array.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"
+#include "TY/VertexInputElement.h"
 
 namespace TY::detail
 {
-    struct VertexInputElement
-    {
-        std::string semanticName;
-        int semanticIndex;
-        DXGI_FORMAT format;
-
-        VertexInputElement() = default;
-
-        VertexInputElement(std::string semanticName, int semanticIndex, DXGI_FORMAT format) :
-            semanticName(std::move(semanticName)),
-            semanticIndex(semanticIndex),
-            format(format)
-        {
-        }
-
-        bool operator==(const VertexInputElement& other) const = default;
-    };
-
     struct GraphicsPipelineStateParams
     {
         GraphicsShader shader;

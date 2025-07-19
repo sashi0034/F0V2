@@ -1,9 +1,8 @@
 ﻿#pragma once
-#include "ConstantBufferUploader.h"
+#include "GenericModelBuffer.h"
 #include "IndexBuffer.h"
 #include "ModelData.h"
 #include "VertexBuffer.h"
-#include "detail/DescriptorHeap.h"
 
 namespace TY
 {
@@ -12,6 +11,8 @@ namespace TY
         uint16_t materialIndex;
         VertexBuffer<ModelVertex> vertexBuffer;
         IndexBuffer indexBuffer;
+
+        GenericModelShapeBufferElement asGeneric() const;
     };
 
     class ModelShapeBuffer
@@ -39,12 +40,9 @@ namespace TY
 
         const ModelShapeBuffer& shapeBuffer() const;
 
-        size_t materialCount() const;
+        const ConstantBufferUploader<ModelMaterialParameters>& materialCbv() const;
 
-        const ConstantBufferUploader<ModelMaterialParameters>& materialCB() const;
-
-        /// @brief [textureCount][materialCount]
-        const Array<Array<ShaderResourceType>>& materialTextures() const;
+        std::shared_ptr<IGenericModelBuffer> asGeneric() const;
 
     private:
         struct Impl;

@@ -8,15 +8,20 @@ namespace TY::detail
 {
     struct CbvSrvUavSet
     {
-        Array<ConstantBufferUploaderCore> cbv; /* [cbvCount], ConstantBuffer::count() = materialCount */
-        Array<Array<ShaderResourceType>> srv; /* [srvCount][materialCount] */
-        Array<Array<UnorderedAccessType>> uav; /* [uavCount][materialCount] */
+        /// @remark [cbvCount], ConstantBuffer::count() = materialCount
+        Array<ConstantBufferUploaderCore> cbv;
+
+        /// @remark [srvCount][materialCount]
+        Array<Array<ShaderResourceType>> srv;
+
+        /// @remark [uavCount][materialCount]
+        Array<Array<UnorderedAccessType>> uav;
     };
 
     struct DescriptorHeapParams
     {
         DescriptorTable table;
-        Array<size_t> materialCounts;
+        Array<int> materialCounts;
         Array<CbvSrvUavSet> descriptors;
     };
 
