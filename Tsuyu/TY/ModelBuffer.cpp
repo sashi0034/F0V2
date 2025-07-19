@@ -31,7 +31,7 @@ struct ModelBuffer::Impl
 
     ConstantBufferUploader<ModelMaterialParameters> m_materialCB{Empty};
 
-    Array<ShaderResourceType> m_materialTextures{};
+    Array<Array<ShaderResourceType>> m_materialTextures{};
 
     Impl(const ModelData& modelData)
         : m_shapeBuffer(modelData.shapes)
@@ -54,10 +54,12 @@ struct ModelBuffer::Impl
             })
         };
 
-        m_materialTextures = materials.map([](const ModelMaterial& material)
+        m_materialTextures.push_back(materials.map([](const ModelMaterial& material)
         {
             return ShaderResourceType(material.diffuseTexture);
-        });
+        }));
+
+        // TODO: Add another texture types if needed
     }
 };
 
@@ -97,7 +99,7 @@ namespace TY
         return p_impl->m_materialCB;
     }
 
-    const Array<ShaderResourceType>& ModelBuffer::materialTextures() const
+    const Array<Array<ShaderResourceType>>& ModelBuffer::materialTextures() const
     {
         return p_impl->m_materialTextures;
     }

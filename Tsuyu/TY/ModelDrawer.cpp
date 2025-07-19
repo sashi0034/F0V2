@@ -60,7 +60,7 @@ struct ModelDrawer::Impl : IEngineDrawer
             .descriptors = {
                 CbvSrvUavSet{{EngineRenderContext::GetSceneState3D_CB0()}, {}, {}}, // [0]
                 CbvSrvUavSet{{m_cb1}, {}, {}}, // [1]
-                CbvSrvUavSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}}, // [2],
+                CbvSrvUavSet{{m_modelBuffer.materialCB()}, m_modelBuffer.materialTextures(), {}}, // [2],
             },
         };
 

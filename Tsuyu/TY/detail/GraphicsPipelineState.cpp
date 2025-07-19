@@ -317,6 +317,8 @@ namespace TY
 {
     bool GraphicsPipelineStateParams::equalsTo(const GraphicsPipelineStateParams& other) const
     {
+        // vertexInput はあえて省略 (VS が同じなら vertexInput は等しいはず)
+
         if (shader.ps.unique_id() != other.shader.ps.unique_id()) return false;
         if (shader.vs.unique_id() != other.shader.vs.unique_id()) return false;
         if (options != other.options) return false;
