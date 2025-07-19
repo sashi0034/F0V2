@@ -3,6 +3,7 @@
 
 #include "EngineRenderContext.h"
 #include "TY/AssertObject.h"
+#include "TY/Logger.h"
 #include "TY/System.h"
 #include "TY/Utils.h"
 
@@ -99,12 +100,40 @@ namespace TY::detail
             if (not explicitRegisterStarts.empty() && tableIndex == explicitRegisterStarts[0].descriptorTableIndex)
             {
                 // 明示的なレジスタ開始番号が指定されている場合、オフセットを変更
-                cbvOffset = explicitRegisterStarts[0].cbvStart;
-                srvOffset = explicitRegisterStarts[0].srvStart;
-                uavOffset = explicitRegisterStarts[0].uavStart;
+                if (explicitRegisterStarts[0].cbvStart >= cbvOffset)
+                {
+                    cbvOffset = explicitRegisterStarts[0].cbvStart;
+                }
+                else
+                {
+                    LogError(std::format(
+                        "RootSignature: cbvOffset is greater than explicit cbvStart in table {}.", tableIndex));
+                }
+
+                if (explicitRegisterStarts[0].srvStart >= srvOffset)
+                {
+                    srvOffset = explicitRegisterStarts[0].srvStart;
+                }
+                else
+                {
+                    LogError(std::format(
+                        "RootSignature: srvOffset is greater than explicit srvStart in table {}.", tableIndex));
+                }
+
+                if (explicitRegisterStarts[0].uavStart >= uavOffset)
+                {
+                    uavOffset = explicitRegisterStarts[0].uavStart;
+                }
+                else
+                {
+                    LogError(std::format(
+                        "RootSignature: uavOffset is greater than explicit uavStart in table {}.", tableIndex));
+                }
+
                 explicitRegisterStarts = explicitRegisterStarts.subspan(1);
             }
 
+            // CBV 設定
             if (descriptorTable[tableIndex].cbvCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
@@ -117,6 +146,7 @@ namespace TY::detail
                 cbvOffset += descriptorTable[tableIndex].cbvCount;
             }
 
+            // SRV 設定
             if (descriptorTable[tableIndex].srvCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
@@ -129,6 +159,7 @@ namespace TY::detail
                 srvOffset += descriptorTable[tableIndex].srvCount;
             }
 
+            // UAV 設定
             if (descriptorTable[tableIndex].uavCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
@@ -141,6 +172,7 @@ namespace TY::detail
                 uavOffset += descriptorTable[tableIndex].uavCount;
             }
 
+            // ルートパラメータの設定
             D3D12_ROOT_PARAMETER rootParameter = {};
             rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
             rootParameter.DescriptorTable.pDescriptorRanges = descriptorRanges[tableIndex].data();
