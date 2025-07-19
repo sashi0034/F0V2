@@ -19,6 +19,7 @@ struct ShaderResourceTexture::Impl
     Size m_size{};
 
     ComPtr<ID3D12Resource> m_textureBuffer{};
+    ComPtr<ID3D12Resource> m_uploadBuffer{};
 
     Impl(const std::wstring& filename)
     {
@@ -60,7 +61,6 @@ struct ShaderResourceTexture::Impl
         resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
         // アップロード用中間バッファの作成
-        ID3D12Resource* uploadBuffer{};
         AssertWin32{"failed to create commited resource"sv}
             | EngineRenderContext::GetDevice()->CreateCommittedResource(
                 &uploadBufferDesc,
@@ -68,7 +68,7 @@ struct ShaderResourceTexture::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_GENERIC_READ, // CPUからの書き込みが可能な状態にする
                 nullptr,
-                IID_PPV_ARGS(&uploadBuffer));
+                IID_PPV_ARGS(m_uploadBuffer.ReleaseAndGetAddressOf()));
 
         // -----------------------------------------------
         // テクスチャバッファ設定
@@ -102,7 +102,7 @@ struct ShaderResourceTexture::Impl
         // アップロード用中間バッファに生データをコピー
         uint8_t* imageMap{};
         AssertWin32{"failed to map upload buffer"sv}
-            | uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&imageMap));
+            | m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&imageMap));
 
         uint8_t* srcAddress = rawImage->pixels;
         const auto srcPitch = AlignedSize(rawImage->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
@@ -113,7 +113,7 @@ struct ShaderResourceTexture::Impl
             imageMap += srcPitch;
         }
 
-        uploadBuffer->Unmap(0, nullptr);
+        m_uploadBuffer->Unmap(0, nullptr);
 
         // -----------------------------------------------
         // アップロード用中間バッファからテクスチャバッファにコピー
@@ -124,7 +124,7 @@ struct ShaderResourceTexture::Impl
         dstCopyLocation.SubresourceIndex = 0;
 
         D3D12_TEXTURE_COPY_LOCATION srcCopyLocation{};
-        srcCopyLocation.pResource = uploadBuffer;
+        srcCopyLocation.pResource = m_uploadBuffer.Get();
         srcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT; // Footprint: メモリ占有領域に関する情報
 
         // FIXME: GetCopyableFootprints を使うほうがいい?
