@@ -21,7 +21,7 @@ cbuffer ModelMaterial : register(b2)
     float g_shininess;
 }
 
-cbuffer LambertLight : register(b4)
+cbuffer LambertLight : register(b10)
 {
     float3 g_lightDirection;
     float3 g_lightColor;

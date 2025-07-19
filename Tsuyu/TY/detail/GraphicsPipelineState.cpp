@@ -177,7 +177,11 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.SampleDesc.Count = 1; // マルチサンプリングなし
         pipelineDesc.SampleDesc.Quality = 0; // クオリティ最低
 
-        m_rootSignature = RootSignature({params.options.samplers, params.descriptorTable});
+        m_rootSignature = RootSignature(RootSignatureParams{
+            .samplers = params.options.samplers,
+            .descriptorTable = params.descriptorTable,
+            .explicitRegisterStarts = params.explicitRegisterStarts
+        });
 
         pipelineDesc.pRootSignature = m_rootSignature.getPointer();
 
@@ -317,6 +321,7 @@ namespace TY
         if (shader.vs.unique_id() != other.shader.vs.unique_id()) return false;
         if (options != other.options) return false;
         if (descriptorTable != other.descriptorTable) return false;
+        if (explicitRegisterStarts != other.explicitRegisterStarts) return false;
         return true;
     }
 

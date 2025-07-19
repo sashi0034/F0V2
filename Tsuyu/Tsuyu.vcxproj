@@ -168,6 +168,7 @@
     <ClInclude Include="TY\CbvSrvUav.h" />
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\EngineComponent.h" />
+    <ClInclude Include="TY\detail\ShaderRegisterStart.h" />
     <ClInclude Include="TY\detail\GenericModelDrawer.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\Duration.h" />

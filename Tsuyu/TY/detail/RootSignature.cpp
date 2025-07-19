@@ -87,54 +87,64 @@ namespace TY::detail
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 
         // ディスクリプタテーブルの設定
+        std::span explicitRegisterStarts = params.explicitRegisterStarts;
         std::vector<D3D12_ROOT_PARAMETER> rootParameters{};
         std::vector<std::vector<D3D12_DESCRIPTOR_RANGE>> descriptorRanges{};
         int cbvOffset{};
         int srvOffset{};
         int uavOffset{};
         descriptorRanges.resize(descriptorTable.size());
-        for (int i = 0; i < descriptorTable.size(); ++i)
+        for (int tableIndex = 0; tableIndex < descriptorTable.size(); ++tableIndex)
         {
-            if (descriptorTable[i].cbvCount > 0)
+            if (not explicitRegisterStarts.empty() && tableIndex == explicitRegisterStarts[0].descriptorTableIndex)
+            {
+                // 明示的なレジスタ開始番号が指定されている場合、オフセットを変更
+                cbvOffset = explicitRegisterStarts[0].cbvStart;
+                srvOffset = explicitRegisterStarts[0].srvStart;
+                uavOffset = explicitRegisterStarts[0].uavStart;
+                explicitRegisterStarts = explicitRegisterStarts.subspan(1);
+            }
+
+            if (descriptorTable[tableIndex].cbvCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
-                d.NumDescriptors = descriptorTable[i].cbvCount;
+                d.NumDescriptors = descriptorTable[tableIndex].cbvCount;
                 d.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
                 d.BaseShaderRegister = cbvOffset;
                 d.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-                descriptorRanges[i].push_back(d);
-                cbvOffset += descriptorTable[i].cbvCount;
+                descriptorRanges[tableIndex].push_back(d);
+                cbvOffset += descriptorTable[tableIndex].cbvCount;
             }
 
-            if (descriptorTable[i].srvCount > 0)
+            if (descriptorTable[tableIndex].srvCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
-                d.NumDescriptors = descriptorTable[i].srvCount;
+                d.NumDescriptors = descriptorTable[tableIndex].srvCount;
                 d.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
                 d.BaseShaderRegister = srvOffset;
                 d.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-                descriptorRanges[i].push_back(d);
-                srvOffset += descriptorTable[i].srvCount;
+                descriptorRanges[tableIndex].push_back(d);
+                srvOffset += descriptorTable[tableIndex].srvCount;
             }
 
-            if (descriptorTable[i].uavCount > 0)
+            if (descriptorTable[tableIndex].uavCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
-                d.NumDescriptors = descriptorTable[i].uavCount;
+                d.NumDescriptors = descriptorTable[tableIndex].uavCount;
                 d.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
                 d.BaseShaderRegister = uavOffset;
                 d.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-                descriptorRanges[i].push_back(d);
-                uavOffset += descriptorTable[i].uavCount;
+                descriptorRanges[tableIndex].push_back(d);
+                uavOffset += descriptorTable[tableIndex].uavCount;
             }
 
             D3D12_ROOT_PARAMETER rootParameter = {};
             rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-            rootParameter.DescriptorTable.pDescriptorRanges = descriptorRanges[i].data();
-            rootParameter.DescriptorTable.NumDescriptorRanges = descriptorRanges[i].size();
+            rootParameter.DescriptorTable.pDescriptorRanges = descriptorRanges[tableIndex].data();
+            rootParameter.DescriptorTable.NumDescriptorRanges = descriptorRanges[tableIndex].size();
             rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
             rootParameters.push_back(rootParameter);

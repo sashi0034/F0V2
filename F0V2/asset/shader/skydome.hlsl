@@ -21,7 +21,7 @@ cbuffer ModelMaterial : register(b2)
     float g_shininess;
 }
 
-cbuffer Skydome : register(b4)
+cbuffer Skydome : register(b10)
 {
     float4 g_topColor;
     float4 g_bottomColor;

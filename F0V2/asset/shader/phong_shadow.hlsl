@@ -2,11 +2,11 @@
 
 Texture2D<float4> g_texture0 : register(t0);
 
-Texture2D<float4> g_shadowMapTexture0 : register(t1);
+Texture2D<float4> g_shadowMapTexture0 : register(t10);
 
-Texture2D<float4> g_shadowMapTexture1 : register(t2);
+Texture2D<float4> g_shadowMapTexture1 : register(t11);
 
-Texture2D<float4> g_shadowMapTexture2 : register(t3);
+Texture2D<float4> g_shadowMapTexture2 : register(t12);
 
 SamplerState g_sampler0 : register(s0);
 
@@ -31,7 +31,7 @@ cbuffer ModelMaterial : register(b2)
     float g_shininess;
 }
 
-cbuffer PhongLight : register(b4)
+cbuffer PhongLight : register(b10)
 {
     float3 g_lightDirection;
     float3 g_lightColor;
@@ -39,7 +39,7 @@ cbuffer PhongLight : register(b4)
     float3 g_ambientLight;
 }
 
-cbuffer ShadowMap : register(b5)
+cbuffer ShadowMap : register(b11)
 {
     float4x4 g_worldToShadowProjection[SHADOW_MAP_COUNT];
 }

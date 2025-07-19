@@ -14,6 +14,7 @@
 #include "detail/EngineRenderContext.h"
 #include "detail/IEngineDrawer.h"
 #include "detail/GraphicsPipelineState.h"
+#include "detail/ShaderRegisterStart.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -36,11 +37,11 @@ struct ModelDrawer::Impl : IEngineDrawer
 
     ConstantBufferUploader<ModelState_b1> m_cb1{1};
 
-    int m_tableIndexofCbv4AndLater{-1};
+    int m_tableIndexofCbv10AndLater{-1};
 
-    int m_materialCountOfCbv4AndLater{};
+    int m_materialCountOfCbv10AndLater{};
 
-    int m_tableIndexofSrv1AndLater{-1};
+    int m_tableIndexofSrv10AndLater{-1};
 
     Impl(const ModelDrawerParams& params)
         : m_modelBuffer(params.model)
@@ -50,49 +51,50 @@ struct ModelDrawer::Impl : IEngineDrawer
                 {1, 0, 0}, // [0]
                 {1, 0, 0}, // [1]
                 {1, 1, 0}, // [2]
-                {1, 0, 0}, // [3]
             },
             .materialCounts = {
                 1, // [0]
                 1, // [1]
                 m_modelBuffer.materialCount(), // [2]
-                1, // [3]
             },
             .descriptors = {
                 CbvSrvUavSet{{EngineRenderContext::GetSceneState3D_CB0()}, {}, {}}, // [0]
                 CbvSrvUavSet{{m_cb1}, {}, {}}, // [1]
                 CbvSrvUavSet{{m_modelBuffer.materialCB()}, {m_modelBuffer.materialTextures()}, {}}, // [2],
-                CbvSrvUavSet{{ConstantBufferUploaderCore{Empty}}, {}, {}}, // [3] reserved for b3
             },
         };
 
-        // 拡張 CBV 設定
-        if (params.cbv4AndLater.size() > 0)
-        {
-            m_materialCountOfCbv4AndLater = params.cbv4AndLater[0].materialCount();
+        Array<ShaderRegisterStart> explicitRegisterStarts{
+            ShaderRegisterStart{static_cast<int>(descriptorHeap.table.size()), 10}
+        };
 
-            if (m_materialCountOfCbv4AndLater <= 0)
+        // 拡張 CBV 設定
+        if (params.cbv10AndLater.size() > 0)
+        {
+            m_materialCountOfCbv10AndLater = params.cbv10AndLater[0].materialCount();
+
+            if (m_materialCountOfCbv10AndLater <= 0)
             {
-                LogError("ModelDrawer: cbv4AndLater[0] has no material count.");
+                LogError("ModelDrawer: cbv10AndLater[0] has no material count.");
             }
             else
             {
-                m_tableIndexofCbv4AndLater = static_cast<int>(descriptorHeap.table.size());
+                m_tableIndexofCbv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-                descriptorHeap.table.push_back({params.cbv4AndLater.size(), 0, 0});
-                descriptorHeap.materialCounts.push_back(m_materialCountOfCbv4AndLater);
-                descriptorHeap.descriptors.push_back(CbvSrvUavSet{params.cbv4AndLater, {}, {}});
+                descriptorHeap.table.push_back({params.cbv10AndLater.size(), 0, 0});
+                descriptorHeap.materialCounts.push_back(m_materialCountOfCbv10AndLater);
+                descriptorHeap.descriptors.push_back(CbvSrvUavSet{params.cbv10AndLater, {}, {}});
             }
         }
 
         // 拡張 SRV 設定
-        if (params.srv1AndLater.size() > 0)
+        if (params.srv10AndLater.size() > 0)
         {
-            m_tableIndexofSrv1AndLater = static_cast<int>(descriptorHeap.table.size());
+            m_tableIndexofSrv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-            descriptorHeap.table.push_back({0, params.srv1AndLater.size(), 0});
+            descriptorHeap.table.push_back({0, params.srv10AndLater.size(), 0});
             descriptorHeap.materialCounts.push_back(1);
-            descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, params.srv1AndLater.toColumnVector(), {}});
+            descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, params.srv10AndLater.toColumnVector(), {}});
         }
 
         m_pipelineState = GraphicsPipelineState{
@@ -105,6 +107,7 @@ struct ModelDrawer::Impl : IEngineDrawer
                 },
                 .options = params.options,
                 .descriptorTable = descriptorHeap.table,
+                .explicitRegisterStarts = std::move(explicitRegisterStarts)
             }
         };
 
@@ -118,7 +121,7 @@ struct ModelDrawer::Impl : IEngineDrawer
         m_cb1.upload(b);
     }
 
-    void Draw(int materialIndexOfCbv4AndLater) const
+    void Draw(int materialIndexOfCbv10AndLater) const
     {
         m_pipelineState.commandSet();
 
@@ -128,33 +131,33 @@ struct ModelDrawer::Impl : IEngineDrawer
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1);
 
         // 拡張 CBV セット
-        if (m_tableIndexofCbv4AndLater >= 0)
+        if (m_tableIndexofCbv10AndLater >= 0)
         {
-            if (materialIndexOfCbv4AndLater >= m_materialCountOfCbv4AndLater)
+            if (materialIndexOfCbv10AndLater >= m_materialCountOfCbv10AndLater)
             {
-                LogError(std::format("ModelDrawer: materialIndexOfCbv4AndLater ({}) is out of range [0, {}]",
-                                     materialIndexOfCbv4AndLater, m_materialCountOfCbv4AndLater - 1));
-                materialIndexOfCbv4AndLater = m_materialCountOfCbv4AndLater - 1;
+                LogError(std::format("ModelDrawer: materialIndexOfcbv10AndLater ({}) is out of range [0, {}]",
+                                     materialIndexOfCbv10AndLater, m_materialCountOfCbv10AndLater - 1));
+                materialIndexOfCbv10AndLater = m_materialCountOfCbv10AndLater - 1;
             }
 
-            if (materialIndexOfCbv4AndLater >= 0)
+            if (materialIndexOfCbv10AndLater >= 0)
             {
                 m_descriptorHeap.commandSetTable(
-                    PipelineType::Graphics, m_tableIndexofCbv4AndLater, materialIndexOfCbv4AndLater);
+                    PipelineType::Graphics, m_tableIndexofCbv10AndLater, materialIndexOfCbv10AndLater);
             }
         }
         else
         {
-            if (materialIndexOfCbv4AndLater > 0)
+            if (materialIndexOfCbv10AndLater > 0)
             {
-                LogError("ModelDrawer: materialIndexOfCbv4AndLater is set but cbv4AndLater is not defined.");
+                LogError("ModelDrawer: materialIndexOfcbv10AndLater is set but cbv10AndLater is not defined.");
             }
         }
 
         // 拡張 SRV セット
-        if (m_tableIndexofSrv1AndLater >= 0)
+        if (m_tableIndexofSrv10AndLater >= 0)
         {
-            m_descriptorHeap.commandSetTable(PipelineType::Graphics, m_tableIndexofSrv1AndLater);
+            m_descriptorHeap.commandSetTable(PipelineType::Graphics, m_tableIndexofSrv10AndLater);
         }
 
         // 形状ごとに描画
@@ -202,15 +205,15 @@ namespace TY
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setCbv4AndLater(const Array<ConstantBufferUploaderCore>& cbv)
+    ModelDrawerParams& ModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferUploaderCore>& cbv)
     {
-        cbv4AndLater = cbv;
+        cbv10AndLater = cbv;
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setSrv1AndLater(const Array<ShaderResourceType>& srv)
+    ModelDrawerParams& ModelDrawerParams::setSrv10AndLater(const Array<ShaderResourceType>& srv)
     {
-        srv1AndLater = srv;
+        srv10AndLater = srv;
         return *this;
     }
 
@@ -234,11 +237,11 @@ namespace TY
         }
     }
 
-    void ModelDrawer::draw(int materialIndexOfCbv4AndLater) const
+    void ModelDrawer::draw(int materialIndexOfcbv10AndLater) const
     {
         if (p_impl)
         {
-            p_impl->Draw(materialIndexOfCbv4AndLater);
+            p_impl->Draw(materialIndexOfcbv10AndLater);
             EngineCore::MarkDrawerInFrame(p_impl);
         }
     }

@@ -199,7 +199,7 @@ struct Demo_ShadowMap_impl
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
             )
-            .setCbv4AndLater({skydome_b4})
+            .setCbv10AndLater({skydome_b4})
         };
 
         for (int i = 0; i < cascadeShadowMapCount; ++i)
@@ -235,7 +235,7 @@ struct Demo_ShadowMap_impl
                 ModelDrawerParams{}
                 .setModel(s_resource->playerModel)
                 .setShader(s_resource->phong)
-                .setCbv4AndLater({s_resource->phongLight})
+                .setCbv10AndLater({s_resource->phongLight})
             };
 
             // m_playerShadowDrawer = ModelDrawer{
@@ -252,7 +252,7 @@ struct Demo_ShadowMap_impl
                 .setModel(s_resource->playerModel)
                 .setShader(s_resource->shadowMapCaster)
                 .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
-                .setCbv4AndLater({m_playerShadowDrawerConstantBuffers})
+                .setCbv10AndLater({m_playerShadowDrawerConstantBuffers})
             };
         }
 
@@ -271,8 +271,8 @@ struct Demo_ShadowMap_impl
                 .setComparison(GraphicsComparisonFunction::Greater)
                 .setMaxAnisotropy(1)
             }))
-            .setCbv4AndLater({s_resource->phongLight, s_resource->shadowMap_cb})
-            .setSrv1AndLater({
+            .setCbv10AndLater({s_resource->phongLight, s_resource->shadowMap_cb})
+            .setSrv10AndLater({
                 m_shadowMaps[0].asShaderResource(),
                 m_shadowMaps[1].asShaderResource(),
                 m_shadowMaps[2].asShaderResource()

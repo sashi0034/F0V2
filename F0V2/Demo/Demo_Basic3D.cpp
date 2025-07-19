@@ -170,7 +170,7 @@ struct Demo_Basic3D_impl
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
             )
-            .setCbv4AndLater({skydome_b4})
+            .setCbv10AndLater({skydome_b4})
         };
 
         const auto groundPlaneTexture = makeGroundPlane(
@@ -185,7 +185,7 @@ struct Demo_Basic3D_impl
             ModelDrawerParams{}
             .setModel(s_resource->playerModel)
             .setShader(s_resource->phong)
-            .setCbv4AndLater({s_resource->phongLight})
+            .setCbv10AndLater({s_resource->phongLight})
         };
 
         m_playerPose.position.y = groundPositionY + 15.0f;
@@ -194,7 +194,7 @@ struct Demo_Basic3D_impl
             ModelDrawerParams{}
             .setModel(s_resource->mountainModel)
             .setShader(s_resource->phong)
-            .setCbv4AndLater({s_resource->phongLight})
+            .setCbv10AndLater({s_resource->phongLight})
         };
     }
 
