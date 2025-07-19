@@ -15,7 +15,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_ShadowMap();
+    Demo_Basic3D();
 #else
     using namespace TY;
 

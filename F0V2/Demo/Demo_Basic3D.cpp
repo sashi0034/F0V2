@@ -103,7 +103,14 @@ namespace
         return ShaderResourceTexture{image};
     }
 
-    struct CommonResource : IInlineComponent
+    constexpr float groundPositionY = -10.0f;
+
+    constexpr float fovFarZ = 1000.0f;
+}
+
+struct Demo_Basic3D_impl
+{
+    struct
     {
         GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
 
@@ -114,27 +121,20 @@ namespace
         GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
 
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
+    } m_shaders;
 
+    struct
+    {
         ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
 
         ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
+    } m_models;
 
+    struct
+    {
         ConstantBuffer<PhongLight_b4> phongLight{};
+    } m_cb;
 
-        CommonResource()
-        {
-        }
-    };
-
-    InlineComponent<CommonResource> s_resource{};
-
-    constexpr float groundPositionY = -10.0f;
-
-    constexpr float fovFarZ = 1000.0f;
-}
-
-struct Demo_Basic3D_impl
-{
     SimpleCamera3D m_camera{};
 
     ModelDrawer m_skydomeModel{};
@@ -165,7 +165,7 @@ struct Demo_Basic3D_impl
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShader(s_resource->skydome)
+            .setShader(m_shaders.skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
@@ -178,23 +178,23 @@ struct Demo_Basic3D_impl
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(Shape3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
-            .setShader(s_resource->model)
+            .setShader(m_shaders.model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
         m_playerDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(s_resource->playerModel)
-            .setShader(s_resource->phong)
-            .setCbv10AndLater({s_resource->phongLight})
+            .setModel(m_models.playerModel)
+            .setShader(m_shaders.phong)
+            .setCbv10AndLater({m_cb.phongLight})
         };
 
         m_playerPose.position.y = groundPositionY + 15.0f;
 
         m_mountainDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(s_resource->mountainModel)
-            .setShader(s_resource->phong)
-            .setCbv10AndLater({s_resource->phongLight})
+            .setModel(m_models.mountainModel)
+            .setShader(m_shaders.phong)
+            .setCbv10AndLater({m_cb.phongLight})
         };
     }
 
@@ -237,12 +237,12 @@ struct Demo_Basic3D_impl
             Graphics3D::SetProjectionMatrix(m_projectionMat);
         }
 
-        s_resource->phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
-        s_resource->phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-        s_resource->phongLight->eyePosition = m_camera.eyePosition();
-        s_resource->phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
+        m_cb.phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
+        m_cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
+        m_cb.phongLight->eyePosition = m_camera.eyePosition();
+        m_cb.phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
 
-        s_resource->phongLight.upload();
+        m_cb.phongLight.upload();
 
         m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
         m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
@@ -273,9 +273,9 @@ struct Demo_Basic3D_impl
                         targetPosition.z);
 
             ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
-                        s_resource->phongLight->lightDirection.x,
-                        s_resource->phongLight->lightDirection.y,
-                        s_resource->phongLight->lightDirection.z);
+                        m_cb.phongLight->lightDirection.x,
+                        m_cb.phongLight->lightDirection.y,
+                        m_cb.phongLight->lightDirection.z);
 
             ImGui::Separator();
 
