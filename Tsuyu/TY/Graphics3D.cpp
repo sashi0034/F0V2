@@ -23,11 +23,20 @@ namespace TY
 
     void Graphics3D::DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer)
     {
-        vertexBuffer.commandSet();
-        indexBuffer.commandSet();
-
         const auto commandList = EngineRenderContext::ActiveCommandList();
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        commandList->DrawIndexedInstanced(indexBuffer.count(), 1, 0, 0, 0);
+
+        if (not vertexBuffer.isEmpty())
+        {
+            vertexBuffer.commandSet();
+            indexBuffer.commandSet();
+
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            commandList->DrawIndexedInstanced(indexBuffer.count(), 1, 0, 0, 0);
+        }
+        else
+        {
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            commandList->DrawInstanced(indexBuffer.count(), 1, 0, 0);
+        }
     }
 }

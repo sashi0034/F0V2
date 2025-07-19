@@ -78,6 +78,11 @@ namespace TY
         }
     }
 
+    bool VertexBufferCore::isEmpty() const
+    {
+        return p_impl == nullptr;
+    }
+
     void VertexBufferCore::upload(const void* data)
     {
         if (not p_impl) return;

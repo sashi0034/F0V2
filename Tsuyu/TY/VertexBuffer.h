@@ -10,6 +10,8 @@ namespace TY
 
         VertexBufferCore(int sizeInBytes, int strideInBytes);
 
+        bool isEmpty() const;
+
         void upload(const void* data);
 
         void commandSet() const;

@@ -82,7 +82,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
         return m_materialCbv;
     }
 
-    const Array<Array<ShaderResourceType>>& materialSrv() const override
+    Array<Array<ShaderResourceType>> materialSrv() const override
     {
         return m_materialSrv;
     }

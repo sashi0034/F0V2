@@ -154,6 +154,7 @@
     <Content Include="asset\shader\skydome.hlsl" />
     <Content Include="asset\shader\shadow_caster.hlsl" />
     <Content Include="asset\shader\r32_float_visualizer.hlsl" />
+    <Content Include="asset\shader\dynamic_ocean.hlsl" />
     <ClCompile Include="Demo\Demo_AirCombat.cpp" />
     <ClCompile Include="Demo\Demo_Basic3D.cpp" />
     <ClCompile Include="Demo\Demo_Ocean.cpp" />

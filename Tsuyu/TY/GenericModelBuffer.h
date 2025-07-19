@@ -32,6 +32,6 @@ namespace TY
         virtual ConstantBufferUploaderCore materialCbv() const = 0;
 
         /// @remark [textureCount][materialCount]
-        virtual const Array<Array<ShaderResourceType>>& materialSrv() const = 0;
+        virtual Array<Array<ShaderResourceType>> materialSrv() const = 0;
     };
 }

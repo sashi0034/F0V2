@@ -103,6 +103,42 @@ namespace
     constexpr float groundPositionY = -10.0f;
 
     constexpr float fovFarZ = 1000.0f;
+
+    struct OceanModelBuffer : IGenericModelBuffer
+    {
+        GenericModelShapeBufferElement m_shape{};
+
+        OceanModelBuffer()
+        {
+            m_shape.materialIndex = 0;
+            m_shape.indexBuffer = IndexBuffer{3 * 3 * 6}; // TODO: 数値修正 & 最適化
+        }
+
+        int shapeCount() const override
+        {
+            return 1; // Assuming a single shape for the ocean
+        }
+
+        GenericModelShapeBufferElement shapeAt(int index) const override
+        {
+            return m_shape;
+        }
+
+        int materialCount() const override
+        {
+            return 1; // Assuming a single material for the ocean
+        }
+
+        ConstantBufferUploaderCore materialCbv() const override
+        {
+            return ConstantBufferUploaderCore{1};
+        }
+
+        Array<Array<ShaderResourceType>> materialSrv() const override
+        {
+            return {};
+        }
+    };
 }
 
 struct Demo_Ocean_impl
@@ -118,6 +154,8 @@ struct Demo_Ocean_impl
         GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
 
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
+
+        GraphicsShader dynamic_ocean{GraphicsShader::VS_PS("asset/shader/dynamic_ocean.hlsl")};
     } m_shaders;
 
     struct
@@ -146,6 +184,8 @@ struct Demo_Ocean_impl
     Pose m_playerPose{};
 
     ModelDrawer m_mountainDrawer{};
+
+    GenericModelDrawer m_oceanDrawer{};
 
     Demo_Ocean_impl()
     {
@@ -192,6 +232,18 @@ struct Demo_Ocean_impl
             .setModel(m_models.mountainModel)
             .setShader(m_shaders.phong)
             .setCbv10AndLater({m_cb.phongLight})
+        };
+
+        auto oceanModel = std::make_shared<OceanModelBuffer>();
+
+        m_oceanDrawer = GenericModelDrawer{
+            GenericModelDrawerParams{}
+            .setModel(oceanModel)
+            .setVertexInput({})
+            .setShader(m_shaders.dynamic_ocean)
+            .setOptions(GraphicsOptions::Default3D()
+                .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
+            )
         };
     }
 
@@ -251,7 +303,9 @@ struct Demo_Ocean_impl
 
         m_groundPlaneDrawer.draw();
 
-        m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
+        // m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
+
+        m_oceanDrawer.draw();
 
         m_playerDrawer.draw();
 

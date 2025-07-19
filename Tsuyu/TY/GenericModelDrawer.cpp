@@ -39,11 +39,13 @@ struct GenericModelDrawer::Impl : IEngineDrawer
     Impl(const GenericModelDrawerParams& params)
         : m_modelBuffer(params.model)
     {
+        auto materialSrv = m_modelBuffer->materialSrv();
+
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
                 {1, 0, 0}, // [0]
                 {1, 0, 0}, // [1]
-                {1, 1, 0}, // [2]
+                {1, materialSrv.size(), 0}, // [2]
             },
             .materialCounts = {
                 1, // [0]
@@ -53,7 +55,7 @@ struct GenericModelDrawer::Impl : IEngineDrawer
             .descriptors = {
                 CbvSrvUavSet{{EngineRenderContext::GetSceneState3D_CB0()}, {}, {}}, // [0]
                 CbvSrvUavSet{{m_cb1}, {}, {}}, // [1]
-                CbvSrvUavSet{{m_modelBuffer->materialCbv()}, m_modelBuffer->materialSrv(), {}}, // [2],
+                CbvSrvUavSet{{m_modelBuffer->materialCbv()}, std::move(materialSrv), {}}, // [2],
             },
         };
 
