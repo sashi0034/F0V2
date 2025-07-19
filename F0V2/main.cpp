@@ -5,6 +5,7 @@
 #include "Demo/Demo_AirCombat.h"
 #include "Demo/Demo_Basic3D.h"
 #include "Demo/Demo_Gpgpu.h"
+#include "Demo/Demo_Ocean.h"
 #include "Demo/Demo_RenderTarget.h"
 #include "Demo/Demo_ShadowMap.h"
 #include "TY/System.h"
@@ -15,7 +16,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_Basic3D();
+    Demo_Ocean();
 #else
     using namespace TY;
 

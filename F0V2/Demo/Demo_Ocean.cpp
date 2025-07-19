@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Demo_Basic3D.h"
+#include "Demo_Ocean.h"
 
 #include "TY/ConstantBuffer.h"
 #include "TY/Gamepad.h"
@@ -105,7 +105,7 @@ namespace
     constexpr float fovFarZ = 1000.0f;
 }
 
-struct Demo_Basic3D_impl
+struct Demo_Ocean_impl
 {
     struct
     {
@@ -147,7 +147,7 @@ struct Demo_Basic3D_impl
 
     ModelDrawer m_mountainDrawer{};
 
-    Demo_Basic3D_impl()
+    Demo_Ocean_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -306,9 +306,9 @@ private:
     }
 };
 
-void Demo_Basic3D()
+void Demo_Ocean()
 {
-    Demo_Basic3D_impl impl{};
+    Demo_Ocean_impl impl{};
 
     Scene::RequestResize({1920, 1080});
 
