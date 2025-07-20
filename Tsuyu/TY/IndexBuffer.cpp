@@ -10,10 +10,28 @@ using namespace TY::detail;
 struct IndexBuffer::Impl
 {
     bool m_valid{};
+
+    int m_indexCount{};
+
+    virtual ~Impl() = default;
+
+    virtual void Upload(const Array<index_type>& indices) = 0;
+
+    virtual void CommandSet() const = 0;
+
+    // -----------------------------------------------
+
+    struct Default;
+
+    struct Placeholder;
+};
+
+struct IndexBuffer::Impl::Default : Impl
+{
     ComPtr<ID3D12Resource> m_indexBuffer{};
     D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
 
-    Impl(int count)
+    Default(int count)
     {
         const auto device = EngineRenderContext::GetDevice();
 
@@ -40,10 +58,12 @@ struct IndexBuffer::Impl
         m_indexBufferView.SizeInBytes = resourceDesc.Width;
         m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
+        m_indexCount = count;
+
         m_valid = true;
     }
 
-    void Upload(const Array<index_type>& indices)
+    void Upload(const Array<index_type>& indices) override
     {
         index_type* indexMap{};
 
@@ -59,10 +79,30 @@ struct IndexBuffer::Impl
         m_indexBuffer->Unmap(0, nullptr); // TODO: Unmap タイミング調整
     }
 
-    void CommandSet() const
+    void CommandSet() const override
     {
         const auto commandList = EngineRenderContext::ActiveCommandList();
         commandList->IASetIndexBuffer(&m_indexBufferView);
+    }
+};
+
+struct IndexBuffer::Impl::Placeholder : Impl
+{
+    Placeholder(int count)
+    {
+        m_indexCount = count;
+
+        m_valid = true;
+    }
+
+    void Upload(const Array<index_type>&) override
+    {
+        LogError.writeln("IndexBuffer: Upload called on Placeholder implementation.");
+    }
+
+    void CommandSet() const override
+    {
+        LogError.writeln("IndexBuffer: CommandSet called on Placeholder implementation.");
     }
 };
 
@@ -72,7 +112,7 @@ namespace TY
     {
     }
 
-    IndexBuffer::IndexBuffer(int count) : p_impl(std::make_shared<Impl>(count))
+    IndexBuffer::IndexBuffer(int count) : p_impl(std::make_shared<Impl::Default>(count))
     {
         if (not p_impl->m_valid)
         {
@@ -81,7 +121,7 @@ namespace TY
         }
     }
 
-    IndexBuffer::IndexBuffer(const Array<index_type>& indices) : p_impl(std::make_shared<Impl>(indices.size()))
+    IndexBuffer::IndexBuffer(const Array<index_type>& indices) : p_impl(std::make_shared<Impl::Default>(indices.size()))
     {
         if (not p_impl->m_valid)
         {
@@ -107,6 +147,13 @@ namespace TY
     int IndexBuffer::count() const
     {
         if (not p_impl) return {};
-        return p_impl->m_indexBufferView.SizeInBytes / sizeof(index_type);
+        return p_impl->m_indexCount;
+    }
+
+    IndexBuffer IndexBuffer::Placeholder(int count)
+    {
+        IndexBuffer result;
+        result.p_impl = std::make_shared<Impl::Placeholder>(count);
+        return result;
     }
 }

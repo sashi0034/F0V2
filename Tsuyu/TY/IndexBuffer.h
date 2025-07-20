@@ -20,6 +20,10 @@ namespace TY
 
         int count() const;
 
+        /// @brief 実態が存在しない IndexBuffer を生成する
+        /// @remark VS で SV_VertexID のみ使用する場合に用いることで無駄なバッファを削減出来る
+        static IndexBuffer Placeholder(int count);
+
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl;

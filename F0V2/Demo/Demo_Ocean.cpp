@@ -111,7 +111,7 @@ namespace
         OceanModelBuffer()
         {
             m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer{3 * 3 * 6}; // TODO: 数値修正 & 最適化
+            m_shape.indexBuffer = IndexBuffer::Placeholder(3 * 3 * 6); // TODO: 数値修正
         }
 
         int shapeCount() const override
@@ -225,7 +225,7 @@ struct Demo_Ocean_impl
             .setCbv10AndLater({m_cb.phongLight})
         };
 
-        m_playerPose.position.y = groundPositionY + 15.0f;
+        m_playerPose.position.y = groundPositionY + 30.0f;
 
         m_mountainDrawer = ModelDrawer{
             ModelDrawerParams{}
