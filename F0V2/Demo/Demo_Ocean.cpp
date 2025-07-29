@@ -104,6 +104,14 @@ namespace
 
     constexpr float fovFarZ = 1000.0f;
 
+    constexpr int oceanDensity = 128;
+
+    struct DynamicOcean_cb
+    {
+        int g_gridDensity;
+        float g_gridSize;
+    };
+
     struct OceanModelBuffer : IGenericModelBuffer
     {
         GenericModelShapeBufferElement m_shape{};
@@ -111,7 +119,7 @@ namespace
         OceanModelBuffer()
         {
             m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder(3 * 3 * 6); // TODO: 数値修正
+            m_shape.indexBuffer = IndexBuffer::Placeholder((oceanDensity - 1) * (oceanDensity - 1) * 6);
         }
 
         int shapeCount() const override
@@ -168,6 +176,7 @@ struct Demo_Ocean_impl
     struct
     {
         ConstantBuffer<PhongLight_b4> phongLight{};
+        ConstantBuffer<DynamicOcean_cb> dynamicOcean{};
     } m_cb;
 
     SimpleCamera3D m_camera{};
@@ -244,7 +253,12 @@ struct Demo_Ocean_impl
             .setOptions(GraphicsOptions::Default3D()
                 .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
             )
+            .setCbv10AndLater({m_cb.dynamicOcean})
         };
+
+        m_cb.dynamicOcean->g_gridDensity = oceanDensity;
+        m_cb.dynamicOcean->g_gridSize = 50.0f;
+        m_cb.dynamicOcean.upload();
     }
 
     void Update()

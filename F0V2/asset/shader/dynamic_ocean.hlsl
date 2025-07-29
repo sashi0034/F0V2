@@ -21,12 +21,10 @@ cbuffer ModelMaterial : register(b2)
     float g_shininess;
 }
 
-cbuffer PhongLight : register(b10)
+cbuffer DynamicOcean : register(b10)
 {
-    float3 g_lightDirection;
-    float3 g_lightColor;
-    float3 g_eyePosition;
-    float3 g_ambientLight;
+    int g_gridDensity;
+    float g_gridSize;
 }
 
 struct PSInput
@@ -42,9 +40,6 @@ PSInput VS(uint id : SV_VertexID)
 {
     PSInput result;
 
-    const int gridResolution = 4; // 4x4 頂点
-    const float gridSize = 3.0f; // グリッド幅 3.0
-
     // id から x, z のグリッド座標
     const int xOffset6[6] = {0, 1, 0, 1, 1, 0};
     const int zOffset6[6] = {0, 0, 1, 0, 1, 1};
@@ -52,17 +47,17 @@ PSInput VS(uint id : SV_VertexID)
     int quadId = id / 6;
     int vertexInQuad = id % 6;
 
-    // 四角形のX,Zインデックス
-    int quadX = quadId % (gridResolution - 1);
-    int quadZ = quadId / (gridResolution - 1);
+    // 四角形の X,Z インデックス
+    int quadX = quadId % (g_gridDensity - 1);
+    int quadZ = quadId / (g_gridDensity - 1);
 
-    // グリッド上の頂点X,Zインデックス
+    // グリッド上の頂点 X, Z インデックス
     int xIndex = quadX + xOffset6[vertexInQuad];
     int zIndex = quadZ + zOffset6[vertexInQuad];
 
-    // [-1.5, +1.5] の範囲にマッピング
-    float x = ((float)xIndex / (gridResolution - 1)) * gridSize - (gridSize * 0.5f);
-    float z = ((float)zIndex / (gridResolution - 1)) * gridSize - (gridSize * 0.5f);
+    // 平面にマッピング
+    float x = ((float)xIndex / (g_gridDensity - 1)) * g_gridSize - (g_gridSize * 0.5f);
+    float z = ((float)zIndex / (g_gridDensity - 1)) * g_gridSize - (g_gridSize * 0.5f);
 
     // y 波形
     float y = sin(x * 3.0f) * cos(z * 3.0f);
