@@ -58,43 +58,36 @@ static const WaveElement g_waves[WAVE_COUNT] = {
 };
 
 // ガースナー波
-float3 gerstnerWavePosition(float3 pos, float time, out float3 normal)
+// https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
+float3 gerstnerWavePosition(float3 pos, out float3 normal)
 {
     float3 newPos = pos;
 
-    float3 n = float3(0, 0, 0); // 法線初期値
-
     const float gridStep = g_gridSize / (g_gridDensity - 1);
+
+    float3 n = float3(0, 1, 0);
 
     for (int i = 0; i < WAVE_COUNT; ++i)
     {
-        WaveElement w = g_waves[i];
-        float k = 2 * PI / w.wavelength;
-        float a = w.amplitude;
-        const float q = (2.0f) * gridStep / WAVE_COUNT; // TODO: 急峻さの部分をパラメータ化
+        const WaveElement wave = g_waves[i];
 
-        float f = k * dot(w.direction, pos.xz) - w.speed * time;
+        const float w = 2 * PI / wave.wavelength;
+        const float a = wave.amplitude;
+        const float wa = w * a;
+        const float2 dir = wave.direction;
+        const float q = ((3.0f) * gridStep / WAVE_COUNT) / a; // TODO: 急峻さの部分をパラメータ化
+
+        const float phase = w * dot(dir, pos.xz) - wave.speed * g_time;
 
         // 頂点の変位
-        newPos.x += w.direction.x * (q * cos(f));
-        newPos.y += a * sin(f);
-        newPos.z += w.direction.y * (q * cos(f));
+        newPos.x += q * a * dir.x * cos(phase);
+        newPos.y += a * sin(phase);
+        newPos.z += q * a * dir.y * cos(phase);
 
-        // x, z 軸方向の接線ベクトルを計算 (変位を各軸方向に偏微分したものと軸の方向ベクトルを加算)
-        float3 tangentX = float3(
-            1 + w.direction.x * (-q * sin(f)) * (k * w.direction.x),
-            a * cos(f) * (k * w.direction.x),
-            w.direction.y * (-q * sin(f)) * (k * w.direction.x)
-        );
-
-        float3 tangentZ = float3(
-            w.direction.x * (-q * sin(f)) * (k * w.direction.y),
-            a * cos(f) * (k * w.direction.y),
-            1 + w.direction.y * (-q * sin(f)) * (k * w.direction.y)
-        );
-
-        // 接線ベクトルの外積を累積
-        n += cross(tangentZ, tangentX);
+        // 法線の計算
+        n.x += -dir.x * wa * cos(phase);
+        n.y += -q * wa * sin(phase);
+        n.z += -dir.y * wa * cos(phase);
     }
 
     normal = normalize(n);
@@ -126,7 +119,7 @@ PSInput VS(uint id : SV_VertexID)
 
     float3 basePos = float3(x, 0, z);
     float3 normal;
-    float3 displacedPos = gerstnerWavePosition(basePos, g_time, normal);
+    float3 displacedPos = gerstnerWavePosition(basePos, normal);
 
     result.worldPosition = float4(displacedPos, 1.0f);
 
@@ -141,18 +134,33 @@ PSInput VS(uint id : SV_VertexID)
 
 float4 PS(PSInput input) : SV_TARGET
 {
-    return float4(input.normal, 1);
+    const float3 N = normalize(input.normal);
+    const float3 L = normalize(-g_lightDirection); // ライト方向
+    const float3 V = normalize(g_eyePosition - input.worldPosition.xyz); // カメラ方向
 
-    const float3 ambientColor = float4(0.1f, 0.1f, 0.2f, 1.0f);
+    // 拡散反射
+    float diff = max(dot(N, L), 0.0);
 
-    const float3 waterDiffuse = float3(0.3, 1, 1);
-    const float3 diffuseColor = waterDiffuse * max(dot(input.normal, -float3(0.3, -1, 0.3)), 0.0f);
+    // Blinn-Phong ハーフベクトル
+    const float3 H = normalize(L + V);
 
-    // const float3 viewDirection = normalize(g_eyePosition - input.worldPosition.xyz);
-    // const float3 reflectDirection = reflect(g_lightDirection, input.normal);
-    // const float specularStrength = pow(max(dot(viewDirection, reflectDirection), 0.0f), g_shininess);
-    // const float3 specularColor = float3(0.9, 0.9, 0.9) * specularStrength;
+    // 鏡面反射 (ハーフベクトルと法線のドットのべき乗)
+    float spec = 0.0;
+    if (diff > 0.0)
+    {
+        const float specPower = 3.0;
+        spec = pow(max(dot(N, H), 0.0), specPower);
+    }
 
-    const float3 finalColor = ambientColor + diffuseColor;
-    return float4(finalColor, 1.0f);
+    const float3 diffuseColor = float3(0.2, 0.5, 0.7);
+    const float3 lightColor = float3(0.3f, 0.4f, 0.4f);
+
+    const float3 diffuseOutput = diffuseColor * diff;
+    const float3 specularOutput = lightColor * spec;
+
+    const float3 ambientColor = float3(0.1f, 0.1f, 0.2f);
+
+    const float3 finalColor = (diffuseOutput + specularOutput + ambientColor);
+
+    return float4(finalColor, 1.0);
 }
