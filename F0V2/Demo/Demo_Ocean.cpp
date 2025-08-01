@@ -110,6 +110,7 @@ namespace
     {
         int g_gridDensity;
         float g_gridSize;
+        float g_time;
     };
 
     struct OceanModelBuffer : IGenericModelBuffer
@@ -299,6 +300,9 @@ struct Demo_Ocean_impl
 
             Graphics3D::SetProjectionMatrix(m_projectionMat);
         }
+
+        m_cb.dynamicOcean->g_time += System::DeltaTime();
+        m_cb.dynamicOcean.upload();
 
         m_cb.phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
         m_cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};

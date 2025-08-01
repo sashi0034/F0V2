@@ -25,6 +25,7 @@ cbuffer DynamicOcean : register(b10)
 {
     int g_gridDensity;
     float g_gridSize;
+    float g_time;
 }
 
 struct PSInput
@@ -60,7 +61,7 @@ PSInput VS(uint id : SV_VertexID)
     float z = ((float)zIndex / (g_gridDensity - 1)) * g_gridSize - (g_gridSize * 0.5f);
 
     // y 波形
-    float y = sin(x * 3.0f) * cos(z * 3.0f);
+    float y = sin((x + g_time) * 3.0f) * cos((z + g_time) * 3.0f);
 
     result.worldPosition = float4(x, y, z, 1.0f);
 
@@ -74,6 +75,6 @@ PSInput VS(uint id : SV_VertexID)
 float4 PS(PSInput input) : SV_TARGET
 {
     float4 finalColor = float4(1, 1, 1, 1);
-    finalColor.r = abs(input.worldPosition.y) * 10.0f;
+    finalColor.r = abs(input.worldPosition.y);
     return float4(finalColor);
 }
