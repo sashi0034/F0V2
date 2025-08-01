@@ -37,7 +37,7 @@ namespace TY
         }
 
         template <typename OtherType> requires std::is_convertible_v<OtherType, value_type>
-        [[nodiscard]] Vector3D(const Vector3D<OtherType>& rhs) : x(rhs.x), y(rhs.y), z(rhs.z)
+        constexpr Vector3D(const Vector3D<OtherType>& rhs) : x(rhs.x), y(rhs.y), z(rhs.z)
         {
         }
 
@@ -177,7 +177,7 @@ namespace TY
             return std::sqrt(this->dot(*this));
         }
 
-        [[nodiscard]] constexpr Vector3D normalized() const
+        [[nodiscard]] Vector3D normalized() const
         {
             const auto length = this->length();
             return length == 0 ? Vector3D{} : *this / length;

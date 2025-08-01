@@ -108,9 +108,15 @@ namespace
 
     struct DynamicOcean_cb
     {
-        int g_gridDensity;
-        float g_gridSize;
-        float g_time;
+        struct
+        {
+            int g_gridDensity;
+            float g_gridSize;
+            float g_time;
+        };
+
+        alignas(16) Float3 g_lightDirection;
+        alignas(16) Float3 g_eyePosition;
     };
 
     struct OceanModelBuffer : IGenericModelBuffer
@@ -301,17 +307,21 @@ struct Demo_Ocean_impl
             Graphics3D::SetProjectionMatrix(m_projectionMat);
         }
 
+        const auto lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
+
         m_cb.dynamicOcean->g_time += System::DeltaTime();
+        m_cb.dynamicOcean->g_eyePosition = m_camera.eyePosition();
+        m_cb.dynamicOcean->g_lightDirection = lightDirection;
         m_cb.dynamicOcean.upload();
 
-        m_cb.phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
+        m_cb.phongLight->lightDirection = lightDirection;
         m_cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
         m_cb.phongLight->eyePosition = m_camera.eyePosition();
         m_cb.phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
 
         m_cb.phongLight.upload();
 
-        m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
+        m_planeLight->lightDirection = lightDirection;
         m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
         m_planeLight.upload();
 
