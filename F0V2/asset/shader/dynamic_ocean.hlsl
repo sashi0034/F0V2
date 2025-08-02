@@ -163,10 +163,9 @@ float4 PS(PSInput input) : SV_TARGET
 
     // -----------------------------------------------
 
-    const float dist = input.position.z;
-    const float fogStart = 0.9999; // TODO: eye の y を考慮?
-    const float fogEnd = 1.0;
-    float fogFactor = saturate((dist - fogStart) / (fogEnd - fogStart));
+    const float fogStart = 200.0f;
+    const float fogEnd = 1000.0f; // TODO
+    float fogFactor = saturate((input.position.w - fogStart) / (fogEnd - fogStart));
     float3 fogColor = float3(0.8, 0.8, 0.9);
     finalColor = lerp(finalColor, fogColor, fogFactor);
 
