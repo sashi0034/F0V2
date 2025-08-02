@@ -168,6 +168,8 @@ struct Demo_Ocean_impl
 
         GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
 
+        GraphicsShader blinn_phong{GraphicsShader::VS_PS("asset/shader/blinn_phong.hlsl")};
+
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
 
         GraphicsShader dynamic_ocean{GraphicsShader::VS_PS("asset/shader/dynamic_ocean.hlsl")};
@@ -195,6 +197,8 @@ struct Demo_Ocean_impl
     ConstantBuffer<LambertLight_b4> m_planeLight{};
 
     ModelDrawer m_groundPlaneDrawer{};
+
+    ModelDrawer m_plainPlaneDrawer{};
 
     ModelDrawer m_playerDrawer{};
     Pose m_playerPose{};
@@ -233,6 +237,13 @@ struct Demo_Ocean_impl
             .setModel(Shape3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
             .setShader(m_shaders.model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
+
+        m_plainPlaneDrawer = ModelDrawer{
+            ModelDrawerParams{}
+            .setModel(Shape3D::Plane(Float2{50.0f, 50.0f}, ColorU8{32, 200, 200, 255}.toColorF32()))
+            .setShader(m_shaders.blinn_phong)
+            .setCbv10AndLater({m_cb.phongLight})
+        };
 
         m_playerDrawer = ModelDrawer{
             ModelDrawerParams{}
@@ -309,7 +320,13 @@ struct Demo_Ocean_impl
 
         const auto lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
 
-        m_cb.dynamicOcean->g_time += System::DeltaTime();
+        static bool s_oceanStop{};
+
+        if (not s_oceanStop)
+        {
+            m_cb.dynamicOcean->g_time += System::DeltaTime();
+        }
+
         m_cb.dynamicOcean->g_eyePosition = m_camera.eyePosition();
         m_cb.dynamicOcean->g_lightDirection = lightDirection;
         m_cb.dynamicOcean.upload();
@@ -318,7 +335,6 @@ struct Demo_Ocean_impl
         m_cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
         m_cb.phongLight->eyePosition = m_camera.eyePosition();
         m_cb.phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
-
         m_cb.phongLight.upload();
 
         m_planeLight->lightDirection = lightDirection;
@@ -331,11 +347,21 @@ struct Demo_Ocean_impl
 
         m_groundPlaneDrawer.draw();
 
+        m_plainPlaneDrawer.uploadWorldMatrix(Mat4x4::Translate({50.0f, -5.0f, 0.0f})).draw();
+
         // m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
         m_oceanDrawer.draw();
 
         m_playerDrawer.draw();
+
+        {
+            ImGui::Begin("Ocean Settings");
+
+            ImGui::Checkbox("Stop Ocean", &s_oceanStop);
+
+            ImGui::End();
+        }
 
         {
             ImGui::Begin("Camera");
