@@ -115,7 +115,7 @@ PSInput VS(uint id : SV_VertexID)
     float x = ((float)xIndex / (g_gridDensity - 1)) * g_gridSize - (g_gridSize * 0.5f);
     float z = ((float)zIndex / (g_gridDensity - 1)) * g_gridSize - (g_gridSize * 0.5f);
 
-    float3 basePos = float3(x, 0, z);
+    float3 basePos = float3(x, 0, z) + g_worldMatrix._14_24_34;
     float3 normal;
     float3 displacedPos = gerstnerWavePosition(basePos, normal);
 

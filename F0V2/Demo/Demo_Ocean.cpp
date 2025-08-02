@@ -206,7 +206,7 @@ struct Demo_Ocean_impl
 
     ModelDrawer m_mountainDrawer{};
 
-    GenericModelDrawer m_oceanDrawer{};
+    Array<GenericModelDrawer> m_oceanDrawer{};
 
     Demo_Ocean_impl()
     {
@@ -264,16 +264,19 @@ struct Demo_Ocean_impl
 
         auto oceanModel = std::make_shared<OceanModelBuffer>();
 
-        m_oceanDrawer = GenericModelDrawer{
-            GenericModelDrawerParams{}
-            .setModel(oceanModel)
-            .setVertexInput({})
-            .setShader(m_shaders.dynamic_ocean)
-            .setOptions(GraphicsOptions::Default3D()
-                .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
-            )
-            .setCbv10AndLater({m_cb.dynamicOcean})
-        };
+        for (int i = 0; i < 5; ++i)
+        {
+            m_oceanDrawer.push_back(GenericModelDrawer{
+                GenericModelDrawerParams{}
+                .setModel(oceanModel)
+                .setVertexInput({})
+                .setShader(m_shaders.dynamic_ocean)
+                .setOptions(GraphicsOptions::Default3D()
+                    .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
+                )
+                .setCbv10AndLater({m_cb.dynamicOcean})
+            });
+        }
     }
 
     void Update()
@@ -355,7 +358,11 @@ struct Demo_Ocean_impl
 
         // m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
-        m_oceanDrawer.draw();
+        m_oceanDrawer[0].uploadWorldMatrix(Mat4x4::Identity()).draw();
+        m_oceanDrawer[1].uploadWorldMatrix(Mat4x4::Translate(Float3{-s_oceanSettings.gridSize, 0, 0})).draw();
+        m_oceanDrawer[2].uploadWorldMatrix(Mat4x4::Translate(Float3{s_oceanSettings.gridSize, 0, 0})).draw();
+        m_oceanDrawer[3].uploadWorldMatrix(Mat4x4::Translate(Float3{0, 0, -s_oceanSettings.gridSize})).draw();
+        m_oceanDrawer[4].uploadWorldMatrix(Mat4x4::Translate(Float3{0, 0, s_oceanSettings.gridSize})).draw();
 
         m_playerDrawer.draw();
 
