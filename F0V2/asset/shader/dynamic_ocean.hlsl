@@ -148,15 +148,15 @@ float4 PS(PSInput input) : SV_TARGET
     float spec = 0.0;
     if (diff > 0.0)
     {
-        const float specPower = 3.0;
+        const float specPower = 5.0;
         spec = pow(max(dot(N, H), 0.0), specPower);
     }
 
     const float3 diffuseColor = float3(0.2, 0.5, 0.7);
-    const float3 lightColor = float3(0.3f, 0.4f, 0.4f);
+    const float3 specularColor = float3(0.2f, 0.3f, 0.3f);
 
     const float3 diffuseOutput = diffuseColor * diff;
-    const float3 specularOutput = lightColor * spec;
+    const float3 specularOutput = specularColor * spec;
 
     const float3 ambientColor = float3(0.1f, 0.1f, 0.2f);
 
