@@ -105,8 +105,6 @@ namespace
 
     constexpr float fovFarZ = 1000.0f;
 
-    constexpr int oceanDensity = 128;
-
     struct DynamicOcean_cb
     {
         struct
@@ -124,10 +122,10 @@ namespace
     {
         GenericModelShapeBufferElement m_shape{};
 
-        OceanModelBuffer()
+        OceanModelBuffer(int density)
         {
             m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder((oceanDensity - 1) * (oceanDensity - 1) * 6);
+            m_shape.indexBuffer = IndexBuffer::Placeholder((density - 1) * (density - 1) * 6);
         }
 
         int shapeCount() const override
@@ -154,6 +152,12 @@ namespace
         {
             return {};
         }
+    };
+
+    struct OceanObject
+    {
+        Point gridPoint;
+        GenericModelDrawer drawer;
     };
 }
 
@@ -206,7 +210,8 @@ struct Demo_Ocean_impl
 
     ModelDrawer m_mountainDrawer{};
 
-    Array<GenericModelDrawer> m_oceanDrawer{};
+    Array<OceanObject> m_oceanObjectsX128{};
+    Array<OceanObject> m_oceanObjectsX64{};
 
     Demo_Ocean_impl()
     {
@@ -262,30 +267,49 @@ struct Demo_Ocean_impl
             .setCbv10AndLater({m_cb.phongLight})
         };
 
-        auto oceanModel = std::make_shared<OceanModelBuffer>();
+        m_oceanObjectsX128 = makeOceanObjects(128);
+        m_oceanObjectsX64 = makeOceanObjects(64);
+    }
 
-        for (int i = 0; i < 5; ++i)
+    Array<OceanObject> makeOceanObjects(int density)
+    {
+        auto oceanModel = std::make_shared<OceanModelBuffer>(density);
+
+        Array<OceanObject> oceanObjects;
+        constexpr int maxVisibleRange = 5;
+        for (int x = -maxVisibleRange; x < maxVisibleRange; ++x)
         {
-            m_oceanDrawer.push_back(GenericModelDrawer{
-                GenericModelDrawerParams{}
-                .setModel(oceanModel)
-                .setVertexInput({})
-                .setShader(m_shaders.dynamic_ocean)
-                .setOptions(GraphicsOptions::Default3D()
-                    .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
-                )
-                .setCbv10AndLater({m_cb.dynamicOcean})
-            });
+            for (int y = -maxVisibleRange; y < maxVisibleRange; ++y)
+            {
+                OceanObject obj{};
+                obj.gridPoint = Point{x, y};
+
+                obj.drawer = GenericModelDrawer{
+                    GenericModelDrawerParams{}
+                    .setModel(oceanModel)
+                    .setVertexInput({})
+                    .setShader(m_shaders.dynamic_ocean)
+                    .setOptions(GraphicsOptions::Default3D()
+                        .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
+                    )
+                    .setCbv10AndLater({m_cb.dynamicOcean})
+                };
+
+                oceanObjects.push_back(obj);
+            }
         }
+
+        return oceanObjects;
     }
 
     void Update()
     {
         m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
 
-        if (not KeyShift.pressed())
+        if (not KeyControl.pressed())
         {
-            m_camera.transformBySimpleInput();
+            const float moveSpeed = KeyShift.pressed() ? 100.0f : 10.0f;
+            m_camera.transformBySimpleInput(InGameDeltaTime(), moveSpeed);
         }
         else
         {
@@ -323,10 +347,12 @@ struct Demo_Ocean_impl
         static struct
         {
             bool stop{};
-            float gridSize{100.0f};
+            float gridSize{500.0f};
+            bool subdivideX128{false};
+            int visibleRange{1};
         } s_oceanSettings{};
 
-        m_cb.dynamicOcean->g_gridDensity = oceanDensity;
+        m_cb.dynamicOcean->g_gridDensity = s_oceanSettings.subdivideX128 ? 128 : 64;
         m_cb.dynamicOcean->g_gridSize = s_oceanSettings.gridSize;
 
         if (not s_oceanSettings.stop)
@@ -358,11 +384,21 @@ struct Demo_Ocean_impl
 
         // m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
-        m_oceanDrawer[0].uploadWorldMatrix(Mat4x4::Identity()).draw();
-        m_oceanDrawer[1].uploadWorldMatrix(Mat4x4::Translate(Float3{-s_oceanSettings.gridSize, 0, 0})).draw();
-        m_oceanDrawer[2].uploadWorldMatrix(Mat4x4::Translate(Float3{s_oceanSettings.gridSize, 0, 0})).draw();
-        m_oceanDrawer[3].uploadWorldMatrix(Mat4x4::Translate(Float3{0, 0, -s_oceanSettings.gridSize})).draw();
-        m_oceanDrawer[4].uploadWorldMatrix(Mat4x4::Translate(Float3{0, 0, s_oceanSettings.gridSize})).draw();
+        for (const auto& obj : s_oceanSettings.subdivideX128 ? m_oceanObjectsX128 : m_oceanObjectsX64)
+        {
+            if (Max(Abs(obj.gridPoint.x), Abs(obj.gridPoint.y)) > s_oceanSettings.visibleRange)
+            {
+                continue;
+            }
+
+            const auto worldMatrix = Mat4x4::Translate(Float3{
+                obj.gridPoint.x * s_oceanSettings.gridSize,
+                0,
+                obj.gridPoint.y * s_oceanSettings.gridSize
+            });
+
+            obj.drawer.uploadWorldMatrix(worldMatrix).draw();
+        }
 
         m_playerDrawer.draw();
 
@@ -371,7 +407,11 @@ struct Demo_Ocean_impl
 
             ImGui::Checkbox("Stop Ocean", &s_oceanSettings.stop);
 
+            ImGui::Checkbox("Subdivide Ocean", &s_oceanSettings.subdivideX128);
+
             ImGui::InputFloat("Grid Size", &s_oceanSettings.gridSize, 1.0f, 10.0f, "%.2f");
+
+            ImGui::InputInt("Visible Range", &s_oceanSettings.visibleRange, 1, 10);
 
             ImGui::End();
         }

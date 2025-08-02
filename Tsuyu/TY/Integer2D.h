@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Math.h"
 
 namespace TY
 {
@@ -141,6 +142,21 @@ namespace TY
         [[nodiscard]] bool isZero() const noexcept
         {
             return x == 0 && y == 0;
+        }
+
+        [[nodiscard]] int manhattanLength() const noexcept
+        {
+            return std::abs(x) + std::abs(y);
+        }
+
+        [[nodiscard]] value_type maxComponent() const noexcept
+        {
+            return Max<value_type>(x, y);
+        }
+
+        [[nodiscard]] value_type minComponent() const noexcept
+        {
+            return Min<value_type>(x, y);
         }
 
         template <class OtherType> requires std::is_integral_v<OtherType>
