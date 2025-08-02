@@ -51,10 +51,10 @@ struct WaveElement
 
 static const int WAVE_COUNT = 4;
 static const WaveElement g_waves[WAVE_COUNT] = {
-    {normalize(float2(1, 0)), 8.0f, 0.5f, 3.0f},
+    {normalize(float2(2, 1)), 8.0f, 0.2f, 3.0f},
     {normalize(float2(1, -1)), 12.0f, 0.3f, 2.0f},
     {normalize(float2(-1, 2)), 5.0f, 0.2f, 5.0f},
-    {normalize(float2(-1, -3)), 15.0f, 0.4f, 4.0f},
+    {normalize(float2(-1, -3)), 15.0f, 0.3f, 4.0f},
 };
 
 // ガースナー波
@@ -62,8 +62,6 @@ static const WaveElement g_waves[WAVE_COUNT] = {
 float3 gerstnerWavePosition(float3 pos, out float3 normal)
 {
     float3 newPos = pos;
-
-    const float gridStep = g_gridSize / (g_gridDensity - 1);
 
     float3 n = float3(0, 1, 0);
 
@@ -75,11 +73,11 @@ float3 gerstnerWavePosition(float3 pos, out float3 normal)
         const float a = wave.amplitude;
         const float wa = w * a;
         const float2 dir = wave.direction;
-        const float q = ((0.5f) * gridStep / WAVE_COUNT) / a; // TODO: 急峻さの部分をパラメータ化
+        const float q = (0.5 / WAVE_COUNT) / a; // TODO: 急峻さの部分をパラメータ化
 
         const float phase = w * dot(dir, pos.xz) - wave.speed * g_time;
 
-        // 頂点の変位
+        // 変位の計算
         newPos.x += q * a * dir.x * cos(phase);
         newPos.y += a * sin(phase);
         newPos.z += q * a * dir.y * cos(phase);
@@ -134,7 +132,9 @@ PSInput VS(uint id : SV_VertexID)
 
 float4 PS(PSInput input) : SV_TARGET
 {
-    const float3 N = normalize(input.normal);
+    // return float4(input.normal, 1.0f);
+
+    float3 N = normalize(input.normal);
     const float3 L = normalize(-g_lightDirection); // ライト方向
     const float3 V = normalize(g_eyePosition - input.worldPosition.xyz); // カメラ方向
 
@@ -152,7 +152,7 @@ float4 PS(PSInput input) : SV_TARGET
         spec = pow(max(dot(N, H), 0.0), specPower);
     }
 
-    const float3 diffuseColor = float3(0.2, 0.5, 0.7);
+    const float3 diffuseColor = float3(0.2, 0.3, 0.3);
     const float3 specularColor = float3(0.2f, 0.3f, 0.3f);
 
     const float3 diffuseOutput = diffuseColor * diff;
