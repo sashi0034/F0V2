@@ -148,19 +148,27 @@ float4 PS(PSInput input) : SV_TARGET
     float spec = 0.0;
     if (diff > 0.0)
     {
-        const float specPower = 5.0;
+        const float specPower = 16.0;
         spec = pow(max(dot(N, H), 0.0), specPower);
     }
 
     const float3 diffuseColor = float3(0.2, 0.3, 0.3);
     const float3 specularColor = float3(0.2f, 0.3f, 0.3f);
+    const float3 ambientColor = float3(0.1f, 0.1f, 0.2f);
 
     const float3 diffuseOutput = diffuseColor * diff;
     const float3 specularOutput = specularColor * spec;
 
-    const float3 ambientColor = float3(0.1f, 0.1f, 0.2f);
+    float3 finalColor = (diffuseOutput + specularOutput + ambientColor);
 
-    const float3 finalColor = (diffuseOutput + specularOutput + ambientColor);
+    // -----------------------------------------------
+
+    const float dist = input.position.z;
+    const float fogStart = 0.9999; // TODO: eye の y を考慮?
+    const float fogEnd = 1.0;
+    float fogFactor = saturate((dist - fogStart) / (fogEnd - fogStart));
+    float3 fogColor = float3(0.8, 0.8, 0.9);
+    finalColor = lerp(finalColor, fogColor, fogFactor);
 
     return float4(finalColor, 1.0);
 }
