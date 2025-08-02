@@ -274,10 +274,6 @@ struct Demo_Ocean_impl
             )
             .setCbv10AndLater({m_cb.dynamicOcean})
         };
-
-        m_cb.dynamicOcean->g_gridDensity = oceanDensity;
-        m_cb.dynamicOcean->g_gridSize = 50.0f;
-        m_cb.dynamicOcean.upload();
     }
 
     void Update()
@@ -321,9 +317,16 @@ struct Demo_Ocean_impl
 
         const auto lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
 
-        static bool s_oceanStop{};
+        static struct
+        {
+            bool stop{};
+            float gridSize{100.0f};
+        } s_oceanSettings{};
 
-        if (not s_oceanStop)
+        m_cb.dynamicOcean->g_gridDensity = oceanDensity;
+        m_cb.dynamicOcean->g_gridSize = s_oceanSettings.gridSize;
+
+        if (not s_oceanSettings.stop)
         {
             m_cb.dynamicOcean->g_time += InGameDeltaTime();
         }
@@ -359,7 +362,9 @@ struct Demo_Ocean_impl
         {
             ImGui::Begin("Ocean Settings");
 
-            ImGui::Checkbox("Stop Ocean", &s_oceanStop);
+            ImGui::Checkbox("Stop Ocean", &s_oceanSettings.stop);
+
+            ImGui::InputFloat("Grid Size", &s_oceanSettings.gridSize, 1.0f, 10.0f, "%.2f");
 
             ImGui::End();
         }

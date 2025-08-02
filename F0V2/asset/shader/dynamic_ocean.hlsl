@@ -75,7 +75,7 @@ float3 gerstnerWavePosition(float3 pos, out float3 normal)
         const float a = wave.amplitude;
         const float wa = w * a;
         const float2 dir = wave.direction;
-        const float q = ((3.0f) * gridStep / WAVE_COUNT) / a; // TODO: 急峻さの部分をパラメータ化
+        const float q = ((0.5f) * gridStep / WAVE_COUNT) / a; // TODO: 急峻さの部分をパラメータ化
 
         const float phase = w * dot(dir, pos.xz) - wave.speed * g_time;
 
