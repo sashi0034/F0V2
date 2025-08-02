@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "GameTime.h"
 
+#include "Math.h"
 #include "detail/EngineComponent.h"
 #include "TY/Addon.h"
 #include "TY/IAddon.h"
@@ -12,17 +13,23 @@ namespace
 {
     struct TimeState
     {
-        double deltaTime{};
-        double elapsedTime{};
-        double timeScale = 1.0;
+        float deltaTime{};
+        float elapsedTime{};
+        float timeScale = 1.0;
+        float timeThreshold = FLT_MAX;
     };
 
     std::array<TimeState, GameTimeCategories_3> s_timeStates{};
+
+    constexpr float defaultTimeThreshold = 1.0 / 30; // 30 FPS
 
     struct GameTimeComponent : IComponent
     {
         bool init() override
         {
+            s_timeStates[static_cast<int>(GameTime::Standard)].timeThreshold = defaultTimeThreshold;
+            s_timeStates[static_cast<int>(GameTime::InGame)].timeThreshold = defaultTimeThreshold;
+
             return true;
         }
 
@@ -30,7 +37,7 @@ namespace
         {
             for (auto& state : s_timeStates)
             {
-                state.deltaTime = state.timeScale * System::DeltaTime();
+                state.deltaTime = state.timeScale * Min(System::DeltaTime(), state.timeThreshold);
                 state.elapsedTime += state.deltaTime;
             }
 
@@ -41,62 +48,72 @@ namespace
 
 namespace TY
 {
-    double StandardDeltaTime()
+    float StandardDeltaTime()
     {
         return s_timeStates[static_cast<int>(GameTime::Standard)].deltaTime;
     }
 
-    double InGameDeltaTime()
+    float InGameDeltaTime()
     {
         return s_timeStates[static_cast<int>(GameTime::InGame)].deltaTime;
     }
 
-    double RealDeltaTime()
+    float RealDeltaTime()
     {
         return s_timeStates[static_cast<int>(GameTime::Real)].deltaTime;
     }
 
-    double StandardElapsedTime()
+    float StandardElapsedTime()
     {
         return s_timeStates[static_cast<int>(GameTime::Standard)].elapsedTime;
     }
 
-    double InGameElapsedTime()
+    float InGameElapsedTime()
     {
         return s_timeStates[static_cast<int>(GameTime::InGame)].elapsedTime;
     }
 
-    double RealElapsedTime()
+    float RealElapsedTime()
     {
         return s_timeStates[static_cast<int>(GameTime::Real)].elapsedTime;
     }
 
-    double GetDeltaTime(GameTime gameTime)
+    float GetDeltaTime(GameTime gameTime)
     {
         return s_timeStates[static_cast<int>(gameTime)].deltaTime;
     }
 
-    void SetStandardTimeScale(double scale)
+    void SetStandardTimeScale(float scale)
     {
         s_timeStates[static_cast<int>(GameTime::Standard)].timeScale = scale;
     }
 
-    void SetInGameTimeScale(double scale)
+    void SetInGameTimeScale(float scale)
     {
         s_timeStates[static_cast<int>(GameTime::InGame)].timeScale = scale;
     }
 
-    double GetStandardTimeScale()
+    void SetStandardTimeThreshold(float threshold)
+    {
+        s_timeStates[static_cast<int>(GameTime::Standard)].timeThreshold = threshold;
+    }
+
+    void SetInGameTimeThreshold(float threshold)
+    {
+        s_timeStates[static_cast<int>(GameTime::InGame)].timeThreshold = threshold;
+    }
+
+    float GetStandardTimeScale()
     {
         return s_timeStates[static_cast<int>(GameTime::Standard)].timeScale;
     }
 
-    double GetInGameTimeScale()
+    float GetInGameTimeScale()
     {
         return s_timeStates[static_cast<int>(GameTime::InGame)].timeScale;
     }
 
-    double GetTimeScale(GameTime gameTime)
+    float GetTimeScale(GameTime gameTime)
     {
         return s_timeStates[static_cast<int>(gameTime)].timeScale;
     }

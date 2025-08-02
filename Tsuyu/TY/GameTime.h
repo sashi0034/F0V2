@@ -17,38 +17,42 @@ namespace TY
     constexpr int GameTimeCategories_3 = 3;
 
     [[nodiscard]]
-    double StandardDeltaTime();
+    float StandardDeltaTime();
 
     [[nodiscard]]
-    double InGameDeltaTime();
+    float InGameDeltaTime();
 
     [[nodiscard]]
-    double RealDeltaTime();
+    float RealDeltaTime();
 
     [[nodiscard]]
-    double StandardElapsedTime();
+    float StandardElapsedTime();
 
     [[nodiscard]]
-    double InGameElapsedTime();
+    float InGameElapsedTime();
 
     [[nodiscard]]
-    double RealElapsedTime();
+    float RealElapsedTime();
 
     [[nodiscard]]
-    double GetDeltaTime(GameTime gameTime);
+    float GetDeltaTime(GameTime gameTime);
 
-    void SetStandardTimeScale(double scale);
+    void SetStandardTimeScale(float scale);
 
-    void SetInGameTimeScale(double scale);
+    void SetInGameTimeScale(float scale);
 
-    [[nodiscard]]
-    double GetStandardTimeScale();
+    void SetStandardTimeThreshold(float threshold);
 
-    [[nodiscard]]
-    double GetInGameTimeScale();
+    void SetInGameTimeThreshold(float threshold);
 
     [[nodiscard]]
-    double GetTimeScale(GameTime gameTime);
+    float GetStandardTimeScale();
+
+    [[nodiscard]]
+    float GetInGameTimeScale();
+
+    [[nodiscard]]
+    float GetTimeScale(GameTime gameTime);
 
     void ResetTimeScale();
 }

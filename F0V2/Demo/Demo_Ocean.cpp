@@ -5,6 +5,7 @@
 
 #include "TY/ConstantBuffer.h"
 #include "TY/Gamepad.h"
+#include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
@@ -296,13 +297,13 @@ struct Demo_Ocean_impl
 
             const auto moveInput = SimpleInput::GetPlayerMovement3D();
             constexpr auto speed = 10.0f;
-            m_playerPose.position += forward * moveInput.z * speed * System::DeltaTime();
-            m_playerPose.position += right * moveInput.x * speed * System::DeltaTime();
-            m_playerPose.position += up * moveInput.y * speed * System::DeltaTime();
+            m_playerPose.position += forward * moveInput.z * speed * InGameDeltaTime();
+            m_playerPose.position += right * moveInput.x * speed * InGameDeltaTime();
+            m_playerPose.position += up * moveInput.y * speed * InGameDeltaTime();
 
             const auto rotateInput = SimpleInput::GetCameraRotation();
             constexpr auto rotationSpeed = 2.0f;
-            m_playerPose.rotation *= Quaternion::RotateY(rotateInput.x * rotationSpeed * System::DeltaTime());
+            m_playerPose.rotation *= Quaternion::RotateY(rotateInput.x * rotationSpeed * InGameDeltaTime());
         }
 
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());
@@ -324,7 +325,7 @@ struct Demo_Ocean_impl
 
         if (not s_oceanStop)
         {
-            m_cb.dynamicOcean->g_time += System::DeltaTime();
+            m_cb.dynamicOcean->g_time += InGameDeltaTime();
         }
 
         m_cb.dynamicOcean->g_eyePosition = m_camera.eyePosition();
