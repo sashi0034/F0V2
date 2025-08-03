@@ -78,17 +78,44 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
     {
         m_timestamp = System::FrameCount();
 
-        if (SUCCEEDED(createPipelineState(m_params))) return;
+        if (not m_params.shader.ps.isEmpty() && not m_params.shader.vs.isEmpty())
+        {
+            if (SUCCEEDED(createPipelineState(m_params)))
+            {
+                return;
+            }
+        }
 
-        LogWarning.writeln(L"failed to create pipeline state with user shaders, using stub shaders instead");
+        LogWarning.writeln(L"GraphicsPipelineState Failed to create PSO with user shaders, using stub shaders instead");
 
-        auto params2 = m_params;
-        params2.shader.ps = EnginePresetAsset::GetStubPS();
-        params2.shader.vs = EnginePresetAsset::GetStubVS();
+        const auto stubParams = makeStubParams(m_params);
+        if (SUCCEEDED(createPipelineState(stubParams)))
+        {
+            return;
+        }
 
-        if (SUCCEEDED(createPipelineState(params2))) return;
+        throw std::runtime_error("GraphicsPipelineState: Failed to create PSO.");
+    }
 
-        throw std::runtime_error("failed to create pipeline state");
+    static GraphicsPipelineStateParams makeStubParams(const GraphicsPipelineStateParams& params)
+    {
+        auto stub = params;
+        stub.shader.ps = EnginePresetAsset::GetStubPS();
+        stub.shader.vs = EnginePresetAsset::GetStubVS();
+
+        stub.options = GraphicsOptions{};
+
+        const bool hasPositionSemantic = stub.vertexInput.contains([&](const VertexInputElement& element)
+        {
+            return element.semanticName == "POSITION" && element.semanticIndex == 0;
+        });
+
+        if (not hasPositionSemantic)
+        {
+            stub.vertexInput = {{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT}};
+        }
+
+        return stub;
     }
 
     HRESULT createPipelineState(const GraphicsPipelineStateParams& params)
@@ -96,11 +123,11 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         const auto device = EngineRenderContext::GetDevice();
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc = {};
 
-        const auto vs = params.shader.vs.isEmpty() ? EnginePresetAsset::GetStubVS() : params.shader.vs;
+        const auto vs = params.shader.vs;
         pipelineDesc.VS.pShaderBytecode = vs.getBlob()->GetBufferPointer();
         pipelineDesc.VS.BytecodeLength = vs.getBlob()->GetBufferSize();
 
-        const auto ps = params.shader.ps.isEmpty() ? EnginePresetAsset::GetStubPS() : params.shader.ps;
+        const auto ps = params.shader.ps;
         pipelineDesc.PS.pShaderBytecode = ps.getBlob()->GetBufferPointer();
         pipelineDesc.PS.BytecodeLength = ps.getBlob()->GetBufferSize();
 

@@ -93,6 +93,17 @@ namespace TY
             return -1;
         }
 
+        bool contains(const Type& value) const
+        {
+            return std::find(this->begin(), this->end(), value) != this->end();
+        }
+
+        template <class Fty, std::enable_if_t<std::is_invocable_r_v<bool, Fty, Type>>* = nullptr>
+        bool contains(Fty f) const
+        {
+            return std::any_of(this->begin(), this->end(), f);
+        }
+
         bool sequenceEquals(const Array& other) const
         {
             if (this->size() != other.size())
