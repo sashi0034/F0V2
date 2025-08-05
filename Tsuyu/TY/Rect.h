@@ -71,14 +71,44 @@ namespace TY
             return pos;
         }
 
+        position_type tr() const
+        {
+            return Float2{pos.x + size.x, pos.y};
+        }
+
         position_type br() const
         {
             return pos + size;
         }
 
+        position_type bl() const
+        {
+            return Float2{pos.x, pos.y + size.y};
+        }
+
         position_type center() const
         {
             return pos + size / 2;
+        }
+
+        value_type leftX() const
+        {
+            return pos.x;
+        }
+
+        value_type rightX() const
+        {
+            return pos.x + size.x;
+        }
+
+        value_type topY() const
+        {
+            return pos.y;
+        }
+
+        value_type bottomY() const
+        {
+            return pos.y + size.y;
         }
     };
 

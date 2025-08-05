@@ -108,10 +108,6 @@ struct IndexBuffer::Impl::Placeholder : Impl
 
 namespace TY
 {
-    IndexBuffer::IndexBuffer()
-    {
-    }
-
     IndexBuffer::IndexBuffer(int count) : p_impl(std::make_shared<Impl::Default>(count))
     {
         if (not p_impl->m_valid)
@@ -152,7 +148,7 @@ namespace TY
 
     IndexBuffer IndexBuffer::Placeholder(int count)
     {
-        IndexBuffer result;
+        IndexBuffer result{Empty};
         result.p_impl = std::make_shared<Impl::Placeholder>(count);
         return result;
     }

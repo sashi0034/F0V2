@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Vector3D.h"
+#include "Vector4D.h"
 
 namespace TY
 {
@@ -41,6 +42,8 @@ namespace TY
         float* getPointer() { return &r; }
 
         Float3 toFloat3() const { return Float3{r, g, b}; }
+
+        Float4 toFloat4() const { return Float4{r, g, b, a}; }
 
         ColorU8 toColorU8() const;
     };

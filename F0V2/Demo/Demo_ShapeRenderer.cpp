@@ -19,6 +19,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/PrimitiveModel3D.h"
+#include "TY/ShapeDrawManager2D.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -147,6 +148,8 @@ struct Demo_ShapeRenderer_impl
 
     ModelDrawer m_mountainDrawer{};
 
+    ShapeDrawManager2D m_shapeDrawManager2D{};
+
     Demo_ShapeRenderer_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
@@ -254,6 +257,12 @@ struct Demo_ShapeRenderer_impl
         m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
         m_playerDrawer.draw();
+
+        // -----------------------------------------------
+
+        m_shapeDrawManager2D.push(Shape2D::Rectangle{RectF{10, 10, 100, 50}});
+        m_shapeDrawManager2D.push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}});
+        m_shapeDrawManager2D.draw();
 
         {
             ImGui::Begin("Camera");

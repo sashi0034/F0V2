@@ -9,8 +9,8 @@ namespace TY
     struct GenericModelShapeBufferElement
     {
         uint16_t materialIndex;
-        VertexBufferCore vertexBuffer;
-        IndexBuffer indexBuffer;
+        VertexBufferCore vertexBuffer{Empty};
+        IndexBuffer indexBuffer{Empty};
     };
 
     class IGenericModelBuffer

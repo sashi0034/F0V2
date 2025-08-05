@@ -1,12 +1,15 @@
 ﻿#pragma once
 #include "Array.h"
+#include "Empty.h"
 
 namespace TY
 {
     class VertexBufferCore
     {
     public:
-        VertexBufferCore() = default;
+        VertexBufferCore(Empty_t empty)
+        {
+        }
 
         VertexBufferCore(int sizeInBytes, int strideInBytes);
 
@@ -25,7 +28,9 @@ namespace TY
     class VertexBuffer : public VertexBufferCore
     {
     public:
-        VertexBuffer() = default;
+        VertexBuffer(Empty_t empty) : VertexBufferCore(empty)
+        {
+        }
 
         VertexBuffer(int count) : VertexBufferCore(count * sizeof(Vertex), sizeof(Vertex))
         {

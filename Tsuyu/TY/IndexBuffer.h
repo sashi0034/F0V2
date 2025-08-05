@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Array.h"
+#include "Empty.h"
 
 namespace TY
 {
@@ -8,7 +9,9 @@ namespace TY
     public:
         using index_type = uint16_t;
 
-        IndexBuffer();
+        IndexBuffer(Empty_t empty)
+        {
+        }
 
         IndexBuffer(int count);
 
