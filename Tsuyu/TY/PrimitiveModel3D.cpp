@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Shape3D.h"
+#include "PrimitiveModel3D.h"
 
 #include "Math.h"
 
@@ -38,7 +38,7 @@ namespace
 
 namespace TY
 {
-    ModelData Shape3D::Sphere(float radius, const ColorF32& color)
+    ModelData PrimitiveModel3D::Sphere(float radius, const ColorF32& color)
     {
         // 解像度
         constexpr uint16_t sliceCount = 32;
@@ -106,7 +106,7 @@ namespace TY
         return data;
     }
 
-    ModelData Shape3D::Plane(const Float2& size, const ColorF32& color)
+    ModelData PrimitiveModel3D::Plane(const Float2& size, const ColorF32& color)
     {
         ModelData data;
 
@@ -122,7 +122,7 @@ namespace TY
         return data;
     }
 
-    ModelData Shape3D::TexturePlane(const ShaderResourceTexture& texture, const Float2& size)
+    ModelData PrimitiveModel3D::TexturePlane(const ShaderResourceTexture& texture, const Float2& size)
     {
         ModelData data;
 

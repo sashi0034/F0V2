@@ -21,7 +21,7 @@
 #include "TY/Random.h"
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
-#include "TY/Shape3D.h"
+#include "TY/PrimitiveModel3D.h"
 #include "TY/SimpleInput.h"
 
 using namespace TY;
@@ -140,7 +140,7 @@ namespace
         ModelBuffer playerModel{};
         ModelBuffer enemyModel{};
 
-        ModelBuffer missileModel{Shape3D::Sphere(0.5f, ColorF32{0.3, 0.5, 1.0})};
+        ModelBuffer missileModel{PrimitiveModel3D::Sphere(0.5f, ColorF32{0.3, 0.5, 1.0})};
 
         ConstantBuffer<PhongLight_b4> phongLight{};
 
@@ -472,7 +472,7 @@ struct Demo_AirCombat_impl
 
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(Shape3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
+            .setModel(PrimitiveModel3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
             .setShader(s_resource->skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
@@ -485,7 +485,7 @@ struct Demo_AirCombat_impl
             Size{1024, 1024}, 32, ColorF32{0.9}, ColorF32{0.3});
         m_groundPlaneModel = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(Shape3D::TexturePlane(groundPlaneTexture, Float2{10000.0f, 10000.0f}))
+            .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{10000.0f, 10000.0f}))
             .setShader(s_resource->model)
         };
 
@@ -500,7 +500,7 @@ struct Demo_AirCombat_impl
 
         m_sphereModel = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(Shape3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
+            .setModel(PrimitiveModel3D::Sphere(1.0f, ColorF32{1.0, 0.5, 0.3}))
             .setShader(s_resource->blinn_phong)
             .setCbv10AndLater({s_resource->phongLight})
         };
