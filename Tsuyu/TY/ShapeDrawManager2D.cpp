@@ -37,7 +37,7 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
             GraphicsPipelineStateParams{
                 .shader = m_shader,
                 .vertexInput = {
-                    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT},
+                    {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
                     {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
                 },
@@ -70,9 +70,6 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
         }
 
         // for (auto& buffer : bufferList)
-
-        // FIXME: なぜかこれを入れないと最後の三角形が描画されない
-        bufferList[0].vertices.push_back({});
 
         m_indexBuffer.upload(bufferList[0].indices);
         m_vertexBuffer.upload(bufferList[0].vertices);
