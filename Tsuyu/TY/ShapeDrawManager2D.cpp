@@ -62,13 +62,17 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
         const auto commandList = EngineRenderContext::ActiveCommandList();
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        auto& bufferList = m_bufferCreator.buffers();
+        // TODO: 参照渡しに戻す
+        auto bufferList = m_bufferCreator.buffers();
         if (bufferList.empty())
         {
             return;
         }
 
         // for (auto& buffer : bufferList)
+
+        // FIXME: なぜかこれを入れないと最後の三角形が描画されない
+        bufferList[0].vertices.push_back({});
 
         m_indexBuffer.upload(bufferList[0].indices);
         m_vertexBuffer.upload(bufferList[0].vertices);
