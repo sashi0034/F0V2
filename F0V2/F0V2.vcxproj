@@ -159,6 +159,7 @@
     <ClCompile Include="Demo\Demo_Basic3D.cpp" />
     <ClCompile Include="Demo\Demo_Ocean.cpp" />
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />
+    <ClCompile Include="Demo\Demo_ShapeRenderer.cpp" />
     <ClCompile Include="TY_Extension\AwaiterContext.cpp" />
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
     <ClCompile Include="TY_Extension\LivePPAddon.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="Demo\Demo_Ocean.h" />
     <ClInclude Include="Demo\Demo_ShadowMap.h" />
+    <ClInclude Include="Demo\Demo_ShapeRenderer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Demo\Demo_RenderTarget.h" />
     <ClInclude Include="TY_Extension\AwaiterContext.h" />
