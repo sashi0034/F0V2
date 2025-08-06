@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "ShapeDrawManager2D.h"
 
+#include "ConstantBuffer.h"
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
 #include "ShapeBuilder2D.h"
@@ -15,6 +16,10 @@ using namespace TY::detail;
 
 namespace
 {
+    struct ShapeDraw_b0
+    {
+        Float4 g_transform[2];
+    };
 }
 
 struct ShapeDrawManager2D::Impl : IEngineDrawer
@@ -28,6 +33,8 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
 
     IndexBuffer m_indexBuffer{99}; // TODO: 動的に変更
     VertexBuffer<ShapeBuilder2D::Vertex2D> m_vertexBuffer{99};
+
+    ConstantBuffer<ShapeDraw_b0> m_cb0{};
 
     Impl()
     {
@@ -48,13 +55,18 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,
             .materialCounts = {1},
-            .descriptors = {CbvSrvUavSet{{ConstantBufferUploaderCore{Empty}}, {}, {}}} // TODO
+            .descriptors = {CbvSrvUavSet{{m_cb0}, {}, {}}} // TODO
         });
     }
 
     void Draw()
     {
         m_pso.commandSet();
+
+        const auto mat3x2 = Mat3x2::Screen(RenderTarget::Current().size());
+        m_cb0->g_transform[0] = {mat3x2._11, mat3x2._12, mat3x2._31, mat3x2._32};
+        m_cb0->g_transform[1] = {mat3x2._21, mat3x2._22, 0.0f, 1.0f};
+        m_cb0.upload();
 
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);

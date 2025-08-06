@@ -9,17 +9,24 @@ struct PSInput
     float4 color : COLOR0;
 };
 
+cbuffer ShapeDraw : register(b0)
+{
+    row_major float2x4 g_transform;
+}
+
+float4 transform2D(float2 pos, float2x4 t)
+{
+    return float4((t._13_14 + (pos.x * t._11_12) + (pos.y * t._21_22)), t._23_24);
+}
+
 PSInput VS(float2 position : POSITION, float2 uv : TEXCOORD, float4 color : COLOR0)
 {
     PSInput result;
 
-    // TODO
-    result.position = float4(position, 0.0, 1.0);
-    result.position.x = result.position.x / 1920.0 * 2.0 - 1.0;
-    result.position.y = result.position.y / 1080.0 * 2.0 - 1.0;
-
+    result.position = transform2D(position, g_transform);
     result.uv = uv;
     result.color = color;
+
     return result;
 }
 

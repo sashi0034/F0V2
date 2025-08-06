@@ -260,9 +260,15 @@ struct Demo_ShapeRenderer_impl
 
         // -----------------------------------------------
 
-        m_shapeDrawManager2D.push(Shape2D::Rectangle{RectF{10, 10, 100, 50}});
-        m_shapeDrawManager2D.push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}});
+        m_shapeDrawManager2D
+            .push(Shape2D::Rectangle{RectF{10, 10, 100, 50}})
+            .push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}}
+                .setColor(ColorF32{1.0f, 0.3f, 0.7f})
+            );
+
         m_shapeDrawManager2D.draw();
+
+        // -----------------------------------------------
 
         {
             ImGui::Begin("Camera");
