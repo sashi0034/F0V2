@@ -74,14 +74,11 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
         const auto commandList = EngineRenderContext::ActiveCommandList();
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // TODO: 参照渡しに戻す
-        auto bufferList = m_bufferCreator.buffers();
+        const auto& bufferList = m_bufferCreator.buffers();
         if (bufferList.empty())
         {
             return;
         }
-
-        // for (auto& buffer : bufferList)
 
         m_indexBuffer.upload(bufferList[0].indices);
         m_vertexBuffer.upload(bufferList[0].vertices);
