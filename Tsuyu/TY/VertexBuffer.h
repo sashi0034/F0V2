@@ -15,7 +15,11 @@ namespace TY
 
         bool isEmpty() const;
 
+        int count() const;
+
         void upload(const void* data);
+
+        void upload(const void* data, int count);
 
         void commandSet() const;
 
@@ -41,6 +45,6 @@ namespace TY
             upload(data);
         }
 
-        void upload(const Array<Vertex>& data) { VertexBufferCore::upload(data.data()); }
+        void upload(const Array<Vertex>& data) { VertexBufferCore::upload(data.data(), data.size()); }
     };
 }

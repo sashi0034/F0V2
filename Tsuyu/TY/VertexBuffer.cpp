@@ -12,6 +12,7 @@ struct VertexBufferCore::Impl
     bool m_valid{};
     ComPtr<ID3D12Resource> m_vertBuffer{};
     D3D12_VERTEX_BUFFER_VIEW m_vertBufferView{};
+    int m_count{};
 
     Impl(int sizeInBytes, int strideInBytes)
     {
@@ -41,10 +42,12 @@ struct VertexBufferCore::Impl
         m_vertBufferView.SizeInBytes = sizeInBytes;
         m_vertBufferView.StrideInBytes = strideInBytes;
 
+        m_count = sizeInBytes / strideInBytes;
+
         m_valid = true;
     }
 
-    void Upload(const void* data)
+    void Upload(const void* data, size_t size)
     {
         void* p;
 
@@ -55,7 +58,7 @@ struct VertexBufferCore::Impl
             return;
         }
 
-        memcpy(p, data, m_vertBufferView.SizeInBytes);
+        memcpy(p, data, size);
 
         m_vertBuffer->Unmap(0, nullptr); // TODO: Unmap のタイミング調整
     }
@@ -83,10 +86,21 @@ namespace TY
         return p_impl == nullptr;
     }
 
+    int VertexBufferCore::count() const
+    {
+        return p_impl ? p_impl->m_count : 0;
+    }
+
     void VertexBufferCore::upload(const void* data)
     {
         if (not p_impl) return;
-        p_impl->Upload(data);
+        p_impl->Upload(data, p_impl->m_vertBufferView.SizeInBytes);
+    }
+
+    void VertexBufferCore::upload(const void* data, int count)
+    {
+        if (not p_impl) return;
+        p_impl->Upload(data, p_impl->m_vertBufferView.StrideInBytes * count);
     }
 
     void VertexBufferCore::commandSet() const

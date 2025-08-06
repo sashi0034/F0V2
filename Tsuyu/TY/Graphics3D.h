@@ -13,5 +13,7 @@ namespace TY
         void SetProjectionMatrix(const Mat4x4& projectionMatrix);
 
         void DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer);
+
+        void DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
     }
 }

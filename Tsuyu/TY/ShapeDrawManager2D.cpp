@@ -31,8 +31,8 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
 
     ShapeBuilder2D::BufferCreator m_bufferCreator{};
 
-    IndexBuffer m_indexBuffer{99}; // TODO: 動的に変更
-    VertexBuffer<ShapeBuilder2D::Vertex2D> m_vertexBuffer{99};
+    IndexBuffer m_indexBuffer{Empty};
+    VertexBuffer<ShapeBuilder2D::Vertex2D> m_vertexBuffer{Empty};
 
     ConstantBuffer<ShapeDraw_b0> m_cb0{};
 
@@ -80,10 +80,24 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
             return;
         }
 
+        // インデックスと頂点バッファのサイズを確認し、必要に応じて再確保
+        if (m_indexBuffer.count() < bufferList[0].indices.size())
+        {
+            // ここでは、あえて size() ではなく capacity() の値を用いる
+            m_indexBuffer = IndexBuffer(Min<int>(bufferList[0].indices.capacity(), UINT16_MAX));
+        }
+
+        if (m_vertexBuffer.count() < bufferList[0].vertices.size())
+        {
+            m_vertexBuffer = VertexBuffer<ShapeBuilder2D::Vertex2D>(
+                Min<int>(bufferList[0].vertices.capacity(), UINT16_MAX));
+        }
+
+        // インデックスと頂点バッファにデータをアップロード
         m_indexBuffer.upload(bufferList[0].indices);
         m_vertexBuffer.upload(bufferList[0].vertices);
 
-        Graphics3D::DrawTriangles(m_vertexBuffer, m_indexBuffer);
+        Graphics3D::DrawTriangles(m_vertexBuffer, m_indexBuffer, bufferList[0].indices.size());
 
         m_bufferCreator.clear();
     }
