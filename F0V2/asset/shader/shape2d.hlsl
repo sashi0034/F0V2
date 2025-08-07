@@ -12,6 +12,7 @@ struct PSInput
 cbuffer ShapeDraw : register(b0)
 {
     row_major float2x4 g_transform;
+    float4 g_colorMul;
 }
 
 float4 transform2D(float2 pos, float2x4 t)
@@ -30,8 +31,7 @@ PSInput VS(float2 position : POSITION, float2 uv : TEXCOORD, float4 color : COLO
     return result;
 }
 
-// TODO: PS_Shape や PS_Texture などに分離
-float4 PS(PSInput input) : SV_TARGET
+float4 PS_Shape(PSInput input) : SV_TARGET
 {
-    return input.color;
+    return input.color * g_colorMul;
 }

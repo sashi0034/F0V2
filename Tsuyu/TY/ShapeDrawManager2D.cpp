@@ -20,13 +20,21 @@ namespace
     struct ShapeDraw_b0
     {
         Float4 g_transform[2];
+        Float4 g_colorMul{1.0f, 1.0f, 1.0f, 1.0f};
     };
 
     struct ShapeDrawManager2DComponent* s_component;
 
+    const std::string shaderPath = "asset/shader/shape2d.hlsl";
+
     struct ShapeDrawManager2DComponent : IComponent
     {
-        GraphicsShader m_shader{GraphicsShader::VS_PS("asset/shader/shape2d.hlsl")};
+        VertexShader m_vs{shaderPath, "VS"};
+
+        struct
+        {
+            PixelShader shape{shaderPath, "PS_Shape"};
+        } m_ps{};
 
         bool init() override
         {
@@ -65,7 +73,7 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
 
         m_pso = GraphicsPipelineState(
             GraphicsPipelineStateParams{
-                .shader = s_component->m_shader,
+                .shader = GraphicsShader{s_component->m_vs, s_component->m_ps.shape},
                 .vertexInput = {
                     {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
