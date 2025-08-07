@@ -264,6 +264,10 @@ struct Demo_ShapeRenderer_impl
             .push(Shape2D::Rectangle{RectF{10, 10, 100, 50}})
             .push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}}
                 .setColor(ColorF32{1.0f, 0.3f, 0.7f})
+            )
+            .push(Shape2D::Line{Float2{200, 200}, Float2{300, 400}}
+                  .setThickness(10.0f)
+                  .setColor(ColorF32{1.0f, 0.9f, 0.3f})
             );
 
         m_shapeDrawManager2D.draw();

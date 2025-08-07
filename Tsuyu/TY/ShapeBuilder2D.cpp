@@ -103,5 +103,36 @@ namespace TY
 
             return indexSize;
         }
+
+        index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line)
+        {
+            if (line.thickness <= 0.0f) return 0;
+
+            constexpr int indexSize = rectIndexTable.size();
+            const auto buffer = bufferCreator.request(4, indexSize);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            const auto& vertices = buffer.vertices;
+            const auto& indices = buffer.indices;
+
+            const float halfThickness = line.thickness * 0.5f;
+            const Float2 direction = (line.end - line.start).normalized();
+            const Float2 normal{-direction.y * halfThickness, direction.x * halfThickness};
+
+            vertices[0].set(line.start + normal, line.colors[0]);
+            vertices[1].set(line.start - normal, line.colors[0]);
+            vertices[2].set(line.end + normal, line.colors[1]);
+            vertices[3].set(line.end - normal, line.colors[1]);
+
+            for (int i = 0; i < rectIndexTable.size(); ++i)
+            {
+                indices[i] = buffer.indexOffset + rectIndexTable[i];
+            }
+
+            return indexSize;
+        }
     }
 }

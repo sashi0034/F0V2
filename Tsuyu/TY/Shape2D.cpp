@@ -33,4 +33,14 @@ namespace TY
         thickness = thickness_;
         return *this;
     }
+
+    Shape2D::Line& Shape2D::Line::setColor(const ColorF32& color_)
+    {
+        for (auto& c : colors)
+        {
+            c = color_;
+        }
+
+        return *this;
+    }
 }

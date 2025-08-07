@@ -31,7 +31,7 @@ namespace TY
         {
         }
 
-        constexpr ColorF32(float color, float alpha = 1.0f) :
+        explicit constexpr ColorF32(float color, float alpha = 1.0f) :
             r(color),
             g(color),
             b(color),

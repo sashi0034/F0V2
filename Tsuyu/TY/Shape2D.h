@@ -24,6 +24,7 @@ namespace TY
             Float2 start;
             Float2 end;
             float thickness{1.0f};
+            std::array<ColorF32, 2> colors = {ColorF32{1.0}, ColorF32{1.0}};
 
             Line() = default;
 
@@ -32,6 +33,8 @@ namespace TY
             Line(float x1, float y1, float x2, float y2);
 
             Line& setThickness(float thickness_);
+
+            Line& setColor(const ColorF32& color_);
         };
 
         // -----------------------------------------------

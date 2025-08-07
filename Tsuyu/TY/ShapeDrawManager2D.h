@@ -8,9 +8,11 @@ namespace TY
     public:
         ShapeDrawManager2D();
 
-        ShapeDrawManager2D& push(const Shape2D::shape_type& shape);
+        const ShapeDrawManager2D& push(const Shape2D::shape_type& shape) const;
 
-        void draw();
+        const ShapeDrawManager2D& operator<<(const Shape2D::shape_type& shape) const;
+
+        void draw() const;
 
     private:
         struct Impl;

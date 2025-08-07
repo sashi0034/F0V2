@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "ShapeDrawManager2D.h"
 
+#include "CbvSrvUav.h"
+#include "CbvSrvUav.h"
 #include "ConstantBuffer.h"
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
@@ -59,6 +61,18 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
         });
     }
 
+    void Push(const Shape2D::shape_type& shape)
+    {
+        if (shape.isHolds<Shape2D::Rectangle>())
+        {
+            ShapeBuilder2D::BuildRetangle(m_bufferCreator, shape.get<Shape2D::Rectangle>());
+        }
+        else if (shape.isHolds<Shape2D::Line>())
+        {
+            ShapeBuilder2D::BuildLine(m_bufferCreator, shape.get<Shape2D::Line>());
+        }
+    }
+
     void Draw()
     {
         m_pso.commandSet();
@@ -84,13 +98,14 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
         if (m_indexBuffer.count() < bufferList[0].indices.size())
         {
             // ここでは、あえて size() ではなく capacity() の値を用いる
-            m_indexBuffer = IndexBuffer(Min<int>(bufferList[0].indices.capacity(), UINT16_MAX));
+            m_indexBuffer =
+                IndexBuffer(Min<int>(bufferList[0].indices.capacity(), UINT16_MAX));
         }
 
         if (m_vertexBuffer.count() < bufferList[0].vertices.size())
         {
-            m_vertexBuffer = VertexBuffer<ShapeBuilder2D::Vertex2D>(
-                Min<int>(bufferList[0].vertices.capacity(), UINT16_MAX));
+            m_vertexBuffer =
+                VertexBuffer<ShapeBuilder2D::Vertex2D>(Min<int>(bufferList[0].vertices.capacity(), UINT16_MAX));
         }
 
         // インデックスと頂点バッファにデータをアップロード
@@ -110,19 +125,21 @@ namespace TY
     {
     }
 
-    ShapeDrawManager2D& ShapeDrawManager2D::push(const Shape2D::shape_type& shape)
+    const ShapeDrawManager2D& ShapeDrawManager2D::push(const Shape2D::shape_type& shape) const
     {
         if (not p_impl) return *this;
 
-        if (shape.isHolds<Shape2D::Rectangle>())
-        {
-            ShapeBuilder2D::BuildRetangle(p_impl->m_bufferCreator, shape.get<Shape2D::Rectangle>());
-        }
+        p_impl->Push(shape);
 
         return *this;
     }
 
-    void ShapeDrawManager2D::draw()
+    const ShapeDrawManager2D& ShapeDrawManager2D::operator<<(const Shape2D::shape_type& shape) const
+    {
+        return push(shape);
+    }
+
+    void ShapeDrawManager2D::draw() const
     {
         if (p_impl)
         {
