@@ -13,6 +13,7 @@ cbuffer ShapeDraw : register(b0)
 {
     row_major float2x4 g_transform;
     float4 g_colorMul;
+    float4 g_colorAdd;
 }
 
 float4 transform2D(float2 pos, float2x4 t)
@@ -26,12 +27,39 @@ PSInput VS(float2 position : POSITION, float2 uv : TEXCOORD, float4 color : COLO
 
     result.position = transform2D(position, g_transform);
     result.uv = uv;
-    result.color = color;
+    result.color = color * g_colorMul;
 
     return result;
 }
 
 float4 PS_Shape(PSInput input) : SV_TARGET
 {
-    return input.color * g_colorMul;
+    return input.color + g_colorAdd;
+}
+
+float4 PS_SquareDot(PSInput input) : SV_TARGET
+{
+    float tr = input.uv.y;
+
+    float d = abs(fmod(input.uv.x, 3.0) - 1.0);
+
+    float range = 1.0 - tr;
+
+    input.color.a *= (d < range) ? 1.0 : (d < 1.0) ? ((1.0 - d) / tr) : 0.0;
+
+    return (input.color + g_colorAdd);
+}
+
+float4 PS_RoundDot(PSInput input) : SV_TARGET
+{
+    float t = fmod(input.uv.x, 2.0);
+
+    input.uv.x = abs(1 - t) * 2.0;
+
+    float dist = dot(input.uv, input.uv) * 0.5;
+    float delta = fwidth(dist);
+    float alpha = smoothstep(0.5 - delta, 0.5, dist);
+    input.color.a *= 1.0 - alpha;
+
+    return (input.color + g_colorAdd);
 }

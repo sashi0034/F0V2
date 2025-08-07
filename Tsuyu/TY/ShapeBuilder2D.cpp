@@ -5,6 +5,8 @@
 
 using namespace TY;
 
+// reference: https://github.com/Siv3D/OpenSiv3D/blob/main/Siv3D/src/Siv3D/Renderer2D/Vertex2DBuilder.cpp
+
 namespace
 {
     constexpr int maxIndices = 65535;
@@ -22,11 +24,11 @@ namespace TY
             color = color_.toFloat4();
         }
 
-        void Vertex2D::set(const Float2& pos_, const Float2& tex_, const Float4& color_)
+        void Vertex2D::set(const Float2& pos_, const Float2& tex_, const ColorF32& color_)
         {
             pos = pos_;
             tex = tex_;
-            color = color_;
+            color = color_.toFloat4();
         }
 
         bool BufferSpan::isEmpty() const
@@ -72,6 +74,11 @@ namespace TY
             m_buffers.clear();
         }
 
+        void BufferCreator::step()
+        {
+            m_buffers.emplace_back();
+        }
+
         const Array<BufferCreator::buffer_type>& BufferCreator::buffers() const
         {
             return m_buffers;
@@ -106,7 +113,10 @@ namespace TY
 
         index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line)
         {
-            if (line.thickness <= 0.0f) return 0;
+            if (line.thickness <= 0.0f)
+            {
+                return 0;
+            }
 
             constexpr int indexSize = rectIndexTable.size();
             const auto buffer = bufferCreator.request(4, indexSize);
@@ -130,6 +140,54 @@ namespace TY
             for (int i = 0; i < rectIndexTable.size(); ++i)
             {
                 indices[i] = buffer.indexOffset + rectIndexTable[i];
+            }
+
+            return indexSize;
+        }
+
+        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Shape2D::SquareDotLine& dotLine, float scale)
+        {
+            const auto& line = dotLine.line;
+            if (line.thickness <= 0.0f)
+            {
+                return 0;
+            }
+
+            constexpr index_type vertexSize = 4;
+            constexpr index_type indexSize = rectIndexTable.size();
+
+            const auto buffer = bufferCreator.request(vertexSize, indexSize);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            auto& vertices = buffer.vertices;
+            auto& indices = buffer.indices;
+            const auto indexOffset = buffer.indexOffset;
+
+            const float halfThickness = line.thickness * 0.5f;
+            const Float2 v = (line.end - line.start);
+            const float lineLength = v.length();
+            const Float2 direction = v / lineLength;
+            const Float2 normal{-direction.y * halfThickness, direction.x * halfThickness};
+            const Float2 lineHalf = direction * halfThickness;
+
+            const Float2 start2 = line.start - lineHalf;
+            const Float2 end2 = line.end + lineHalf;
+
+            const float lineLengthN = lineLength / line.thickness;
+            const float uOffset = (1.0f - Math::Fraction(dotLine.dotOffset / 3.0f / line.thickness)) * 3.0f;
+            const float vInfo = Min<float>(1.0f / (line.thickness * scale), 1.0f);
+
+            vertices[0].set(start2 + normal, {uOffset, vInfo}, line.colors[0]);
+            vertices[1].set(start2 - normal, {uOffset, vInfo}, line.colors[0]);
+            vertices[2].set(end2 + normal, {uOffset + lineLengthN, vInfo}, line.colors[1]);
+            vertices[3].set(end2 - normal, {uOffset + lineLengthN, vInfo}, line.colors[1]);
+
+            for (index_type i = 0; i < rectIndexTable.size(); ++i)
+            {
+                indices[i] = indexOffset + rectIndexTable[i];
             }
 
             return indexSize;

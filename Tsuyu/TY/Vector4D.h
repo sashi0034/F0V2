@@ -24,6 +24,11 @@ namespace TY
             : x{x_}, y{y_}, z{z_}, w{w_}
         {
         }
+
+        constexpr Vector4D(value_type value) noexcept
+            : x{value}, y{value}, z{value}, w{value}
+        {
+        }
     };
 
     using Float4 = Vector4D<float>;

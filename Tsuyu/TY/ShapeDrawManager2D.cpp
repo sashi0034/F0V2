@@ -5,6 +5,7 @@
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
 #include "ShapeBuilder2D.h"
+#include "System.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
 #include "detail/EngineComponent.h"
@@ -20,7 +21,8 @@ namespace
     struct ShapeDraw_b0
     {
         Float4 g_transform[2];
-        Float4 g_colorMul{1.0f, 1.0f, 1.0f, 1.0f};
+        Float4 g_colorMul{1.0f};
+        Float4 g_colorAdd{0.0f};
     };
 
     struct ShapeDrawManager2DComponent* s_component;
@@ -34,6 +36,10 @@ namespace
         struct
         {
             PixelShader shape{shaderPath, "PS_Shape"};
+
+            PixelShader squareDot{shaderPath, "PS_SquareDot"};
+
+            PixelShader roundDot{shaderPath, "PS_RoundDot"};
         } m_ps{};
 
         bool init() override
@@ -53,35 +59,36 @@ namespace
             }
         }
     };
+
+    const DescriptorTable descriptorTable = {{1, 0, 0}};
+
+    struct BufferUnit
+    {
+        GraphicsPipelineState pso{};
+        IndexBuffer indexBuffer{Empty}; // TODO: リストにする
+        VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer{Empty};
+        size_t indexCount{0};
+    };
 }
 
 struct ShapeDrawManager2D::Impl : IEngineDrawer
 {
-    GraphicsPipelineState m_pso{}; // TODO: リストにする
     DescriptorHeap m_descriptorHeap{};
 
     ShapeBuilder2D::BufferCreator m_bufferCreator{};
 
-    IndexBuffer m_indexBuffer{Empty};
-    VertexBuffer<ShapeBuilder2D::Vertex2D> m_vertexBuffer{Empty};
-
     ConstantBuffer<ShapeDraw_b0> m_cb0{};
+
+    Array<BufferUnit> m_bufferUnitList{};
+
+    GraphicsPipelineStateParams m_currentPsoParams{}; // TODO: クラス分離?
+    std::optional<GraphicsPipelineStateParams> m_nextPsoParams{};
+
+    size_t m_lastTimestamp{}; // TODO: フラッシュのタイムスタンプにする
 
     Impl()
     {
-        const DescriptorTable descriptorTable = {{1, 0, 0}};
-
-        m_pso = GraphicsPipelineState(
-            GraphicsPipelineStateParams{
-                .shader = GraphicsShader{s_component->m_vs, s_component->m_ps.shape},
-                .vertexInput = {
-                    {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
-                    {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
-                    {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
-                },
-                .options = GraphicsOptions(),
-                .descriptorTable = descriptorTable
-            });
+        m_currentPsoParams = getDefaultPsoParams();
 
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,
@@ -92,58 +99,139 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
 
     void Push(const Shape2D::shape_type& shape)
     {
+        if (m_lastTimestamp != System::FrameCount())
+        {
+            // リセット
+            m_bufferUnitList.clear(); // TODO: プーリング
+            m_lastTimestamp = System::FrameCount();
+            m_currentPsoParams = getDefaultPsoParams();
+        }
+
+        constexpr double maxScaling = 1.0f; // TODO: Transformer の Matrix から取得
+
         if (shape.isHolds<Shape2D::Rectangle>())
         {
+            requestPixelShader(s_component->m_ps.shape);
+            applyNextPsoParams();
             ShapeBuilder2D::BuildRetangle(m_bufferCreator, shape.get<Shape2D::Rectangle>());
         }
         else if (shape.isHolds<Shape2D::Line>())
         {
+            requestPixelShader(s_component->m_ps.shape);
+            applyNextPsoParams();
             ShapeBuilder2D::BuildLine(m_bufferCreator, shape.get<Shape2D::Line>());
+        }
+        else if (shape.isHolds<Shape2D::SquareDotLine>())
+        {
+            requestPixelShader(s_component->m_ps.squareDot);
+            applyNextPsoParams();
+            ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator, shape.get<Shape2D::SquareDotLine>(), maxScaling);
         }
     }
 
     void Draw()
     {
-        m_pso.commandSet();
+        flushCurrentBuffer();
 
         const auto mat3x2 = Mat3x2::Screen(RenderTarget::Current().size());
         m_cb0->g_transform[0] = {mat3x2._11, mat3x2._12, mat3x2._31, mat3x2._32};
         m_cb0->g_transform[1] = {mat3x2._21, mat3x2._22, 0.0f, 1.0f};
         m_cb0.upload();
 
-        m_descriptorHeap.commandSet();
-        m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
+        // const auto commandList = EngineRenderContext::ActiveCommandList();
 
-        const auto commandList = EngineRenderContext::ActiveCommandList();
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_descriptorHeap.commandSet(); // FIXME?
 
-        const auto& bufferList = m_bufferCreator.buffers();
-        if (bufferList.empty())
+        for (const auto& buffer : m_bufferUnitList)
+        {
+            buffer.pso.commandSet();
+
+            m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
+
+            Graphics3D::DrawTriangles(buffer.vertexBuffer, buffer.indexBuffer, buffer.indexCount);
+        }
+
+        m_lastTimestamp = System::FrameCount();
+    }
+
+private:
+    static GraphicsPipelineStateParams getDefaultPsoParams()
+    {
+        return GraphicsPipelineStateParams{
+            .shader = GraphicsShader{s_component->m_vs, s_component->m_ps.shape},
+            .vertexInput = {
+                {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
+                {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
+                {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
+            },
+            .options = GraphicsOptions(),
+            .descriptorTable = descriptorTable
+        };
+    }
+
+    GraphicsPipelineStateParams& getNextPsoParams()
+    {
+        if (m_nextPsoParams.has_value())
+        {
+            return m_nextPsoParams.value();
+        }
+
+        m_nextPsoParams = getDefaultPsoParams();
+        return m_nextPsoParams.value();
+    }
+
+    void requestPixelShader(const PixelShader& ps)
+    {
+        if (m_currentPsoParams.shader.ps.unique_id() == ps.unique_id())
         {
             return;
         }
 
-        // インデックスと頂点バッファのサイズを確認し、必要に応じて再確保
-        if (m_indexBuffer.count() < bufferList[0].indices.size())
+        getNextPsoParams().shader.ps = ps;
+    }
+
+    void applyNextPsoParams()
+    {
+        if (m_nextPsoParams.has_value())
         {
-            // ここでは、あえて size() ではなく capacity() の値を用いる
-            m_indexBuffer =
-                IndexBuffer(Min<int>(bufferList[0].indices.capacity(), UINT16_MAX));
+            flushCurrentBuffer();
+            m_currentPsoParams = std::move(m_nextPsoParams.value());
+            m_nextPsoParams.reset();
         }
+    }
 
-        if (m_vertexBuffer.count() < bufferList[0].vertices.size())
+    void flushCurrentBuffer()
+    {
+        m_bufferUnitList.emplace_back();
+        m_bufferUnitList.back().pso = GraphicsPipelineState{m_currentPsoParams};
+
+        const auto& bufferList = m_bufferCreator.buffers();
+        if (not bufferList.empty())
         {
-            m_vertexBuffer =
-                VertexBuffer<ShapeBuilder2D::Vertex2D>(Min<int>(bufferList[0].vertices.capacity(), UINT16_MAX));
+            auto& indexBuffer = m_bufferUnitList.back().indexBuffer;
+            auto& vertexBuffer = m_bufferUnitList.back().vertexBuffer;
+
+            // インデックスと頂点バッファのサイズを確認し、必要に応じて再確保
+            if (indexBuffer.count() < bufferList[0].indices.size())
+            {
+                // ここでは、あえて size() ではなく capacity() の値を用いる
+                indexBuffer =
+                    IndexBuffer(Min<int>(bufferList[0].indices.capacity(), UINT16_MAX));
+            }
+
+            if (vertexBuffer.count() < bufferList[0].vertices.size())
+            {
+                vertexBuffer =
+                    VertexBuffer<ShapeBuilder2D::Vertex2D>(Min<int>(bufferList[0].vertices.capacity(), UINT16_MAX));
+            }
+
+            // インデックスと頂点バッファにデータをアップロード
+            indexBuffer.upload(bufferList[0].indices);
+            vertexBuffer.upload(bufferList[0].vertices);
+            m_bufferUnitList.back().indexCount = bufferList[0].indices.size();
+
+            m_bufferCreator.clear();
         }
-
-        // インデックスと頂点バッファにデータをアップロード
-        m_indexBuffer.upload(bufferList[0].indices);
-        m_vertexBuffer.upload(bufferList[0].vertices);
-
-        Graphics3D::DrawTriangles(m_vertexBuffer, m_indexBuffer, bufferList[0].indices.size());
-
-        m_bufferCreator.clear();
     }
 };
 

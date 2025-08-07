@@ -265,6 +265,11 @@ struct Demo_ShapeRenderer_impl
             .push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}}
                 .setColor(ColorF32{1.0f, 0.3f, 0.7f, 0.5f})
             )
+            .push(Shape2D::Line{Float2{100, 200}, Float2{200, 300}}
+                  .setThickness(5.0f)
+                  .setColor(ColorF32{1.0f, 0.9f, 0.3f})
+                  .asDotLine(0.0f)
+            )
             .push(Shape2D::Line{Float2{200, 200}, Float2{300, 400}}
                   .setThickness(10.0f)
                   .setColor(ColorF32{1.0f, 0.9f, 0.3f})

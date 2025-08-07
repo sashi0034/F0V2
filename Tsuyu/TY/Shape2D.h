@@ -19,6 +19,8 @@ namespace TY
             Rectangle& setColor(const ColorF32& color_);
         };
 
+        struct SquareDotLine;
+
         struct Line
         {
             Float2 start;
@@ -35,10 +37,24 @@ namespace TY
             Line& setThickness(float thickness_);
 
             Line& setColor(const ColorF32& color_);
+
+            SquareDotLine asDotLine(float dotOffset = 0.0f) const;
+        };
+
+        struct SquareDotLine
+        {
+            Line line;
+            float dotOffset;
+
+            SquareDotLine& setDotOffset(float offset_);
         };
 
         // -----------------------------------------------
 
-        using shape_type = Variant<Rectangle, Line>;
+        using shape_type = Variant<
+            Rectangle,
+            Line,
+            SquareDotLine
+        >;
     }
 }

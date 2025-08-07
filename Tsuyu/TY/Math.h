@@ -112,6 +112,10 @@ namespace TY
         {
             return (v1 + (v2 - v1) * f);
         }
+
+        float Fraction(float x) noexcept;
+
+        double Fraction(double x) noexcept;
     }
 
     inline namespace Literals

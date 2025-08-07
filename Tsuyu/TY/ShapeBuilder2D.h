@@ -16,7 +16,7 @@ namespace TY
 
             void set(const Float2& pos_, const ColorF32& color_);
 
-            void set(const Float2& pos_, const Float2& tex_, const Float4& color_);
+            void set(const Float2& pos_, const Float2& tex_, const ColorF32& color_);
         };
 
         using index_type = uint16_t;
@@ -43,10 +43,13 @@ namespace TY
 
             void clear();
 
+            void step();
+
             const Array<buffer_type>& buffers() const;
 
         private:
             Array<buffer_type> m_buffers{};
+            // size_t m_currentIndex{}; // TODO
         };
 
         // -----------------------------------------------
@@ -54,5 +57,7 @@ namespace TY
         index_type BuildRetangle(BufferCreator& bufferCreator, const Shape2D::Rectangle& rectangle);
 
         index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line);
+
+        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Shape2D::SquareDotLine& line, float scale);
     }
 }

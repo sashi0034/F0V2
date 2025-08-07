@@ -43,4 +43,18 @@ namespace TY
 
         return *this;
     }
+
+    Shape2D::SquareDotLine Shape2D::Line::asDotLine(float dotOffset) const
+    {
+        Shape2D::SquareDotLine dotLine;
+        dotLine.line = *this;
+        dotLine.dotOffset = dotOffset;
+        return dotLine;
+    }
+
+    Shape2D::SquareDotLine& Shape2D::SquareDotLine::setDotOffset(float offset_)
+    {
+        dotOffset = offset_;
+        return *this;
+    }
 }
