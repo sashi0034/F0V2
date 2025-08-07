@@ -31,6 +31,9 @@ struct IndexBuffer::Impl::Default : Impl
     ComPtr<ID3D12Resource> m_indexBuffer{};
     D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
 
+    bool m_uploaded{};
+    bool m_shouldUnmap{};
+
     Default(int count)
     {
         const auto device = EngineRenderContext::GetDevice();
@@ -63,6 +66,14 @@ struct IndexBuffer::Impl::Default : Impl
         m_valid = true;
     }
 
+    ~Default() override
+    {
+        if (m_shouldUnmap)
+        {
+            m_indexBuffer->Unmap(0, nullptr);
+        }
+    }
+
     void Upload(const Array<index_type>& indices) override
     {
         index_type* indexMap{};
@@ -76,7 +87,17 @@ struct IndexBuffer::Impl::Default : Impl
 
         std::ranges::copy(indices, indexMap);
 
-        m_indexBuffer->Unmap(0, nullptr); // TODO: Unmap タイミング調整
+        if (m_uploaded)
+        {
+            // ニ回目以降のアップロードは破棄時までマップの解除をしない
+            m_shouldUnmap = true;
+        }
+        else
+        {
+            // 初回のアップロードのみマップの解除を行う
+            m_uploaded = true;
+            m_indexBuffer->Unmap(0, nullptr);
+        }
     }
 
     void CommandSet() const override

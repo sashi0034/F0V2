@@ -14,6 +14,9 @@ struct VertexBufferCore::Impl
     D3D12_VERTEX_BUFFER_VIEW m_vertBufferView{};
     int m_count{};
 
+    bool m_uploaded{};
+    bool m_shouldUnmap{};
+
     Impl(int sizeInBytes, int strideInBytes)
     {
         const auto device = EngineRenderContext::GetDevice();
@@ -47,6 +50,14 @@ struct VertexBufferCore::Impl
         m_valid = true;
     }
 
+    ~Impl()
+    {
+        if (m_shouldUnmap)
+        {
+            m_vertBuffer->Unmap(0, nullptr);
+        }
+    }
+
     void Upload(const void* data, size_t size)
     {
         void* p;
@@ -60,7 +71,17 @@ struct VertexBufferCore::Impl
 
         memcpy(p, data, size);
 
-        m_vertBuffer->Unmap(0, nullptr); // TODO: Unmap のタイミング調整
+        if (m_uploaded)
+        {
+            // ニ回目以降のアップロードは破棄時までマップの解除をしない
+            m_shouldUnmap = true;
+        }
+        else
+        {
+            // 初回のアップロードのみマップの解除を行う
+            m_uploaded = true;
+            m_vertBuffer->Unmap(0, nullptr);
+        }
     }
 
     void CommandSet() const
