@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "GameStep.h"
 
-#include "IAddon.h"
 #include "detail/EngineComponent.h"
 
 using namespace TY;
@@ -22,7 +21,7 @@ namespace
 
     std::array<GameStepTimer, hertzCount> s_standardSteps{};
 
-    struct GameStepComponent : IAddon
+    struct GameStepComponent : IComponent
     {
         bool init() override
         {

@@ -30,6 +30,8 @@ namespace TY::detail
     extern void InitializeGraphicsPipelineStateCacheComponent();
 
     extern void InitGpgpuCacheComponent();
+
+    extern void InitShapeDrawManager2DComponent();
 }
 
 namespace
@@ -43,6 +45,8 @@ namespace
         InitializeGraphicsPipelineStateCacheComponent();
 
         InitGpgpuCacheComponent();
+
+        InitShapeDrawManager2DComponent();
     }
 }
 

@@ -1,14 +1,13 @@
 ﻿#include "pch.h"
 #include "ShapeDrawManager2D.h"
 
-#include "CbvSrvUav.h"
-#include "CbvSrvUav.h"
 #include "ConstantBuffer.h"
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
 #include "ShapeBuilder2D.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
+#include "detail/EngineComponent.h"
 #include "detail/EngineCore.h"
 #include "detail/EngineRenderContext.h"
 #include "detail/GraphicsPipelineState.h"
@@ -22,12 +21,34 @@ namespace
     {
         Float4 g_transform[2];
     };
+
+    struct ShapeDrawManager2DComponent* s_component;
+
+    struct ShapeDrawManager2DComponent : IComponent
+    {
+        GraphicsShader m_shader{GraphicsShader::VS_PS("asset/shader/shape2d.hlsl")};
+
+        bool init() override
+        {
+            assert(not s_component);
+
+            s_component = this;
+
+            return true;
+        }
+
+        ~ShapeDrawManager2DComponent()
+        {
+            if (s_component == this)
+            {
+                s_component = nullptr;
+            }
+        }
+    };
 }
 
 struct ShapeDrawManager2D::Impl : IEngineDrawer
 {
-    GraphicsShader m_shader{GraphicsShader::VS_PS("asset/shader/shape2d.hlsl")}; // TODO: Component 化
-
     GraphicsPipelineState m_pso{}; // TODO: リストにする
     DescriptorHeap m_descriptorHeap{};
 
@@ -44,7 +65,7 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
 
         m_pso = GraphicsPipelineState(
             GraphicsPipelineStateParams{
-                .shader = m_shader,
+                .shader = s_component->m_shader,
                 .vertexInput = {
                     {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
                     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
@@ -145,6 +166,14 @@ namespace TY
         {
             p_impl->Draw();
             EngineCore::MarkDrawerInFrame(p_impl);
+        }
+    }
+
+    namespace detail
+    {
+        void InitShapeDrawManager2DComponent()
+        {
+            EngineComponent::Register<ShapeDrawManager2DComponent>("ShapeDrawManager2DComponent");
         }
     }
 }
