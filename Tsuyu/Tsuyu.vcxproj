@@ -194,7 +194,7 @@
     <ClInclude Include="TY\ScopedDeferStack.h" />
     <ClInclude Include="TY\Shape2D.h" />
     <ClInclude Include="TY\ShapeBuilder2D.h" />
-    <ClInclude Include="TY\ShapeDrawManager2D.h" />
+    <ClInclude Include="TY\ShapeDrawer2D.h" />
     <ClInclude Include="TY\Stopwatch.h" />
     <ClInclude Include="TY\StructuredBufferUploader.h" />
     <ClInclude Include="TY\Concepts.h" />
@@ -320,7 +320,7 @@
     <ClCompile Include="TY\ScopedDeferStack.cpp" />
     <ClCompile Include="TY\Shape2D.cpp" />
     <ClCompile Include="TY\ShapeBuilder2D.cpp" />
-    <ClCompile Include="TY\ShapeDrawManager2D.cpp" />
+    <ClCompile Include="TY\ShapeDrawer2D.cpp" />
     <ClCompile Include="TY\Stopwatch.cpp" />
     <ClCompile Include="TY\StructuredBufferUploader.cpp" />
     <ClCompile Include="TY\ConstantBufferUploader.cpp" />

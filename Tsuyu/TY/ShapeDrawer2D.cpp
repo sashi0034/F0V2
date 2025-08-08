@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ShapeDrawManager2D.h"
+#include "ShapeDrawer2D.h"
 
 #include "ArrayPool.h"
 #include "ConstantBuffer.h"
@@ -72,7 +72,7 @@ namespace
     };
 }
 
-struct ShapeDrawManager2D::Impl : IEngineDrawer
+struct ShapeDrawer2D::Impl : IEngineDrawer
 {
     DescriptorHeap m_descriptorHeap{};
 
@@ -240,12 +240,12 @@ private:
 
 namespace TY
 {
-    ShapeDrawManager2D::ShapeDrawManager2D() :
+    ShapeDrawer2D::ShapeDrawer2D() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    const ShapeDrawManager2D& ShapeDrawManager2D::push(const Shape2D::shape_type& shape) const
+    const ShapeDrawer2D& ShapeDrawer2D::push(const Shape2D::shape_type& shape) const
     {
         if (not p_impl) return *this;
 
@@ -254,12 +254,12 @@ namespace TY
         return *this;
     }
 
-    const ShapeDrawManager2D& ShapeDrawManager2D::operator<<(const Shape2D::shape_type& shape) const
+    const ShapeDrawer2D& ShapeDrawer2D::operator<<(const Shape2D::shape_type& shape) const
     {
         return push(shape);
     }
 
-    void ShapeDrawManager2D::draw() const
+    void ShapeDrawer2D::draw() const
     {
         if (p_impl)
         {

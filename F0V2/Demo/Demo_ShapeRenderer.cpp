@@ -20,7 +20,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/ShapeDrawManager2D.h"
+#include "TY/ShapeDrawer2D.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -149,7 +149,7 @@ struct Demo_ShapeRenderer_impl
 
     ModelDrawer m_mountainDrawer{};
 
-    ShapeDrawManager2D m_shapeDrawManager2D{};
+    ShapeDrawer2D m_shapeDrawManager2D{};
 
     Demo_ShapeRenderer_impl()
     {
@@ -277,6 +277,15 @@ struct Demo_ShapeRenderer_impl
             );
 
         m_shapeDrawManager2D.draw();
+
+        if (KeySpace.down())
+        {
+            m_shapeDrawManager2D = ShapeDrawer2D{};
+        }
+
+        m_shapeDrawManager2D
+            .push(Shape2D::Rectangle{RectF{50, 500, 50, 50}})
+            .draw();
 
         // -----------------------------------------------
 
