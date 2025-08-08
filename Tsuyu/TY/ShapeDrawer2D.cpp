@@ -71,6 +71,86 @@ namespace
         VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer{Empty};
         size_t indexCount{0};
     };
+
+    GraphicsPipelineStateParams getDefaultPsoParams()
+    {
+        return GraphicsPipelineStateParams{
+            .shader = GraphicsShader{s_component->m_vs, s_component->m_ps.shape},
+            .vertexInput = {
+                {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
+                {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
+                {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
+            },
+            .options = GraphicsOptions(),
+            .descriptorTable = descriptorTable
+        };
+    }
+
+    class StateManager
+    {
+    public:
+        struct state_type
+        {
+            GraphicsPipelineStateParams psoParams{};
+
+            static state_type Default()
+            {
+                return state_type{
+                    .psoParams = getDefaultPsoParams()
+                };
+            }
+        };
+
+        void Reset()
+        {
+            m_current = state_type::Default();
+            m_next.reset();
+        }
+
+        void RequestPixelShader(const PixelShader& ps)
+        {
+            if (m_current.psoParams.shader.ps.unique_id() == ps.unique_id())
+            {
+                return;
+            }
+
+            getNext().psoParams.shader.ps = ps;
+        }
+
+        const state_type& Current() const
+        {
+            return m_current;
+        }
+
+        std::optional<state_type> ApplyNext()
+        {
+            if (m_next.has_value())
+            {
+                auto previous = std::move(m_current);
+                m_current = std::move(m_next.value());
+                m_next.reset();
+                return previous;
+            }
+
+            return std::nullopt;
+        }
+
+    private:
+        state_type m_current{};
+
+        std::optional<state_type> m_next{};
+
+        state_type& getNext()
+        {
+            if (m_next.has_value())
+            {
+                return m_next.value();
+            }
+
+            m_next = state_type::Default();
+            return m_next.value();
+        }
+    };
 }
 
 struct ShapeDrawer2D::Impl : IEngineDrawer
@@ -83,8 +163,7 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
 
     ArrayPool<BufferUnit> m_bufferUnitList{};
 
-    GraphicsPipelineStateParams m_currentPsoParams{}; // TODO: クラス分離?
-    std::optional<GraphicsPipelineStateParams> m_nextPsoParams{};
+    StateManager m_stateManager{};
 
     size_t m_lastTimestamp{}; // TODO: フラッシュのタイムスタンプにする
 
@@ -92,7 +171,7 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
 
     Impl()
     {
-        m_currentPsoParams = getDefaultPsoParams();
+        resetDrawState();
 
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,
@@ -106,37 +185,34 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
         if (m_lastTimestamp != System::FrameCount())
         {
             // リセット
-            m_bufferUnitList.logical_resize(0);
-            m_lastTimestamp = System::FrameCount();
-            m_currentPsoParams = getDefaultPsoParams();
-            m_drawUnitIndex = 0;
+            resetDrawState();
         }
 
         constexpr double maxScaling = 1.0f; // TODO: Transformer の Matrix から取得
 
         if (shape.isHolds<Shape2D::Rectangle>())
         {
-            requestPixelShader(s_component->m_ps.shape);
-            applyNextPsoParams();
+            m_stateManager.RequestPixelShader(s_component->m_ps.shape);
+            applyNextState();
             ShapeBuilder2D::BuildRetangle(m_bufferCreator, shape.get<Shape2D::Rectangle>());
         }
         else if (shape.isHolds<Shape2D::Line>())
         {
-            requestPixelShader(s_component->m_ps.shape);
-            applyNextPsoParams();
+            m_stateManager.RequestPixelShader(s_component->m_ps.shape);
+            applyNextState();
             ShapeBuilder2D::BuildLine(m_bufferCreator, shape.get<Shape2D::Line>());
         }
         else if (shape.isHolds<Shape2D::SquareDotLine>())
         {
-            requestPixelShader(s_component->m_ps.squareDot);
-            applyNextPsoParams();
+            m_stateManager.RequestPixelShader(s_component->m_ps.squareDot);
+            applyNextState();
             ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator, shape.get<Shape2D::SquareDotLine>(), maxScaling);
         }
     }
 
     void Draw()
     {
-        flushCurrentBuffer();
+        flushCurrentBuffer(m_stateManager.Current());
 
         const auto mat3x2 = Mat3x2::Screen(RenderTarget::Current().size());
         m_cb0->g_transform[0] = {mat3x2._11, mat3x2._12, mat3x2._31, mat3x2._32};
@@ -160,57 +236,28 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
     }
 
 private:
-    static GraphicsPipelineStateParams getDefaultPsoParams()
+    void resetDrawState()
     {
-        return GraphicsPipelineStateParams{
-            .shader = GraphicsShader{s_component->m_vs, s_component->m_ps.shape},
-            .vertexInput = {
-                {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
-                {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
-                {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
-            },
-            .options = GraphicsOptions(),
-            .descriptorTable = descriptorTable
-        };
+        m_bufferUnitList.logical_resize(0);
+        m_lastTimestamp = System::FrameCount();
+        m_stateManager.Reset();
+        m_drawUnitIndex = 0;
     }
 
-    GraphicsPipelineStateParams& getNextPsoParams()
+    void applyNextState()
     {
-        if (m_nextPsoParams.has_value())
+        if (auto&& previous = m_stateManager.ApplyNext())
         {
-            return m_nextPsoParams.value();
-        }
-
-        m_nextPsoParams = getDefaultPsoParams();
-        return m_nextPsoParams.value();
-    }
-
-    void requestPixelShader(const PixelShader& ps)
-    {
-        if (m_currentPsoParams.shader.ps.unique_id() == ps.unique_id())
-        {
-            return;
-        }
-
-        getNextPsoParams().shader.ps = ps;
-    }
-
-    void applyNextPsoParams()
-    {
-        if (m_nextPsoParams.has_value())
-        {
-            flushCurrentBuffer();
-            m_currentPsoParams = std::move(m_nextPsoParams.value());
-            m_nextPsoParams.reset();
+            flushCurrentBuffer(*previous);
         }
     }
 
-    void flushCurrentBuffer()
+    void flushCurrentBuffer(const StateManager::state_type& state)
     {
         for (const auto& buffer : m_bufferCreator.buffers())
         {
             m_bufferUnitList.add_logical_size(1);
-            m_bufferUnitList.logical_back().pso = GraphicsPipelineState{m_currentPsoParams};
+            m_bufferUnitList.logical_back().pso = GraphicsPipelineState{state.psoParams};
 
             auto& indexBuffer = m_bufferUnitList.logical_back().indexBuffer;
             auto& vertexBuffer = m_bufferUnitList.logical_back().vertexBuffer;
