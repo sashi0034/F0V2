@@ -5,6 +5,7 @@
 #include "ConstantBuffer.h"
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
+#include "InlineComponent.h"
 #include "ShapeBuilder2D.h"
 #include "System.h"
 #include "VertexBuffer.h"
@@ -238,6 +239,16 @@ private:
     }
 };
 
+namespace
+{
+    struct GlobalInstance : IInlineComponent
+    {
+        ShapeDrawer2D instance{};
+    };
+
+    InlineComponent<GlobalInstance> s_global{};
+}
+
 namespace TY
 {
     ShapeDrawer2D::ShapeDrawer2D() :
@@ -266,6 +277,11 @@ namespace TY
             p_impl->Draw();
             EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
+    }
+
+    ShapeDrawer2D& ShapeDrawer2D::Global()
+    {
+        return s_global->instance;
     }
 
     namespace detail

@@ -149,8 +149,6 @@ struct Demo_ShapeRenderer_impl
 
     ModelDrawer m_mountainDrawer{};
 
-    ShapeDrawer2D m_shapeDrawManager2D{};
-
     Demo_ShapeRenderer_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
@@ -261,7 +259,7 @@ struct Demo_ShapeRenderer_impl
 
         // -----------------------------------------------
 
-        m_shapeDrawManager2D
+        ShapeDrawer2D::Global()
             .push(Shape2D::Rectangle{RectF{10, 10, 100, 50}})
             .push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}}
                 .setColor(ColorF32{1.0f, 0.3f, 0.7f, 0.5f})
@@ -276,14 +274,14 @@ struct Demo_ShapeRenderer_impl
                   .setColor(ColorF32{1.0f, 0.9f, 0.3f})
             );
 
-        m_shapeDrawManager2D.draw();
+        ShapeDrawer2D::Global().draw();
 
         if (KeySpace.down())
         {
-            m_shapeDrawManager2D = ShapeDrawer2D{};
+            ShapeDrawer2D::Global() = ShapeDrawer2D{};
         }
 
-        m_shapeDrawManager2D
+        ShapeDrawer2D::Global()
             .push(Shape2D::Rectangle{RectF{50, 500, 50, 50}})
             .draw();
 

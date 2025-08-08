@@ -10,9 +10,11 @@ namespace TY
 
         const ShapeDrawer2D& push(const Shape2D::shape_type& shape) const;
 
-        const ShapeDrawer2D& operator<<(const Shape2D::shape_type& shape) const;
+        const ShapeDrawer2D& operator <<(const Shape2D::shape_type& shape) const;
 
         void draw() const;
+
+        static ShapeDrawer2D& Global();
 
     private:
         struct Impl;
