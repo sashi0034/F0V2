@@ -5,6 +5,7 @@
 
 #include "TY/ConstantBuffer.h"
 #include "TY/Gamepad.h"
+#include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
@@ -268,7 +269,7 @@ struct Demo_ShapeRenderer_impl
             .push(Shape2D::Line{Float2{100, 200}, Float2{200, 300}}
                   .setThickness(5.0f)
                   .setColor(ColorF32{1.0f, 0.9f, 0.3f})
-                  .asDotLine(0.0f)
+                  .asDotLine(InGameElapsedTime() * 50.0f)
             )
             .push(Shape2D::Line{Float2{200, 200}, Float2{300, 400}}
                   .setThickness(10.0f)
