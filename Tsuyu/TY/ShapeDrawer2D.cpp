@@ -180,14 +180,13 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
         });
     }
 
+    void onFlushed() override
+    {
+        resetDrawState();
+    }
+
     void Push(const Shape2D::shape_type& shape)
     {
-        if (m_lastTimestamp != System::FrameCount())
-        {
-            // リセット
-            resetDrawState();
-        }
-
         constexpr double maxScaling = 1.0f; // TODO: Transformer の Matrix から取得
 
         if (shape.isHolds<Shape2D::Rectangle>())
