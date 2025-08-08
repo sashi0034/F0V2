@@ -66,7 +66,7 @@ namespace
     struct BufferUnit
     {
         GraphicsPipelineState pso{};
-        IndexBuffer indexBuffer{Empty}; // TODO: リストにする
+        IndexBuffer indexBuffer{Empty};
         VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer{Empty};
         size_t indexCount{0};
     };
@@ -139,9 +139,7 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
         m_cb0->g_transform[1] = {mat3x2._21, mat3x2._22, 0.0f, 1.0f};
         m_cb0.upload();
 
-        // const auto commandList = EngineRenderContext::ActiveCommandList();
-
-        m_descriptorHeap.commandSet(); // FIXME?
+        m_descriptorHeap.commandSet();
 
         for (const auto& buffer : m_bufferUnitList)
         {
@@ -261,7 +259,7 @@ namespace TY
         if (p_impl)
         {
             p_impl->Draw();
-            EngineCore::MarkDrawerInFrame(p_impl);
+            EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
     }
 

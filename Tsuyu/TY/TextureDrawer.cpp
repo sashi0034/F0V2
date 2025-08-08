@@ -11,6 +11,7 @@
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
 #include "detail/EngineCore.h"
+#include "detail/EngineRenderContext.h"
 #include "detail/EngineStateContext.h"
 #include "detail/IEngineDrawer.h"
 #include "detail/GraphicsPipelineState.h"
@@ -198,7 +199,7 @@ namespace TY
     //     if (p_impl)
     //     {
     //         p_impl->Draw(position, {});
-    //         EngineCore::MarkDrawerInFrame(p_impl);
+    //         EngineRenderContext::MarkDrawerUntilFlush(p_impl);
     //     }
     // }
     //
@@ -207,7 +208,7 @@ namespace TY
     //     if (p_impl)
     //     {
     //         p_impl->DrawAt(center, {});
-    //         EngineCore::MarkDrawerInFrame(p_impl);
+    //         EngineRenderContext::MarkDrawerUntilFlush(p_impl);
     //     }
     // }
 
@@ -221,7 +222,7 @@ namespace TY
         if (p_impl)
         {
             p_impl->Draw3D();
-            EngineCore::MarkDrawerInFrame(p_impl);
+            EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
     }
 
@@ -253,7 +254,7 @@ namespace TY
         if (texture.p_impl)
         {
             texture.p_impl->Draw(position, *this);
-            EngineCore::MarkDrawerInFrame(texture.p_impl);
+            EngineRenderContext::MarkDrawerUntilFlush(texture.p_impl);
         }
     }
 
@@ -262,7 +263,7 @@ namespace TY
         if (texture.p_impl)
         {
             texture.p_impl->DrawAt(center, *this);
-            EngineCore::MarkDrawerInFrame(texture.p_impl);
+            EngineRenderContext::MarkDrawerUntilFlush(texture.p_impl);
         }
     }
 }

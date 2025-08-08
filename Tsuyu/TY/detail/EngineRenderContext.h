@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CommandList.h"
+#include "IEngineDrawer.h"
 #include "PipelineType.h"
 #include "TY/ConstantBufferUploader.h"
 #include "TY/Mat3x2.h"
@@ -51,5 +52,7 @@ namespace TY::detail
 
         [[nodiscard]]
         ConstantBufferUploader<SceneState3D_b0> GetSceneState3D_CB0();
+
+        void MarkDrawerUntilFlush(const std::shared_ptr<IEngineDrawer>& drawer);
     }
 }

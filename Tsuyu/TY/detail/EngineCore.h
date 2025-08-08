@@ -18,7 +18,5 @@ namespace TY::detail
         void Shutdown();
 
         void ObserveUpdatable(const std::weak_ptr<IEngineUpdatable>& updatable);
-
-        void MarkDrawerInFrame(const std::shared_ptr<IEngineDrawer>& updatable);
     };
 }

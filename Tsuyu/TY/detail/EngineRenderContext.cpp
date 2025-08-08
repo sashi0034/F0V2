@@ -65,6 +65,8 @@ struct EngineRenderContextImpl
 
     ConstantBufferUploader<SceneState3D_b0> m_sceneState3D{Empty};
 
+    Array<std::shared_ptr<IEngineDrawer>> m_markedDrawerList{};
+
     void Init()
     {
 #ifdef _DEBUG
@@ -222,6 +224,18 @@ struct EngineRenderContextImpl
         m_computeCommandList.CloseAndFlush();
         m_copyCommandList.CloseAndFlush();
         m_commandList.CloseAndFlush();
+
+        // -----------------------------------------------
+
+        for (const auto& drawer : m_markedDrawerList)
+        {
+            if (drawer)
+            {
+                drawer->onFlushed();
+            }
+        }
+
+        m_markedDrawerList.clear();
     }
 
     CommandList& getActiveCommandList()
@@ -459,5 +473,13 @@ namespace TY::detail
     ConstantBufferUploader<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
     {
         return s_renderContext.m_sceneState3D;
+    }
+
+    void EngineRenderContext::MarkDrawerUntilFlush(const std::shared_ptr<IEngineDrawer>& drawer)
+    {
+        if (drawer)
+        {
+            s_renderContext.m_markedDrawerList.push_back(drawer);
+        }
     }
 }

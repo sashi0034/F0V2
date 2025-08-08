@@ -181,16 +181,4 @@ namespace TY
     {
         s_core.m_updatableList.push_back(updatable);
     }
-
-    void EngineCore::MarkDrawerInFrame(const std::shared_ptr<IEngineDrawer>& updatable)
-    {
-        if (s_core.m_inFrame)
-        {
-            s_core.m_drawersInFrame.push_back(updatable);
-        }
-        else
-        {
-            LogError.writeln("EngineCore::MarkDrawerInFrame(): Invalid call detected outside the frame lifecycle.");
-        }
-    }
 }

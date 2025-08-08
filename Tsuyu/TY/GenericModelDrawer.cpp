@@ -216,7 +216,7 @@ namespace TY
         if (p_impl)
         {
             p_impl->Draw(0);
-            EngineCore::MarkDrawerInFrame(p_impl);
+            EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
     }
 
@@ -225,7 +225,7 @@ namespace TY
         if (p_impl)
         {
             p_impl->Draw(materialIndexOfCbv10AndLater);
-            EngineCore::MarkDrawerInFrame(p_impl);
+            EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
     }
 }
