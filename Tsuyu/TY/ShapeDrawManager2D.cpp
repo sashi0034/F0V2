@@ -203,33 +203,32 @@ private:
 
     void flushCurrentBuffer()
     {
-        m_bufferUnitList.add_logical_size(1);
-        m_bufferUnitList.logical_back().pso = GraphicsPipelineState{m_currentPsoParams};
-
-        const auto& bufferList = m_bufferCreator.buffers();
-        if (not bufferList.logical_empty())
+        for (const auto& buffer : m_bufferCreator.buffers())
         {
+            m_bufferUnitList.add_logical_size(1);
+            m_bufferUnitList.logical_back().pso = GraphicsPipelineState{m_currentPsoParams};
+
             auto& indexBuffer = m_bufferUnitList.logical_back().indexBuffer;
             auto& vertexBuffer = m_bufferUnitList.logical_back().vertexBuffer;
 
             // インデックスと頂点バッファのサイズを確認し、必要に応じて再確保
-            if (indexBuffer.count() < bufferList[0].indices.size())
+            if (indexBuffer.count() < buffer.indices.size())
             {
                 // ここでは、あえて size() ではなく capacity() の値を用いる
                 indexBuffer =
-                    IndexBuffer(Min<int>(bufferList[0].indices.capacity(), UINT16_MAX));
+                    IndexBuffer(Min<int>(buffer.indices.capacity(), UINT16_MAX));
             }
 
-            if (vertexBuffer.count() < bufferList[0].vertices.size())
+            if (vertexBuffer.count() < buffer.vertices.size())
             {
                 vertexBuffer =
-                    VertexBuffer<ShapeBuilder2D::Vertex2D>(Min<int>(bufferList[0].vertices.capacity(), UINT16_MAX));
+                    VertexBuffer<ShapeBuilder2D::Vertex2D>(Min<int>(buffer.vertices.capacity(), UINT16_MAX));
             }
 
             // インデックスと頂点バッファにデータをアップロード
-            indexBuffer.upload(bufferList[0].indices);
-            vertexBuffer.upload(bufferList[0].vertices);
-            m_bufferUnitList.logical_back().indexCount = bufferList[0].indices.size();
+            indexBuffer.upload(buffer.indices);
+            vertexBuffer.upload(buffer.vertices);
+            m_bufferUnitList.logical_back().indexCount = buffer.indices.size();
 
             m_bufferCreator.clear();
         }
