@@ -87,6 +87,8 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
 
     size_t m_lastTimestamp{}; // TODO: フラッシュのタイムスタンプにする
 
+    size_t m_drawUnitIndex{};
+
     Impl()
     {
         m_currentPsoParams = getDefaultPsoParams();
@@ -106,6 +108,7 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
             m_bufferUnitList.logical_resize(0);
             m_lastTimestamp = System::FrameCount();
             m_currentPsoParams = getDefaultPsoParams();
+            m_drawUnitIndex = 0;
         }
 
         constexpr double maxScaling = 1.0f; // TODO: Transformer の Matrix から取得
@@ -141,8 +144,10 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
 
         m_descriptorHeap.commandSet();
 
-        for (const auto& buffer : m_bufferUnitList)
+        for (; m_drawUnitIndex < m_bufferUnitList.logical_size(); ++m_drawUnitIndex)
         {
+            const auto& buffer = m_bufferUnitList[m_drawUnitIndex];
+
             buffer.pso.commandSet();
 
             m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
