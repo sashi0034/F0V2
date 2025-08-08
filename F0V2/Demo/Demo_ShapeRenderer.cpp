@@ -149,6 +149,10 @@ struct Demo_ShapeRenderer_impl
 
     ModelDrawer m_mountainDrawer{};
 
+    RenderTarget m_miniMap{};
+
+    TextureDrawer m_miniMapDrawer{};
+
     Demo_ShapeRenderer_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
@@ -194,6 +198,18 @@ struct Demo_ShapeRenderer_impl
             .setModel(m_models.mountainModel)
             .setShader(m_shaders.phong)
             .setCbv10AndLater({m_cb.phongLight})
+        };
+
+        m_miniMap = RenderTarget{
+            RenderTargetParams{}
+            .setSize(Size{256, 256})
+            .setClearColor(ColorF32{0.0f, 1.0f})
+        };
+
+        m_miniMapDrawer = TextureDrawer{
+            TextureDrawerParams{}
+            .setShader(m_shaders.default2d)
+            .setTexture(m_miniMap.asShaderResource())
         };
     }
 
@@ -258,6 +274,16 @@ struct Demo_ShapeRenderer_impl
         m_playerDrawer.draw();
 
         // -----------------------------------------------
+
+        {
+            const auto bind = m_miniMap.scopedBind();
+
+            ShapeDrawer2D::Global()
+                .push(Shape2D::Rectangle{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}))
+                .draw();
+        }
+
+        m_miniMapDrawer.as2D().draw(Float2{500, 10});
 
         ShapeDrawer2D::Global()
             .push(Shape2D::Rectangle{RectF{10, 10, 100, 50}})

@@ -15,6 +15,14 @@ namespace TY
         Size size;
         ColorF32 clearColor;
         GraphicsFormat format{DXGI_FORMAT_R8G8B8A8_UNORM};
+
+        RenderTargetParams& setBufferCount(int bufferCount_);
+
+        RenderTargetParams& setSize(Size size_);
+
+        RenderTargetParams& setClearColor(const ColorF32& clearColor_);
+
+        RenderTargetParams& setFormat(GraphicsFormat format_);
     };
 
     class ScopedRenderTarget : public ScopedDefer

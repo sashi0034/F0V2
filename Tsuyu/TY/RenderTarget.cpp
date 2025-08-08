@@ -238,6 +238,30 @@ struct RenderTarget::Impl
 
 namespace TY
 {
+    RenderTargetParams& RenderTargetParams::setBufferCount(int bufferCount_)
+    {
+        bufferCount = bufferCount_;
+        return *this;
+    }
+
+    RenderTargetParams& RenderTargetParams::setSize(Size size_)
+    {
+        size = size_;
+        return *this;
+    }
+
+    RenderTargetParams& RenderTargetParams::setClearColor(const ColorF32& clearColor_)
+    {
+        clearColor = clearColor_;
+        return *this;
+    }
+
+    RenderTargetParams& RenderTargetParams::setFormat(GraphicsFormat format_)
+    {
+        format = format_;
+        return *this;
+    }
+
     RenderTarget::RenderTarget(const RenderTargetParams& params)
         : p_impl(std::make_shared<Impl>(params))
     {
