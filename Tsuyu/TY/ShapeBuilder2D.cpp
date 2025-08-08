@@ -45,15 +45,15 @@ namespace TY
             }
 
             // インデックスバッファの容量が一杯になった場合は次のバッファを使う
-            if (m_buffers.empty() ||
-                static_cast<int>(m_buffers.back().indices.size()) + indexCount > maxIndices)
+            if (m_buffers.logical_empty() ||
+                static_cast<int>(m_buffers.logical_back().indices.size()) + indexCount > maxIndices)
             {
-                m_buffers.emplace_back();
-                // m_buffers.back().indices.reserve(maxIndices);
-                // m_buffers.back().vertices.reserve(maxIndices);
+                m_buffers.add_logical_size(1);
+                m_buffers.logical_back().indices.resize(0);
+                m_buffers.logical_back().vertices.resize(0);
             }
 
-            auto& buffer = m_buffers.back();
+            auto& buffer = m_buffers.logical_back();
 
             const size_t currentVertexCount = buffer.vertices.size();
             const size_t currentIndexCount = buffer.indices.size();
@@ -71,17 +71,12 @@ namespace TY
 
         void BufferCreator::clear()
         {
-            m_buffers.clear();
+            m_buffers.logical_resize(0);
         }
 
         void BufferCreator::step()
         {
-            m_buffers.emplace_back();
-        }
-
-        const Array<BufferCreator::buffer_type>& BufferCreator::buffers() const
-        {
-            return m_buffers;
+            m_buffers.add_logical_size(1);
         }
 
         // -----------------------------------------------

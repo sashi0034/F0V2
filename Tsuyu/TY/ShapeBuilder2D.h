@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Array.h"
+#include "ArrayPool.h"
 #include "Shape2D.h"
 #include "Vector2D.h"
 #include "Vector4D.h"
@@ -45,11 +46,13 @@ namespace TY
 
             void step();
 
-            const Array<buffer_type>& buffers() const;
+            const ArrayPool<buffer_type>& buffers() const
+            {
+                return m_buffers;
+            }
 
         private:
-            Array<buffer_type> m_buffers{};
-            // size_t m_currentIndex{}; // TODO
+            ArrayPool<buffer_type> m_buffers{};
         };
 
         // -----------------------------------------------

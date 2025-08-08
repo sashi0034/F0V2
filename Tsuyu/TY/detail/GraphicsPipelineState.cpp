@@ -299,9 +299,9 @@ public:
                             L"GraphicsPipelineStateCacheComponent: Vertex input layout mismatch in cached GraphicsPipelineState.");
                     }
 
-                    LogInfo(std::format(
-                        "GraphicsPipelineStateCacheComponent: Reusing cached GraphicsPipelineState with hash: 0x{:016x}",
-                        hash));
+                    // LogInfo(std::format(
+                    //     "GraphicsPipelineStateCacheComponent: Reusing cached GraphicsPipelineState with hash: 0x{:016x}",
+                    //     hash));
 
                     return impl;
                 }

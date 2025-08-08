@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "ShapeDrawManager2D.h"
 
+#include "ArrayPool.h"
 #include "ConstantBuffer.h"
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
@@ -79,7 +80,7 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
 
     ConstantBuffer<ShapeDraw_b0> m_cb0{};
 
-    Array<BufferUnit> m_bufferUnitList{};
+    ArrayPool<BufferUnit> m_bufferUnitList{};
 
     GraphicsPipelineStateParams m_currentPsoParams{}; // TODO: クラス分離?
     std::optional<GraphicsPipelineStateParams> m_nextPsoParams{};
@@ -102,7 +103,7 @@ struct ShapeDrawManager2D::Impl : IEngineDrawer
         if (m_lastTimestamp != System::FrameCount())
         {
             // リセット
-            m_bufferUnitList.clear(); // TODO: プーリング
+            m_bufferUnitList.logical_resize(0);
             m_lastTimestamp = System::FrameCount();
             m_currentPsoParams = getDefaultPsoParams();
         }
@@ -202,14 +203,14 @@ private:
 
     void flushCurrentBuffer()
     {
-        m_bufferUnitList.emplace_back();
-        m_bufferUnitList.back().pso = GraphicsPipelineState{m_currentPsoParams};
+        m_bufferUnitList.add_logical_size(1);
+        m_bufferUnitList.logical_back().pso = GraphicsPipelineState{m_currentPsoParams};
 
         const auto& bufferList = m_bufferCreator.buffers();
-        if (not bufferList.empty())
+        if (not bufferList.logical_empty())
         {
-            auto& indexBuffer = m_bufferUnitList.back().indexBuffer;
-            auto& vertexBuffer = m_bufferUnitList.back().vertexBuffer;
+            auto& indexBuffer = m_bufferUnitList.logical_back().indexBuffer;
+            auto& vertexBuffer = m_bufferUnitList.logical_back().vertexBuffer;
 
             // インデックスと頂点バッファのサイズを確認し、必要に応じて再確保
             if (indexBuffer.count() < bufferList[0].indices.size())
@@ -228,7 +229,7 @@ private:
             // インデックスと頂点バッファにデータをアップロード
             indexBuffer.upload(bufferList[0].indices);
             vertexBuffer.upload(bufferList[0].vertices);
-            m_bufferUnitList.back().indexCount = bufferList[0].indices.size();
+            m_bufferUnitList.logical_back().indexCount = bufferList[0].indices.size();
 
             m_bufferCreator.clear();
         }
