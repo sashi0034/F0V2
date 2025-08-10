@@ -272,6 +272,11 @@ namespace TY
     {
     }
 
+    size_t RenderTarget::unique_id() const
+    {
+        return p_impl ? reinterpret_cast<size_t>(p_impl.get()) : 0;
+    }
+
     int RenderTarget::bufferCount() const
     {
         return p_impl ? p_impl->m_bufferCount : 0;

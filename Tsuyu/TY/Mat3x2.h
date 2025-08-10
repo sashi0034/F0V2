@@ -44,6 +44,10 @@ namespace TY
             };
         }
 
+        bool operator==(const Mat3x2& rhs) const noexcept;
+
+        bool operator!=(const Mat3x2& rhs) const noexcept;
+
         static constexpr Mat3x2 Identity()
         {
             return {

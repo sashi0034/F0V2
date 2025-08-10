@@ -179,6 +179,7 @@
     <ClInclude Include="TY\GenericModelDrawer.h" />
     <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\GpgpuBuffer.h" />
+    <ClInclude Include="TY\Graphics2D.h" />
     <ClInclude Include="TY\GraphicsOptions.h" />
     <ClInclude Include="TY\IAddon.h" />
     <ClInclude Include="TY\IComponent.h" />
@@ -310,6 +311,7 @@
     <ClCompile Include="TY\GameTime.cpp" />
     <ClCompile Include="TY\GenericModelDrawer.cpp" />
     <ClCompile Include="TY\Gpgpu.cpp" />
+    <ClCompile Include="TY\Graphics2D.cpp" />
     <ClCompile Include="TY\GraphicsOptions.cpp" />
     <ClCompile Include="TY\InlineComponent.cpp" />
     <ClCompile Include="TY\KeyboardMouseInput.cpp" />

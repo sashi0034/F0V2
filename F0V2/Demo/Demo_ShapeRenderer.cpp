@@ -275,16 +275,6 @@ struct Demo_ShapeRenderer_impl
 
         // -----------------------------------------------
 
-        {
-            const auto bind = m_miniMap.scopedBind();
-
-            ShapeDrawer2D::Global()
-                .push(Shape2D::Rectangle{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}))
-                .draw();
-        }
-
-        m_miniMapDrawer.as2D().draw(Float2{500, 10});
-
         ShapeDrawer2D::Global()
             .push(Shape2D::Rectangle{RectF{10, 10, 100, 50}})
             .push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}}
@@ -310,6 +300,16 @@ struct Demo_ShapeRenderer_impl
         ShapeDrawer2D::Global()
             .push(Shape2D::Rectangle{RectF{50, 500, 50, 50}})
             .draw();
+
+        {
+            const auto bind = m_miniMap.scopedBind();
+
+            ShapeDrawer2D::Global()
+                .push(Shape2D::Rectangle{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
+            ShapeDrawer2D::Global().draw();
+        }
+
+        m_miniMapDrawer.as2D().draw(Float2{500, 10});
 
         // -----------------------------------------------
 
