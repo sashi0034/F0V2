@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
+#include "ShaderRegisterStart.h"
 #include "TY/Array.h"
 #include "TY/Shader.h"
 
@@ -10,7 +11,10 @@ namespace TY::detail
     struct ComputePipelineStateParams
     {
         ComputeShader computeShader;
+
         Array<DescriptorTableElement> descriptorTable;
+
+        Array<ShaderRegisterStart> explicitRegisterStarts{};
     };
 
     class ComputePipelineState

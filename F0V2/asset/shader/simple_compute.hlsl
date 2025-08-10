@@ -1,6 +1,6 @@
 StructuredBuffer<uint> g_readonlyData0 : register(t0);
 
-StructuredBuffer<uint> g_readonlyData1 : register(t10);
+StructuredBuffer<uint> g_readonlyData1 : register(t1);
 
 RWStructuredBuffer<uint> g_buffer : register(u0);
 

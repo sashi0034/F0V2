@@ -207,6 +207,8 @@ struct Gpgpu::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
+    int m_tableIndexofCbv10AndLater{-1};
+
     Impl(const GpgpuParams& params) : m_params(params)
     {
         if (params.readonlyBuffer.size() > readonlyBufferCapacity)
@@ -255,23 +257,41 @@ struct Gpgpu::Impl
             }
         }
 
-        const auto descriptorTable = DescriptorTable{DescriptorTableElement{3, m_sr.size(), m_ua.size()}};
-        m_computePipelineState = ComputePipelineState({
-            .computeShader = m_params.cs,
-            .descriptorTable = descriptorTable
-        });
-
-        m_descriptorHeap = DescriptorHeap(DescriptorHeapParams{
-            .table = m_computePipelineState.descriptorTable(),
+        auto descriptorHeap = DescriptorHeapParams{
+            .table = DescriptorTable{
+                DescriptorTableElement{2, m_sr.size(), m_ua.size()},
+            },
             .materialCounts = {1},
             .descriptors = {
                 CbvSrvUavSet{
-                    {m_cb0, m_cb1, m_params.cb2},
+                    {m_cb0, m_cb1},
                     m_sr.toColumnVector<ShaderResourceType>(),
                     m_ua.toColumnVector<UnorderedAccessType>()
-                }
+                },
+
             }
+        };
+
+        if (m_params.cbv10AndLater.size() > 0)
+        {
+            m_tableIndexofCbv10AndLater = static_cast<int>(descriptorHeap.table.size());
+
+            descriptorHeap.table.push_back(DescriptorTableElement{m_params.cbv10AndLater.size(), 0, 0});
+            descriptorHeap.materialCounts.push_back(1);
+            descriptorHeap.descriptors.push_back(CbvSrvUavSet{
+                m_params.cbv10AndLater,
+                {},
+                {}
+            });
+        }
+
+        m_computePipelineState = ComputePipelineState(ComputePipelineStateParams{
+            .computeShader = m_params.cs,
+            .descriptorTable = descriptorHeap.table,
+            .explicitRegisterStarts = {ShaderRegisterStart{1, 10}}
         });
+
+        m_descriptorHeap = DescriptorHeap(descriptorHeap);
     }
 
     void Compute()
@@ -292,6 +312,11 @@ struct Gpgpu::Impl
         m_computePipelineState.commandSet();
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
+
+        if (m_tableIndexofCbv10AndLater != -1)
+        {
+            m_descriptorHeap.commandSetTable(PipelineType::Compute, m_tableIndexofCbv10AndLater);
+        }
 
         const auto commandList = EngineRenderContext::ActiveCommandList();
         const auto mainUA = m_ua[0];
@@ -370,6 +395,11 @@ struct Gpgpu::Impl
             impl->m_computePipelineState.commandSet();
             impl->m_descriptorHeap.commandSet();
             impl->m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
+
+            if (impl->m_tableIndexofCbv10AndLater != -1)
+            {
+                impl->m_descriptorHeap.commandSetTable(PipelineType::Compute, impl->m_tableIndexofCbv10AndLater);
+            }
 
             const auto commandList = EngineRenderContext::ActiveCommandList();
             const auto mainUA = impl->m_ua[0];
