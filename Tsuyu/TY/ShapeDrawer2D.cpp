@@ -282,6 +282,8 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
 
     size_t m_drawUnitIndex{};
 
+    Array<std::any> m_markedGarbage{};
+
     Impl()
     {
         resetDrawState();
@@ -290,6 +292,8 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
     void onFlushed() override
     {
         resetDrawState();
+
+        m_markedGarbage.clear();
     }
 
     void Push(const Shape2D::shape_type& shape)
@@ -335,6 +339,10 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
             m_descriptorManager.CommandSet(buffer.descriptor);
 
             Graphics3D::DrawTriangles(buffer.vertexBuffer, buffer.indexBuffer, buffer.indexCount);
+
+            // IB, VB は再確保される可能性があるのでフラッシュのタイミングまで保持する
+            m_markedGarbage.push_back(buffer.vertexBuffer);
+            m_markedGarbage.push_back(buffer.indexBuffer);
         }
     }
 
