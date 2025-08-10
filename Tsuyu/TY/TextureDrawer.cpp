@@ -104,7 +104,7 @@ struct TextureDrawer::Impl : IEngineDrawer
 {
     ShaderResourceTexture m_sr;
 
-    GraphicsPipelineState m_pipelineState;
+    GraphicsPipelineState m_pso;
 
     TextureVertexData m_textureVertexData;
     VertexBuffer<TextureVertex> m_vertexBuffer{m_textureVertexData.Get()};
@@ -117,7 +117,7 @@ struct TextureDrawer::Impl : IEngineDrawer
     DescriptorHeap m_descriptorHeap{};
 
     Impl(const TextureDrawerParams& options) :
-        m_pipelineState(makePipelineState(options))
+        m_pso(makePipelineState(options))
     {
         m_sr = ShaderResourceTexture{options.texture};
 
@@ -132,7 +132,7 @@ struct TextureDrawer::Impl : IEngineDrawer
 
     void DrawInternal() const
     {
-        m_pipelineState.commandSet();
+        m_pso.commandSet();
 
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);

@@ -24,7 +24,7 @@ struct GenericModelDrawer::Impl : IEngineDrawer
 {
     std::shared_ptr<IGenericModelBuffer> m_modelBuffer{};
 
-    GraphicsPipelineState m_pipelineState{};
+    GraphicsPipelineState m_pso{};
 
     DescriptorHeap m_descriptorHeap{};
 
@@ -92,7 +92,7 @@ struct GenericModelDrawer::Impl : IEngineDrawer
             descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, params.srv10AndLater.toColumnVector(), {}});
         }
 
-        m_pipelineState = GraphicsPipelineState{
+        m_pso = GraphicsPipelineState{
             GraphicsPipelineStateParams{
                 .shader = params.shader,
                 .vertexInput = params.vertexInput,
@@ -114,7 +114,7 @@ struct GenericModelDrawer::Impl : IEngineDrawer
 
     void Draw(int materialIndexOfCbv10AndLater) const
     {
-        m_pipelineState.commandSet();
+        m_pso.commandSet();
 
         // カメラ行列設定
         m_descriptorHeap.commandSet();

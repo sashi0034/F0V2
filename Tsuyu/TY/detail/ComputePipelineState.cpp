@@ -17,7 +17,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
 
     uint64_t m_timestamp{};
 
-    ComPtr<ID3D12PipelineState> m_pipelineState;
+    ComPtr<ID3D12PipelineState> m_pso;
     RootSignature m_rootSignature;
 
     Impl(const ComputePipelineStateParams& params)
@@ -46,7 +46,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
 
         const auto device = EngineRenderContext::GetDevice();
         if (const auto hr = device->CreateComputePipelineState(
-                &desc, IID_PPV_ARGS(m_pipelineState.ReleaseAndGetAddressOf()));
+                &desc, IID_PPV_ARGS(m_pso.ReleaseAndGetAddressOf()));
             FAILED(hr))
         {
             LogError.writeln(std::format("Failed to create compute pipeline state: {}", hr));
@@ -59,7 +59,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
     void CommandSet() const
     {
         const auto commandList = EngineRenderContext::ActiveCommandList();
-        commandList->SetPipelineState(m_pipelineState.Get());
+        commandList->SetPipelineState(m_pso.Get());
         commandList->SetComputeRootSignature(m_rootSignature.getPointer());
     }
 };

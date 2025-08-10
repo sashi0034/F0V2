@@ -42,15 +42,4 @@ namespace TY::detail
         struct Impl;
         std::shared_ptr<Impl> p_impl;
     };
-
-    // class ScopedPipelineState : Uncopyable
-    // {
-    // public:
-    //     explicit ScopedPipelineState(const PipelineState& pipelineState);
-    //
-    //     ~ScopedPipelineState();
-    //
-    // private:
-    //     size_t m_timestamp;
-    // };
 }

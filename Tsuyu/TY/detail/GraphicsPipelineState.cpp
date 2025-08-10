@@ -59,7 +59,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 {
     uint64_t m_timestamp{};
 
-    ComPtr<ID3D12PipelineState> m_pipelineState;
+    ComPtr<ID3D12PipelineState> m_pso;
     RootSignature m_rootSignature;
     GraphicsPipelineStateParams m_params;
 
@@ -204,13 +204,13 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
         return device->CreateGraphicsPipelineState(
             &pipelineDesc,
-            IID_PPV_ARGS(m_pipelineState.ReleaseAndGetAddressOf()));
+            IID_PPV_ARGS(m_pso.ReleaseAndGetAddressOf()));
     }
 
     void CommandSet() const
     {
         const auto commandList = EngineRenderContext::ActiveCommandList();
-        commandList->SetPipelineState(m_pipelineState.Get());
+        commandList->SetPipelineState(m_pso.Get());
         commandList->SetGraphicsRootSignature(m_rootSignature.getPointer());
     }
 };
