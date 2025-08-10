@@ -289,7 +289,12 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
         resetDrawState();
     }
 
-    void onFlushed() override
+    void beforeFlush() override
+    {
+        m_descriptorManager.Upload();
+    }
+
+    void afterFlush() override
     {
         resetDrawState();
 
@@ -327,8 +332,6 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
     void Draw()
     {
         flushCurrentBuffer(m_stateManager.Current());
-
-        m_descriptorManager.Upload(); // TODO: フラッシュ直前にアップロード
 
         for (; m_drawUnitIndex < m_bufferUnitList.logical_size(); ++m_drawUnitIndex)
         {

@@ -7,7 +7,11 @@ namespace TY::detail
     public:
         virtual ~IEngineDrawer() = default;
 
-        virtual void onFlushed()
+        virtual void beforeFlush()
+        {
+        }
+
+        virtual void afterFlush()
         {
         }
     };

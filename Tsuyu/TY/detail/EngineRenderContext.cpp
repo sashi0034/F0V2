@@ -221,6 +221,16 @@ struct EngineRenderContextImpl
 
     void FlushCommandLists()
     {
+        for (const auto& drawer : m_markedDrawerList)
+        {
+            if (drawer)
+            {
+                drawer->beforeFlush();
+            }
+        }
+
+        // -----------------------------------------------
+
         m_computeCommandList.CloseAndFlush();
         m_copyCommandList.CloseAndFlush();
         m_commandList.CloseAndFlush();
@@ -231,7 +241,7 @@ struct EngineRenderContextImpl
         {
             if (drawer)
             {
-                drawer->onFlushed();
+                drawer->afterFlush();
             }
         }
 
