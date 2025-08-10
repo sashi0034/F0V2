@@ -125,6 +125,53 @@ struct CommandList::Impl
         // コマンドリストのリセット
         m_commandList->Reset(m_commandAllocator.Get(), nullptr);
     }
+
+    static void SequenceCloseAndFlush(const Array<CommandList>& list)
+    {
+        if (list.empty())
+        {
+            return;
+        }
+
+        std::shared_ptr<Impl> prev = nullptr;
+        for (auto& it : list)
+        {
+            const auto& impl = it.p_impl;
+            impl->m_commandList->Close();
+
+            ID3D12CommandList* cmds[] = {impl->m_commandList.Get()};
+            impl->m_commandQueue->ExecuteCommandLists(1, cmds);
+
+            impl->m_fenceValue++;
+            impl->m_commandQueue->Signal(impl->m_fence.Get(), impl->m_fenceValue);
+
+            // 前と違うキューなら依存を入れる
+            if (prev && prev->m_commandQueue.Get() != impl->m_commandQueue.Get())
+            {
+                impl->m_commandQueue->Wait(prev->m_fence.Get(), prev->m_fenceValue);
+            }
+
+            prev = impl;
+        }
+
+        // 最後の完了待ち
+        auto& last = list.back().p_impl;
+        if (last->m_fence->GetCompletedValue() != last->m_fenceValue)
+        {
+            auto event = CreateEvent(nullptr, false, false, nullptr);
+            last->m_fence->SetEventOnCompletion(last->m_fenceValue, event);
+            WaitForSingleObjectEx(event, INFINITE, false);
+            CloseHandle(event);
+        }
+
+        // Reset
+        for (auto& it : list)
+        {
+            auto& impl = it.p_impl;
+            impl->m_commandAllocator->Reset();
+            impl->m_commandList->Reset(impl->m_commandAllocator.Get(), nullptr);
+        }
+    }
 };
 
 namespace TY::detail
@@ -141,6 +188,11 @@ namespace TY::detail
     void CommandList::CloseAndFlush()
     {
         if (p_impl) p_impl->CloseAndFlush();
+    }
+
+    void CommandList::SequenceCloseAndFlush(const Array<CommandList>& list)
+    {
+        Impl::SequenceCloseAndFlush(list);
     }
 
     ID3D12GraphicsCommandList* CommandList::GetCommandList() const

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TY/Array.h"
 
 namespace TY::detail
 {
@@ -17,6 +18,8 @@ namespace TY::detail
         CommandList(CommandListType type);
 
         void CloseAndFlush();
+
+        static void SequenceCloseAndFlush(const Array<CommandList>& list);
 
         ID3D12GraphicsCommandList* GetCommandList() const;
 

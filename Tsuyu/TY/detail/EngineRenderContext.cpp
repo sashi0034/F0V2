@@ -231,9 +231,11 @@ struct EngineRenderContextImpl
 
         // -----------------------------------------------
 
-        m_computeCommandList.CloseAndFlush();
-        m_copyCommandList.CloseAndFlush();
-        m_commandList.CloseAndFlush();
+        CommandList::SequenceCloseAndFlush({
+            m_computeCommandList,
+            m_copyCommandList,
+            m_commandList
+        });
 
         // -----------------------------------------------
 
