@@ -18,6 +18,8 @@ namespace TY::detail
 
     namespace EngineRenderContext
     {
+        constexpr int FrameBufferCount = 2;
+
         void Init();
 
         void NewFrame();

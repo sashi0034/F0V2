@@ -30,42 +30,58 @@ namespace
 struct CommandList::Impl
 {
     bool m_valid{};
-    ComPtr<ID3D12CommandAllocator> m_commandAllocator{};
-    ComPtr<ID3D12GraphicsCommandList> m_commandList{};
+
+    struct frame_resource
+    {
+        ComPtr<ID3D12CommandAllocator> commandAllocator{};
+        ComPtr<ID3D12GraphicsCommandList> commandList{};
+        UINT64 fenceValue{};
+    };
+
+    Array<frame_resource> m_frameResources{EngineRenderContext::FrameBufferCount};
+
+    uint8_t m_frameResourceIndex{0};
+
     ComPtr<ID3D12CommandQueue> m_commandQueue{};
 
     ComPtr<ID3D12Fence> m_fence{};
-    UINT64 m_fenceValue{};
 
     Impl(CommandListType type)
     {
         const auto device = EngineRenderContext::GetDevice();
         const auto commandListType = getCommandListType(type);
 
-        // コマンドアロケータを生成
-        if (const HRESULT hr = device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(&m_commandAllocator));
-            FAILED(hr))
+        for (int i = 0; i < EngineRenderContext::FrameBufferCount; ++i)
         {
-            LogError(std::format("CreateCommandAllocator failed: {}", hr));
-            return;
+            auto& rsc = m_frameResources[i];
+
+            // コマンドアロケータを生成
+            if (const HRESULT hr = device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(&rsc.commandAllocator));
+                FAILED(hr))
+            {
+                LogError(std::format("CreateCommandAllocator failed: {}", hr));
+                return;
+            }
+
+            rsc.commandAllocator->SetName(L"CommandAllocator");
+
+            // コマンドリストを生成
+            if (const HRESULT hr = device->CreateCommandList(
+                    0,
+                    commandListType,
+                    rsc.commandAllocator.Get(),
+                    nullptr,
+                    IID_PPV_ARGS(&rsc.commandList));
+                FAILED(hr))
+            {
+                LogError(std::format("CreateCommandList failed: {}", hr));
+                return;
+            }
+
+            rsc.commandList->SetName(L"CommandList");
+
+            rsc.fenceValue = i;
         }
-
-        m_commandAllocator->SetName(L"CommandAllocator");
-
-        // コマンドリストを生成
-        if (const HRESULT hr = device->CreateCommandList(
-                0,
-                commandListType,
-                m_commandAllocator.Get(),
-                nullptr,
-                IID_PPV_ARGS(&m_commandList));
-            FAILED(hr))
-        {
-            LogError(std::format("CreateCommandList failed: {}", hr));
-            return;
-        }
-
-        m_commandList->SetName(L"CommandList");
 
         // コマンドキューを生成
         D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
@@ -102,28 +118,31 @@ struct CommandList::Impl
 
     void CloseAndFlush()
     {
-        m_commandList->Close();
+        auto& rsc = m_frameResources[m_frameResourceIndex];
+        rsc.commandList->Close();
 
-        ID3D12CommandList* commandLists[] = {m_commandList.Get()};
+        ID3D12CommandList* commandLists[] = {rsc.commandList.Get()};
         m_commandQueue->ExecuteCommandLists(1, commandLists);
 
         // 実行の待機
-        m_fenceValue++;
-        m_commandQueue->Signal(m_fence.Get(), m_fenceValue);
+        rsc.fenceValue += EngineRenderContext::FrameBufferCount;
+        m_commandQueue->Signal(m_fence.Get(), rsc.fenceValue);
 
-        if (m_fence->GetCompletedValue() != m_fenceValue)
+        if (m_fence->GetCompletedValue() < rsc.fenceValue)
         {
             const auto event = CreateEvent(nullptr, false, false, nullptr);
-            m_fence->SetEventOnCompletion(m_fenceValue, event);
+            m_fence->SetEventOnCompletion(rsc.fenceValue, event);
             WaitForSingleObjectEx(event, INFINITE, false);
             CloseHandle(event);
         }
 
         // コマンドアロケータのリセット
-        m_commandAllocator->Reset();
+        rsc.commandAllocator->Reset();
 
         // コマンドリストのリセット
-        m_commandList->Reset(m_commandAllocator.Get(), nullptr);
+        rsc.commandList->Reset(rsc.commandAllocator.Get(), nullptr);
+
+        m_frameResourceIndex = (m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
     }
 
     static void SequenceCloseAndFlush(const Array<CommandList>& list)
@@ -137,29 +156,34 @@ struct CommandList::Impl
         for (auto& it : list)
         {
             const auto& impl = it.p_impl;
-            impl->m_commandList->Close();
+            assert(impl);
 
-            ID3D12CommandList* cmds[] = {impl->m_commandList.Get()};
-            impl->m_commandQueue->ExecuteCommandLists(1, cmds);
-
-            impl->m_fenceValue++;
-            impl->m_commandQueue->Signal(impl->m_fence.Get(), impl->m_fenceValue);
+            auto& rsc = impl->m_frameResources[impl->m_frameResourceIndex];
+            rsc.commandList->Close();
 
             // 前と違うキューなら依存を入れる
             if (prev && prev->m_commandQueue.Get() != impl->m_commandQueue.Get())
             {
-                impl->m_commandQueue->Wait(prev->m_fence.Get(), prev->m_fenceValue);
+                impl->m_commandQueue->Wait(prev->m_fence.Get(),
+                                           prev->m_frameResources[prev->m_frameResourceIndex].fenceValue);
             }
+
+            ID3D12CommandList* cmds[] = {rsc.commandList.Get()};
+            impl->m_commandQueue->ExecuteCommandLists(1, cmds);
+
+            rsc.fenceValue += EngineRenderContext::FrameBufferCount;
+            impl->m_commandQueue->Signal(impl->m_fence.Get(), rsc.fenceValue);
 
             prev = impl;
         }
 
         // 最後の完了待ち
         auto& last = list.back().p_impl;
-        if (last->m_fence->GetCompletedValue() != last->m_fenceValue)
+        auto& lastFrameResource = last->m_frameResources[last->m_frameResourceIndex];
+        if (last->m_fence->GetCompletedValue() < lastFrameResource.fenceValue)
         {
             auto event = CreateEvent(nullptr, false, false, nullptr);
-            last->m_fence->SetEventOnCompletion(last->m_fenceValue, event);
+            last->m_fence->SetEventOnCompletion(lastFrameResource.fenceValue, event);
             WaitForSingleObjectEx(event, INFINITE, false);
             CloseHandle(event);
         }
@@ -168,8 +192,12 @@ struct CommandList::Impl
         for (auto& it : list)
         {
             auto& impl = it.p_impl;
-            impl->m_commandAllocator->Reset();
-            impl->m_commandList->Reset(impl->m_commandAllocator.Get(), nullptr);
+            auto& rsc = impl->m_frameResources[impl->m_frameResourceIndex];
+
+            rsc.commandAllocator->Reset();
+            rsc.commandList->Reset(rsc.commandAllocator.Get(), nullptr);
+
+            impl->m_frameResourceIndex = (impl->m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
         }
     }
 };
@@ -197,7 +225,7 @@ namespace TY::detail
 
     ID3D12GraphicsCommandList* CommandList::GetCommandList() const
     {
-        return p_impl ? p_impl->m_commandList.Get() : nullptr;
+        return p_impl ? p_impl->m_frameResources[p_impl->m_frameResourceIndex].commandList.Get() : nullptr;
     }
 
     ID3D12CommandQueue* CommandList::GetCommandQueue() const

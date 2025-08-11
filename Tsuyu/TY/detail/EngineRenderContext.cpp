@@ -21,7 +21,7 @@ namespace
 {
     constexpr ColorF32 defaultClearColor = {0.5f, 0.5f, 0.5f, 1.0f};
 
-    constexpr Size defaultSceneSize = {1920, 1080};
+    constexpr Size defaultFrameBufferSize = {1920, 1080};
 
     void enableDebugLayer()
     {
@@ -38,7 +38,7 @@ struct EngineRenderContextImpl
 {
     bool m_valid{};
 
-    Point m_frameBufferSize{defaultSceneSize};
+    Point m_frameBufferSize{defaultFrameBufferSize};
     ColorF32 m_clearColor{defaultClearColor};
 
     ComPtr<ID3D12Device> m_device;
@@ -148,7 +148,7 @@ struct EngineRenderContextImpl
         swapchainDesc.SampleDesc.Count = 1;
         swapchainDesc.SampleDesc.Quality = 0;
         swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
-        swapchainDesc.BufferCount = 2;
+        swapchainDesc.BufferCount = EngineRenderContext::FrameBufferCount;
         swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
