@@ -118,31 +118,36 @@ struct CommandList::Impl
 
     void CloseAndFlush()
     {
-        auto& rsc = m_frameResources[m_frameResourceIndex];
-        rsc.commandList->Close();
+        auto& currentResource = m_frameResources[m_frameResourceIndex];
 
-        ID3D12CommandList* commandLists[] = {rsc.commandList.Get()};
+        currentResource.commandList->Close();
+
+        ID3D12CommandList* commandLists[] = {currentResource.commandList.Get()};
         m_commandQueue->ExecuteCommandLists(1, commandLists);
 
         // 実行の待機
-        rsc.fenceValue += EngineRenderContext::FrameBufferCount;
-        m_commandQueue->Signal(m_fence.Get(), rsc.fenceValue);
+        currentResource.fenceValue += EngineRenderContext::FrameBufferCount;
+        m_commandQueue->Signal(m_fence.Get(), currentResource.fenceValue);
 
-        if (m_fence->GetCompletedValue() < rsc.fenceValue)
+        m_frameResourceIndex = (m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
+
+        // -----------------------------------------------
+
+        auto& nextResource = m_frameResources[m_frameResourceIndex];
+
+        if (m_fence->GetCompletedValue() < nextResource.fenceValue)
         {
             const auto event = CreateEvent(nullptr, false, false, nullptr);
-            m_fence->SetEventOnCompletion(rsc.fenceValue, event);
+            m_fence->SetEventOnCompletion(nextResource.fenceValue, event);
             WaitForSingleObjectEx(event, INFINITE, false);
             CloseHandle(event);
         }
 
         // コマンドアロケータのリセット
-        rsc.commandAllocator->Reset();
+        nextResource.commandAllocator->Reset();
 
         // コマンドリストのリセット
-        rsc.commandList->Reset(rsc.commandAllocator.Get(), nullptr);
-
-        m_frameResourceIndex = (m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
+        nextResource.commandList->Reset(nextResource.commandAllocator.Get(), nullptr);
     }
 
     static void SequenceCloseAndFlush(const Array<CommandList>& list)
@@ -158,8 +163,9 @@ struct CommandList::Impl
             const auto& impl = it.p_impl;
             assert(impl);
 
-            auto& rsc = impl->m_frameResources[impl->m_frameResourceIndex];
-            rsc.commandList->Close();
+            auto& currentResource = impl->m_frameResources[impl->m_frameResourceIndex];
+
+            currentResource.commandList->Close();
 
             // 前と違うキューなら依存を入れる
             if (prev && prev->m_commandQueue.Get() != impl->m_commandQueue.Get())
@@ -168,36 +174,38 @@ struct CommandList::Impl
                                            prev->m_frameResources[prev->m_frameResourceIndex].fenceValue);
             }
 
-            ID3D12CommandList* cmds[] = {rsc.commandList.Get()};
+            ID3D12CommandList* cmds[] = {currentResource.commandList.Get()};
             impl->m_commandQueue->ExecuteCommandLists(1, cmds);
 
-            rsc.fenceValue += EngineRenderContext::FrameBufferCount;
-            impl->m_commandQueue->Signal(impl->m_fence.Get(), rsc.fenceValue);
+            currentResource.fenceValue += EngineRenderContext::FrameBufferCount;
+            impl->m_commandQueue->Signal(impl->m_fence.Get(), currentResource.fenceValue);
 
             prev = impl;
         }
 
-        // 最後の完了待ち
-        auto& last = list.back().p_impl;
-        auto& lastFrameResource = last->m_frameResources[last->m_frameResourceIndex];
-        if (last->m_fence->GetCompletedValue() < lastFrameResource.fenceValue)
-        {
-            auto event = CreateEvent(nullptr, false, false, nullptr);
-            last->m_fence->SetEventOnCompletion(lastFrameResource.fenceValue, event);
-            WaitForSingleObjectEx(event, INFINITE, false);
-            CloseHandle(event);
-        }
+        // -----------------------------------------------
 
-        // Reset
-        for (auto& it : list)
+        for (int i = list.size() - 1; i >= 0; --i)
         {
-            auto& impl = it.p_impl;
-            auto& rsc = impl->m_frameResources[impl->m_frameResourceIndex];
-
-            rsc.commandAllocator->Reset();
-            rsc.commandList->Reset(rsc.commandAllocator.Get(), nullptr);
+            auto& impl = list[i].p_impl;
 
             impl->m_frameResourceIndex = (impl->m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
+
+            auto& nextResource = impl->m_frameResources[impl->m_frameResourceIndex];
+
+            if (impl->m_fence->GetCompletedValue() < nextResource.fenceValue)
+            {
+                const auto event = CreateEvent(nullptr, false, false, nullptr);
+                impl->m_fence->SetEventOnCompletion(nextResource.fenceValue, event);
+                WaitForSingleObjectEx(event, INFINITE, false);
+                CloseHandle(event);
+            }
+
+            // コマンドアロケータのリセット
+            nextResource.commandAllocator->Reset();
+
+            // コマンドリストのリセット
+            nextResource.commandList->Reset(nextResource.commandAllocator.Get(), nullptr);
         }
     }
 };
