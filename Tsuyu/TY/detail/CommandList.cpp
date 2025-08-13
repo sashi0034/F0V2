@@ -36,6 +36,7 @@ struct CommandList::Impl
         ComPtr<ID3D12CommandAllocator> commandAllocator{};
         ComPtr<ID3D12GraphicsCommandList> commandList{};
         UINT64 fenceValue{};
+        bool needFence{};
     };
 
     Array<frame_resource> m_frameResources{EngineRenderContext::FrameBufferCount};
@@ -135,13 +136,15 @@ struct CommandList::Impl
 
         auto& nextResource = m_frameResources[m_frameResourceIndex];
 
-        if (m_fence->GetCompletedValue() < nextResource.fenceValue)
+        if (nextResource.needFence && m_fence->GetCompletedValue() < nextResource.fenceValue)
         {
             const auto event = CreateEvent(nullptr, false, false, nullptr);
             m_fence->SetEventOnCompletion(nextResource.fenceValue, event);
             WaitForSingleObjectEx(event, INFINITE, false);
             CloseHandle(event);
         }
+
+        nextResource.needFence = true;
 
         // コマンドアロケータのリセット
         nextResource.commandAllocator->Reset();
@@ -193,13 +196,15 @@ struct CommandList::Impl
 
             auto& nextResource = impl->m_frameResources[impl->m_frameResourceIndex];
 
-            if (impl->m_fence->GetCompletedValue() < nextResource.fenceValue)
+            if (nextResource.needFence && impl->m_fence->GetCompletedValue() < nextResource.fenceValue)
             {
                 const auto event = CreateEvent(nullptr, false, false, nullptr);
                 impl->m_fence->SetEventOnCompletion(nextResource.fenceValue, event);
                 WaitForSingleObjectEx(event, INFINITE, false);
                 CloseHandle(event);
             }
+
+            nextResource.needFence = true;
 
             // コマンドアロケータのリセット
             nextResource.commandAllocator->Reset();
