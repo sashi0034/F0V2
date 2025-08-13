@@ -62,6 +62,7 @@ struct VertexBufferCore::Impl
     {
         void* p;
 
+        // TODO: これダメ
         if (const auto hr = m_vertBuffer->Map(0, nullptr, &p);
             FAILED(hr))
         {

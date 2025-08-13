@@ -2,6 +2,7 @@
 #include "ConstantBufferUploader.h"
 
 #include "Logger.h"
+#include "System.h"
 #include "Utils.h"
 #include "detail/EngineRenderContext.h"
 
@@ -19,16 +20,20 @@ struct ConstantBufferUploaderCore::Impl
     uint32_t m_sizeInBytes;
     uint32_t m_materialCount;
     size_t m_alignedSize{};
-    ComPtr<ID3D12Resource> m_uploadBuffer{};
 
-    bool m_uploaded{};
-    bool m_shouldUnmap{};
+    struct frame_resources
+    {
+        ComPtr<ID3D12Resource> uploadBuffer;
+    };
+
+    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+    ComPtr<ID3D12Resource> m_gpuBuffer{};
 
     Impl(uint32_t sizeInBytes, uint32_t count)
         : m_sizeInBytes(sizeInBytes),
           m_materialCount(count)
     {
-        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         m_alignedSize = AlignedSize(sizeInBytes, 256);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_alignedSize * count);
 
@@ -36,33 +41,52 @@ struct ConstantBufferUploaderCore::Impl
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
+                D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_uploadBuffer));
+                IID_PPV_ARGS(&m_gpuBuffer));
             FAILED(hr))
         {
-            LogError.writeln("ConstantBufferUploader: Failed to create resource.");
+            LogError.writeln("ConstantBufferUploader: Failed to create m_gpuBuffer.");
             return;
         }
 
-        m_uploadBuffer->SetName(L"ConstantBuffer");
+        m_gpuBuffer->SetName(L"ConstantBuffer::m_gpuBuffer");
+
+        // -----------------------------------------------
+
+        heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+        for (int i = 0; i < EngineRenderContext::FrameBufferCount; ++i)
+        {
+            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+                    &heapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &resourceDesc,
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&m_frameResources[i].uploadBuffer));
+                FAILED(hr))
+            {
+                LogError.writeln("ConstantBufferUploader: Failed to create uploadBuffer.");
+                return;
+            }
+        }
 
         m_valid = true;
     }
 
     ~Impl()
     {
-        if (m_shouldUnmap)
-        {
-            m_uploadBuffer->Unmap(0, nullptr);
-        }
     }
 
     void Upload(const uint8_t* data, uint32_t count)
     {
         uint8_t* dest;
 
-        if (const auto hr = m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dest));
+        // TODO: 永続マッピング
+
+        size_t frameIndex = System::FrameCount() % EngineRenderContext::FrameBufferCount;
+        if (const auto hr = m_frameResources[frameIndex].uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dest));
             FAILED(hr))
         {
             LogError.writeln(std::format("ConstantBufferUploader: Failed to map resource for 0x{:016x}",
@@ -78,17 +102,13 @@ struct ConstantBufferUploaderCore::Impl
             dest += m_alignedSize;
         }
 
-        if (m_uploaded)
-        {
-            // ニ回目以降のアップロードは破棄時までマップの解除をしない
-            m_shouldUnmap = true;
-        }
-        else
-        {
-            // 初回のアップロードのみマップの解除を行う
-            m_uploaded = true;
-            m_uploadBuffer->Unmap(0, nullptr);
-        }
+        m_frameResources[frameIndex].uploadBuffer->Unmap(0, nullptr);
+
+        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy); // FIXME?
+        const auto copyCommandList = EngineRenderContext::ActiveCommandList();
+
+        copyCommandList->CopyResource(m_gpuBuffer.Get(), m_frameResources[frameIndex].uploadBuffer.Get());
+        // TODO: CopyBufferRegion 
     }
 };
 
@@ -130,6 +150,6 @@ namespace TY
 
     uint64_t ConstantBufferUploaderCore::bufferLocation() const
     {
-        return p_impl ? p_impl->m_uploadBuffer->GetGPUVirtualAddress() : 0;
+        return p_impl ? p_impl->m_gpuBuffer->GetGPUVirtualAddress() : 0;
     }
 }

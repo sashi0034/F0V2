@@ -78,6 +78,7 @@ struct IndexBuffer::Impl::Default : Impl
     {
         index_type* indexMap{};
 
+        // TODO: これダメ
         if (const auto hr = m_indexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&indexMap));
             FAILED(hr))
         {
