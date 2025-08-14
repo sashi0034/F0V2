@@ -81,6 +81,11 @@ struct CommandList::Impl
 
             rsc.commandList->SetName(L"CommandList");
 
+            if (i > 0)
+            {
+                rsc.commandList->Close();
+            }
+
             rsc.fenceValue = i;
         }
 
@@ -130,9 +135,9 @@ struct CommandList::Impl
         currentResource.fenceValue += EngineRenderContext::FrameBufferCount;
         m_commandQueue->Signal(m_fence.Get(), currentResource.fenceValue);
 
-        m_frameResourceIndex = (m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
-
         // -----------------------------------------------
+
+        m_frameResourceIndex = (m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
 
         auto& nextResource = m_frameResources[m_frameResourceIndex];
 
