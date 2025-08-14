@@ -10,19 +10,28 @@ using namespace TY::detail;
 struct VertexBufferCore::Impl
 {
     bool m_valid{};
-    ComPtr<ID3D12Resource> m_vertBuffer{};
+
     D3D12_VERTEX_BUFFER_VIEW m_vertBufferView{};
+
+    ComPtr<ID3D12Resource> m_finalBuffer{};
+
     int m_count{};
 
-    bool m_uploaded{};
-    bool m_shouldUnmap{};
+    struct frame_resources
+    {
+        ComPtr<ID3D12Resource> uploadBuffer;
+        uint8_t* dest{};
+    };
+
+    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+
+    size_t m_lastUploadTimestamp{};
 
     Impl(int sizeInBytes, int strideInBytes)
     {
         const auto device = EngineRenderContext::GetDevice();
 
-        const D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-
+        const D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes);
 
         // リソース作成
@@ -30,18 +39,18 @@ struct VertexBufferCore::Impl
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
+                D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_vertBuffer));
+                IID_PPV_ARGS(&m_finalBuffer));
             FAILED(hr))
         {
             LogError.writeln("VertexBuffer: Failed to create buffer");
             return;
         }
 
-        m_vertBuffer->SetName(L"VertexBuffer");
+        m_finalBuffer->SetName(L"VertexBuffer::m_finalBuffer");
 
-        m_vertBufferView.BufferLocation = m_vertBuffer->GetGPUVirtualAddress();
+        m_vertBufferView.BufferLocation = m_finalBuffer->GetGPUVirtualAddress();
         m_vertBufferView.SizeInBytes = sizeInBytes;
         m_vertBufferView.StrideInBytes = strideInBytes;
 
@@ -52,36 +61,75 @@ struct VertexBufferCore::Impl
 
     ~Impl()
     {
-        if (m_shouldUnmap)
+        for (auto& frameResource : m_frameResources)
         {
-            m_vertBuffer->Unmap(0, nullptr);
+            if (frameResource.uploadBuffer && frameResource.dest)
+            {
+                frameResource.uploadBuffer->Unmap(0, nullptr);
+            }
         }
     }
 
     void Upload(const void* data, size_t size)
     {
-        void* p;
+        const size_t previousUploadTimestamp = m_lastUploadTimestamp;
+        m_lastUploadTimestamp = EngineRenderContext::GetFlushTimestamp();
 
-        // TODO: これダメ
-        if (const auto hr = m_vertBuffer->Map(0, nullptr, &p);
-            FAILED(hr))
+        const size_t frameIndex = m_lastUploadTimestamp % EngineRenderContext::FrameBufferCount;
+
+        auto& frameResource = m_frameResources[frameIndex];
+
+        if (not frameResource.uploadBuffer)
         {
-            LogError.writeln(L"VertexBuffer: Failed to map buffer");
-            return;
+            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_vertBufferView.SizeInBytes);
+
+            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+                    &heapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &resourceDesc,
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&frameResource.uploadBuffer));
+                FAILED(hr))
+            {
+                LogError.writeln("VertexBuffer: Failed to create uploadBuffer.");
+                return;
+            }
         }
 
-        memcpy(p, data, size);
+        if (not frameResource.dest)
+        {
+            if (const HRESULT hr = frameResource.uploadBuffer->Map(
+                    0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
+                FAILED(hr))
+            {
+                LogError.writeln(std::format("VertexBuffer: Failed to map resource for 0x{:016x}",
+                                             reinterpret_cast<size_t>(data)));
+                return;
+            }
 
-        if (m_uploaded)
-        {
-            // ニ回目以降のアップロードは破棄時までマップの解除をしない
-            m_shouldUnmap = true;
+            frameResource.uploadBuffer->SetName(L"VertexBuffer::uploadBuffer");
         }
-        else
+
+        uint8_t* dest = frameResource.dest;
+        memcpy(dest, data, size);
+
+        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
+        // FIXME?
+        const auto copyCommandList = EngineRenderContext::ActiveCommandList();
+        copyCommandList->CopyBufferRegion(
+            m_finalBuffer.Get(),
+            0,
+            frameResource.uploadBuffer.Get(),
+            0,
+            size);
+
+        if (previousUploadTimestamp == 0)
         {
-            // 初回のアップロードのみマップの解除を行う
-            m_uploaded = true;
-            m_vertBuffer->Unmap(0, nullptr);
+            // 初回実行時は即アンマップする
+            frameResource.uploadBuffer->Unmap(0, nullptr);
+            frameResource.dest = nullptr;
         }
     }
 

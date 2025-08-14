@@ -21,15 +21,16 @@ struct ConstantBufferUploaderCore::Impl
     uint32_t m_materialCount;
     size_t m_alignedSize{};
 
-    ComPtr<ID3D12Resource> m_dstBuffer{};
+    ComPtr<ID3D12Resource> m_finalBuffer{};
 
     struct frame_resources
     {
         ComPtr<ID3D12Resource> uploadBuffer;
-        uint8_t* dst{};
+        uint8_t* dest{};
     };
 
     std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+
     size_t m_lastUploadTimestamp{};
 
     Impl(uint32_t sizeInBytes, uint32_t count)
@@ -47,14 +48,14 @@ struct ConstantBufferUploaderCore::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_dstBuffer));
+                IID_PPV_ARGS(&m_finalBuffer));
             FAILED(hr))
         {
-            LogError.writeln("ConstantBufferUploader: Failed to create m_dstBuffer.");
+            LogError.writeln("ConstantBufferUploader: Failed to create m_finalBuffer.");
             return;
         }
 
-        m_dstBuffer->SetName(L"ConstantBuffer::m_dstBuffer");
+        m_finalBuffer->SetName(L"ConstantBuffer::m_finalBuffer");
 
         m_valid = true;
     }
@@ -63,7 +64,7 @@ struct ConstantBufferUploaderCore::Impl
     {
         for (auto& frameResource : m_frameResources)
         {
-            if (frameResource.uploadBuffer && frameResource.dst)
+            if (frameResource.uploadBuffer && frameResource.dest)
             {
                 frameResource.uploadBuffer->Unmap(0, nullptr);
             }
@@ -98,10 +99,10 @@ struct ConstantBufferUploaderCore::Impl
             }
         }
 
-        if (not frameResource.dst)
+        if (not frameResource.dest)
         {
             if (const HRESULT hr = frameResource.uploadBuffer->Map(
-                    0, nullptr, reinterpret_cast<void**>(&frameResource.dst));
+                    0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
                 FAILED(hr))
             {
                 LogError.writeln(std::format("ConstantBufferUploader: Failed to map resource for 0x{:016x}",
@@ -112,13 +113,13 @@ struct ConstantBufferUploaderCore::Impl
             frameResource.uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
         }
 
-        uint8_t* dst = frameResource.dst;
+        uint8_t* dest = frameResource.dest;
         uint32_t srcOffset{};
         for (int i = 0; i < count; ++i)
         {
-            std::memcpy(dst, data + srcOffset, m_sizeInBytes);
+            std::memcpy(dest, data + srcOffset, m_sizeInBytes);
             srcOffset += m_sizeInBytes;
-            dst += m_alignedSize;
+            dest += m_alignedSize;
         }
 
         const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
@@ -126,7 +127,7 @@ struct ConstantBufferUploaderCore::Impl
         const auto copyCommandList = EngineRenderContext::ActiveCommandList();
 
         copyCommandList->CopyBufferRegion(
-            m_dstBuffer.Get(),
+            m_finalBuffer.Get(),
             0,
             frameResource.uploadBuffer.Get(),
             0,
@@ -136,7 +137,7 @@ struct ConstantBufferUploaderCore::Impl
         {
             // 初回実行時は即アンマップする
             frameResource.uploadBuffer->Unmap(0, nullptr);
-            frameResource.dst = nullptr;
+            frameResource.dest = nullptr;
         }
     }
 };
@@ -179,6 +180,6 @@ namespace TY
 
     uint64_t ConstantBufferUploaderCore::bufferLocation() const
     {
-        return p_impl ? p_impl->m_dstBuffer->GetGPUVirtualAddress() : 0;
+        return p_impl ? p_impl->m_finalBuffer->GetGPUVirtualAddress() : 0;
     }
 }
