@@ -42,6 +42,7 @@ namespace TY::detail
         [[nodiscard]]
         ID3D12GraphicsCommandList* ActiveCommandList();
 
+        /// TODO: obsolete
         void FlushActiveCommandList();
 
         void RequestFrameBufferSize(Size frameBufferSize);
@@ -56,5 +57,7 @@ namespace TY::detail
         ConstantBufferUploader<SceneState3D_b0> GetSceneState3D_CB0();
 
         void MarkDrawerUntilFlush(const std::shared_ptr<IEngineDrawer>& drawer);
+
+        size_t GetFlushTimestamp();
     }
 }

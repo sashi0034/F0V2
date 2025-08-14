@@ -67,6 +67,8 @@ struct EngineRenderContextImpl
 
     Array<std::shared_ptr<IEngineDrawer>> m_markedDrawerList{};
 
+    size_t m_flushTimestamp{};
+
     void Init()
     {
 #ifdef _DEBUG
@@ -248,6 +250,8 @@ struct EngineRenderContextImpl
         }
 
         m_markedDrawerList.clear();
+
+        m_flushTimestamp++;
     }
 
     CommandList& getActiveCommandList()
@@ -493,5 +497,10 @@ namespace TY::detail
         {
             s_renderContext.m_markedDrawerList.push_back(drawer);
         }
+    }
+
+    size_t EngineRenderContext::GetFlushTimestamp()
+    {
+        return s_renderContext.m_flushTimestamp;
     }
 }
