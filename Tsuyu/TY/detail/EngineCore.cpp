@@ -56,8 +56,6 @@ struct EngineCoreImpl
 
     Array<std::weak_ptr<IEngineUpdatable>> m_updatableList{};
 
-    Array<std::shared_ptr<IEngineDrawer>> m_drawersInFrame{};
-
     void Init()
     {
         EngineTimer::Init();
@@ -112,8 +110,6 @@ struct EngineCoreImpl
 
         EngineRenderContext::Render();
 
-        m_drawersInFrame.clear();
-
         EngineComponent::PostPresent();
 
         m_inFrame = false;
@@ -122,8 +118,6 @@ struct EngineCoreImpl
     void Shutdown()
     {
         m_updatableList.clear();
-
-        m_drawersInFrame.clear();
 
         EngineStateContext::Shutdown();
 
