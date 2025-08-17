@@ -40,7 +40,7 @@ struct IndexBuffer::Impl::Default : Impl
 
     std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
 
-    size_t m_lastUploadTimestamp{};
+    size_t m_uploadTimestamp{};
 
     Default(int count)
     {
@@ -87,10 +87,10 @@ struct IndexBuffer::Impl::Default : Impl
 
     void Upload(const Array<index_type>& indices) override
     {
-        const size_t previousUploadTimestamp = m_lastUploadTimestamp;
-        m_lastUploadTimestamp = EngineRenderContext::GetFlushTimestamp();
+        const size_t previousUploadTimestamp = m_uploadTimestamp;
+        m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
 
-        const size_t frameIndex = m_lastUploadTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t frameIndex = m_uploadTimestamp % EngineRenderContext::FrameBufferCount;
 
         auto& frameResource = m_frameResources[frameIndex];
 

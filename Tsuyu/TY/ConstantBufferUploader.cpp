@@ -31,7 +31,7 @@ struct ConstantBufferUploaderCore::Impl
 
     std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
 
-    size_t m_lastUploadTimestamp{};
+    size_t m_uploadTimestamp{};
 
     Impl(uint32_t sizeInBytes, uint32_t count)
         : m_sizeInBytes(sizeInBytes),
@@ -73,10 +73,10 @@ struct ConstantBufferUploaderCore::Impl
 
     void Upload(const uint8_t* data, uint32_t count)
     {
-        const size_t previousUploadTimestamp = m_lastUploadTimestamp;
-        m_lastUploadTimestamp = EngineRenderContext::GetFlushTimestamp();
+        const size_t previousUploadTimestamp = m_uploadTimestamp;
+        m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
 
-        const size_t frameIndex = m_lastUploadTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t frameIndex = m_uploadTimestamp % EngineRenderContext::FrameBufferCount;
 
         auto& frameResource = m_frameResources[frameIndex];
 

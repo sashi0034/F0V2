@@ -25,7 +25,7 @@ struct VertexBufferCore::Impl
 
     std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
 
-    size_t m_lastUploadTimestamp{};
+    size_t m_uploadTimestamp{};
 
     Impl(int sizeInBytes, int strideInBytes)
     {
@@ -72,10 +72,10 @@ struct VertexBufferCore::Impl
 
     void Upload(const void* data, size_t size)
     {
-        const size_t previousUploadTimestamp = m_lastUploadTimestamp;
-        m_lastUploadTimestamp = EngineRenderContext::GetFlushTimestamp();
+        const size_t previousUploadTimestamp = m_uploadTimestamp;
+        m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
 
-        const size_t frameIndex = m_lastUploadTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t frameIndex = m_uploadTimestamp % EngineRenderContext::FrameBufferCount;
 
         auto& frameResource = m_frameResources[frameIndex];
 
