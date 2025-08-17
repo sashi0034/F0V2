@@ -232,8 +232,8 @@ struct EngineRenderContextImpl
 
     void FlushComputeCommand()
     {
-        m_computeCommandList.CloseAndFlushAfter(m_drawCommandList);
-        m_copyCommandList.CloseAndFlushAfter(m_computeCommandList);
+        m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
+        m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
 
         m_flushTimestamp++;
     }
@@ -250,8 +250,8 @@ struct EngineRenderContextImpl
 
         // -----------------------------------------------
 
-        m_computeCommandList.CloseAndFlushAfter(m_drawCommandList);
-        m_copyCommandList.CloseAndFlushAfter(m_computeCommandList);
+        m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
+        m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
         m_drawCommandList.CloseAndFlushAfter(m_copyCommandList);
 
         // -----------------------------------------------
