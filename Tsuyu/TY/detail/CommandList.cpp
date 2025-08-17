@@ -165,21 +165,28 @@ struct CommandList::Impl
             return;
         }
 
-        std::shared_ptr<Impl> prev = nullptr;
-        for (auto& it : list)
+        for (int i = 0; i < list.size(); ++i)
         {
-            const auto& impl = it.p_impl;
+            auto& impl = list[i].p_impl;
             assert(impl);
 
             auto& currentResource = impl->m_frameResources[impl->m_frameResourceIndex];
 
             currentResource.commandList->Close();
 
-            // 前と違うキューなら依存を入れる
-            if (prev && prev->m_commandQueue.Get() != impl->m_commandQueue.Get())
+            const std::shared_ptr<Impl> prev = list[(i - 1 + list.size()) % list.size()].p_impl;
+            assert(prev);
+
+            if (i > 0)
             {
-                impl->m_commandQueue->Wait(prev->m_fence.Get(),
-                                           prev->m_frameResources[prev->m_frameResourceIndex].fenceValue);
+                impl->m_commandQueue->Wait(
+                    prev->m_fence.Get(), prev->m_frameResources[prev->m_frameResourceIndex].fenceValue);
+            }
+            else if (prev->m_frameResources[prev->previousFrameResourceIndex()].needFence) // i == 0
+            {
+                // 前フレーム最後のコマンドリストを待機
+                impl->m_commandQueue->Wait(
+                    prev->m_fence.Get(), prev->m_frameResources[prev->previousFrameResourceIndex()].fenceValue);
             }
 
             ID3D12CommandList* cmds[] = {currentResource.commandList.Get()};
@@ -187,8 +194,6 @@ struct CommandList::Impl
 
             currentResource.fenceValue += EngineRenderContext::FrameBufferCount;
             impl->m_commandQueue->Signal(impl->m_fence.Get(), currentResource.fenceValue);
-
-            prev = impl;
         }
 
         // -----------------------------------------------
@@ -217,6 +222,13 @@ struct CommandList::Impl
             // コマンドリストのリセット
             nextResource.commandList->Reset(nextResource.commandAllocator.Get(), nullptr);
         }
+    }
+
+private:
+    uint8_t previousFrameResourceIndex() const
+    {
+        constexpr int frameBufferCount = EngineRenderContext::FrameBufferCount;
+        return (m_frameResourceIndex - 1 + frameBufferCount) % frameBufferCount;
     }
 };
 
