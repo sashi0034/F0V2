@@ -16,7 +16,7 @@ struct StructuredBufferUploader::Impl
     bool m_writable{};
 
     ComPtr<ID3D12Resource> m_gpuBuffer;
-    ComPtr<ID3D12Resource> m_uploadBuffer;
+    ComPtr<ID3D12Resource> m_uploadBuffer; // TODO: IB, VB, CB などと同様にダブルバッファリングに修正
     ComPtr<ID3D12Resource> m_readbackBuffer;
     size_t m_dataSize{};
 

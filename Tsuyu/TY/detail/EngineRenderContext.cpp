@@ -46,7 +46,7 @@ struct EngineRenderContextImpl
     ComPtr<IDXGIAdapter> m_adapter;
     D3D_FEATURE_LEVEL m_featureLevel{};
 
-    CommandList m_commandList{};
+    CommandList m_drawCommandList{};
     CommandList m_copyCommandList{};
     CommandList m_computeCommandList{};
 
@@ -65,7 +65,9 @@ struct EngineRenderContextImpl
 
     ConstantBufferUploader<SceneState3D_b0> m_sceneState3D{Empty};
 
-    Array<std::shared_ptr<IEngineDrawer>> m_markedDrawerList{};
+    using drawer_set = std::unordered_set<std::shared_ptr<IEngineDrawer>>;
+
+    std::array<drawer_set, EngineRenderContext::FrameBufferCount> m_markedDrawersBuffer{};
 
     size_t m_flushTimestamp{};
 
@@ -135,7 +137,7 @@ struct EngineRenderContextImpl
         LogInfo.writeln(std::format("Direct3D feature level: {:08x}", static_cast<int>(m_featureLevel)));
 
         // コマンドリストの作成
-        m_commandList = CommandList{CommandListType::Direct};
+        m_drawCommandList = CommandList{CommandListType::Draw};
 
         m_copyCommandList = CommandList{CommandListType::Copy};
 
@@ -157,7 +159,7 @@ struct EngineRenderContextImpl
         swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
         if (const auto hr = m_dxgiFactory->CreateSwapChainForHwnd(
-                m_commandList.GetCommandQueue(),
+                m_drawCommandList.GetCommandQueue(),
                 EngineWindow::Handle(),
                 &swapchainDesc,
                 nullptr,
@@ -221,9 +223,15 @@ struct EngineRenderContextImpl
         m_swapChain->Present(1, 0);
     }
 
+    drawer_set& CurrentMarkedDrawers()
+    {
+        const size_t index = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+        return m_markedDrawersBuffer[index];
+    }
+
     void FlushCommandLists()
     {
-        for (const auto& drawer : m_markedDrawerList)
+        for (const auto& drawer : CurrentMarkedDrawers())
         {
             if (drawer)
             {
@@ -236,12 +244,12 @@ struct EngineRenderContextImpl
         CommandList::SequenceCloseAndFlush({
             m_computeCommandList,
             m_copyCommandList,
-            m_commandList
+            m_drawCommandList
         });
 
         // -----------------------------------------------
 
-        for (const auto& drawer : m_markedDrawerList)
+        for (const auto& drawer : CurrentMarkedDrawers())
         {
             if (drawer)
             {
@@ -249,7 +257,7 @@ struct EngineRenderContextImpl
             }
         }
 
-        m_markedDrawerList.clear();
+        CurrentMarkedDrawers().clear();
 
         m_flushTimestamp++;
     }
@@ -258,20 +266,20 @@ struct EngineRenderContextImpl
     {
         if (m_commandTargetStack.empty())
         {
-            return m_commandList;
+            return m_drawCommandList;
         }
 
         switch (m_commandTargetStack.back())
         {
-        case CommandListType::Direct:
-            return m_commandList;
+        case CommandListType::Draw:
+            return m_drawCommandList;
         case CommandListType::Copy:
             return m_copyCommandList;
         case CommandListType::Compute:
             return m_computeCommandList;
         default:
             assert(false);
-            return m_commandList;
+            return m_drawCommandList;
         }
     }
 
@@ -455,7 +463,7 @@ namespace TY::detail
     {
         if (s_renderContext.m_commandTargetStack.empty())
         {
-            return CommandListType::Direct;
+            return CommandListType::Draw;
         }
 
         return s_renderContext.m_commandTargetStack.back();
@@ -495,7 +503,7 @@ namespace TY::detail
     {
         if (drawer)
         {
-            s_renderContext.m_markedDrawerList.push_back(drawer);
+            s_renderContext.CurrentMarkedDrawers().emplace(drawer);
         }
     }
 

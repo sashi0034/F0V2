@@ -5,7 +5,7 @@ namespace TY::detail
 {
     enum class CommandListType
     {
-        Direct,
+        Draw,
         Copy,
         Compute,
     };

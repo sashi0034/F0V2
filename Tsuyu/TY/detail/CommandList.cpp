@@ -14,7 +14,7 @@ namespace
     {
         switch (type)
         {
-        case CommandListType::Direct:
+        case CommandListType::Draw:
             return D3D12_COMMAND_LIST_TYPE_DIRECT;
         case CommandListType::Copy:
             return D3D12_COMMAND_LIST_TYPE_COPY;
