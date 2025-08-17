@@ -19,7 +19,8 @@ namespace TY::detail
 
         void CloseAndFlush();
 
-        static void SequenceCloseAndFlush(const Array<CommandList>& list);
+        /// @brief 指定したコマンドリストにおける最後に実行したコマンドが終わったあとに Close と Flush を行う
+        void CloseAndFlushAfter(const CommandList& lastCommandList);
 
         ID3D12GraphicsCommandList* GetCommandList() const;
 

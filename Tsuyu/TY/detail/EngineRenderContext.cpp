@@ -69,6 +69,7 @@ struct EngineRenderContextImpl
 
     std::array<drawer_set, EngineRenderContext::FrameBufferCount> m_markedDrawersBuffer{};
 
+    // Copy のフラッシュとともに加算
     size_t m_flushTimestamp{};
 
     void Init()
@@ -217,7 +218,7 @@ struct EngineRenderContextImpl
         m_scopedBackBuffer.dispose();
 
         // コマンドリストの実行
-        FlushCommandLists();
+        FlushAllCommand();
 
         // フリップ
         m_swapChain->Present(1, 0);
@@ -229,7 +230,15 @@ struct EngineRenderContextImpl
         return m_markedDrawersBuffer[index];
     }
 
-    void FlushCommandLists()
+    void FlushComputeCommand()
+    {
+        m_computeCommandList.CloseAndFlushAfter(m_drawCommandList);
+        m_copyCommandList.CloseAndFlushAfter(m_computeCommandList);
+
+        m_flushTimestamp++;
+    }
+
+    void FlushAllCommand()
     {
         for (const auto& drawer : CurrentMarkedDrawers())
         {
@@ -241,11 +250,9 @@ struct EngineRenderContextImpl
 
         // -----------------------------------------------
 
-        CommandList::SequenceCloseAndFlush({
-            m_computeCommandList,
-            m_copyCommandList,
-            m_drawCommandList
-        });
+        m_computeCommandList.CloseAndFlushAfter(m_drawCommandList);
+        m_copyCommandList.CloseAndFlushAfter(m_computeCommandList);
+        m_drawCommandList.CloseAndFlushAfter(m_copyCommandList);
 
         // -----------------------------------------------
 
@@ -285,7 +292,7 @@ struct EngineRenderContextImpl
 
     void OnShutdown()
     {
-        FlushCommandLists();
+        FlushAllCommand();
     }
 
 private:
@@ -368,7 +375,7 @@ private:
     {
         assert(not m_scopedBackBuffer.isActive());
 
-        FlushCommandLists();
+        FlushAllCommand();
 
         const int bufferCount = m_backBuffer.bufferCount();
 
@@ -474,9 +481,9 @@ namespace TY::detail
         return s_renderContext.getActiveCommandList().GetCommandList();
     }
 
-    void EngineRenderContext::FlushActiveCommandList()
+    void EngineRenderContext::FlushComputeCommand()
     {
-        s_renderContext.getActiveCommandList().CloseAndFlush();
+        s_renderContext.FlushComputeCommand();
     }
 
     void EngineRenderContext::RequestFrameBufferSize(Size frameBufferSize)

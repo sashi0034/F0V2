@@ -122,11 +122,21 @@ struct CommandList::Impl
         m_valid = true;
     }
 
-    void CloseAndFlush()
+    void CloseAndFlush(const Impl* lastCommandList)
     {
         auto& currentResource = m_frameResources[m_frameResourceIndex];
 
         currentResource.commandList->Close();
+
+        if (lastCommandList)
+        {
+            const auto& previousFrameResource =
+                lastCommandList->m_frameResources[lastCommandList->previousFrameResourceIndex()];
+            if (previousFrameResource.needFence)
+            {
+                m_commandQueue->Wait(lastCommandList->m_fence.Get(), previousFrameResource.fenceValue);
+            }
+        }
 
         ID3D12CommandList* commandLists[] = {currentResource.commandList.Get()};
         m_commandQueue->ExecuteCommandLists(1, commandLists);
@@ -158,72 +168,6 @@ struct CommandList::Impl
         nextResource.commandList->Reset(nextResource.commandAllocator.Get(), nullptr);
     }
 
-    static void SequenceCloseAndFlush(const Array<CommandList>& list)
-    {
-        if (list.empty())
-        {
-            return;
-        }
-
-        for (int i = 0; i < list.size(); ++i)
-        {
-            auto& impl = list[i].p_impl;
-            assert(impl);
-
-            auto& currentResource = impl->m_frameResources[impl->m_frameResourceIndex];
-
-            currentResource.commandList->Close();
-
-            const std::shared_ptr<Impl> prev = list[(i - 1 + list.size()) % list.size()].p_impl;
-            assert(prev);
-
-            if (i > 0)
-            {
-                impl->m_commandQueue->Wait(
-                    prev->m_fence.Get(), prev->m_frameResources[prev->m_frameResourceIndex].fenceValue);
-            }
-            else if (prev->m_frameResources[prev->previousFrameResourceIndex()].needFence) // i == 0
-            {
-                // 前フレーム最後のコマンドリストを待機
-                impl->m_commandQueue->Wait(
-                    prev->m_fence.Get(), prev->m_frameResources[prev->previousFrameResourceIndex()].fenceValue);
-            }
-
-            ID3D12CommandList* cmds[] = {currentResource.commandList.Get()};
-            impl->m_commandQueue->ExecuteCommandLists(1, cmds);
-
-            currentResource.fenceValue += EngineRenderContext::FrameBufferCount;
-            impl->m_commandQueue->Signal(impl->m_fence.Get(), currentResource.fenceValue);
-        }
-
-        // -----------------------------------------------
-
-        for (int i = list.size() - 1; i >= 0; --i)
-        {
-            auto& impl = list[i].p_impl;
-
-            impl->m_frameResourceIndex = (impl->m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
-
-            auto& nextResource = impl->m_frameResources[impl->m_frameResourceIndex];
-
-            if (nextResource.needFence && impl->m_fence->GetCompletedValue() < nextResource.fenceValue)
-            {
-                const auto event = CreateEvent(nullptr, false, false, nullptr);
-                impl->m_fence->SetEventOnCompletion(nextResource.fenceValue, event);
-                WaitForSingleObjectEx(event, INFINITE, false);
-                CloseHandle(event);
-            }
-
-            nextResource.needFence = true;
-
-            // コマンドアロケータのリセット
-            nextResource.commandAllocator->Reset();
-
-            // コマンドリストのリセット
-            nextResource.commandList->Reset(nextResource.commandAllocator.Get(), nullptr);
-        }
-    }
-
 private:
     uint8_t previousFrameResourceIndex() const
     {
@@ -245,12 +189,12 @@ namespace TY::detail
 
     void CommandList::CloseAndFlush()
     {
-        if (p_impl) p_impl->CloseAndFlush();
+        if (p_impl) p_impl->CloseAndFlush(nullptr);
     }
 
-    void CommandList::SequenceCloseAndFlush(const Array<CommandList>& list)
+    void CommandList::CloseAndFlushAfter(const CommandList& lastCommandList)
     {
-        Impl::SequenceCloseAndFlush(list);
+        if (p_impl) p_impl->CloseAndFlush(lastCommandList.p_impl.get());
     }
 
     ID3D12GraphicsCommandList* CommandList::GetCommandList() const

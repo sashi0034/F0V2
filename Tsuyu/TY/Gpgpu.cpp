@@ -336,7 +336,7 @@ struct Gpgpu::Impl
             m_ua[i].beforeFlush();
         }
 
-        EngineRenderContext::FlushActiveCommandList();
+        EngineRenderContext::FlushComputeCommand();
 
         for (int i = 0; i < m_params.writableBuffer.size(); ++i)
         {
@@ -430,7 +430,7 @@ struct Gpgpu::Impl
             StructuredBufferTransfer::BeforeFlush(transfers);
         }
 
-        EngineRenderContext::FlushActiveCommandList();
+        EngineRenderContext::FlushComputeCommand();
 
         for (auto& ua : uaMap)
         {
