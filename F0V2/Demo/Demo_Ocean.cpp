@@ -3,7 +3,7 @@
 #include "imgui/imgui.h"
 #include "Demo_Ocean.h"
 
-#include "TY/ConstantBuffer.h"
+#include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
@@ -143,9 +143,9 @@ namespace
             return 1; // Assuming a single material for the ocean
         }
 
-        ConstantBufferUploaderCore materialCbv() const override
+        ConstantBufferCore materialCbv() const override
         {
-            return ConstantBufferUploaderCore{1};
+            return ConstantBufferCore{1};
         }
 
         Array<Array<ShaderResourceType>> materialSrv() const override
@@ -189,8 +189,8 @@ struct Demo_Ocean_impl
 
     struct
     {
-        ConstantBuffer<PhongLight_b4> phongLight{};
-        ConstantBuffer<DynamicOcean_cb> dynamicOcean{};
+        ConstantBufferWrapper<PhongLight_b4> phongLight{};
+        ConstantBufferWrapper<DynamicOcean_cb> dynamicOcean{};
     } m_cb;
 
     SimpleCamera3D m_camera{};
@@ -199,7 +199,7 @@ struct Demo_Ocean_impl
 
     Mat4x4 m_projectionMat{};
 
-    ConstantBuffer<LambertLight_b4> m_planeLight{};
+    ConstantBufferWrapper<LambertLight_b4> m_planeLight{};
 
     ModelDrawer m_groundPlaneDrawer{};
 
@@ -219,7 +219,7 @@ struct Demo_Ocean_impl
 
         resetCamera();
 
-        auto skydome_b4 = ConstantBuffer<Skydome_b4>{};
+        auto skydome_b4 = ConstantBufferWrapper<Skydome_b4>{};
         skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
         skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
         skydome_b4->sphereRadius = fovFarZ;

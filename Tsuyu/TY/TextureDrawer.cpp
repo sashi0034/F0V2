@@ -112,7 +112,7 @@ struct TextureDrawer::Impl : IEngineDrawer
 
     ComPtr<ID3D12Resource> m_constantBuffer{};
 
-    ConstantBufferUploader<SceneState_b0> m_cb0{Empty};
+    ConstantBuffer<SceneState_b0> m_cb0{Empty};
 
     DescriptorHeap m_descriptorHeap{};
 
@@ -121,7 +121,7 @@ struct TextureDrawer::Impl : IEngineDrawer
     {
         m_sr = ShaderResourceTexture{options.texture};
 
-        m_cb0 = ConstantBufferUploader<SceneState_b0>{1};
+        m_cb0 = ConstantBuffer<SceneState_b0>{1};
 
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,

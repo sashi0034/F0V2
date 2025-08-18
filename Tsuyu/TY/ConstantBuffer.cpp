@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ConstantBufferUploader.h"
+#include "ConstantBuffer.h"
 
 #include "Logger.h"
 #include "System.h"
@@ -13,7 +13,7 @@ namespace
 {
 }
 
-struct ConstantBufferUploaderCore::Impl
+struct ConstantBufferCore::Impl
 {
     bool m_valid{};
 
@@ -51,7 +51,7 @@ struct ConstantBufferUploaderCore::Impl
                 IID_PPV_ARGS(&m_finalBuffer));
             FAILED(hr))
         {
-            LogError.writeln("ConstantBufferUploader: Failed to create m_finalBuffer.");
+            LogError.writeln("ConstantBuffer: Failed to create m_finalBuffer.");
             return;
         }
 
@@ -94,7 +94,7 @@ struct ConstantBufferUploaderCore::Impl
                     IID_PPV_ARGS(&frameResource.uploadBuffer));
                 FAILED(hr))
             {
-                LogError.writeln("ConstantBufferUploader: Failed to create uploadBuffer.");
+                LogError.writeln("ConstantBuffer: Failed to create uploadBuffer.");
                 return;
             }
 
@@ -107,7 +107,7 @@ struct ConstantBufferUploaderCore::Impl
                     0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
                 FAILED(hr))
             {
-                LogError.writeln(std::format("ConstantBufferUploader: Failed to map resource for 0x{:016x}",
+                LogError.writeln(std::format("ConstantBuffer: Failed to map resource for 0x{:016x}",
                                              reinterpret_cast<size_t>(data)));
                 return;
             }
@@ -141,7 +141,7 @@ struct ConstantBufferUploaderCore::Impl
 
 namespace TY
 {
-    ConstantBufferUploaderCore::ConstantBufferUploaderCore(uint32_t sizeInBytes, uint32_t materialCount)
+    ConstantBufferCore::ConstantBufferCore(uint32_t sizeInBytes, uint32_t materialCount)
         : p_impl(std::make_shared<Impl>(sizeInBytes, materialCount))
     {
         if (not p_impl->m_valid)
@@ -150,32 +150,32 @@ namespace TY
         }
     }
 
-    bool ConstantBufferUploaderCore::isEmpty() const
+    bool ConstantBufferCore::isEmpty() const
     {
         return not p_impl;
     }
 
-    void ConstantBufferUploaderCore::upload(const void* data, uint32_t materialCount) const
+    void ConstantBufferCore::upload(const void* data, uint32_t materialCount) const
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount);
     }
 
-    uint32_t ConstantBufferUploaderCore::materialCount() const
+    uint32_t ConstantBufferCore::materialCount() const
     {
         return p_impl ? p_impl->m_materialCount : 0;
     }
 
-    size_t ConstantBufferUploaderCore::sizeInBytes() const
+    size_t ConstantBufferCore::sizeInBytes() const
     {
         return p_impl ? p_impl->m_sizeInBytes : 0;
     }
 
-    size_t ConstantBufferUploaderCore::alignedSize() const
+    size_t ConstantBufferCore::alignedSize() const
     {
         return p_impl ? p_impl->m_alignedSize : 0;
     }
 
-    uint64_t ConstantBufferUploaderCore::bufferLocation() const
+    uint64_t ConstantBufferCore::bufferLocation() const
     {
         return p_impl ? p_impl->m_finalBuffer->GetGPUVirtualAddress() : 0;
     }

@@ -3,7 +3,7 @@
 #include "imgui/imgui.h"
 #include "Demo_ShapeRenderer.h"
 
-#include "TY/ConstantBuffer.h"
+#include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
@@ -131,7 +131,7 @@ struct Demo_ShapeRenderer_impl
 
     struct
     {
-        ConstantBuffer<PhongLight_b4> phongLight{};
+        ConstantBufferWrapper<PhongLight_b4> phongLight{};
     } m_cb;
 
     SimpleCamera3D m_camera{};
@@ -140,7 +140,7 @@ struct Demo_ShapeRenderer_impl
 
     Mat4x4 m_projectionMat{};
 
-    ConstantBuffer<LambertLight_b4> m_planeLight{};
+    ConstantBufferWrapper<LambertLight_b4> m_planeLight{};
 
     ModelDrawer m_groundPlaneDrawer{};
 
@@ -159,7 +159,7 @@ struct Demo_ShapeRenderer_impl
 
         resetCamera();
 
-        auto skydome_b4 = ConstantBuffer<Skydome_b4>{};
+        auto skydome_b4 = ConstantBufferWrapper<Skydome_b4>{};
         skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
         skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
         skydome_b4->sphereRadius = fovFarZ;

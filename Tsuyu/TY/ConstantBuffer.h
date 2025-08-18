@@ -1,50 +1,74 @@
 ﻿#pragma once
-#include "ConstantBufferUploader.h"
+#include <span>
+
+#include "Array.h"
+#include "Empty.h"
 
 namespace TY
 {
-    template <class T>
-    class ConstantBuffer
+    class ConstantBufferCore
     {
     public:
-        void upload()
+        ConstantBufferCore(Empty_t)
         {
-            m_uploader.upload(m_value);
         }
 
-        void uploadValue(const T& value)
-        {
-            m_value = value;
-            m_uploader.upload(m_value);
-        }
+        ConstantBufferCore(uint32_t sizeInBytes, uint32_t materialCount = 1);
 
-        const T& value() const
-        {
-            return m_value;
-        }
+        bool isEmpty() const;
 
-        T* operator ->()
-        {
-            return &m_value;
-        }
+        void upload(const void* data, uint32_t materialCount = 1) const;
 
-        const T* operator ->() const
-        {
-            return &m_value;
-        }
+        uint32_t materialCount() const;
 
-        operator ConstantBufferUploader<T>&()
-        {
-            return m_uploader;
-        }
+        size_t sizeInBytes() const;
 
-        operator const ConstantBufferUploader<T>&() const
-        {
-            return m_uploader;
-        }
+        size_t alignedSize() const;
+
+        uint64_t bufferLocation() const;
 
     private:
-        ConstantBufferUploader<T> m_uploader{1};
-        T m_value{};
+        struct Impl;
+        std::shared_ptr<Impl> p_impl{};
+    };
+
+    template <typename T>
+    class ConstantBuffer : public ConstantBufferCore
+    {
+    public:
+        static constexpr uint32_t sizeInBytes = sizeof(T);
+
+        ConstantBuffer(Empty_t) : ConstantBufferCore(Empty)
+        {
+        }
+
+        ConstantBuffer(int materialCount = 1) : ConstantBufferCore(sizeInBytes, materialCount)
+        {
+        }
+
+        ConstantBuffer(const T& data) : ConstantBuffer(data.size())
+        {
+            upload(data);
+        }
+
+        ConstantBuffer(const Array<T>& data) : ConstantBuffer(data.size())
+        {
+            upload(data);
+        }
+
+        void upload(const T& data) const
+        {
+            ConstantBufferCore::upload(&data, 1);
+        }
+
+        void upload(const Array<T>& data) const
+        {
+            ConstantBufferCore::upload(data.data(), data.size());
+        }
+
+        void upload(std::span<const T> data) const
+        {
+            ConstantBufferCore::upload(data.data(), static_cast<uint32_t>(data.size()));
+        }
     };
 }

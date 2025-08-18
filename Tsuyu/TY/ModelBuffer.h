@@ -40,7 +40,7 @@ namespace TY
 
         const ModelShapeBuffer& shapeBuffer() const;
 
-        const ConstantBufferUploader<ModelMaterialParameters>& materialCbv() const;
+        const ConstantBuffer<ModelMaterialParameters>& materialCbv() const;
 
         std::shared_ptr<IGenericModelBuffer> asGeneric() const;
 

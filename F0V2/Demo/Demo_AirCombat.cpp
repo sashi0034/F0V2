@@ -3,7 +3,7 @@
 #include "imgui/imgui.h"
 #include "Demo_AirCombat.h"
 
-#include "TY/ConstantBuffer.h"
+#include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/GameStep.h"
 #include "TY/Graphics3D.h"
@@ -142,7 +142,7 @@ namespace
 
         ModelBuffer missileModel{PrimitiveModel3D::Sphere(0.5f, ColorF32{0.3, 0.5, 1.0})};
 
-        ConstantBuffer<PhongLight_b4> phongLight{};
+        ConstantBufferWrapper<PhongLight_b4> phongLight{};
 
         CommonResource()
         {
@@ -445,7 +445,7 @@ struct Demo_AirCombat_impl
 
     Mat4x4 m_projectionMat{};
 
-    ConstantBuffer<LambertLight_b4> m_planeLight{};
+    ConstantBufferWrapper<LambertLight_b4> m_planeLight{};
 
     ModelDrawer m_groundPlaneModel{};
 
@@ -464,7 +464,7 @@ struct Demo_AirCombat_impl
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
-        auto skydome_b4 = ConstantBuffer<Skydome_b4>{};
+        auto skydome_b4 = ConstantBufferWrapper<Skydome_b4>{};
         skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
         skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
         skydome_b4->sphereRadius = fovFarZ;

@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "TY/CbvSrvUav.h"
-#include "TY/ConstantBufferUploader.h"
+#include "TY/ConstantBuffer.h"
 #include "TY/IndexBuffer.h"
 #include "TY/VertexBuffer.h"
 
@@ -29,7 +29,7 @@ namespace TY
 
         /// @remark size() = materialCount
         [[nodiscard]]
-        virtual ConstantBufferUploaderCore materialCbv() const = 0;
+        virtual ConstantBufferCore materialCbv() const = 0;
 
         /// @remark [textureCount][materialCount]
         virtual Array<Array<ShaderResourceType>> materialSrv() const = 0;

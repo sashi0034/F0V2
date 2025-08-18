@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Gpgpu.h"
 
-#include "ConstantBuffer.h"
+#include "ConstantBufferWrapper.h"
 #include "IComponent.h"
 #include "Logger.h"
 #include "detail/ComputePipelineState.h"
@@ -197,8 +197,8 @@ struct Gpgpu::Impl
 
     GpgpuParams m_params{};
 
-    ConstantBufferUploaderCore m_cb0{Empty};
-    ConstantBufferUploaderCore m_cb1{Empty};
+    ConstantBufferCore m_cb0{Empty};
+    ConstantBufferCore m_cb1{Empty};
 
     Array<StructuredBufferUploader> m_sr{};
     Array<StructuredBufferTransfer> m_ua{};
@@ -236,8 +236,8 @@ struct Gpgpu::Impl
 
     void Setup()
     {
-        m_cb0 = ConstantBufferUploaderCore(sizeof(uint32_t) * 4 * m_params.readonlyBuffer.size());
-        m_cb1 = ConstantBufferUploaderCore(sizeof(uint32_t) * 4 * m_params.writableBuffer.size());
+        m_cb0 = ConstantBufferCore(sizeof(uint32_t) * 4 * m_params.readonlyBuffer.size());
+        m_cb1 = ConstantBufferCore(sizeof(uint32_t) * 4 * m_params.writableBuffer.size());
 
         m_sr.resize(m_params.readonlyBuffer.size());
         for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)

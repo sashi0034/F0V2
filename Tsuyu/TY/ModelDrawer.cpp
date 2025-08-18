@@ -2,7 +2,7 @@
 #include "ModelDrawer.h"
 
 #include "Array.h"
-#include "ConstantBufferUploader.h"
+#include "ConstantBuffer.h"
 #include "Mat4x4.h"
 #include "ModelLoader.h"
 #include "detail/DescriptorHeap.h"
@@ -45,7 +45,7 @@ namespace TY
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferUploaderCore>& cbv)
+    ModelDrawerParams& ModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferCore>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;

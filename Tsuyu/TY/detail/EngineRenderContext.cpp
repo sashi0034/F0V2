@@ -61,7 +61,7 @@ struct EngineRenderContextImpl
 
     std::optional<Size> m_requestedFrameBufferSize{};
 
-    ConstantBufferUploader<SceneState3D_b0> m_sceneState3D{Empty};
+    ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
 
     using drawer_set = std::unordered_set<std::shared_ptr<IEngineDrawer>>;
 
@@ -181,7 +181,7 @@ struct EngineRenderContextImpl
         };
 
         // 共通コンスタントバッファの初期化
-        m_sceneState3D = ConstantBufferUploader<SceneState3D_b0>{1};
+        m_sceneState3D = ConstantBuffer<SceneState3D_b0>{1};
 
         m_valid = true;
     }
@@ -479,7 +479,7 @@ namespace TY::detail
         return s_renderContext.m_windowToFrameBuffer;
     }
 
-    ConstantBufferUploader<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
+    ConstantBuffer<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
     {
         return s_renderContext.m_sceneState3D;
     }

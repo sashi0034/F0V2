@@ -28,7 +28,7 @@ struct GenericModelDrawer::Impl : IEngineDrawer
 
     DescriptorHeap m_descriptorHeap{};
 
-    ConstantBufferUploader<ModelState_b1> m_cb1{1};
+    ConstantBuffer<ModelState_b1> m_cb1{1};
 
     int m_tableIndexofCbv10AndLater{-1};
 
@@ -188,7 +188,7 @@ namespace TY
         return *this;
     }
 
-    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferUploaderCore>& cbv)
+    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferCore>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;
