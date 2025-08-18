@@ -120,9 +120,9 @@ namespace
 
             p_resource = texture.getResource();
         }
-        else if (sr.isHolds<StructuredBufferUploader>())
+        else if (sr.isHolds<StructuredBuffer>())
         {
-            const auto& t = sr.get<StructuredBufferUploader>();
+            const auto& t = sr.get<StructuredBuffer>();
             const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer();
 
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -161,7 +161,7 @@ namespace
         return createShaderResourceViewInternal(heapHandle, sr);
     }
 
-    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const StructuredBufferUploader& ua)
+    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const StructuredBuffer& ua)
     {
         const auto rsc = ua.getBuffer() ? ua : EnginePresetAsset::GetEmptyStructuredBuffer();
 
@@ -331,9 +331,9 @@ struct DescriptorHeap::Impl
         createUnorderedAccessViewInternal(heapHandle, uav);
     }
 
-    void CommandSet() const
+    void CommandSet(PipelineType pipeline) const
     {
-        EngineRenderContext::ActiveCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+        EngineRenderContext::GetCommandList(pipeline)->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
     void CommandSetTable(PipelineType pipeline, int tableId, int materialId) const
@@ -343,11 +343,11 @@ struct DescriptorHeap::Impl
 
         if (pipeline == PipelineType::Graphics)
         {
-            EngineRenderContext::ActiveCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+            EngineRenderContext::GetCommandList(pipeline)->SetGraphicsRootDescriptorTable(tableId, heapHandle);
         }
         else if (pipeline == PipelineType::Compute)
         {
-            EngineRenderContext::ActiveCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
+            EngineRenderContext::GetCommandList(pipeline)->SetComputeRootDescriptorTable(tableId, heapHandle);
         }
         else
         {
@@ -376,9 +376,9 @@ namespace TY::detail
         if (p_impl) p_impl->ResetUAV(uav, tableId, uavId, materialId);
     }
 
-    void DescriptorHeap::commandSet() const
+    void DescriptorHeap::commandSet(PipelineType pipeline) const
     {
-        if (p_impl) p_impl->CommandSet();
+        if (p_impl) p_impl->CommandSet(pipeline);
     }
 
     void DescriptorHeap::commandSetTable(PipelineType pipeline, int tableId, int materialId) const

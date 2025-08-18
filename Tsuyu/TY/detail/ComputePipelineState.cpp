@@ -64,7 +64,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
         commandList->SetPipelineState(m_pso.Get());
         commandList->SetComputeRootSignature(m_rootSignature.getPointer());
     }

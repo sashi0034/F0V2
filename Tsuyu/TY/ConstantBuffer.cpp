@@ -1,21 +1,27 @@
 ﻿#include "pch.h"
-#include "VertexBuffer.h"
+#include "ConstantBuffer.h"
 
 #include "Logger.h"
+#include "System.h"
+#include "Utils.h"
 #include "detail/EngineRenderContext.h"
 
 using namespace TY;
 using namespace TY::detail;
 
-struct VertexBufferCore::Impl
+namespace
+{
+}
+
+struct ConstantBufferCore::Impl
 {
     bool m_valid{};
 
-    D3D12_VERTEX_BUFFER_VIEW m_vertBufferView{};
+    uint32_t m_sizeInBytes;
+    uint32_t m_materialCount;
+    size_t m_alignedSize{};
 
     ComPtr<ID3D12Resource> m_finalBuffer{};
-
-    int m_count{};
 
     struct frame_resources
     {
@@ -27,15 +33,16 @@ struct VertexBufferCore::Impl
 
     size_t m_uploadTimestamp{};
 
-    Impl(int sizeInBytes, int strideInBytes)
+    Impl(uint32_t sizeInBytes, uint32_t count)
+        : m_sizeInBytes(sizeInBytes),
+          m_materialCount(count)
     {
-        const auto device = EngineRenderContext::GetDevice();
+        m_alignedSize = AlignedSize(sizeInBytes, 256);
 
-        const D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-        const D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes);
+        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_alignedSize * count);
 
-        // リソース作成
-        if (const auto hr = device->CreateCommittedResource(
+        if (const auto hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -44,17 +51,11 @@ struct VertexBufferCore::Impl
                 IID_PPV_ARGS(&m_finalBuffer));
             FAILED(hr))
         {
-            LogError.writeln("VertexBuffer: Failed to create buffer");
+            LogError.writeln("ConstantBuffer: Failed to create m_finalBuffer.");
             return;
         }
 
-        m_finalBuffer->SetName(L"VertexBuffer::m_finalBuffer");
-
-        m_vertBufferView.BufferLocation = m_finalBuffer->GetGPUVirtualAddress();
-        m_vertBufferView.SizeInBytes = sizeInBytes;
-        m_vertBufferView.StrideInBytes = strideInBytes;
-
-        m_count = sizeInBytes / strideInBytes;
+        m_finalBuffer->SetName(L"ConstantBuffer::m_finalBuffer");
 
         m_valid = true;
     }
@@ -70,7 +71,7 @@ struct VertexBufferCore::Impl
         }
     }
 
-    void Upload(const void* data, size_t size)
+    void Upload(const uint8_t* data, uint32_t count)
     {
         const size_t previousUploadTimestamp = m_uploadTimestamp;
         m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
@@ -82,7 +83,7 @@ struct VertexBufferCore::Impl
         if (not frameResource.uploadBuffer)
         {
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_vertBufferView.SizeInBytes);
+            const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_alignedSize * m_materialCount);
 
             if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
                     &heapProperties,
@@ -93,9 +94,11 @@ struct VertexBufferCore::Impl
                     IID_PPV_ARGS(&frameResource.uploadBuffer));
                 FAILED(hr))
             {
-                LogError.writeln("VertexBuffer: Failed to create uploadBuffer.");
+                LogError.writeln("ConstantBuffer: Failed to create uploadBuffer.");
                 return;
             }
+
+            frameResource.uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
         }
 
         if (not frameResource.dest)
@@ -104,24 +107,28 @@ struct VertexBufferCore::Impl
                     0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
                 FAILED(hr))
             {
-                LogError.writeln(std::format("VertexBuffer: Failed to map resource for 0x{:016x}",
+                LogError.writeln(std::format("ConstantBuffer: Failed to map resource for 0x{:016x}",
                                              reinterpret_cast<size_t>(data)));
                 return;
             }
-
-            frameResource.uploadBuffer->SetName(L"VertexBuffer::uploadBuffer");
         }
 
         uint8_t* dest = frameResource.dest;
-        memcpy(dest, data, size);
+        uint32_t srcOffset{};
+        for (int i = 0; i < count; ++i)
+        {
+            std::memcpy(dest, data + srcOffset, m_sizeInBytes);
+            srcOffset += m_sizeInBytes;
+            dest += m_alignedSize;
+        }
 
-        const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
-        copyCommandList->CopyBufferRegion(
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
+        commandList->CopyBufferRegion(
             m_finalBuffer.Get(),
             0,
             frameResource.uploadBuffer.Get(),
             0,
-            size);
+            m_alignedSize * count);
 
         if (previousUploadTimestamp == 0)
         {
@@ -130,18 +137,12 @@ struct VertexBufferCore::Impl
             frameResource.dest = nullptr;
         }
     }
-
-    void CommandSet() const
-    {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
-        commandList->IASetVertexBuffers(0, 1, &m_vertBufferView);
-    }
 };
 
 namespace TY
 {
-    VertexBufferCore::VertexBufferCore(int sizeInBytes, int strideInBytes) :
-        p_impl(std::make_shared<Impl>(sizeInBytes, strideInBytes))
+    ConstantBufferCore::ConstantBufferCore(uint32_t sizeInBytes, uint32_t materialCount)
+        : p_impl(std::make_shared<Impl>(sizeInBytes, materialCount))
     {
         if (not p_impl->m_valid)
         {
@@ -149,31 +150,33 @@ namespace TY
         }
     }
 
-    bool VertexBufferCore::isEmpty() const
+    bool ConstantBufferCore::isEmpty() const
     {
-        return p_impl == nullptr;
+        return not p_impl;
     }
 
-    int VertexBufferCore::count() const
+    void ConstantBufferCore::upload(const void* data, uint32_t materialCount) const
     {
-        return p_impl ? p_impl->m_count : 0;
+        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount);
     }
 
-    void VertexBufferCore::upload(const void* data)
+    uint32_t ConstantBufferCore::materialCount() const
     {
-        if (not p_impl) return;
-        p_impl->Upload(data, p_impl->m_vertBufferView.SizeInBytes);
+        return p_impl ? p_impl->m_materialCount : 0;
     }
 
-    void VertexBufferCore::upload(const void* data, int count)
+    size_t ConstantBufferCore::sizeInBytes() const
     {
-        if (not p_impl) return;
-        p_impl->Upload(data, p_impl->m_vertBufferView.StrideInBytes * count);
+        return p_impl ? p_impl->m_sizeInBytes : 0;
     }
 
-    void VertexBufferCore::commandSet() const
+    size_t ConstantBufferCore::alignedSize() const
     {
-        if (not p_impl) return;
-        p_impl->CommandSet();
+        return p_impl ? p_impl->m_alignedSize : 0;
+    }
+
+    uint64_t ConstantBufferCore::bufferLocation() const
+    {
+        return p_impl ? p_impl->m_finalBuffer->GetGPUVirtualAddress() : 0;
     }
 }

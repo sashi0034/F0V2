@@ -197,10 +197,10 @@
     <ClInclude Include="TY\ShapeBuilder2D.h" />
     <ClInclude Include="TY\ShapeDrawer2D.h" />
     <ClInclude Include="TY\Stopwatch.h" />
-    <ClInclude Include="TY\StructuredBufferUploader.h" />
+    <ClInclude Include="TY\StructuredBuffer.h" />
     <ClInclude Include="TY\Concepts.h" />
+    <ClInclude Include="TY\ConstantBufferWrapper.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
-    <ClInclude Include="TY\ConstantBufferUploader.h" />
     <ClInclude Include="TY\detail\ComputePipelineState.h" />
     <ClInclude Include="TY\detail\EngineGamepad.h" />
     <ClInclude Include="TY\detail\RootSignature.h" />
@@ -324,8 +324,8 @@
     <ClCompile Include="TY\ShapeBuilder2D.cpp" />
     <ClCompile Include="TY\ShapeDrawer2D.cpp" />
     <ClCompile Include="TY\Stopwatch.cpp" />
-    <ClCompile Include="TY\StructuredBufferUploader.cpp" />
-    <ClCompile Include="TY\ConstantBufferUploader.cpp" />
+    <ClCompile Include="TY\StructuredBuffer.cpp" />
+    <ClCompile Include="TY\ConstantBuffer.cpp" />
     <ClCompile Include="TY\detail\ComputePipelineState.cpp" />
     <ClCompile Include="TY\detail\EngineGamepad.cpp" />
     <ClCompile Include="TY\detail\RootSignature.cpp" />

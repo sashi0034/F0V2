@@ -3,7 +3,7 @@
 #include "imgui/imgui.h"
 #include "Demo_ShadowMap.h"
 
-#include "TY/ConstantBuffer.h"
+#include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/GameStep.h"
 #include "TY/Graphics3D.h"
@@ -144,9 +144,9 @@ namespace
 
         ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
 
-        ConstantBuffer<PhongLight_b4> phongLight{};
+        ConstantBufferWrapper<PhongLight_b4> phongLight{};
 
-        ConstantBuffer<ShadowMap_cb> shadowMap_cb{};
+        ConstantBufferWrapper<ShadowMap_cb> shadowMap_cb{};
 
         CommonResource()
         {
@@ -164,13 +164,13 @@ struct Demo_ShadowMap_impl
 
     Mat4x4 m_projectionMat{};
 
-    ConstantBuffer<LambertLight_b4> m_planeLight{};
+    ConstantBufferWrapper<LambertLight_b4> m_planeLight{};
 
     ModelDrawer m_groundPlaneDrawer{};
 
     ModelDrawer m_playerDrawer{};
     ModelDrawer m_playerShadowDrawer{};
-    ConstantBufferUploader<Mat4x4> m_playerShadowDrawerConstantBuffers{};
+    ConstantBuffer<Mat4x4> m_playerShadowDrawerConstantBuffers{};
     Pose m_playerPose{};
 
     ModelDrawer m_mountainDrawer{};
@@ -185,7 +185,7 @@ struct Demo_ShadowMap_impl
 
         resetCamera();
 
-        auto skydome_b4 = ConstantBuffer<Skydome_b4>{};
+        auto skydome_b4 = ConstantBufferWrapper<Skydome_b4>{};
         skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
         skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
         skydome_b4->sphereRadius = fovFarZ;
@@ -246,7 +246,7 @@ struct Demo_ShadowMap_impl
             //     .setCB4(s_resource->shadowMap_cb)
             // };
 
-            m_playerShadowDrawerConstantBuffers = ConstantBufferUploader<Mat4x4>{cascadeShadowMapCount};
+            m_playerShadowDrawerConstantBuffers = ConstantBuffer<Mat4x4>{cascadeShadowMapCount};
             m_playerShadowDrawer = ModelDrawer{
                 ModelDrawerParams{}
                 .setModel(s_resource->playerModel)

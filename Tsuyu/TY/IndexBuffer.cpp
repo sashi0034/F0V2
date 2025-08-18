@@ -28,17 +28,25 @@ struct IndexBuffer::Impl
 
 struct IndexBuffer::Impl::Default : Impl
 {
-    ComPtr<ID3D12Resource> m_indexBuffer{};
     D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
 
-    bool m_uploaded{};
-    bool m_shouldUnmap{};
+    ComPtr<ID3D12Resource> m_finalBuffer{};
+
+    struct frame_resources
+    {
+        ComPtr<ID3D12Resource> uploadBuffer;
+        index_type* dest{};
+    };
+
+    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+
+    size_t m_uploadTimestamp{};
 
     Default(int count)
     {
         const auto device = EngineRenderContext::GetDevice();
 
-        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(index_type) * count);
 
         // リソース作成
@@ -46,18 +54,18 @@ struct IndexBuffer::Impl::Default : Impl
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
+                D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_indexBuffer));
+                IID_PPV_ARGS(&m_finalBuffer));
             FAILED(hr))
         {
             LogError.writeln(L"IndexBuffer: Failed to create buffer");
             return;
         }
 
-        m_indexBuffer->SetName(L"IndexBuffer");
+        m_finalBuffer->SetName(L"IndexBuffer::m_finalBuffer");
 
-        m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+        m_indexBufferView.BufferLocation = m_finalBuffer->GetGPUVirtualAddress();
         m_indexBufferView.SizeInBytes = resourceDesc.Width;
         m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
@@ -68,41 +76,81 @@ struct IndexBuffer::Impl::Default : Impl
 
     ~Default() override
     {
-        if (m_shouldUnmap)
+        for (auto& frameResource : m_frameResources)
         {
-            m_indexBuffer->Unmap(0, nullptr);
+            if (frameResource.uploadBuffer && frameResource.dest)
+            {
+                frameResource.uploadBuffer->Unmap(0, nullptr);
+            }
         }
     }
 
     void Upload(const Array<index_type>& indices) override
     {
-        index_type* indexMap{};
+        const size_t previousUploadTimestamp = m_uploadTimestamp;
+        m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
 
-        if (const auto hr = m_indexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&indexMap));
-            FAILED(hr))
+        const size_t frameIndex = m_uploadTimestamp % EngineRenderContext::FrameBufferCount;
+
+        auto& frameResource = m_frameResources[frameIndex];
+
+        if (not frameResource.uploadBuffer)
         {
-            LogError.writeln(L"IndexBuffer: Failed to map index buffer");
-            return;
+            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_indexBufferView.SizeInBytes);
+
+            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+                    &heapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &resourceDesc,
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&frameResource.uploadBuffer));
+                FAILED(hr))
+            {
+                LogError.writeln("IndexBuffer: Failed to create uploadBuffer.");
+                return;
+            }
         }
 
-        std::ranges::copy(indices, indexMap);
+        if (not frameResource.dest)
+        {
+            if (const HRESULT hr = frameResource.uploadBuffer->Map(
+                    0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
+                FAILED(hr))
+            {
+                LogError.writeln(std::format("IndexBuffer: Failed to map resource for 0x{:016x}",
+                                             reinterpret_cast<size_t>(indices.data())));
+                return;
+            }
 
-        if (m_uploaded)
-        {
-            // ニ回目以降のアップロードは破棄時までマップの解除をしない
-            m_shouldUnmap = true;
+            frameResource.uploadBuffer->SetName(L"IndexBuffer::uploadBuffer");
         }
-        else
+
+        index_type* dest = frameResource.dest;
+
+        std::ranges::copy(indices, dest);
+
+        const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
+
+        copyCommandList->CopyBufferRegion(
+            m_finalBuffer.Get(),
+            0,
+            frameResource.uploadBuffer.Get(),
+            0,
+            indices.size_in_bytes());
+
+        if (previousUploadTimestamp == 0)
         {
-            // 初回のアップロードのみマップの解除を行う
-            m_uploaded = true;
-            m_indexBuffer->Unmap(0, nullptr);
+            // 初回実行時は即アンマップする
+            frameResource.uploadBuffer->Unmap(0, nullptr);
+            frameResource.dest = nullptr;
         }
     }
 
     void CommandSet() const override
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
         commandList->IASetIndexBuffer(&m_indexBufferView);
     }
 };

@@ -28,7 +28,7 @@ struct GenericModelDrawer::Impl : IEngineDrawer
 
     DescriptorHeap m_descriptorHeap{};
 
-    ConstantBufferUploader<ModelState_b1> m_cb1{1};
+    ConstantBuffer<ModelState_b1> m_cb1{1};
 
     int m_tableIndexofCbv10AndLater{-1};
 
@@ -117,7 +117,7 @@ struct GenericModelDrawer::Impl : IEngineDrawer
         m_pso.commandSet();
 
         // カメラ行列設定
-        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSet(PipelineType::Graphics);
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1);
 
@@ -188,7 +188,7 @@ namespace TY
         return *this;
     }
 
-    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferUploaderCore>& cbv)
+    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferCore>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;

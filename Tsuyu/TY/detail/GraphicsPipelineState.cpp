@@ -209,7 +209,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
         commandList->SetPipelineState(m_pso.Get());
         commandList->SetGraphicsRootSignature(m_rootSignature.getPointer());
     }

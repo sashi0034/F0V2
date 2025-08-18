@@ -28,7 +28,7 @@ namespace TY
 
     void Graphics3D::DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
 
         if (not vertexBuffer.isEmpty())
         {

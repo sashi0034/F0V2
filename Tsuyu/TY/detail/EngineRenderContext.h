@@ -2,7 +2,7 @@
 #include "CommandList.h"
 #include "IEngineDrawer.h"
 #include "PipelineType.h"
-#include "TY/ConstantBufferUploader.h"
+#include "TY/ConstantBuffer.h"
 #include "TY/Mat3x2.h"
 #include "TY/Mat4x4.h"
 #include "TY/RenderTarget.h"
@@ -18,6 +18,8 @@ namespace TY::detail
 
     namespace EngineRenderContext
     {
+        constexpr int FrameBufferCount = 2;
+
         void Init();
 
         void NewFrame();
@@ -32,15 +34,12 @@ namespace TY::detail
         ID3D12Device* GetDevice();
 
         [[nodiscard]]
-        ScopedDefer ScopedCommandTarget(CommandListType type);
+        ID3D12GraphicsCommandList* GetCommandList(CommandListType type);
 
         [[nodiscard]]
-        CommandListType ActiveCommandTarget();
+        ID3D12GraphicsCommandList* GetCommandList(PipelineType type);
 
-        [[nodiscard]]
-        ID3D12GraphicsCommandList* ActiveCommandList();
-
-        void FlushActiveCommandList();
+        void FlushComputeCommandSync();
 
         void RequestFrameBufferSize(Size frameBufferSize);
 
@@ -51,8 +50,10 @@ namespace TY::detail
         Mat3x2 WindowToFrameBuffer();
 
         [[nodiscard]]
-        ConstantBufferUploader<SceneState3D_b0> GetSceneState3D_CB0();
+        ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
 
         void MarkDrawerUntilFlush(const std::shared_ptr<IEngineDrawer>& drawer);
+
+        size_t GetFlushTimestamp();
     }
 }

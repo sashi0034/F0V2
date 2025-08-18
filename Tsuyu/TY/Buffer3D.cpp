@@ -99,7 +99,7 @@ struct Buffer3D::Impl
 
     void Draw() const
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
 
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);

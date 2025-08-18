@@ -4,7 +4,7 @@
 #include "TY/Image.h"
 #include "TY/Shader.h"
 #include "TY/ShaderResourceTexture.h"
-#include "TY/StructuredBufferUploader.h"
+#include "TY/StructuredBuffer.h"
 #include "TY/Vector2D.h"
 
 using namespace TY;
@@ -22,7 +22,7 @@ struct EnginePresetAssetImpl
 
     ComputeShader m_stubCS{};
 
-    StructuredBufferTransfer m_emptyStructuredBuffer{};
+    UnorderedStructuredBuffer m_emptyStructuredBuffer{};
 
     void Init()
     {
@@ -35,8 +35,8 @@ struct EnginePresetAssetImpl
 
         m_stubCS = ComputeShader{ShaderParams::CS("engine/compute_stub.hlsl")};
 
-        m_emptyStructuredBuffer = StructuredBufferTransfer(
-            StructuredBufferTransferParams{
+        m_emptyStructuredBuffer = UnorderedStructuredBuffer(
+            UnorderedStructuredBufferParams{
                 .elementCount = 1,
                 .elementStride = sizeof(uint8_t)
             }
@@ -87,7 +87,7 @@ namespace TY::detail
         return s_enginePresetAsset.m_stubCS;
     }
 
-    StructuredBufferTransfer EnginePresetAsset::GetEmptyStructuredBuffer()
+    UnorderedStructuredBuffer EnginePresetAsset::GetEmptyStructuredBuffer()
     {
         assert(s_enginePresetAsset.m_initialized);
         return s_enginePresetAsset.m_emptyStructuredBuffer;

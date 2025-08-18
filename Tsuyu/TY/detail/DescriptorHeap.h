@@ -2,14 +2,14 @@
 #include "DescriptorTable.h"
 #include "PipelineType.h"
 #include "TY/CbvSrvUav.h"
-#include "TY/ConstantBufferUploader.h"
+#include "TY/ConstantBuffer.h"
 
 namespace TY::detail
 {
     struct CbvSrvUavSet
     {
         /// @remark [cbvCount], ConstantBuffer::count() = materialCount
-        Array<ConstantBufferUploaderCore> cbv;
+        Array<ConstantBufferCore> cbv;
 
         /// @remark [srvCount][materialCount]
         Array<Array<ShaderResourceType>> srv;
@@ -36,7 +36,7 @@ namespace TY::detail
 
         void resetUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId = 0);
 
-        void commandSet() const;
+        void commandSet(PipelineType pipeline) const;
 
         void commandSetTable(PipelineType pipeline, int tableId, int materialId = 0) const;
 

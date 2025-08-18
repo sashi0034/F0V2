@@ -2,7 +2,7 @@
 #include "ShapeDrawer2D.h"
 
 #include "ArrayPool.h"
-#include "ConstantBuffer.h"
+#include "ConstantBufferWrapper.h"
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
 #include "InlineComponent.h"
@@ -86,7 +86,7 @@ namespace
         struct heap_type
         {
             DescriptorHeap descriptorHeap{};
-            ConstantBufferUploader<ShapeDraw_b0> cb0{};
+            ConstantBuffer<ShapeDraw_b0> cb0{};
             Array<ShapeDraw_b0> cb0_value{};
         };
 
@@ -109,7 +109,7 @@ namespace
 
         DescriptorManager()
         {
-            m_heap.cb0 = ConstantBufferUploader<ShapeDraw_b0>(cb0_capacity);
+            m_heap.cb0 = ConstantBuffer<ShapeDraw_b0>(cb0_capacity);
             m_heap.cb0_value.resize(cb0_capacity);
 
             m_heap.descriptorHeap = DescriptorHeap({
@@ -174,7 +174,7 @@ namespace
 
         void CommandSet(const element_pointer& element) const
         {
-            m_heap.descriptorHeap.commandSet(); // TODO
+            m_heap.descriptorHeap.commandSet(PipelineType::Graphics);
             m_heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 0, element.cb0_index);
         }
 

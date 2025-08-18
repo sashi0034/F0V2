@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "Array.h"
-#include "ConstantBufferUploader.h"
+#include "ConstantBuffer.h"
 #include "GpgpuBuffer.h"
 #include "Shader.h"
 
@@ -12,7 +12,7 @@ namespace TY
         ComputeShader cs{};
         Array<std::shared_ptr<detail::IReadonlyGpgpu>> readonlyBuffer{};
         Array<std::shared_ptr<detail::IWritableGpgpu>> writableBuffer{};
-        Array<ConstantBufferUploaderCore> cbv10AndLater{Empty};
+        Array<ConstantBufferCore> cbv10AndLater{Empty};
 
         GpgpuParams& setCS(const ComputeShader& cs_)
         {
@@ -32,7 +32,7 @@ namespace TY
             return *this;
         }
 
-        GpgpuParams& setCbv10AndLater(const Array<ConstantBufferUploaderCore>& cb)
+        GpgpuParams& setCbv10AndLater(const Array<ConstantBufferCore>& cb)
         {
             cbv10AndLater = cb;
             return *this;

@@ -82,9 +82,10 @@ namespace TY::detail
     {
         ImGui::Render();
 
-        EngineRenderContext::ActiveCommandList()->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
+        commandList->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
 
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), EngineRenderContext::ActiveCommandList());
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
     }
 
     void EngineImGui::Shutdown()

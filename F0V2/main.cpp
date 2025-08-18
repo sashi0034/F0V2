@@ -17,7 +17,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_ShapeRenderer();
+    Demo_Ocean();
 #else
     using namespace TY;
 

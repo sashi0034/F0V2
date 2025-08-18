@@ -1,10 +1,10 @@
 #pragma once
 #include "ShaderResourceTexture.h"
-#include "StructuredBufferUploader.h"
+#include "StructuredBuffer.h"
 
 namespace TY
 {
-    class ShaderResourceType : public Variant<ShaderResourceTexture, StructuredBufferUploader>
+    class ShaderResourceType : public Variant<ShaderResourceTexture, StructuredBuffer>
     {
     public:
         using Variant::Variant;
@@ -15,13 +15,13 @@ namespace TY
         }
     };
 
-    class UnorderedAccessType : public StructuredBufferUploader
+    class UnorderedAccessType : public StructuredBuffer
     {
     public:
-        using StructuredBufferUploader::StructuredBufferUploader;
+        using StructuredBuffer::StructuredBuffer;
 
-        UnorderedAccessType(const StructuredBufferUploader& other)
-            : StructuredBufferUploader(other)
+        UnorderedAccessType(const StructuredBuffer& other)
+            : StructuredBuffer(other)
         {
         }
 

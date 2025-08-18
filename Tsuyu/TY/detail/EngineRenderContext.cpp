@@ -21,7 +21,7 @@ namespace
 {
     constexpr ColorF32 defaultClearColor = {0.5f, 0.5f, 0.5f, 1.0f};
 
-    constexpr Size defaultSceneSize = {1920, 1080};
+    constexpr Size defaultFrameBufferSize = {1920, 1080};
 
     void enableDebugLayer()
     {
@@ -38,7 +38,7 @@ struct EngineRenderContextImpl
 {
     bool m_valid{};
 
-    Point m_frameBufferSize{defaultSceneSize};
+    Point m_frameBufferSize{defaultFrameBufferSize};
     ColorF32 m_clearColor{defaultClearColor};
 
     ComPtr<ID3D12Device> m_device;
@@ -46,7 +46,7 @@ struct EngineRenderContextImpl
     ComPtr<IDXGIAdapter> m_adapter;
     D3D_FEATURE_LEVEL m_featureLevel{};
 
-    CommandList m_commandList{};
+    CommandList m_drawCommandList{};
     CommandList m_copyCommandList{};
     CommandList m_computeCommandList{};
 
@@ -55,17 +55,20 @@ struct EngineRenderContextImpl
     RenderTarget m_backBuffer{};
     ScopedRenderTarget m_scopedBackBuffer{};
 
-    Array<CommandListType> m_commandTargetStack{};
-
     Mat3x2 m_windowToFrameBuffer{};
 
     bool m_previousFullscreen{};
 
     std::optional<Size> m_requestedFrameBufferSize{};
 
-    ConstantBufferUploader<SceneState3D_b0> m_sceneState3D{Empty};
+    ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
 
-    Array<std::shared_ptr<IEngineDrawer>> m_markedDrawerList{};
+    using drawer_set = std::unordered_set<std::shared_ptr<IEngineDrawer>>;
+
+    std::array<drawer_set, EngineRenderContext::FrameBufferCount> m_markedDrawersBuffer{};
+
+    // Copy のフラッシュとともに加算
+    size_t m_flushTimestamp{};
 
     void Init()
     {
@@ -133,7 +136,7 @@ struct EngineRenderContextImpl
         LogInfo.writeln(std::format("Direct3D feature level: {:08x}", static_cast<int>(m_featureLevel)));
 
         // コマンドリストの作成
-        m_commandList = CommandList{CommandListType::Direct};
+        m_drawCommandList = CommandList{CommandListType::Draw};
 
         m_copyCommandList = CommandList{CommandListType::Copy};
 
@@ -148,14 +151,14 @@ struct EngineRenderContextImpl
         swapchainDesc.SampleDesc.Count = 1;
         swapchainDesc.SampleDesc.Quality = 0;
         swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
-        swapchainDesc.BufferCount = 2;
+        swapchainDesc.BufferCount = EngineRenderContext::FrameBufferCount;
         swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
         swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
         if (const auto hr = m_dxgiFactory->CreateSwapChainForHwnd(
-                m_commandList.GetCommandQueue(),
+                m_drawCommandList.GetCommandQueue(),
                 EngineWindow::Handle(),
                 &swapchainDesc,
                 nullptr,
@@ -178,7 +181,7 @@ struct EngineRenderContextImpl
         };
 
         // 共通コンスタントバッファの初期化
-        m_sceneState3D = ConstantBufferUploader<SceneState3D_b0>{1};
+        m_sceneState3D = ConstantBuffer<SceneState3D_b0>{1};
 
         m_valid = true;
     }
@@ -199,8 +202,6 @@ struct EngineRenderContextImpl
 
     void Render()
     {
-        assert(m_commandTargetStack.empty());
-
         // コンスタントバッファのアップロード
         {
             SceneState3D_b0 b{};
@@ -213,15 +214,31 @@ struct EngineRenderContextImpl
         m_scopedBackBuffer.dispose();
 
         // コマンドリストの実行
-        FlushCommandLists();
+        FlushAllCommand();
 
         // フリップ
         m_swapChain->Present(1, 0);
     }
 
-    void FlushCommandLists()
+    drawer_set& CurrentMarkedDrawers()
     {
-        for (const auto& drawer : m_markedDrawerList)
+        const size_t index = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+        return m_markedDrawersBuffer[index];
+    }
+
+    void FlushComputeCommandSync()
+    {
+        m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
+        m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
+
+        m_flushTimestamp++;
+
+        m_computeCommandList.WaitLastFlush();
+    }
+
+    void FlushAllCommand()
+    {
+        for (const auto& drawer : CurrentMarkedDrawers())
         {
             if (drawer)
             {
@@ -231,15 +248,13 @@ struct EngineRenderContextImpl
 
         // -----------------------------------------------
 
-        CommandList::SequenceCloseAndFlush({
-            m_computeCommandList,
-            m_copyCommandList,
-            m_commandList
-        });
+        m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
+        m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
+        m_drawCommandList.CloseAndFlushAfter(m_copyCommandList);
 
         // -----------------------------------------------
 
-        for (const auto& drawer : m_markedDrawerList)
+        for (const auto& drawer : CurrentMarkedDrawers())
         {
             if (drawer)
             {
@@ -247,33 +262,30 @@ struct EngineRenderContextImpl
             }
         }
 
-        m_markedDrawerList.clear();
+        CurrentMarkedDrawers().clear();
+
+        m_flushTimestamp++;
     }
 
-    CommandList& getActiveCommandList()
+    CommandList& GetCommandList(CommandListType type)
     {
-        if (m_commandTargetStack.empty())
+        switch (type)
         {
-            return m_commandList;
-        }
-
-        switch (m_commandTargetStack.back())
-        {
-        case CommandListType::Direct:
-            return m_commandList;
+        case CommandListType::Draw:
+            return m_drawCommandList;
         case CommandListType::Copy:
             return m_copyCommandList;
         case CommandListType::Compute:
             return m_computeCommandList;
         default:
             assert(false);
-            return m_commandList;
+            return m_drawCommandList;
         }
     }
 
     void OnShutdown()
     {
-        FlushCommandLists();
+        FlushAllCommand();
     }
 
 private:
@@ -356,7 +368,7 @@ private:
     {
         assert(not m_scopedBackBuffer.isActive());
 
-        FlushCommandLists();
+        FlushAllCommand();
 
         const int bufferCount = m_backBuffer.bufferCount();
 
@@ -428,43 +440,28 @@ namespace TY::detail
         return s_renderContext.m_device.Get();
     }
 
-    ScopedDefer EngineRenderContext::ScopedCommandTarget(CommandListType type)
+    ID3D12GraphicsCommandList* EngineRenderContext::GetCommandList(CommandListType type)
     {
-        s_renderContext.m_commandTargetStack.push_back(type);
-        return ScopedDefer{
-            [type]()
-            {
-                if (not s_renderContext.m_commandTargetStack.empty())
-                {
-                    assert(s_renderContext.m_commandTargetStack.back() == type);
-                    s_renderContext.m_commandTargetStack.pop_back();
-                }
-                else
-                {
-                    assert(false);
-                }
-            }
-        };
+        return s_renderContext.GetCommandList(type).GetCommandList();
     }
 
-    CommandListType EngineRenderContext::ActiveCommandTarget()
+    ID3D12GraphicsCommandList* EngineRenderContext::GetCommandList(PipelineType type)
     {
-        if (s_renderContext.m_commandTargetStack.empty())
+        switch (type)
         {
-            return CommandListType::Direct;
+        case PipelineType::Graphics:
+            return GetCommandList(CommandListType::Draw);
+        case PipelineType::Compute:
+            return GetCommandList(CommandListType::Compute);
         }
 
-        return s_renderContext.m_commandTargetStack.back();
+        assert(false);
+        return {};
     }
 
-    ID3D12GraphicsCommandList* EngineRenderContext::ActiveCommandList()
+    void EngineRenderContext::FlushComputeCommandSync()
     {
-        return s_renderContext.getActiveCommandList().GetCommandList();
-    }
-
-    void EngineRenderContext::FlushActiveCommandList()
-    {
-        s_renderContext.getActiveCommandList().CloseAndFlush();
+        s_renderContext.FlushComputeCommandSync();
     }
 
     void EngineRenderContext::RequestFrameBufferSize(Size frameBufferSize)
@@ -482,7 +479,7 @@ namespace TY::detail
         return s_renderContext.m_windowToFrameBuffer;
     }
 
-    ConstantBufferUploader<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
+    ConstantBuffer<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
     {
         return s_renderContext.m_sceneState3D;
     }
@@ -491,7 +488,12 @@ namespace TY::detail
     {
         if (drawer)
         {
-            s_renderContext.m_markedDrawerList.push_back(drawer);
+            s_renderContext.CurrentMarkedDrawers().emplace(drawer);
         }
+    }
+
+    size_t EngineRenderContext::GetFlushTimestamp()
+    {
+        return s_renderContext.m_flushTimestamp;
     }
 }

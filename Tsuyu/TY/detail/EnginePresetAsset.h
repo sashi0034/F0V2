@@ -5,7 +5,7 @@ namespace TY
 {
     class ShaderResourceTexture;
 
-    class StructuredBufferTransfer;
+    class UnorderedStructuredBuffer;
 }
 
 namespace TY::detail
@@ -24,6 +24,6 @@ namespace TY::detail
 
         ComputeShader GetStubCS();
 
-        StructuredBufferTransfer GetEmptyStructuredBuffer();
+        UnorderedStructuredBuffer GetEmptyStructuredBuffer();
     }
 }
