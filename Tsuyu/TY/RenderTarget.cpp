@@ -166,7 +166,7 @@ struct RenderTarget::Impl
 
     void CommandSetViewportAndScissorsRect() const
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
 
         // ビューポートの設定
         D3D12_VIEWPORT viewport = {};
@@ -189,7 +189,7 @@ struct RenderTarget::Impl
 
     ScopedRenderTarget ScopedBind(int index)
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
 
         const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
             m_rtvResources[index].Get(),

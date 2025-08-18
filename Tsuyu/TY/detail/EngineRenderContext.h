@@ -33,17 +33,11 @@ namespace TY::detail
         [[nodiscard]]
         ID3D12Device* GetDevice();
 
-        /// TODO: obsolete
         [[nodiscard]]
-        ScopedDefer ScopedCommandTarget(CommandListType type);
+        ID3D12GraphicsCommandList* GetCommandList(CommandListType type);
 
-        /// TODO: obsolete
         [[nodiscard]]
-        CommandListType ActiveCommandTarget();
-
-        /// TODO: obsolete
-        [[nodiscard]]
-        ID3D12GraphicsCommandList* ActiveCommandList();
+        ID3D12GraphicsCommandList* GetCommandList(PipelineType type);
 
         void FlushComputeCommandSync();
 

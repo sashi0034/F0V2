@@ -115,9 +115,7 @@ struct VertexBufferCore::Impl
         uint8_t* dest = frameResource.dest;
         memcpy(dest, data, size);
 
-        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
-        // FIXME?
-        const auto copyCommandList = EngineRenderContext::ActiveCommandList();
+        const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
         copyCommandList->CopyBufferRegion(
             m_finalBuffer.Get(),
             0,
@@ -135,7 +133,7 @@ struct VertexBufferCore::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
         commandList->IASetVertexBuffers(0, 1, &m_vertBufferView);
     }
 };

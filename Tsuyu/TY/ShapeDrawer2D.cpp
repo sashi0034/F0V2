@@ -174,7 +174,7 @@ namespace
 
         void CommandSet(const element_pointer& element) const
         {
-            m_heap.descriptorHeap.commandSet(); // TODO
+            m_heap.descriptorHeap.commandSet(PipelineType::Graphics);
             m_heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 0, element.cb0_index);
         }
 

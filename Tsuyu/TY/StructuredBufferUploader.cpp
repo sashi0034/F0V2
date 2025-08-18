@@ -80,16 +80,13 @@ struct StructuredBufferUploader::Impl
         memcpy(frameResource.uploadDest, src, m_dataSize);
 
         // GPU へアップロード
-        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
-        const auto commandList = EngineRenderContext::ActiveCommandList();
-        commandList->CopyResource(m_gpuBuffer.Get(), frameResource.uploadBuffer.Get());
+        const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);;
+        copyCommandList->CopyResource(m_gpuBuffer.Get(), frameResource.uploadBuffer.Get());
 
         // CopyResource で COPY_DEST 状態になっている m_gpuBuffer を、UNORDERED_ACCESS に移す
         if (m_writable)
         {
-            const auto computeCommandTargetLifetime = // FIXME: Simplify
-                EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
-            const auto computeCommandList = EngineRenderContext::ActiveCommandList();
+            const auto computeCommandList = EngineRenderContext::GetCommandList(CommandListType::Compute);;
             const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 m_gpuBuffer.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
@@ -102,8 +99,7 @@ struct StructuredBufferUploader::Impl
     {
         assert(m_writable);;
 
-        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_gpuBuffer.Get());
@@ -112,8 +108,7 @@ struct StructuredBufferUploader::Impl
 
     static void AfterDispatch(const Array<StructuredBufferTransfer>& list)
     {
-        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
 
         Array<D3D12_RESOURCE_BARRIER> barriers{};
         barriers.reserve(8);
@@ -135,8 +130,7 @@ struct StructuredBufferUploader::Impl
     {
         assert(m_writable);
 
-        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_gpuBuffer.Get());
@@ -168,8 +162,7 @@ struct StructuredBufferUploader::Impl
 
     static void BeforeFlush(const Array<StructuredBufferTransfer>& list)
     {
-        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         Array<D3D12_RESOURCE_BARRIER> barriers;

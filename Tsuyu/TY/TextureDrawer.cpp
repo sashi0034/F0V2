@@ -134,7 +134,7 @@ struct TextureDrawer::Impl : IEngineDrawer
     {
         m_pso.commandSet();
 
-        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSet(PipelineType::Graphics);
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
 
         Graphics3D::DrawTriangles(m_vertexBuffer, m_indexBuffer);

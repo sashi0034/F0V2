@@ -131,9 +131,7 @@ struct IndexBuffer::Impl::Default : Impl
 
         std::ranges::copy(indices, dest);
 
-        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
-        // FIXME?
-        const auto copyCommandList = EngineRenderContext::ActiveCommandList();
+        const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
 
         copyCommandList->CopyBufferRegion(
             m_finalBuffer.Get(),
@@ -152,7 +150,7 @@ struct IndexBuffer::Impl::Default : Impl
 
     void CommandSet() const override
     {
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
         commandList->IASetIndexBuffer(&m_indexBufferView);
     }
 };

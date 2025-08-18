@@ -55,8 +55,6 @@ struct EngineRenderContextImpl
     RenderTarget m_backBuffer{};
     ScopedRenderTarget m_scopedBackBuffer{};
 
-    Array<CommandListType> m_commandTargetStack{};
-
     Mat3x2 m_windowToFrameBuffer{};
 
     bool m_previousFullscreen{};
@@ -204,8 +202,6 @@ struct EngineRenderContextImpl
 
     void Render()
     {
-        assert(m_commandTargetStack.empty());
-
         // コンスタントバッファのアップロード
         {
             SceneState3D_b0 b{};
@@ -271,14 +267,9 @@ struct EngineRenderContextImpl
         m_flushTimestamp++;
     }
 
-    CommandList& getActiveCommandList()
+    CommandList& GetCommandList(CommandListType type)
     {
-        if (m_commandTargetStack.empty())
-        {
-            return m_drawCommandList;
-        }
-
-        switch (m_commandTargetStack.back())
+        switch (type)
         {
         case CommandListType::Draw:
             return m_drawCommandList;
@@ -449,38 +440,23 @@ namespace TY::detail
         return s_renderContext.m_device.Get();
     }
 
-    ScopedDefer EngineRenderContext::ScopedCommandTarget(CommandListType type)
+    ID3D12GraphicsCommandList* EngineRenderContext::GetCommandList(CommandListType type)
     {
-        s_renderContext.m_commandTargetStack.push_back(type);
-        return ScopedDefer{
-            [type]()
-            {
-                if (not s_renderContext.m_commandTargetStack.empty())
-                {
-                    assert(s_renderContext.m_commandTargetStack.back() == type);
-                    s_renderContext.m_commandTargetStack.pop_back();
-                }
-                else
-                {
-                    assert(false);
-                }
-            }
-        };
+        return s_renderContext.GetCommandList(type).GetCommandList();
     }
 
-    CommandListType EngineRenderContext::ActiveCommandTarget()
+    ID3D12GraphicsCommandList* EngineRenderContext::GetCommandList(PipelineType type)
     {
-        if (s_renderContext.m_commandTargetStack.empty())
+        switch (type)
         {
-            return CommandListType::Draw;
+        case PipelineType::Graphics:
+            return GetCommandList(CommandListType::Draw);
+        case PipelineType::Compute:
+            return GetCommandList(CommandListType::Compute);
         }
 
-        return s_renderContext.m_commandTargetStack.back();
-    }
-
-    ID3D12GraphicsCommandList* EngineRenderContext::ActiveCommandList()
-    {
-        return s_renderContext.getActiveCommandList().GetCommandList();
+        assert(false);
+        return {};
     }
 
     void EngineRenderContext::FlushComputeCommandSync()

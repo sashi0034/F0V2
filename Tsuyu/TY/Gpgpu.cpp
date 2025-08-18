@@ -298,7 +298,6 @@ struct Gpgpu::Impl
     {
         checkResized();
 
-        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
         for (int i = 0; i < m_params.readonlyBuffer.size(); ++i)
         {
             m_sr[i].upload(access(m_params.readonlyBuffer[i]).readonlyDataPointer());
@@ -310,7 +309,7 @@ struct Gpgpu::Impl
         }
 
         m_computePipelineState.commandSet();
-        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSet(PipelineType::Compute);
         m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
 
         if (m_tableIndexofCbv10AndLater != -1)
@@ -318,7 +317,7 @@ struct Gpgpu::Impl
             m_descriptorHeap.commandSetTable(PipelineType::Compute, m_tableIndexofCbv10AndLater);
         }
 
-        const auto commandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
         const auto mainUA = m_ua[0];
 
         const auto mainSize3D = access(m_params.writableBuffer[0]).getSize3D();
@@ -350,8 +349,6 @@ struct Gpgpu::Impl
         {
             impl->checkResized();
         }
-
-        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
 
         std::unordered_map<IReadonlyGpgpu*, StructuredBufferUploader> srMap{};
         std::unordered_map<IReadonlyGpgpu*, StructuredBufferTransfer> uaMap{};
@@ -393,7 +390,7 @@ struct Gpgpu::Impl
         for (auto& impl : list)
         {
             impl->m_computePipelineState.commandSet();
-            impl->m_descriptorHeap.commandSet();
+            impl->m_descriptorHeap.commandSet(PipelineType::Compute);
             impl->m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
 
             if (impl->m_tableIndexofCbv10AndLater != -1)
@@ -401,7 +398,7 @@ struct Gpgpu::Impl
                 impl->m_descriptorHeap.commandSetTable(PipelineType::Compute, impl->m_tableIndexofCbv10AndLater);
             }
 
-            const auto commandList = EngineRenderContext::ActiveCommandList();
+            const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
             const auto mainUA = impl->m_ua[0];
 
             const auto mainSize3D = access(impl->m_params.writableBuffer[0]).getSize3D();

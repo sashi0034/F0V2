@@ -117,7 +117,7 @@ struct GenericModelDrawer::Impl : IEngineDrawer
         m_pso.commandSet();
 
         // カメラ行列設定
-        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSet(PipelineType::Graphics);
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
         m_descriptorHeap.commandSetTable(PipelineType::Graphics, 1);
 

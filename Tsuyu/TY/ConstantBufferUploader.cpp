@@ -122,11 +122,8 @@ struct ConstantBufferUploaderCore::Impl
             dest += m_alignedSize;
         }
 
-        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
-        // FIXME?
-        const auto copyCommandList = EngineRenderContext::ActiveCommandList();
-
-        copyCommandList->CopyBufferRegion(
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
+        commandList->CopyBufferRegion(
             m_finalBuffer.Get(),
             0,
             frameResource.uploadBuffer.Get(),

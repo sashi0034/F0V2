@@ -92,14 +92,13 @@ struct DynamicTexture::Impl
         subresourceData.RowPitch = image.size.x * image.pixelSizeInBytes();
         subresourceData.SlicePitch = subresourceData.RowPitch * image.size.y;
 
-        // const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
-        ID3D12GraphicsCommandList* commandList = EngineRenderContext::ActiveCommandList();
+        ID3D12GraphicsCommandList* commandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
 
-        const CD3DX12_RESOURCE_BARRIER barrierBefore = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_textureBuffer.Get(),
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-            D3D12_RESOURCE_STATE_COPY_DEST);
-        commandList->ResourceBarrier(1, &barrierBefore);
+        // const CD3DX12_RESOURCE_BARRIER barrierBefore = CD3DX12_RESOURCE_BARRIER::Transition(
+        //     m_textureBuffer.Get(),
+        //     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        //     D3D12_RESOURCE_STATE_COPY_DEST);
+        // commandList->ResourceBarrier(1, &barrierBefore);
 
         UpdateSubresources(
             commandList,
@@ -110,11 +109,11 @@ struct DynamicTexture::Impl
             1,
             &subresourceData);
 
-        const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_textureBuffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-        commandList->ResourceBarrier(1, &barrier);
+        // const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+        //     m_textureBuffer.Get(),
+        //     D3D12_RESOURCE_STATE_COPY_DEST,
+        //     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        // commandList->ResourceBarrier(1, &barrier);
     }
 };
 

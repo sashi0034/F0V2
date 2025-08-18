@@ -136,16 +136,15 @@ struct ShaderResourceTexture::Impl
             static_cast<UINT>(AlignedSize(rawImage->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
         srcCopyLocation.PlacedFootprint.Footprint.Format = rawImage->format;
 
-        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
-        const auto copyCommandList = EngineRenderContext::ActiveCommandList();
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
 
-        copyCommandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
+        commandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
 
         const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             m_textureBuffer.Get(),
             D3D12_RESOURCE_STATE_COPY_DEST,
             D3D12_RESOURCE_STATE_COPY_SOURCE);
-        copyCommandList->ResourceBarrier(1, &barrier);
+        commandList->ResourceBarrier(1, &barrier);
 
         m_format = metadata.format;
 

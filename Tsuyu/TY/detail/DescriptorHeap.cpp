@@ -331,9 +331,9 @@ struct DescriptorHeap::Impl
         createUnorderedAccessViewInternal(heapHandle, uav);
     }
 
-    void CommandSet() const
+    void CommandSet(PipelineType pipeline) const
     {
-        EngineRenderContext::ActiveCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+        EngineRenderContext::GetCommandList(pipeline)->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
     void CommandSetTable(PipelineType pipeline, int tableId, int materialId) const
@@ -343,11 +343,11 @@ struct DescriptorHeap::Impl
 
         if (pipeline == PipelineType::Graphics)
         {
-            EngineRenderContext::ActiveCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+            EngineRenderContext::GetCommandList(pipeline)->SetGraphicsRootDescriptorTable(tableId, heapHandle);
         }
         else if (pipeline == PipelineType::Compute)
         {
-            EngineRenderContext::ActiveCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
+            EngineRenderContext::GetCommandList(pipeline)->SetComputeRootDescriptorTable(tableId, heapHandle);
         }
         else
         {
@@ -376,9 +376,9 @@ namespace TY::detail
         if (p_impl) p_impl->ResetUAV(uav, tableId, uavId, materialId);
     }
 
-    void DescriptorHeap::commandSet() const
+    void DescriptorHeap::commandSet(PipelineType pipeline) const
     {
-        if (p_impl) p_impl->CommandSet();
+        if (p_impl) p_impl->CommandSet(pipeline);
     }
 
     void DescriptorHeap::commandSetTable(PipelineType pipeline, int tableId, int materialId) const

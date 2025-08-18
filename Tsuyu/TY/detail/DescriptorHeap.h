@@ -36,7 +36,7 @@ namespace TY::detail
 
         void resetUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId = 0);
 
-        void commandSet() const;
+        void commandSet(PipelineType pipeline) const;
 
         void commandSetTable(PipelineType pipeline, int tableId, int materialId = 0) const;
 
