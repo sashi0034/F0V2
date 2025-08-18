@@ -288,6 +288,11 @@ struct Demo_ShapeRenderer_impl
             .push(Shape2D::Line{Float2{200, 200}, Float2{300, 400}}
                   .setThickness(10.0f)
                   .setColor(ColorF32{1.0f, 0.9f, 0.3f})
+            ).push(Shape2D::Path({
+                       {400.0f, 500.0f}, {550.0f, 500.0f}, {600.0f, 600.0f}, {700.0f, 600.0f}
+                   })
+                   .setThickness(50.0f)
+                   .setColor(ColorF32{0.3f, 1.0f, 0.7f})
             );
 
         ShapeDrawer2D::Global().draw();

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Array.h"
 #include "Color.h"
 #include "Rect.h"
 #include "Variant.h"
@@ -49,12 +50,30 @@ namespace TY
             SquareDotLine& setDotOffset(float offset_);
         };
 
+        struct Path
+        {
+            Array<Float2> points;
+            float thickness{1.0f};
+            ColorF32 color{ColorF32{1.0}};
+
+            Path() = default;
+
+            Path(const Array<Float2>& points_);
+
+            Path& append(const Float2& p);
+
+            Path& setThickness(float thickness_);
+
+            Path& setColor(const ColorF32& color_);
+        };
+
         // -----------------------------------------------
 
         using shape_type = Variant<
             Rectangle,
             Line,
-            SquareDotLine
+            SquareDotLine,
+            Path
         >;
     }
 }

@@ -187,5 +187,60 @@ namespace TY
 
             return indexSize;
         }
+
+        index_type BuildPath(BufferCreator& bufferCreator, const Shape2D::Path& path)
+        {
+            if (path.thickness <= 0.0f)
+            {
+                return 0;
+            }
+
+            const int vertexCount = 4 * (path.points.size() - 1);
+            if (vertexCount <= 0)
+            {
+                return 0;
+            }
+
+            const int indexCount = 6 * (path.points.size() - 1);
+
+            const auto buffer = bufferCreator.request(vertexCount, indexCount);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            const auto& vertices = buffer.vertices;
+            const auto& indices = buffer.indices;
+
+            const float halfThickness = path.thickness * 0.5f;
+            const auto& color = path.color;
+
+            int vertexHead = 0;
+            int indexHead = 0;
+
+            for (int i = 0; i < path.points.size() - 1; ++i)
+            {
+                const auto& start = path.points[i];
+                const auto& mid = path.points[i + 1];
+
+                const Float2 startDirection = (mid - start).normalized();
+                const Float2 startNormal{-startDirection.y * halfThickness, startDirection.x * halfThickness};
+
+                vertices[vertexHead + 0].set(start + startNormal, color);
+                vertices[vertexHead + 1].set(start - startNormal, color);
+                vertices[vertexHead + 2].set(mid + startNormal, color);
+                vertices[vertexHead + 3].set(mid - startNormal, color);
+
+                for (int i = 0; i < 6; ++i)
+                {
+                    indices[indexHead + i] = buffer.indexOffset + vertexHead + rectIndexTable[i];
+                }
+
+                vertexHead += 4;
+                indexHead += 6;
+            }
+
+            return indexCount;
+        }
     }
 }

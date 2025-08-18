@@ -323,6 +323,16 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
             applyNextState();
             ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator, shape.get<Shape2D::SquareDotLine>(), maxScaling);
         }
+        else if (shape.isHolds<Shape2D::Path>())
+        {
+            m_stateManager.RequestPixelShader(s_component->m_ps.shape);
+            applyNextState();
+            ShapeBuilder2D::BuildPath(m_bufferCreator, shape.get<Shape2D::Path>());
+        }
+        else
+        {
+            assert(false);
+        }
     }
 
     void Draw()

@@ -57,4 +57,27 @@ namespace TY
         dotOffset = offset_;
         return *this;
     }
+
+    Shape2D::Path::Path(const Array<Float2>& points_)
+        : points(points_)
+    {
+    }
+
+    Shape2D::Path& Shape2D::Path::append(const Float2& p)
+    {
+        points.push_back(p);
+        return *this;
+    }
+
+    Shape2D::Path& Shape2D::Path::setThickness(float thickness_)
+    {
+        thickness = thickness_;
+        return *this;
+    }
+
+    Shape2D::Path& Shape2D::Path::setColor(const ColorF32& color_)
+    {
+        color = color_;
+        return *this;
+    }
 }
