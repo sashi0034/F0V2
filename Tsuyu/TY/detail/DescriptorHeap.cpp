@@ -120,9 +120,9 @@ namespace
 
             p_resource = texture.getResource();
         }
-        else if (sr.isHolds<StructuredBufferUploader>())
+        else if (sr.isHolds<StructuredBuffer>())
         {
-            const auto& t = sr.get<StructuredBufferUploader>();
+            const auto& t = sr.get<StructuredBuffer>();
             const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer();
 
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -161,7 +161,7 @@ namespace
         return createShaderResourceViewInternal(heapHandle, sr);
     }
 
-    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const StructuredBufferUploader& ua)
+    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const StructuredBuffer& ua)
     {
         const auto rsc = ua.getBuffer() ? ua : EnginePresetAsset::GetEmptyStructuredBuffer();
 

@@ -72,16 +72,16 @@ namespace
         return threadGroup;
     }
 
-    struct StructuredBufferUploaderCache
+    struct StructuredBufferCache
     {
         std::weak_ptr<IGpgpuBuffer> lifetime;
-        StructuredBufferUploader structuredBuffer;
+        StructuredBuffer structuredBuffer;
     };
 
-    struct StructuredBufferTransferCache
+    struct UnorderedStructuredBufferCache
     {
         std::weak_ptr<IGpgpuBuffer> lifetime;
-        StructuredBufferTransfer structuredBuffer;
+        UnorderedStructuredBuffer structuredBuffer;
     };
 
     struct GpgpuCacheComponent;
@@ -118,12 +118,12 @@ namespace
 
         bool update() override
         {
-            cleanUp(m_structuredBufferUploaderCache);
-            cleanUp(m_structuredBufferTransferCache);
+            cleanUp(m_StructuredBufferCache);
+            cleanUp(m_UnorderedStructuredBufferCache);
             return true;
         }
 
-        StructuredBufferUploader FetchStructuredBufferUploader(
+        StructuredBuffer FetchStructuredBuffer(
             const std::shared_ptr<IGpgpuBuffer>& key)
         {
             if (not key)
@@ -131,24 +131,24 @@ namespace
                 return {};
             }
 
-            auto& cache = m_structuredBufferUploaderCache;
+            auto& cache = m_StructuredBufferCache;
             if (const auto it = cache.find(key.get()); it != cache.end())
             {
                 return it->second.structuredBuffer;
             }
 
-            const auto& cache2 = m_structuredBufferTransferCache;
+            const auto& cache2 = m_UnorderedStructuredBufferCache;
             if (const auto it2 = cache2.find(key.get()); it2 != cache2.end())
             {
                 return it2->second.structuredBuffer;
             }
 
-            StructuredBufferUploader uploader{StructuredBufferTransferParams::From(key)};
+            StructuredBuffer uploader{UnorderedStructuredBufferParams::From(key)};
             cache[key.get()] = {key, uploader};
             return uploader;
         }
 
-        StructuredBufferTransfer FetchStructuredBufferTransfer(
+        UnorderedStructuredBuffer FetchUnorderedStructuredBuffer(
             const std::shared_ptr<IGpgpuBuffer>& key)
         {
             if (not key)
@@ -156,22 +156,22 @@ namespace
                 return {};
             }
 
-            auto& cache = m_structuredBufferTransferCache;
+            auto& cache = m_UnorderedStructuredBufferCache;
 
             if (const auto it = cache.find(key.get()); it != cache.end())
             {
                 return it->second.structuredBuffer;
             }
 
-            StructuredBufferTransfer transfer{StructuredBufferTransferParams::From(key)};
+            UnorderedStructuredBuffer transfer{UnorderedStructuredBufferParams::From(key)};
             cache[key.get()] = {key, transfer};
             return transfer;
         }
 
     private:
-        std::unordered_map<IGpgpuBuffer*, StructuredBufferUploaderCache> m_structuredBufferUploaderCache{};
+        std::unordered_map<IGpgpuBuffer*, StructuredBufferCache> m_StructuredBufferCache{};
 
-        std::unordered_map<IGpgpuBuffer*, StructuredBufferTransferCache> m_structuredBufferTransferCache{};
+        std::unordered_map<IGpgpuBuffer*, UnorderedStructuredBufferCache> m_UnorderedStructuredBufferCache{};
 
         template <typename Container>
         void cleanUp(Container& cache)
@@ -200,8 +200,8 @@ struct Gpgpu::Impl
     ConstantBufferCore m_cb0{Empty};
     ConstantBufferCore m_cb1{Empty};
 
-    Array<StructuredBufferUploader> m_sr{};
-    Array<StructuredBufferTransfer> m_ua{};
+    Array<StructuredBuffer> m_sr{};
+    Array<UnorderedStructuredBuffer> m_ua{};
 
     ComputePipelineState m_computePipelineState{};
 
@@ -244,7 +244,7 @@ struct Gpgpu::Impl
         {
             if (access(m_params.readonlyBuffer[i]).getElementCount() > 0)
             {
-                m_sr[i] = getCache().FetchStructuredBufferUploader(m_params.readonlyBuffer[i]);
+                m_sr[i] = getCache().FetchStructuredBuffer(m_params.readonlyBuffer[i]);
             }
         }
 
@@ -253,7 +253,7 @@ struct Gpgpu::Impl
         {
             if (access(m_params.writableBuffer[i]).getElementCount() > 0)
             {
-                m_ua[i] = getCache().FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
+                m_ua[i] = getCache().FetchUnorderedStructuredBuffer(m_params.writableBuffer[i]);
             }
         }
 
@@ -350,8 +350,8 @@ struct Gpgpu::Impl
             impl->checkResized();
         }
 
-        std::unordered_map<IReadonlyGpgpu*, StructuredBufferUploader> srMap{};
-        std::unordered_map<IReadonlyGpgpu*, StructuredBufferTransfer> uaMap{};
+        std::unordered_map<IReadonlyGpgpu*, StructuredBuffer> srMap{};
+        std::unordered_map<IReadonlyGpgpu*, UnorderedStructuredBuffer> uaMap{};
 
         for (auto& impl : list)
         {
@@ -410,7 +410,7 @@ struct Gpgpu::Impl
             // {
             //     impl->m_ua[i].afterDispatch();
             // }
-            StructuredBufferTransfer::AfterDispatch(impl->m_ua);
+            UnorderedStructuredBuffer::AfterDispatch(impl->m_ua);
         }
 
         // for (auto& ua : uaMap)
@@ -418,13 +418,13 @@ struct Gpgpu::Impl
         //     ua.second.beforeFlush();
         // }
         {
-            Array<StructuredBufferTransfer> transfers{uaMap.size()};
+            Array<UnorderedStructuredBuffer> transfers{uaMap.size()};
             for (const auto& ua : uaMap)
             {
                 transfers.push_back(ua.second);
             }
 
-            StructuredBufferTransfer::BeforeFlush(transfers);
+            UnorderedStructuredBuffer::BeforeFlush(transfers);
         }
 
         EngineRenderContext::FlushComputeCommandSync();
@@ -479,7 +479,7 @@ private:
         {
             if (m_sr[i].elementCount() != access(m_params.readonlyBuffer[i]).getElementCount())
             {
-                m_sr[i] = getCache().FetchStructuredBufferTransfer(m_params.readonlyBuffer[i]);
+                m_sr[i] = getCache().FetchUnorderedStructuredBuffer(m_params.readonlyBuffer[i]);
                 m_descriptorHeap.resetSrv(m_sr[i], 0, i);
 
                 resized = true;
@@ -490,7 +490,7 @@ private:
         {
             if (m_ua[i].elementCount() != access(m_params.writableBuffer[i]).getElementCount())
             {
-                m_ua[i] = getCache().FetchStructuredBufferTransfer(m_params.writableBuffer[i]);
+                m_ua[i] = getCache().FetchUnorderedStructuredBuffer(m_params.writableBuffer[i]);
                 m_descriptorHeap.resetUav(m_ua[i], 0, i);
 
                 resized = true;

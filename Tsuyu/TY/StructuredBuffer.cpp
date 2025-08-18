@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "StructuredBufferUploader.h"
+#include "StructuredBuffer.h"
 
 #include "GpgpuBuffer.h"
 #include "Logger.h"
@@ -8,11 +8,11 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct StructuredBufferUploader::Impl
+struct StructuredBuffer::Impl
 {
     bool m_valid = false;
 
-    StructuredBufferTransferParams m_params;
+    UnorderedStructuredBufferParams m_params;
     bool m_writable{};
 
     ComPtr<ID3D12Resource> m_gpuBuffer;
@@ -32,14 +32,14 @@ struct StructuredBufferUploader::Impl
 
     size_t m_dataSize{};
 
-    Impl(const StructuredBufferTransferParams& params, bool isWritable) : m_params(params), m_writable(isWritable)
+    Impl(const UnorderedStructuredBufferParams& params, bool isWritable) : m_params(params), m_writable(isWritable)
     {
         const auto device = EngineRenderContext::GetDevice();
 
         m_dataSize = params.elementCount * params.elementStride;
         if (m_dataSize <= 0)
         {
-            LogError.writeln("StructuredBufferUploader: StructuredBufferUploader: Invalid data size.");
+            LogError.writeln("StructuredBuffer: StructuredBuffer: Invalid data size.");
             return;
         }
 
@@ -60,7 +60,7 @@ struct StructuredBufferUploader::Impl
             );
             FAILED(hr))
         {
-            LogError.writeln(std::format("StructuredBufferUploader: Failed to create GPU buffer: {}", hr));
+            LogError.writeln(std::format("StructuredBuffer: Failed to create GPU buffer: {}", hr));
             return;
         }
 
@@ -106,7 +106,7 @@ struct StructuredBufferUploader::Impl
         commandList->ResourceBarrier(1, &uavBarrier);
     }
 
-    static void AfterDispatch(const Array<StructuredBufferTransfer>& list)
+    static void AfterDispatch(const Array<UnorderedStructuredBuffer>& list)
     {
         const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
 
@@ -160,7 +160,7 @@ struct StructuredBufferUploader::Impl
         commandList->ResourceBarrier(1, &toUAV);
     }
 
-    static void BeforeFlush(const Array<StructuredBufferTransfer>& list)
+    static void BeforeFlush(const Array<UnorderedStructuredBuffer>& list)
     {
         const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
 
@@ -223,7 +223,7 @@ struct StructuredBufferUploader::Impl
 
         if (not dest)
         {
-            LogError.writeln("StructuredBufferTransfer::Readback(): Destination pointer is null.");
+            LogError.writeln("UnorderedStructuredBuffer::Readback(): Destination pointer is null.");
             return;
         }
 
@@ -251,11 +251,11 @@ private:
                     IID_PPV_ARGS(&frameResource.uploadBuffer));
                 FAILED(hr))
             {
-                LogError.writeln("StructuredBufferUploader: Failed to create uploadBuffer.");
+                LogError.writeln("StructuredBuffer: Failed to create uploadBuffer.");
                 return false;
             }
 
-            frameResource.uploadBuffer->SetName(L"StructuredBufferUploader::uploadBuffer");
+            frameResource.uploadBuffer->SetName(L"StructuredBuffer::uploadBuffer");
         }
 
         if (not frameResource.uploadDest)
@@ -264,7 +264,7 @@ private:
                     0, nullptr, reinterpret_cast<void**>(&frameResource.uploadDest));
                 FAILED(hr))
             {
-                LogError.writeln("StructuredBufferUploader: Failed to map resource.");
+                LogError.writeln("StructuredBuffer: Failed to map resource.");
                 return false;
             }
         }
@@ -287,11 +287,11 @@ private:
                     IID_PPV_ARGS(&frameResource.readbackBuffer));
                 FAILED(hr))
             {
-                LogError.writeln(std::format("StructuredBufferUploader: Failed to create readback buffer: {}", hr));
+                LogError.writeln(std::format("StructuredBuffer: Failed to create readback buffer: {}", hr));
                 return false;
             }
 
-            frameResource.readbackBuffer->SetName(L"StructuredBufferUploader::readbackBuffer");
+            frameResource.readbackBuffer->SetName(L"StructuredBuffer::readbackBuffer");
         }
 
         if (not frameResource.readbackSrc)
@@ -300,7 +300,7 @@ private:
                     0, nullptr, reinterpret_cast<void**>(&frameResource.readbackSrc));
                 FAILED(hr))
             {
-                LogError.writeln("StructuredBufferUploader: Failed to map readback buffer.");
+                LogError.writeln("StructuredBuffer: Failed to map readback buffer.");
                 return false;
             }
         }
@@ -311,7 +311,7 @@ private:
 
 namespace TY
 {
-    StructuredBufferTransferParams StructuredBufferTransferParams::From(
+    UnorderedStructuredBufferParams UnorderedStructuredBufferParams::From(
         const std::shared_ptr<detail::IGpgpuBuffer>& buffer)
     {
         if (not buffer)
@@ -319,7 +319,7 @@ namespace TY
             return {};
         }
 
-        StructuredBufferTransferParams params{
+        UnorderedStructuredBufferParams params{
             .elementCount = buffer->getElementCount(),
             .elementStride = buffer->getElementStride()
         };
@@ -327,7 +327,7 @@ namespace TY
         return params;
     }
 
-    StructuredBufferUploader::StructuredBufferUploader(const StructuredBufferTransferParams& params)
+    StructuredBuffer::StructuredBuffer(const UnorderedStructuredBufferParams& params)
         : p_impl(std::make_shared<Impl>(params, false))
     {
         if (not p_impl->m_valid)
@@ -336,27 +336,27 @@ namespace TY
         }
     }
 
-    void StructuredBufferUploader::upload(const void* src)
+    void StructuredBuffer::upload(const void* src)
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(src));
     }
 
-    int StructuredBufferUploader::elementCount() const
+    int StructuredBuffer::elementCount() const
     {
         return p_impl ? p_impl->m_params.elementCount : 0;
     }
 
-    int StructuredBufferUploader::elementStride() const
+    int StructuredBuffer::elementStride() const
     {
         return p_impl ? p_impl->m_params.elementStride : 0;
     }
 
-    ID3D12Resource* StructuredBufferUploader::getBuffer() const
+    ID3D12Resource* StructuredBuffer::getBuffer() const
     {
         return p_impl ? p_impl->m_gpuBuffer.Get() : nullptr;
     }
 
-    StructuredBufferTransfer::StructuredBufferTransfer(const StructuredBufferTransferParams& params)
+    UnorderedStructuredBuffer::UnorderedStructuredBuffer(const UnorderedStructuredBufferParams& params)
     {
         p_impl = std::make_shared<Impl>(params, true);
         if (not p_impl->m_valid)
@@ -365,7 +365,7 @@ namespace TY
         }
     }
 
-    void StructuredBufferTransfer::afterDispatch()
+    void UnorderedStructuredBuffer::afterDispatch()
     {
         if (p_impl)
         {
@@ -373,12 +373,12 @@ namespace TY
         }
     }
 
-    void StructuredBufferTransfer::AfterDispatch(const Array<StructuredBufferTransfer>& list)
+    void UnorderedStructuredBuffer::AfterDispatch(const Array<UnorderedStructuredBuffer>& list)
     {
         Impl::AfterDispatch(list);
     }
 
-    void StructuredBufferTransfer::beforeFlush()
+    void UnorderedStructuredBuffer::beforeFlush()
     {
         if (p_impl)
         {
@@ -386,12 +386,12 @@ namespace TY
         }
     }
 
-    void StructuredBufferTransfer::BeforeFlush(const Array<StructuredBufferTransfer>& list)
+    void UnorderedStructuredBuffer::BeforeFlush(const Array<UnorderedStructuredBuffer>& list)
     {
         Impl::BeforeFlush(list);
     }
 
-    void StructuredBufferTransfer::readback(void* dst)
+    void UnorderedStructuredBuffer::readback(void* dst)
     {
         if (p_impl)
         {
