@@ -16,8 +16,20 @@ struct StructuredBufferUploader::Impl
     bool m_writable{};
 
     ComPtr<ID3D12Resource> m_gpuBuffer;
-    ComPtr<ID3D12Resource> m_uploadBuffer; // TODO: IB, VB, CB などと同様にダブルバッファリングに修正
-    ComPtr<ID3D12Resource> m_readbackBuffer;
+
+    struct frame_resources
+    {
+        ComPtr<ID3D12Resource> uploadBuffer;
+        uint8_t* uploadDest{};
+
+        ComPtr<ID3D12Resource> readbackBuffer;
+        uint8_t* readbackSrc{};
+    };
+
+    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+
+    size_t m_flushTimestamp{};
+
     size_t m_dataSize{};
 
     Impl(const StructuredBufferTransferParams& params, bool isWritable) : m_params(params), m_writable(isWritable)
@@ -52,128 +64,39 @@ struct StructuredBufferUploader::Impl
             return;
         }
 
-        // m_uploadBuffer を作成
-        const CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(
-            m_dataSize,
-            D3D12_RESOURCE_FLAG_NONE
-        );
-
-        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        if (const HRESULT hr = device->CreateCommittedResource(
-                &heapProps,
-                D3D12_HEAP_FLAG_NONE,
-                &uploadBufferDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
-                nullptr,
-                IID_PPV_ARGS(&m_uploadBuffer));
-            FAILED(hr))
-        {
-            LogError.writeln(std::format("StructuredBufferUploader: Failed to create upload buffer: {}", hr));
-            return;
-        }
-
-        // m_readbackBuffer を作成
-        const CD3DX12_HEAP_PROPERTIES readbackHeapProps(D3D12_HEAP_TYPE_READBACK);
-        const CD3DX12_RESOURCE_DESC readbackBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(m_dataSize);
-
-        if (const HRESULT hr = device->CreateCommittedResource(
-                &readbackHeapProps,
-                D3D12_HEAP_FLAG_NONE,
-                &readbackBufferDesc,
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                nullptr,
-                IID_PPV_ARGS(&m_readbackBuffer));
-            FAILED(hr))
-        {
-            LogError.writeln(std::format("StructuredBufferUploader: Failed to create readback buffer: {}", hr));
-            return;
-        }
-
         m_valid = true;
     }
 
     void Upload(const uint8_t* src)
     {
-        // マップして書き込み
-        uint8_t* dest;
+        m_flushTimestamp = EngineRenderContext::GetFlushTimestamp();
 
-        if (const HRESULT hr = m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dest));
-            FAILED(hr))
-        {
-            LogError.writeln(std::format("StructuredBufferUploader::Upload(): Failed to map upload buffer: {}", hr));
-            return;
-        }
+        const size_t frameIndex = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
 
-        memcpy(dest, src, m_dataSize);
+        auto& frameResource = m_frameResources[frameIndex];
 
-        m_uploadBuffer->Unmap(0, nullptr);
+        if (not ensureUploadBuffer(frameResource, m_dataSize)) return;
+
+        memcpy(frameResource.uploadDest, src, m_dataSize);
 
         // GPU へアップロード
-        assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
+        const auto commandTargetLifetime = EngineRenderContext::ScopedCommandTarget(CommandListType::Copy);
         const auto commandList = EngineRenderContext::ActiveCommandList();
-        commandList->CopyResource(m_gpuBuffer.Get(), m_uploadBuffer.Get());
+        commandList->CopyResource(m_gpuBuffer.Get(), frameResource.uploadBuffer.Get());
 
         // CopyResource で COPY_DEST 状態になっている m_gpuBuffer を、UNORDERED_ACCESS に移す
         if (m_writable)
         {
+            const auto computeCommandTargetLifetime = // FIXME: Simplify
+                EngineRenderContext::ScopedCommandTarget(CommandListType::Compute);
+            const auto computeCommandList = EngineRenderContext::ActiveCommandList();
             const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 m_gpuBuffer.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-            commandList->ResourceBarrier(1, &barrier);
+            computeCommandList->ResourceBarrier(1, &barrier);
         }
     }
-
-    // static void Upload(const Array<StructuredBufferUploader>& list, const Array<uint8_t*>& srcs)
-    // {
-    //     assert(EngineRenderContext::ActiveCommandTarget() == CommandListType::Compute);
-    //     const auto commandList = EngineRenderContext::ActiveCommandList();
-    //
-    //     for (int i = 0; i < list.size(); ++i)
-    //     {
-    //         auto& impl = list[i].p_impl;
-    //         if (not impl) continue;
-    //
-    //         auto& src = srcs[i];
-    //
-    //         // マップして書き込み
-    //         uint8_t* dest;
-    //         if (FAILED(impl->m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dest))))
-    //         {
-    //             LogError.writeln("StructuredBufferUploader::Upload(): Failed to map upload buffer.");
-    //             continue;
-    //         }
-    //
-    //         memcpy(dest, src, impl->m_dataSize);
-    //         impl->m_uploadBuffer->Unmap(0, nullptr);
-    //
-    //         // GPU へアップロード
-    //         commandList->CopyResource(impl->m_gpuBuffer.Get(), impl->m_uploadBuffer.Get());
-    //     }
-    //
-    //     Array<D3D12_RESOURCE_BARRIER> barriers;
-    //     barriers.reserve(list.size());
-    //
-    //     // CopyResource で COPY_DEST 状態になっている m_gpuBuffer を、UNORDERED_ACCESS に移す
-    //     for (int i = 0; i < list.size(); ++i)
-    //     {
-    //         auto& impl = list[i].p_impl;
-    //         if (not impl) continue;
-    //
-    //         if (impl->m_writable)
-    //         {
-    //             barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
-    //                 impl->m_gpuBuffer.Get(),
-    //                 D3D12_RESOURCE_STATE_COPY_DEST,
-    //                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-    //         }
-    //     }
-    //
-    //     if (not barriers.empty())
-    //     {
-    //         commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
-    //     }
-    // }
 
     void AfterDispatch()
     {
@@ -227,7 +150,13 @@ struct StructuredBufferUploader::Impl
         commandList->ResourceBarrier(1, &toCopySrc);
 
         // Copy GPU -> Readback
-        commandList->CopyResource(m_readbackBuffer.Get(), m_gpuBuffer.Get());
+        m_flushTimestamp = EngineRenderContext::GetFlushTimestamp();
+        const size_t frameIndex = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+        auto& frameResource = m_frameResources[frameIndex];
+
+        if (not ensureReadbackBuffer(frameResource, m_dataSize)) return;
+
+        commandList->CopyResource(frameResource.readbackBuffer.Get(), m_gpuBuffer.Get());
 
         // GPU バッファを UNORDERED_ACCESS に戻す
         const auto toUAV = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -268,7 +197,13 @@ struct StructuredBufferUploader::Impl
             auto& impl = list[i].p_impl;
             if (not impl) continue;
 
-            commandList->CopyResource(impl->m_readbackBuffer.Get(), impl->m_gpuBuffer.Get());
+            impl->m_flushTimestamp = EngineRenderContext::GetFlushTimestamp();
+            const size_t frameIndex = impl->m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+            auto& frameResource = impl->m_frameResources[frameIndex];
+
+            if (not ensureReadbackBuffer(frameResource, impl->m_dataSize)) return;
+
+            commandList->CopyResource(frameResource.readbackBuffer.Get(), impl->m_gpuBuffer.Get());
         }
 
         // GPU バッファを UNORDERED_ACCESS に戻す
@@ -299,16 +234,85 @@ struct StructuredBufferUploader::Impl
             return;
         }
 
-        uint8_t* src = nullptr;
-        if (SUCCEEDED(m_readbackBuffer->Map(0, nullptr, reinterpret_cast<void**>(&src))))
+        const size_t frameIndex = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+        auto& frameResource = m_frameResources[frameIndex];
+        assert(frameResource.readbackSrc);
+
+        memcpy(dest, frameResource.readbackSrc, m_dataSize);
+    }
+
+private:
+    static bool ensureUploadBuffer(frame_resources& frameResource, size_t dataSize)
+    {
+        if (not frameResource.uploadBuffer)
         {
-            memcpy(dest, src, m_dataSize);
-            m_readbackBuffer->Unmap(0, nullptr);
+            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
+
+            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+                    &heapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &resourceDesc,
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&frameResource.uploadBuffer));
+                FAILED(hr))
+            {
+                LogError.writeln("StructuredBufferUploader: Failed to create uploadBuffer.");
+                return false;
+            }
+
+            frameResource.uploadBuffer->SetName(L"StructuredBufferUploader::uploadBuffer");
         }
-        else
+
+        if (not frameResource.uploadDest)
         {
-            LogError.writeln("StructuredBufferTransfer::Readback(): Failed to map readback buffer.");
+            if (const HRESULT hr = frameResource.uploadBuffer->Map(
+                    0, nullptr, reinterpret_cast<void**>(&frameResource.uploadDest));
+                FAILED(hr))
+            {
+                LogError.writeln("StructuredBufferUploader: Failed to map resource.");
+                return false;
+            }
         }
+
+        return true;
+    }
+
+    static bool ensureReadbackBuffer(frame_resources& frameResource, size_t dataSize)
+    {
+        if (not frameResource.readbackBuffer)
+        {
+            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
+            const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
+            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+                    &heapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &resourceDesc,
+                    D3D12_RESOURCE_STATE_COPY_DEST,
+                    nullptr,
+                    IID_PPV_ARGS(&frameResource.readbackBuffer));
+                FAILED(hr))
+            {
+                LogError.writeln(std::format("StructuredBufferUploader: Failed to create readback buffer: {}", hr));
+                return false;
+            }
+
+            frameResource.readbackBuffer->SetName(L"StructuredBufferUploader::readbackBuffer");
+        }
+
+        if (not frameResource.readbackSrc)
+        {
+            if (const HRESULT hr = frameResource.readbackBuffer->Map(
+                    0, nullptr, reinterpret_cast<void**>(&frameResource.readbackSrc));
+                FAILED(hr))
+            {
+                LogError.writeln("StructuredBufferUploader: Failed to map readback buffer.");
+                return false;
+            }
+        }
+
+        return true;
     }
 };
 

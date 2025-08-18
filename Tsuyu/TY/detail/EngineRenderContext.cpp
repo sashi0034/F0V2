@@ -230,12 +230,14 @@ struct EngineRenderContextImpl
         return m_markedDrawersBuffer[index];
     }
 
-    void FlushComputeCommand()
+    void FlushComputeCommandSync()
     {
         m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
         m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
 
         m_flushTimestamp++;
+
+        m_computeCommandList.WaitLastFlush();
     }
 
     void FlushAllCommand()
@@ -481,9 +483,9 @@ namespace TY::detail
         return s_renderContext.getActiveCommandList().GetCommandList();
     }
 
-    void EngineRenderContext::FlushComputeCommand()
+    void EngineRenderContext::FlushComputeCommandSync()
     {
-        s_renderContext.FlushComputeCommand();
+        s_renderContext.FlushComputeCommandSync();
     }
 
     void EngineRenderContext::RequestFrameBufferSize(Size frameBufferSize)

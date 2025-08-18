@@ -168,6 +168,19 @@ struct CommandList::Impl
         nextResource.commandList->Reset(nextResource.commandAllocator.Get(), nullptr);
     }
 
+    void WaitLastFlush()
+    {
+        auto& previousResource = m_frameResources[previousFrameResourceIndex()];
+
+        if (previousResource.needFence && m_fence->GetCompletedValue() < previousResource.fenceValue)
+        {
+            const auto event = CreateEvent(nullptr, false, false, nullptr);
+            m_fence->SetEventOnCompletion(previousResource.fenceValue, event);
+            WaitForSingleObjectEx(event, INFINITE, false);
+            CloseHandle(event);
+        }
+    }
+
 private:
     uint8_t previousFrameResourceIndex() const
     {
@@ -195,6 +208,11 @@ namespace TY::detail
     void CommandList::CloseAndFlushAfter(const CommandList& lastCommandList)
     {
         if (p_impl) p_impl->CloseAndFlush(lastCommandList.p_impl.get());
+    }
+
+    void CommandList::WaitLastFlush()
+    {
+        if (p_impl) { p_impl->WaitLastFlush(); }
     }
 
     ID3D12GraphicsCommandList* CommandList::GetCommandList() const

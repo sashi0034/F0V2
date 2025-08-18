@@ -97,6 +97,8 @@ struct ConstantBufferUploaderCore::Impl
                 LogError.writeln("ConstantBufferUploader: Failed to create uploadBuffer.");
                 return;
             }
+
+            frameResource.uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
         }
 
         if (not frameResource.dest)
@@ -109,8 +111,6 @@ struct ConstantBufferUploaderCore::Impl
                                              reinterpret_cast<size_t>(data)));
                 return;
             }
-
-            frameResource.uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
         }
 
         uint8_t* dest = frameResource.dest;

@@ -45,7 +45,7 @@ namespace TY::detail
         [[nodiscard]]
         ID3D12GraphicsCommandList* ActiveCommandList();
 
-        void FlushComputeCommand();
+        void FlushComputeCommandSync();
 
         void RequestFrameBufferSize(Size frameBufferSize);
 

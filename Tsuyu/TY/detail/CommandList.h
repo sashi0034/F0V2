@@ -22,6 +22,8 @@ namespace TY::detail
         /// @brief 指定したコマンドリストにおける最後に実行したコマンドが終わったあとに Close と Flush を行う
         void CloseAndFlushAfter(const CommandList& lastCommandList);
 
+        void WaitLastFlush();
+
         ID3D12GraphicsCommandList* GetCommandList() const;
 
         ID3D12CommandQueue* GetCommandQueue() const;
