@@ -250,13 +250,21 @@ namespace TY
                 }
 
                 Float2 mq_normal = Float2{-mq_dir.y, mq_dir.x};
-                if (mq_normal.dot(mp_dir) < 0.0f)
+                if (mq_normal.dot(mp_dir) <= 0.0f) // k = 0 の場合のためにこちらは等号をつける
                 {
                     mq_normal = -mq_normal;
                 }
 
-                // 連立方程式の結果より
-                const float k = -halfThickness * (mp_normal.x - mq_normal.x) / (mp_dir.x - mq_dir.x);
+                float k;
+                if (Abs(mp_dir.x - mq_dir.x) > 1e-5)
+                {
+                    // 連立方程式の結果より
+                    k = -halfThickness * (mp_normal.x - mq_normal.x) / (mp_dir.x - mq_dir.x);
+                }
+                else
+                {
+                    k = 0;
+                }
 
                 const Float2 intersect = m + k * mp_dir + halfThickness * mp_normal;
 
