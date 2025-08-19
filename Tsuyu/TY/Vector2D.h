@@ -71,6 +71,11 @@ namespace TY
             return {x * v.x, y * v.y};
         }
 
+        [[nodiscard]] friend Vector2D operator*(value_type lhs, const Vector2D& rhs)
+        {
+            return {lhs * rhs.x, lhs * rhs.y};
+        }
+
         [[nodiscard]] constexpr Vector2D operator /(value_type s) const noexcept
         {
             return {x / s, y / s};
@@ -121,6 +126,16 @@ namespace TY
             const auto len = length();
             if (len == 0) return {0, 0};
             return {x / len, y / len};
+        }
+
+        [[nodiscard]] value_type dot(const Vector2D& v) const noexcept
+        {
+            return x * v.x + y * v.y;
+        }
+
+        [[nodiscard]] value_type cross(const Vector2D& v) const noexcept
+        {
+            return x * v.y - y * v.x;
         }
 
         [[nodiscard]] bool isZero() const noexcept

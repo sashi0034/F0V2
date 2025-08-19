@@ -116,6 +116,23 @@ namespace TY
         float Fraction(float x) noexcept;
 
         double Fraction(double x) noexcept;
+
+        template <Arithmetic Arithmetic>
+        inline constexpr int Sign(const Arithmetic x) noexcept
+        {
+            if (x < 0)
+            {
+                return -1;
+            }
+            else if (0 < x)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
     }
 
     inline namespace Literals

@@ -61,11 +61,20 @@ namespace TY
         Front
     };
 
+    enum class GraphicsFillMode : uint8_t
+    {
+        Solid,
+        Wireframe
+    };
+
     struct GraphicsRasterizerOptions
     {
         GraphicsCullMode cull{GraphicsCullMode::None};
+        GraphicsFillMode fill{GraphicsFillMode::Solid};
 
         GraphicsRasterizerOptions& setCull(GraphicsCullMode cull_);
+
+        GraphicsRasterizerOptions& setFill(GraphicsFillMode fill_);
 
         bool operator ==(const GraphicsRasterizerOptions& other) const = default;
 

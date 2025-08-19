@@ -74,6 +74,7 @@ namespace
                 {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
             },
             .options = GraphicsOptions(),
+            // .setRasterizer(GraphicsRasterizerOptions().setFill(GraphicsFillMode::Wireframe)),
             .descriptorTable = descriptorTable
         };
     }

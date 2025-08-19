@@ -35,6 +35,12 @@ namespace TY
         return *this;
     }
 
+    GraphicsRasterizerOptions& GraphicsRasterizerOptions::setFill(GraphicsFillMode fill_)
+    {
+        fill = fill_;
+        return *this;
+    }
+
     GraphicsRasterizerOptions GraphicsRasterizerOptions::Default3D()
     {
         GraphicsRasterizerOptions settings{};

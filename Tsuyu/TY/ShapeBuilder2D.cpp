@@ -11,7 +11,23 @@ namespace
 {
     constexpr int maxIndices = 65535;
 
-    constexpr std::array<ShapeBuilder2D::index_type, 6> rectIndexTable = {0, 1, 2, 2, 1, 3};
+    constexpr std::array<ShapeBuilder2D::index_type, 6> rectIndexTable = {0, 1, 2, 2, 1, 3}; // 1-2 対角線
+
+    constexpr std::array<ShapeBuilder2D::index_type, 6> rectIndexTable02 = {0, 1, 2, 2, 0, 3}; // 0-2 対角線
+
+    const std::array<ShapeBuilder2D::index_type, 6>& takeRectIndexTable(
+        std::span<const ShapeBuilder2D::Vertex2D> vertexes)
+    {
+        assert(vertexes.size() == 4);
+
+        const Float2 v01 = vertexes[1].pos - vertexes[0].pos;
+        const Float2 v02 = vertexes[2].pos - vertexes[0].pos;
+        const Float2 v03 = vertexes[3].pos - vertexes[0].pos;
+
+        return Math::Sign(v01.cross(v02)) == Math::Sign(v02.cross(v03))
+                   ? rectIndexTable02
+                   : rectIndexTable;
+    }
 }
 
 namespace TY
@@ -195,13 +211,13 @@ namespace TY
                 return 0;
             }
 
-            const int vertexCount = 4 * (path.points.size() - 1);
+            const int vertexCount = 4 + 3 * (path.points.size() - 2);
             if (vertexCount <= 0)
             {
                 return 0;
             }
 
-            const int indexCount = 6 * (path.points.size() - 1);
+            const int indexCount = 6 * (path.points.size() - 1) + 3 * (path.points.size() - 2);
 
             const auto buffer = bufferCreator.request(vertexCount, indexCount);
             if (buffer.isEmpty())
@@ -218,26 +234,85 @@ namespace TY
             int vertexHead = 0;
             int indexHead = 0;
 
-            for (int i = 0; i < path.points.size() - 1; ++i)
+            for (int i = 0; i < path.points.size() - 2; ++i)
             {
-                const auto& start = path.points[i];
-                const auto& mid = path.points[i + 1];
+                const Float2& p = path.points[i];
+                const Float2& m = path.points[i + 1];
+                const Float2& q = path.points[i + 2];;
 
-                const Float2 startDirection = (mid - start).normalized();
-                const Float2 startNormal{-startDirection.y * halfThickness, startDirection.x * halfThickness};
+                const Float2 mp_dir = (p - m).normalized();
+                const Float2 mq_dir = (q - m).normalized();
 
-                vertices[vertexHead + 0].set(start + startNormal, color);
-                vertices[vertexHead + 1].set(start - startNormal, color);
-                vertices[vertexHead + 2].set(mid + startNormal, color);
-                vertices[vertexHead + 3].set(mid - startNormal, color);
-
-                for (int i = 0; i < 6; ++i)
+                Float2 mp_normal = Float2{-mp_dir.y, mp_dir.x};
+                if (mp_normal.dot(mq_dir) < 0.0f)
                 {
-                    indices[indexHead + i] = buffer.indexOffset + vertexHead + rectIndexTable[i];
+                    mp_normal = -mp_normal;
                 }
 
-                vertexHead += 4;
-                indexHead += 6;
+                Float2 mq_normal = Float2{-mq_dir.y, mq_dir.x};
+                if (mq_normal.dot(mp_dir) < 0.0f)
+                {
+                    mq_normal = -mq_normal;
+                }
+
+                // 連立方程式の結果より
+                const float k = -halfThickness * (mp_normal.x - mq_normal.x) / (mp_dir.x - mq_dir.x);
+
+                const Float2 intersect = m + k * mp_dir + halfThickness * mp_normal;
+
+                // -----------------------------------------------
+
+                if (i == 0)
+                {
+                    Float2 p0 = p - mp_normal * halfThickness;
+                    Float2 p1 = p + mp_normal * halfThickness;
+
+                    assert(vertexHead == 0);
+                    vertices[vertexHead + 0].set(p0, color);
+                    vertices[vertexHead + 1].set(p1, color);
+                    vertexHead += 2;
+                }
+
+                vertices[vertexHead + 0].set(m - mp_normal * halfThickness, color);
+                vertices[vertexHead + 1].set(intersect, color);
+                vertices[vertexHead + 2].set(m - mq_normal * halfThickness, color);
+
+                // 前パスの四角形
+                const auto& table = takeRectIndexTable(vertices.subspan(vertexHead - 2, 4));
+                for (int id = 0; id < 6; ++id)
+                {
+                    indices[indexHead + id] = buffer.indexOffset + vertexHead - 2 + table[id];
+                }
+
+                // 中間地点の三角形
+                indices[indexHead + 6] = buffer.indexOffset + vertexHead + 0;
+                indices[indexHead + 7] = buffer.indexOffset + vertexHead + 1;
+                indices[indexHead + 8] = buffer.indexOffset + vertexHead + 2;
+
+                vertexHead += 3;
+                indexHead += 9;
+
+                if (i == path.points.size() - 3)
+                {
+                    // 終点部分の四角形
+                    assert(vertexHead == vertexCount - 2);
+                    assert(indexHead == indexCount - 6);
+
+                    Float2 q0 = q + mq_normal * halfThickness;
+                    Float2 q1 = q - mq_normal * halfThickness;
+
+                    vertices[vertexHead + 0].set(q0, color);
+                    vertices[vertexHead + 1].set(q1, color);
+
+                    const auto& table2 = takeRectIndexTable(vertices.subspan(vertexHead - 2, 4));
+                    for (int id = 0; id < 6; ++id)
+                    {
+                        indices[indexHead + id] = buffer.indexOffset + vertexHead - 2 + table2[id];
+                    }
+
+                    vertexHead += 2;
+                    indexHead += 6;
+                }
             }
 
             return indexCount;

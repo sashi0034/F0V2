@@ -53,6 +53,20 @@ namespace
             return {};
         }
     }
+
+    D3D12_FILL_MODE getFillMode(GraphicsFillMode mode)
+    {
+        switch (mode)
+        {
+        case GraphicsFillMode::Solid:
+            return D3D12_FILL_MODE_SOLID;
+        case GraphicsFillMode::Wireframe:
+            return D3D12_FILL_MODE_WIREFRAME;
+        default:
+            assert(false);
+            return {};
+        }
+    }
 }
 
 struct GraphicsPipelineState::Impl : IEngineHotReloadable
@@ -150,7 +164,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
         pipelineDesc.RasterizerState.MultisampleEnable = false;
         pipelineDesc.RasterizerState.CullMode = getCullMode(params.options.rasterizer.cull);
-        pipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+        pipelineDesc.RasterizerState.FillMode = getFillMode(params.options.rasterizer.fill);
         pipelineDesc.RasterizerState.DepthClipEnable = true;
 
         pipelineDesc.RasterizerState.FrontCounterClockwise = false;
