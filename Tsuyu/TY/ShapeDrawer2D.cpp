@@ -330,6 +330,12 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
             applyNextState();
             ShapeBuilder2D::BuildPath(m_bufferCreator, shape.get<Shape2D::Path>());
         }
+        else if (shape.isHolds<Shape2D::CyclePath>())
+        {
+            m_stateManager.RequestPixelShader(s_component->m_ps.shape);
+            applyNextState();
+            ShapeBuilder2D::BuildCyclePath(m_bufferCreator, shape.get<Shape2D::CyclePath>());
+        }
         else
         {
             assert(false);

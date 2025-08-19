@@ -50,6 +50,8 @@ namespace TY
             SquareDotLine& setDotOffset(float offset_);
         };
 
+        struct CyclePath;
+
         struct Path
         {
             Array<Float2> points;
@@ -65,6 +67,17 @@ namespace TY
             Path& setThickness(float thickness_);
 
             Path& setColor(const ColorF32& color_);
+
+            CyclePath asCycle();
+        };
+
+        struct CyclePath
+        {
+            Path path;
+
+            CyclePath() = default;
+
+            CyclePath(Path path_);
         };
 
         // -----------------------------------------------
@@ -73,7 +86,8 @@ namespace TY
             Rectangle,
             Line,
             SquareDotLine,
-            Path
+            Path,
+            CyclePath
         >;
     }
 }

@@ -294,6 +294,10 @@ struct Demo_ShapeRenderer_impl
                    })
                    .setThickness(50.0f)
                    .setColor(ColorF32{0.3f, 1.0f, 0.7f})
+            ).push(Shape2D::Path({{1000, 600}, {1200, 600}, {1300, 800}, {1200, 1000}, {1000, 1000}, {900, 800}})
+                   .setThickness(50.0f)
+                   .setColor(ColorF32{0.1f, 1.0f, 0.3f})
+                   .asCycle()
             );
 
         ShapeDrawer2D::Global().draw();

@@ -64,5 +64,7 @@ namespace TY
         index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Shape2D::SquareDotLine& line, float scale);
 
         index_type BuildPath(BufferCreator& bufferCreator, const Shape2D::Path& path);
+
+        index_type BuildCyclePath(BufferCreator& bufferCreator, const Shape2D::CyclePath& cyclePath);
     }
 }

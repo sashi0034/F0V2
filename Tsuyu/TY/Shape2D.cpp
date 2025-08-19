@@ -80,4 +80,14 @@ namespace TY
         color = color_;
         return *this;
     }
+
+    Shape2D::CyclePath Shape2D::Path::asCycle()
+    {
+        return CyclePath(std::move(*this));
+    }
+
+    Shape2D::CyclePath::CyclePath(Path path_)
+        : path(std::move(path_))
+    {
+    }
 }
