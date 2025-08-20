@@ -14,8 +14,17 @@ struct DynamicTexture::Impl
     DXGI_FORMAT m_format{};
     Size m_size{};
 
-    ComPtr<ID3D12Resource> m_textureBuffer{};
-    ComPtr<ID3D12Resource> m_uploadBuffer{};
+    ComPtr<ID3D12Resource> m_finalBuffer{};
+
+    struct frame_resources
+    {
+        ComPtr<ID3D12Resource> uploadBuffer;
+        uint8_t* dest{};
+    };
+
+    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+
+    size_t m_uploadTimestamp{};
 
     Impl(const ImageView& image)
     {
@@ -23,12 +32,7 @@ struct DynamicTexture::Impl
 
         m_size = image.size;
 
-        D3D12_HEAP_PROPERTIES heapProperties{};
-        heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
-        heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-        heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-        heapProperties.CreationNodeMask = 0;
-        heapProperties.VisibleNodeMask = 0;
+        D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
         D3D12_RESOURCE_DESC resourceDesc{};
         resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -47,73 +51,131 @@ struct DynamicTexture::Impl
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
-                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                D3D12_RESOURCE_STATE_COPY_DEST,
                 nullptr,
-                IID_PPV_ARGS(&m_textureBuffer));
+                IID_PPV_ARGS(&m_finalBuffer));
             FAILED(hr))
         {
-            LogError(std::format("DynamicTexture: Failed to create texture buffer: {}", static_cast<int>(hr)));
+            LogError(std::format("DynamicTexture: Failed to create m_finalBuffer: {}", static_cast<int>(hr)));
             return;
         }
 
-        const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_textureBuffer.Get(), 0, 1);
-        CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
-        CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
-
-        if (FAILED(EngineRenderContext::GetDevice()->CreateCommittedResource(
-            &uploadHeapProps,
-            D3D12_HEAP_FLAG_NONE,
-            &bufferDesc,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&m_uploadBuffer))))
-        {
-            LogError("DynamicTexture: Failed to create upload buffer.");
-            return;
-        }
+        m_finalBuffer->SetName(L"DynamicTexture::m_finalBuffer");
 
         Upload(image);
 
         m_valid = true;
     }
 
+    Impl()
+    {
+        for (auto& frameResource : m_frameResources)
+        {
+            if (frameResource.uploadBuffer && frameResource.dest)
+            {
+                frameResource.uploadBuffer->Unmap(0, nullptr);
+            }
+        }
+    }
+
     void Upload(const ImageView& image)
     {
-        assert(m_textureBuffer && m_uploadBuffer);
-
         if (image.size != m_size || image.format != m_format)
         {
             LogError("DynamicTexture: Image size or format does not match the texture buffer.");
             return;
         }
 
-        D3D12_SUBRESOURCE_DATA subresourceData{};
-        subresourceData.pData = image.getPointer();
-        subresourceData.RowPitch = image.size.x * image.pixelSizeInBytes();
-        subresourceData.SlicePitch = subresourceData.RowPitch * image.size.y;
+        m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
 
-        ID3D12GraphicsCommandList* commandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
+        const size_t frameIndex = m_uploadTimestamp % EngineRenderContext::FrameBufferCount;
 
-        // const CD3DX12_RESOURCE_BARRIER barrierBefore = CD3DX12_RESOURCE_BARRIER::Transition(
-        //     m_textureBuffer.Get(),
-        //     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-        //     D3D12_RESOURCE_STATE_COPY_DEST);
-        // commandList->ResourceBarrier(1, &barrierBefore);
+        auto& frameResource = m_frameResources[frameIndex];
 
-        UpdateSubresources(
-            commandList,
-            m_textureBuffer.Get(),
-            m_uploadBuffer.Get(),
-            0,
-            0,
-            1,
-            &subresourceData);
+        if (not frameResource.uploadBuffer)
+        {
+            const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_finalBuffer.Get(), 0, 1);
 
-        // const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-        //     m_textureBuffer.Get(),
-        //     D3D12_RESOURCE_STATE_COPY_DEST,
-        //     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-        // commandList->ResourceBarrier(1, &barrier);
+            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+
+            if (FAILED(EngineRenderContext::GetDevice()->CreateCommittedResource(
+                &heapProperties,
+                D3D12_HEAP_FLAG_NONE,
+                &resourceDesc,
+                D3D12_RESOURCE_STATE_COMMON,
+                nullptr,
+                IID_PPV_ARGS(&frameResource.uploadBuffer))))
+            {
+                LogError("DynamicTexture: Failed to create uploadBuffer.");
+                return;
+            }
+
+            frameResource.uploadBuffer->SetName(L"DynamicTexture::uploadBuffer");
+
+            // -----------------------------------------------
+
+            if (const HRESULT hr = frameResource.uploadBuffer->Map(
+                    0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
+                FAILED(hr))
+            {
+                LogError.writeln(std::format("DynamicTexture: Failed to map uploadBuffer"));
+                return;
+            }
+        }
+
+        // -----------------------------------------------
+        // footprint
+
+        ID3D12Device* device = EngineRenderContext::GetDevice();
+
+        const D3D12_RESOURCE_DESC desc = m_finalBuffer->GetDesc();
+        D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+        UINT numRows = 0; // TODO: Remove
+        UINT64 rowSizeInBytes = 0;
+        UINT64 totalBytes = 0;
+
+        device->GetCopyableFootprints(
+            &desc,
+            0, // FirstSubresource
+            1, // NumSubresources
+            0, // BaseOffset
+            &footprint, // 出力: 各サブリソースの配置情報
+            &numRows,
+            &rowSizeInBytes,
+            &totalBytes
+        );
+
+        // -----------------------------------------------
+        // CPU --> uploadBuffer
+
+        const uint8_t* src = static_cast<const uint8_t*>(image.getPointer());
+        const size_t widthInBytes = image.size.x * image.pixelSizeInBytes();
+        for (UINT y = 0; y < image.size.y; ++y)
+        {
+            memcpy(
+                frameResource.dest + footprint.Offset + footprint.Footprint.RowPitch * y,
+                src + y * widthInBytes,
+                widthInBytes
+            );
+        }
+
+        // -----------------------------------------------
+        // uploadBuffer --> m_finalBuffer
+
+        D3D12_TEXTURE_COPY_LOCATION dstCopyLocation{};
+        dstCopyLocation.pResource = m_finalBuffer.Get();
+        dstCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        dstCopyLocation.SubresourceIndex = 0;
+
+        D3D12_TEXTURE_COPY_LOCATION srcCopyLocation{};
+        srcCopyLocation.pResource = frameResource.uploadBuffer.Get();
+        srcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+        srcCopyLocation.PlacedFootprint = footprint;
+
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
+
+        commandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
     }
 };
 
@@ -138,6 +200,6 @@ namespace TY
 
     ID3D12Resource* DynamicTexture::getResource()
     {
-        return p_impl ? p_impl->m_textureBuffer.Get() : nullptr;
+        return p_impl ? p_impl->m_finalBuffer.Get() : nullptr;
     }
 }
