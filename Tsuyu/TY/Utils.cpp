@@ -39,6 +39,37 @@ namespace TY
         return str;
     }
 
+    std::u32string ToUtf32(const std::wstring& wstr)
+    {
+        std::u32string result;
+        for (size_t i = 0; i < wstr.size(); ++i)
+        {
+            wchar_t wc = wstr[i];
+
+            // サロゲートペア判定
+            if (wc >= 0xD800 && wc <= 0xDBFF)
+            {
+                // 上位サロゲート
+                if (i + 1 < wstr.size())
+                {
+                    wchar_t low = wstr[i + 1];
+                    if (low >= 0xDC00 && low <= 0xDFFF)
+                    {
+                        // 下位サロゲート
+                        char32_t cp = ((wc - 0xD800) << 10) + (low - 0xDC00) + 0x10000;
+                        result.push_back(cp);
+                        ++i;
+                        continue;
+                    }
+                }
+            }
+
+            result.push_back(static_cast<char32_t>(wc));
+        }
+
+        return result;
+    }
+
     std::wstring StringifyBlob(ID3DBlob* blob)
     {
         return ToUtf16(std::string{static_cast<char*>(blob->GetBufferPointer()), blob->GetBufferSize()});

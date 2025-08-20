@@ -3,8 +3,8 @@
 #include "imgui/imgui.h"
 #include "Demo_Font.h"
 
+#include "TY/BitmapFont.h"
 #include "TY/ConstantBufferWrapper.h"
-#include "TY/FreetTypeTest.h"
 #include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
@@ -148,6 +148,7 @@ struct Demo_Font_impl
 
     ModelDrawer m_mountainDrawer{};
 
+    BitmapFont m_fontBitmap{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
     TextureDrawer m_fontDrawer{};
 
     Demo_Font_impl()
@@ -197,9 +198,15 @@ struct Demo_Font_impl
             .setCbv10AndLater({m_cb.phongLight})
         };
 
-        GlyphBitmap m_fontBitmap = FreetTypeTest();
+        std::u32string text = U"abc にゃんぱすー。こまちゃんも妖精さんごっこするのん";
+        for (const char32_t c : text)
+        {
+            m_fontBitmap.fetchByCodePoint(c);
+        }
+
+        auto& fontImage = m_fontBitmap.atlasImage();
         const ShaderResourceTexture fontTexture{
-            ImageView(m_fontBitmap.buffer.data(), m_fontBitmap.size(), m_fontBitmap.buffer.size(), DXGI_FORMAT_R8_UNORM)
+            ImageView(fontImage.data(), fontImage.size(), fontImage.size_in_bytes(), DXGI_FORMAT_R8_UNORM)
         };
 
         m_fontDrawer = TextureDrawer{
@@ -269,7 +276,7 @@ struct Demo_Font_impl
 
         m_playerDrawer.draw();
 
-        m_fontDrawer.as2D().resized({200.0f, 200.0f}).drawAt(Scene::Center());
+        m_fontDrawer.as2D().scaled(3.0f).draw({20.0f, 20.0f});
 
         {
             ImGui::Begin("Camera");
