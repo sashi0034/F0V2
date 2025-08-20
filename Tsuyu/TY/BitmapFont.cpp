@@ -3,6 +3,7 @@
 
 #include <freetype/freetype.h>
 
+#include "DynamicTexture.h"
 #include "GlyphInfo.h"
 #include "Grid.h"
 #include "Logger.h"
@@ -41,6 +42,8 @@ struct BitmapFont::Impl
 
     Grid<uint8_t> m_atlasImage{};
 
+    DynamicTexture m_atlasTexture{};
+
     std::unordered_map<char32_t, GlyphInfo> m_glyphTable{};
 
     struct
@@ -77,6 +80,7 @@ struct BitmapFont::Impl
         if (m_atlasImage.isEmpty())
         {
             m_atlasImage = Grid<uint8_t>(getBaseSize(m_fontSize));
+            m_atlasTexture = DynamicTexture(getAtlasImageView());
         }
 
         // -----------------------------------------------
@@ -135,6 +139,26 @@ struct BitmapFont::Impl
         m_glyphTable[codePoint] = glyph;
         return m_glyphTable[codePoint];
     }
+
+    const DynamicTexture& fetchAtlasTexture()
+    {
+        m_atlasTexture.upload(getAtlasImageView());
+        // TODO: アトラス画像変更時にリフレッシュする
+        // フレーム終わりにイベントを購読するのがいいかも?
+
+        return m_atlasTexture;
+    }
+
+private:
+    ImageView getAtlasImageView()
+    {
+        return ImageView(
+            m_atlasImage.data(),
+            m_atlasImage.size(),
+            m_atlasImage.size_in_bytes(),
+            DXGI_FORMAT_R8_UNORM
+        );
+    }
 };
 
 namespace TY
@@ -164,5 +188,10 @@ namespace TY
             static const Grid<uint8_t> empty{};
             return empty;
         }
+    }
+
+    DynamicTexture BitmapFont::fetchAtlasTexture()
+    {
+        return p_impl ? p_impl->fetchAtlasTexture() : DynamicTexture{};
     }
 }

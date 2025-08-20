@@ -204,14 +204,9 @@ struct Demo_Font_impl
             m_fontBitmap.fetchByCodePoint(c);
         }
 
-        auto& fontImage = m_fontBitmap.atlasImage();
-        const ShaderResourceTexture fontTexture{
-            ImageView(fontImage.data(), fontImage.size(), fontImage.size_in_bytes(), DXGI_FORMAT_R8_UNORM)
-        };
-
         m_fontDrawer = TextureDrawer{
             TextureDrawerParams{}
-            .setTexture(fontTexture)
+            .setTexture(ShaderResourceTexture{m_fontBitmap.fetchAtlasTexture().getResource()})
             .setShader(m_shaders.default2d)
         };
     }
@@ -276,7 +271,19 @@ struct Demo_Font_impl
 
         m_playerDrawer.draw();
 
+        // -----------------------------------------------
+
+        std::u32string text = U"携帯型心理診断鎮圧執行システム";
+        if (50 <= System::FrameCount() && System::FrameCount() < 50 + text.size())
+        {
+            m_fontBitmap.fetchByCodePoint(text[System::FrameCount() - 50]);
+
+            m_fontBitmap.fetchAtlasTexture();
+        }
+
         m_fontDrawer.as2D().scaled(3.0f).draw({20.0f, 20.0f});
+
+        // -----------------------------------------------
 
         {
             ImGui::Begin("Camera");

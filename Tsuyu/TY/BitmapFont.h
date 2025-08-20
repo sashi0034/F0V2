@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "DynamicTexture.h"
 #include "GlyphInfo.h"
 #include "Grid.h"
 
@@ -14,6 +15,8 @@ namespace TY
         const GlyphInfo& fetchByCodePoint(char32_t codePoint) const;
 
         const Grid<uint8_t>& atlasImage() const;
+
+        DynamicTexture fetchAtlasTexture();
 
     private:
         struct Impl;
