@@ -364,4 +364,4 @@ FodyWeavers.xsd
 
 # -----------------------------------------------
 
-external/angelscript/lib/*
+external/freetype/objs/*
