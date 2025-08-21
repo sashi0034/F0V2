@@ -22,5 +22,17 @@ namespace TY
         float yAdvance{};
 
         Point topLeftInAtlas{};
+
+        // -----------------------------------------------
+
+        Point baselineOffset() const
+        {
+            return Point{left, -top};
+        }
+
+        Size size() const
+        {
+            return Size{width, height};
+        }
     };
 }

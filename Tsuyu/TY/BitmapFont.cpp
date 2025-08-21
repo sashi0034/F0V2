@@ -65,6 +65,9 @@ struct BitmapFont::Impl
 
         FT_Set_Pixel_Sizes(m_face, 0, fontSize);
 
+        m_atlasImage = Grid<uint8_t>(getBaseSize(m_fontSize));
+        m_atlasTexture = DynamicTexture(getAtlasImageView());
+
         m_valid = true;
     }
 
@@ -77,11 +80,11 @@ struct BitmapFont::Impl
 
         // -----------------------------------------------
 
-        if (m_atlasImage.isEmpty())
-        {
-            m_atlasImage = Grid<uint8_t>(getBaseSize(m_fontSize));
-            m_atlasTexture = DynamicTexture(getAtlasImageView());
-        }
+        // if (m_atlasImage.isEmpty())
+        // {
+        //     m_atlasImage = Grid<uint8_t>(getBaseSize(m_fontSize));
+        //     m_atlasTexture = DynamicTexture(getAtlasImageView());
+        // }
 
         // -----------------------------------------------
 
@@ -190,7 +193,7 @@ namespace TY
         }
     }
 
-    DynamicTexture BitmapFont::fetchAtlasTexture()
+    DynamicTexture BitmapFont::fetchAtlasTexture() const
     {
         return p_impl ? p_impl->fetchAtlasTexture() : DynamicTexture{};
     }

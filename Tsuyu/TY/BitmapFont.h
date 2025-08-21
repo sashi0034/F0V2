@@ -16,7 +16,7 @@ namespace TY
 
         const Grid<uint8_t>& atlasImage() const;
 
-        DynamicTexture fetchAtlasTexture();
+        DynamicTexture fetchAtlasTexture() const;
 
     private:
         struct Impl;

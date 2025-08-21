@@ -66,5 +66,7 @@ namespace TY
         index_type BuildPath(BufferCreator& bufferCreator, const Shape2D::Path& path);
 
         index_type BuildCyclePath(BufferCreator& bufferCreator, const Shape2D::CyclePath& cyclePath);
+
+        index_type BuildText(BufferCreator& bufferCreator, const Shape2D::Text& text);
     }
 }

@@ -63,3 +63,12 @@ float4 PS_RoundDot(PSInput input) : SV_TARGET
 
     return (input.color + g_colorAdd);
 }
+
+float4 PS_BitmapFont(PSInput input) : SV_TARGET
+{
+    const float textAlpha = g_texture0.Sample(g_sampler0, input.uv).r;
+
+    input.color.a *= textAlpha;
+
+    return (input.color + g_colorAdd);
+}

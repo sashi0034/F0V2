@@ -90,4 +90,28 @@ namespace TY
         : path(std::move(path_))
     {
     }
+
+    Shape2D::Text::Text(const BitmapFont& font_, const std::u32string& text_)
+    {
+        font = font_;
+        text = text_;
+    }
+
+    Shape2D::Text& Shape2D::Text::setSize(float size_)
+    {
+        size = size_;
+        return *this;
+    }
+
+    Shape2D::Text& Shape2D::Text::setPosition(const Float2& position_)
+    {
+        position = position_;
+        return *this;
+    }
+
+    Shape2D::Text& Shape2D::Text::setColor(const ColorF32& color_)
+    {
+        color = color_;
+        return *this;
+    }
 }

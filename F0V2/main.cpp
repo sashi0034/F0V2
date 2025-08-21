@@ -18,7 +18,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_Font();
+    Demo_ShapeRenderer();
 #else
     using namespace TY;
 

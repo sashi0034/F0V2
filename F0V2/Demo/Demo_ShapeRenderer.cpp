@@ -3,6 +3,7 @@
 #include "imgui/imgui.h"
 #include "Demo_ShapeRenderer.h"
 
+#include "TY/BitmapFont.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/GameTime.h"
@@ -133,6 +134,8 @@ struct Demo_ShapeRenderer_impl
     {
         ConstantBufferWrapper<PhongLight_b4> phongLight{};
     } m_cb;
+
+    BitmapFont m_bitmapFont{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
 
     SimpleCamera3D m_camera{};
 
@@ -298,6 +301,10 @@ struct Demo_ShapeRenderer_impl
                    .setThickness(50.0f)
                    .setColor(ColorF32{0.1f, 1.0f, 0.3f})
                    .asCycle()
+            )
+            .push(Shape2D::Text(m_bitmapFont, U"メインシステム: 戦闘モード起動")
+                  .setPosition(Scene::Center())
+                  .setColor(ColorF32{0.7})
             );
 
         ShapeDrawer2D::Global().draw();

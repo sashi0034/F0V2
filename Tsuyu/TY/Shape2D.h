@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Array.h"
+#include "BitmapFont.h"
 #include "Color.h"
 #include "Rect.h"
 #include "Variant.h"
@@ -80,6 +81,25 @@ namespace TY
             CyclePath(Path path_);
         };
 
+        struct Text
+        {
+            BitmapFont font;
+            std::u32string text;
+            float size{};
+            Float2 position{0.0f, 0.0f};
+            ColorF32 color{ColorF32{1.0}};
+
+            Text() = default;
+
+            Text(const BitmapFont& font_, const std::u32string& text_);
+
+            Text& setSize(float size_);
+
+            Text& setPosition(const Float2& position_);
+
+            Text& setColor(const ColorF32& color_);
+        };
+
         // -----------------------------------------------
 
         using shape_type = Variant<
@@ -87,7 +107,8 @@ namespace TY
             Line,
             SquareDotLine,
             Path,
-            CyclePath
+            CyclePath,
+            Text
         >;
     }
 }

@@ -42,6 +42,8 @@ namespace
             PixelShader squareDot{shaderPath, "PS_SquareDot"};
 
             PixelShader roundDot{shaderPath, "PS_RoundDot"};
+
+            PixelShader bitmapFont{shaderPath, "PS_BitmapFont"};
         } m_ps{};
 
         bool init() override
@@ -62,7 +64,7 @@ namespace
         }
     };
 
-    const DescriptorTable descriptorTable = {{1, 0, 0}};
+    const DescriptorTable descriptorTable = {{1, 0, 0}, {0, 1, 0}};
 
     GraphicsPipelineStateParams getDefaultPsoParams()
     {
@@ -89,6 +91,7 @@ namespace
             DescriptorHeap descriptorHeap{};
             ConstantBuffer<ShapeDraw_b0> cb0{};
             Array<ShapeDraw_b0> cb0_value{};
+            ShaderResourceTexture srv{};
         };
 
         struct element_pointer
@@ -115,8 +118,11 @@ namespace
 
             m_heap.descriptorHeap = DescriptorHeap({
                 .table = descriptorTable,
-                .materialCounts = {cb0_capacity},
-                .descriptors = {CbvSrvUavSet{{m_heap.cb0}, {}, {}}}
+                .materialCounts = {cb0_capacity, 1},
+                .descriptors = {
+                    CbvSrvUavSet{{m_heap.cb0}, {}, {}},
+                    CbvSrvUavSet{{}, {{m_heap.srv}}, {}}
+                }
             });
 
             Reset();
@@ -158,6 +164,12 @@ namespace
             }
         }
 
+        void RequestSrv(const ShaderResourceTexture& srv)
+        {
+            // TODO: 正しい実装
+            m_heap.descriptorHeap.resetSrv(srv, 1, 0);
+        }
+
         void Upload() const
         {
             m_heap.cb0.upload(m_heap.cb0_value); // TODO: 要素数指定してアップロード
@@ -177,6 +189,7 @@ namespace
         {
             m_heap.descriptorHeap.commandSet(PipelineType::Graphics);
             m_heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 0, element.cb0_index);
+            m_heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 1);
         }
 
     private:
@@ -304,6 +317,15 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
 
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
         m_descriptorManager.RequestTransform(transformMatrix);
+
+        if (shape.isHolds<Shape2D::Text>())
+        {
+            // TODO
+            m_descriptorManager.RequestSrv(ShaderResourceTexture{
+                shape.get<Shape2D::Text>().font.fetchAtlasTexture().getResource()
+            });
+        }
+
         m_stateManager.RequestDescriptor(m_descriptorManager.Current());
 
         if (shape.isHolds<Shape2D::Rectangle>())
@@ -335,6 +357,12 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
             m_stateManager.RequestPixelShader(s_component->m_ps.shape);
             applyNextState();
             ShapeBuilder2D::BuildCyclePath(m_bufferCreator, shape.get<Shape2D::CyclePath>());
+        }
+        else if (shape.isHolds<Shape2D::Text>())
+        {
+            m_stateManager.RequestPixelShader(s_component->m_ps.bitmapFont);
+            applyNextState();
+            ShapeBuilder2D::BuildText(m_bufferCreator, shape.get<Shape2D::Text>());
         }
         else
         {
