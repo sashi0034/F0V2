@@ -10,10 +10,8 @@
 #include "RenderTarget.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
-#include "detail/EngineCore.h"
 #include "detail/EngineRenderContext.h"
 #include "detail/EngineStateContext.h"
-#include "detail/IEngineDrawer.h"
 #include "detail/GraphicsPipelineState.h"
 
 using namespace TY;
@@ -100,7 +98,7 @@ namespace
     };
 }
 
-struct TextureDrawer::Impl : IEngineDrawer
+struct TextureDrawer::Impl
 {
     ShaderResourceTexture m_sr;
 
@@ -222,7 +220,6 @@ namespace TY
         if (p_impl)
         {
             p_impl->Draw3D();
-            EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
     }
 
@@ -254,7 +251,6 @@ namespace TY
         if (texture.p_impl)
         {
             texture.p_impl->Draw(position, *this);
-            EngineRenderContext::MarkDrawerUntilFlush(texture.p_impl);
         }
     }
 
@@ -263,7 +259,6 @@ namespace TY
         if (texture.p_impl)
         {
             texture.p_impl->DrawAt(center, *this);
-            EngineRenderContext::MarkDrawerUntilFlush(texture.p_impl);
         }
     }
 }

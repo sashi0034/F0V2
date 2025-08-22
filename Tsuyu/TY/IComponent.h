@@ -11,6 +11,8 @@ namespace TY
 
         virtual bool update() { return true; }
 
-        virtual void postPresent() { return; }
+        virtual void beforeFlush() { return; }
+
+        virtual void afterPresent() { return; }
     };
 }

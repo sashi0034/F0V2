@@ -68,7 +68,11 @@ struct ConstantBufferCore::Impl
             {
                 frameResource.uploadBuffer->Unmap(0, nullptr);
             }
+
+            EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
+
+        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const uint8_t* data, uint32_t count)

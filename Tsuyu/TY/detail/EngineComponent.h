@@ -14,7 +14,9 @@ namespace TY::detail
     {
         void Update();
 
-        void PostPresent();
+        void BeforeFlush();
+
+        void AfterPresent();
 
         void Shutdown();
 

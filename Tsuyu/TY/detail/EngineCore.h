@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "IEngineDrawer.h"
 #include "IEngineUpdatable.h"
 
 namespace TY::detail

@@ -83,14 +83,27 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         Impl::HotReload();
     }
 
+    ~Impl()
+    {
+        DisposeRenderResource();
+    }
+
     uint64_t timestamp() const override
     {
         return m_timestamp;
     }
 
+    void DisposeRenderResource()
+    {
+        EngineRenderContext::SafeDisposeRenderResource(m_pso);
+        EngineRenderContext::SafeDisposeRenderResource(m_rootSignature.get());
+    }
+
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
+
+        DisposeRenderResource();
 
         if (not m_params.shader.ps.isEmpty() && not m_params.shader.vs.isEmpty())
         {

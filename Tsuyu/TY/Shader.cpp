@@ -9,6 +9,7 @@
 #include "System.h"
 #include "Utils.h"
 #include "detail/EngineHotReloader.h"
+#include "detail/EngineRenderContext.h"
 #include "detail/IEngineHotReloadable.h"
 
 using namespace TY;
@@ -17,8 +18,8 @@ using namespace TY::detail;
 struct TY::Shader_impl : IEngineHotReloadable
 {
     uint64_t m_timestamp{};
-    ComPtr<ID3DBlob> shaderBlob{};
-    ComPtr<ID3DBlob> errorBlob{};
+    ComPtr<ID3DBlob> m_shaderBlob{};
+    ComPtr<ID3DBlob> m_errorBlob{};
     ShaderParams m_params{};
     std::string_view m_target{};
     std::vector<D3D_SHADER_MACRO> m_macros{};
@@ -31,10 +32,15 @@ struct TY::Shader_impl : IEngineHotReloadable
         Shader_impl::HotReload();
     }
 
+    ~Shader_impl()
+    {
+        DisposeRenderResource();
+    }
+
     std::string GetErrorMessage() const
     {
-        if (not errorBlob) return "";
-        return std::string{static_cast<char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize()};
+        if (not m_errorBlob) return "";
+        return std::string{static_cast<char*>(m_errorBlob->GetBufferPointer()), m_errorBlob->GetBufferSize()};
     }
 
     uint64_t timestamp() const override
@@ -42,9 +48,16 @@ struct TY::Shader_impl : IEngineHotReloadable
         return m_timestamp;
     }
 
+    void DisposeRenderResource()
+    {
+        EngineRenderContext::SafeDisposeRenderResource(m_shaderBlob);
+    }
+
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
+
+        DisposeRenderResource();
 
         const auto filepath = ToUtf16(m_params.filepath);
         const auto compileResult = D3DCompileFromFile(
@@ -55,14 +68,14 @@ struct TY::Shader_impl : IEngineHotReloadable
             m_target.data(),
             D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, // FIXME
             0,
-            shaderBlob.ReleaseAndGetAddressOf(),
-            errorBlob.ReleaseAndGetAddressOf()
+            m_shaderBlob.ReleaseAndGetAddressOf(),
+            m_errorBlob.ReleaseAndGetAddressOf()
         );
 
         if (SUCCEEDED(compileResult)) return;
         // -----------------------------------------------
 
-        if (shaderBlob != nullptr) shaderBlob->Release();
+        if (m_shaderBlob != nullptr) m_shaderBlob->Release();
 
         std::wstring message = L"failed to compile shader: ";
         if (compileResult == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
@@ -109,7 +122,7 @@ namespace TY
 
     bool VertexShader::isEmpty() const
     {
-        return p_impl == nullptr || p_impl->shaderBlob == nullptr;
+        return p_impl == nullptr || p_impl->m_shaderBlob == nullptr;
     }
 
     std::shared_ptr<ITimestamp> VertexShader::timestamp() const
@@ -120,7 +133,7 @@ namespace TY
 
     ID3D10Blob* VertexShader::getBlob() const
     {
-        return p_impl ? p_impl->shaderBlob.Get() : nullptr;
+        return p_impl ? p_impl->m_shaderBlob.Get() : nullptr;
     }
 
     size_t VertexShader::unique_id() const
@@ -138,7 +151,7 @@ namespace TY
 
     bool PixelShader::isEmpty() const
     {
-        return p_impl == nullptr || p_impl->shaderBlob == nullptr;
+        return p_impl == nullptr || p_impl->m_shaderBlob == nullptr;
     }
 
     std::shared_ptr<ITimestamp> PixelShader::timestamp() const
@@ -149,7 +162,7 @@ namespace TY
 
     ID3D10Blob* PixelShader::getBlob() const
     {
-        return p_impl ? p_impl->shaderBlob.Get() : nullptr;
+        return p_impl ? p_impl->m_shaderBlob.Get() : nullptr;
     }
 
     size_t PixelShader::unique_id() const
@@ -189,7 +202,7 @@ namespace TY
 
     bool ComputeShader::isEmpty() const
     {
-        return p_impl == nullptr || p_impl->shaderBlob == nullptr;
+        return p_impl == nullptr || p_impl->m_shaderBlob == nullptr;
     }
 
     std::shared_ptr<ITimestamp> ComputeShader::timestamp() const
@@ -200,7 +213,7 @@ namespace TY
 
     ID3D10Blob* ComputeShader::getBlob() const
     {
-        return p_impl ? p_impl->shaderBlob.Get() : nullptr;
+        return p_impl ? p_impl->m_shaderBlob.Get() : nullptr;
     }
 
     size_t ComputeShader::unique_id() const

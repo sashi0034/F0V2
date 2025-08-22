@@ -26,11 +26,19 @@ struct EngineComponentImpl
         }
     }
 
-    void PostPresent()
+    void BeforeFlush()
     {
         for (auto& addon : m_components)
         {
-            addon.addon->postPresent();
+            addon.addon->beforeFlush();
+        }
+    }
+
+    void AfterPresent()
+    {
+        for (auto& addon : m_components)
+        {
+            addon.addon->afterPresent();
         }
     }
 };
@@ -69,9 +77,14 @@ namespace TY::detail
         s_component.Update();
     }
 
-    void EngineComponent::PostPresent()
+    void EngineComponent::BeforeFlush()
     {
-        s_component.PostPresent();
+        s_component.BeforeFlush();
+    }
+
+    void EngineComponent::AfterPresent()
+    {
+        s_component.AfterPresent();
     }
 
     void EngineComponent::Shutdown()

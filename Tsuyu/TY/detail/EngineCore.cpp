@@ -11,9 +11,7 @@
 #include "EngineStateContext.h"
 #include "EngineTimer.h"
 #include "EngineWindow.h"
-#include "IEngineDrawer.h"
 #include "TY/Array.h"
-#include "TY/Logger.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -112,9 +110,11 @@ struct EngineCoreImpl
     {
         EngineImGui::Render();
 
+        EngineComponent::BeforeFlush();
+
         EngineRenderContext::Render();
 
-        EngineComponent::PostPresent();
+        EngineComponent::AfterPresent();
 
         m_inFrame = false;
     }
