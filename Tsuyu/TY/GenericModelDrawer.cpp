@@ -2,10 +2,8 @@
 #include "GenericModelDrawer.h"
 
 #include "detail/DescriptorHeap.h"
-#include "detail/EngineCore.h"
 #include "detail/EngineRenderContext.h"
 #include "detail/GraphicsPipelineState.h"
-#include "detail/IEngineDrawer.h"
 #include "TY/Graphics3D.h"
 #include "TY/Logger.h"
 
@@ -20,7 +18,7 @@ namespace
     };
 }
 
-struct GenericModelDrawer::Impl : IEngineDrawer
+struct GenericModelDrawer::Impl
 {
     std::shared_ptr<IGenericModelBuffer> m_modelBuffer{};
 
@@ -216,7 +214,6 @@ namespace TY
         if (p_impl)
         {
             p_impl->Draw(0);
-            EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
     }
 
@@ -225,7 +222,6 @@ namespace TY
         if (p_impl)
         {
             p_impl->Draw(materialIndexOfCbv10AndLater);
-            EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "CommandList.h"
-#include "IEngineDrawer.h"
 #include "PipelineType.h"
 #include "TY/ConstantBuffer.h"
 #include "TY/Mat3x2.h"
@@ -15,6 +14,12 @@ namespace TY::detail
         Mat4x4 projectionMatrix;
         Mat4x4 viewMatrix;
     };
+
+    using RenderResource = Variant<
+        ComPtr<ID3D12Resource>,
+        ComPtr<ID3DBlob>,
+        ComPtr<ID3D12PipelineState>
+    >;
 
     namespace EngineRenderContext
     {
@@ -52,7 +57,7 @@ namespace TY::detail
         [[nodiscard]]
         ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
 
-        void MarkDrawerUntilFlush(const std::shared_ptr<IEngineDrawer>& drawer);
+        void SafeDisposeRenderResource(const RenderResource& renderResource);
 
         size_t GetFlushTimestamp();
     }

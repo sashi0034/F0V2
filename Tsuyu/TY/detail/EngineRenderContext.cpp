@@ -32,6 +32,11 @@ namespace
             debugLayer->Release();
         }
     }
+
+    bool isNull(const RenderResource& renderResource)
+    {
+        return std::visit([](auto&& arg) { return arg == nullptr; }, renderResource);
+    }
 }
 
 struct EngineRenderContextImpl
@@ -63,9 +68,7 @@ struct EngineRenderContextImpl
 
     ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
 
-    using drawer_set = std::unordered_set<std::shared_ptr<IEngineDrawer>>;
-
-    std::array<drawer_set, EngineRenderContext::FrameBufferCount> m_markedDrawersBuffer{};
+    std::array<Array<RenderResource>, EngineRenderContext::FrameBufferCount> m_disposedRenderResources{};
 
     // Copy のフラッシュとともに加算
     size_t m_flushTimestamp{};
@@ -220,10 +223,10 @@ struct EngineRenderContextImpl
         m_swapChain->Present(1, 0);
     }
 
-    drawer_set& CurrentMarkedDrawers()
+    Array<RenderResource>& CurrentDisposedRenderResources()
     {
         const size_t index = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
-        return m_markedDrawersBuffer[index];
+        return m_disposedRenderResources[index];
     }
 
     void FlushComputeCommandSync()
@@ -233,38 +236,20 @@ struct EngineRenderContextImpl
 
         m_flushTimestamp++;
 
+        CurrentDisposedRenderResources().clear();
+
         m_computeCommandList.WaitLastFlush();
     }
 
     void FlushAllCommand()
     {
-        for (const auto& drawer : CurrentMarkedDrawers())
-        {
-            if (drawer)
-            {
-                drawer->beforeFlush();
-            }
-        }
-
-        // -----------------------------------------------
-
         m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
         m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
         m_drawCommandList.CloseAndFlushAfter(m_copyCommandList);
 
-        // -----------------------------------------------
-
-        for (const auto& drawer : CurrentMarkedDrawers())
-        {
-            if (drawer)
-            {
-                drawer->afterFlush();
-            }
-        }
-
-        CurrentMarkedDrawers().clear();
-
         m_flushTimestamp++;
+
+        CurrentDisposedRenderResources().clear();
     }
 
     CommandList& GetCommandList(CommandListType type)
@@ -484,11 +469,11 @@ namespace TY::detail
         return s_renderContext.m_sceneState3D;
     }
 
-    void EngineRenderContext::MarkDrawerUntilFlush(const std::shared_ptr<IEngineDrawer>& drawer)
+    void EngineRenderContext::SafeDisposeRenderResource(const RenderResource& renderResource)
     {
-        if (drawer)
+        if (not isNull(renderResource))
         {
-            s_renderContext.CurrentMarkedDrawers().emplace(drawer);
+            s_renderContext.CurrentDisposedRenderResources().push_back(renderResource);
         }
     }
 
