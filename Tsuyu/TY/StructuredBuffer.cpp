@@ -15,7 +15,7 @@ struct StructuredBuffer::Impl
     UnorderedStructuredBufferParams m_params;
     bool m_writable{};
 
-    ComPtr<ID3D12Resource> m_gpuBuffer;
+    ComPtr<ID3D12Resource> m_finalBuffer;
 
     struct frame_resources
     {
@@ -43,20 +43,20 @@ struct StructuredBuffer::Impl
             return;
         }
 
-        const D3D12_RESOURCE_FLAGS gpuBufferFlags =
+        const D3D12_RESOURCE_FLAGS finalBufferFlags =
             m_writable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-        const CD3DX12_RESOURCE_DESC gpuBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(m_dataSize, gpuBufferFlags);
+        const CD3DX12_RESOURCE_DESC finalBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(m_dataSize, finalBufferFlags);
 
         CD3DX12_HEAP_PROPERTIES heapProps{D3D12_HEAP_TYPE_DEFAULT};
 
         if (const auto hr = device->CreateCommittedResource(
                 &heapProps,
                 D3D12_HEAP_FLAG_NONE,
-                &gpuBufferDesc,
+                &finalBufferDesc,
                 D3D12_RESOURCE_STATE_COMMON, // D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                 nullptr,
-                IID_PPV_ARGS(&m_gpuBuffer)
+                IID_PPV_ARGS(&m_finalBuffer)
             );
             FAILED(hr))
         {
@@ -80,7 +80,12 @@ struct StructuredBuffer::Impl
             {
                 frameResource.readbackBuffer->Unmap(0, nullptr);
             }
+
+            EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
+            EngineRenderContext::SafeDisposeRenderResource(frameResource.readbackBuffer);
         }
+
+        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const uint8_t* src)
@@ -97,14 +102,14 @@ struct StructuredBuffer::Impl
 
         // GPU へアップロード
         const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);;
-        copyCommandList->CopyResource(m_gpuBuffer.Get(), frameResource.uploadBuffer.Get());
+        copyCommandList->CopyResource(m_finalBuffer.Get(), frameResource.uploadBuffer.Get());
 
-        // CopyResource で COPY_DEST 状態になっている m_gpuBuffer を、UNORDERED_ACCESS に移す
+        // CopyResource で COPY_DEST 状態になっている m_finalBuffer を、UNORDERED_ACCESS に移す
         if (m_writable)
         {
             const auto computeCommandList = EngineRenderContext::GetCommandList(CommandListType::Compute);;
             const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                m_gpuBuffer.Get(),
+                m_finalBuffer.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
             computeCommandList->ResourceBarrier(1, &barrier);
@@ -118,7 +123,7 @@ struct StructuredBuffer::Impl
         const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
-        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_gpuBuffer.Get());
+        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_finalBuffer.Get());
         commandList->ResourceBarrier(1, &uavBarrier);
     }
 
@@ -135,7 +140,7 @@ struct StructuredBuffer::Impl
             auto& impl = list[i].p_impl;
             if (not impl) continue;
 
-            const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(impl->m_gpuBuffer.Get());
+            const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(impl->m_finalBuffer.Get());
             barriers.push_back(uavBarrier);
         }
 
@@ -149,12 +154,12 @@ struct StructuredBuffer::Impl
         const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
-        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_gpuBuffer.Get());
+        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_finalBuffer.Get());
         commandList->ResourceBarrier(1, &uavBarrier);
 
         // GPU バッファを COPY_SOURCE に遷移
         const auto toCopySrc = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_gpuBuffer.Get(),
+            m_finalBuffer.Get(),
             D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
             D3D12_RESOURCE_STATE_COPY_SOURCE);
         commandList->ResourceBarrier(1, &toCopySrc);
@@ -166,11 +171,11 @@ struct StructuredBuffer::Impl
 
         if (not ensureReadbackBuffer(frameResource, m_dataSize)) return;
 
-        commandList->CopyResource(frameResource.readbackBuffer.Get(), m_gpuBuffer.Get());
+        commandList->CopyResource(frameResource.readbackBuffer.Get(), m_finalBuffer.Get());
 
         // GPU バッファを UNORDERED_ACCESS に戻す
         const auto toUAV = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_gpuBuffer.Get(),
+            m_finalBuffer.Get(),
             D3D12_RESOURCE_STATE_COPY_SOURCE,
             D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         commandList->ResourceBarrier(1, &toUAV);
@@ -190,9 +195,9 @@ struct StructuredBuffer::Impl
             auto& impl = list[i].p_impl;
             if (not impl) continue;
 
-            barriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(impl->m_gpuBuffer.Get()));
+            barriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(impl->m_finalBuffer.Get()));
             barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
-                    impl->m_gpuBuffer.Get(),
+                    impl->m_finalBuffer.Get(),
                     D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                     D3D12_RESOURCE_STATE_COPY_SOURCE)
             );
@@ -212,7 +217,7 @@ struct StructuredBuffer::Impl
 
             if (not ensureReadbackBuffer(frameResource, impl->m_dataSize)) return;
 
-            commandList->CopyResource(frameResource.readbackBuffer.Get(), impl->m_gpuBuffer.Get());
+            commandList->CopyResource(frameResource.readbackBuffer.Get(), impl->m_finalBuffer.Get());
         }
 
         // GPU バッファを UNORDERED_ACCESS に戻す
@@ -223,7 +228,7 @@ struct StructuredBuffer::Impl
             if (not impl) continue;
 
             barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
-                    impl->m_gpuBuffer.Get(),
+                    impl->m_finalBuffer.Get(),
                     D3D12_RESOURCE_STATE_COPY_SOURCE,
                     D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
             );
@@ -369,7 +374,7 @@ namespace TY
 
     ID3D12Resource* StructuredBuffer::getBuffer() const
     {
-        return p_impl ? p_impl->m_gpuBuffer.Get() : nullptr;
+        return p_impl ? p_impl->m_finalBuffer.Get() : nullptr;
     }
 
     UnorderedStructuredBuffer::UnorderedStructuredBuffer(const UnorderedStructuredBufferParams& params)

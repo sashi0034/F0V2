@@ -19,6 +19,11 @@ namespace TY::detail
 
         RootSignature(const RootSignatureParams& params);
 
+        const ComPtr<ID3D12RootSignature>& get() const
+        {
+            return m_rootSignature;
+        }
+
         ID3D12RootSignature* getPointer() const
         {
             return m_rootSignature.Get();

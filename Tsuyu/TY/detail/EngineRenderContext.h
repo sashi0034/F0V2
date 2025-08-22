@@ -16,9 +16,11 @@ namespace TY::detail
     };
 
     using RenderResource = Variant<
-        ComPtr<ID3D12Resource>,
         ComPtr<ID3DBlob>,
-        ComPtr<ID3D12PipelineState>
+        ComPtr<ID3D12Resource>,
+        ComPtr<ID3D12PipelineState>,
+        ComPtr<ID3D12RootSignature>,
+        ComPtr<ID3D12DescriptorHeap>
     >;
 
     namespace EngineRenderContext

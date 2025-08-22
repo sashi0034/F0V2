@@ -294,6 +294,11 @@ struct DescriptorHeap::Impl
         m_valid = true;
     }
 
+    ~Impl()
+    {
+        EngineRenderContext::SafeDisposeRenderResource(m_descriptorHeap);
+    }
+
     void ResetSRV(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
     {
         auto heapHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();

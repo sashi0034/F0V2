@@ -96,6 +96,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
     void DisposeRenderResource()
     {
         EngineRenderContext::SafeDisposeRenderResource(m_pso);
+        EngineRenderContext::SafeDisposeRenderResource(m_rootSignature.get());
     }
 
     void HotReload() override

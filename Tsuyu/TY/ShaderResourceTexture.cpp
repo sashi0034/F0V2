@@ -18,8 +18,14 @@ struct ShaderResourceTexture::Impl
     DXGI_FORMAT m_format{};
     Size m_size{};
 
-    ComPtr<ID3D12Resource> m_textureBuffer{};
+    ComPtr<ID3D12Resource> m_finalBuffer{};
     ComPtr<ID3D12Resource> m_uploadBuffer{};
+
+    ~Impl()
+    {
+        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
+        EngineRenderContext::SafeDisposeRenderResource(m_uploadBuffer);
+    }
 
     Impl(const std::wstring& filename)
     {
@@ -95,7 +101,7 @@ struct ShaderResourceTexture::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COPY_DEST, // コピー先として使用する
                 nullptr,
-                IID_PPV_ARGS(&m_textureBuffer)
+                IID_PPV_ARGS(&m_finalBuffer)
             );
 
         // -----------------------------------------------
@@ -119,7 +125,7 @@ struct ShaderResourceTexture::Impl
         // アップロード用中間バッファからテクスチャバッファにコピー
         // アップロード用中間バッファにはフットプリントを指定し、テクスチャバッファにはインデックスを指定する
         D3D12_TEXTURE_COPY_LOCATION dstCopyLocation{};
-        dstCopyLocation.pResource = m_textureBuffer.Get();
+        dstCopyLocation.pResource = m_finalBuffer.Get();
         dstCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
         dstCopyLocation.SubresourceIndex = 0;
 
@@ -141,7 +147,7 @@ struct ShaderResourceTexture::Impl
         commandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
 
         const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_textureBuffer.Get(),
+            m_finalBuffer.Get(),
             D3D12_RESOURCE_STATE_COPY_DEST,
             D3D12_RESOURCE_STATE_COPY_SOURCE);
         commandList->ResourceBarrier(1, &barrier);
@@ -180,10 +186,10 @@ struct ShaderResourceTexture::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COPY_DEST,
                 nullptr,
-                IID_PPV_ARGS(&m_textureBuffer));
+                IID_PPV_ARGS(&m_finalBuffer));
 
         AssertWin32{"failed to write to subresource"sv}
-            | m_textureBuffer->WriteToSubresource(
+            | m_finalBuffer->WriteToSubresource(
                 0,
                 nullptr, // リソース全体領域をコピー
                 image.getPointer(),
@@ -197,7 +203,7 @@ struct ShaderResourceTexture::Impl
 
     Impl(ID3D12Resource* resource)
     {
-        m_textureBuffer = ComPtr<ID3D12Resource>(resource);
+        m_finalBuffer = ComPtr<ID3D12Resource>(resource);
         m_format = resource->GetDesc().Format;
         m_size = Size{static_cast<int>(resource->GetDesc().Width), static_cast<int>(resource->GetDesc().Height)};
     }
@@ -237,7 +243,7 @@ namespace TY
 
     ID3D12Resource* ShaderResourceTexture::getResource() const
     {
-        return p_impl ? p_impl->m_textureBuffer.Get() : nullptr;
+        return p_impl ? p_impl->m_finalBuffer.Get() : nullptr;
     }
 
     DXGI_FORMAT ShaderResourceTexture::getFormat() const

@@ -67,7 +67,11 @@ struct VertexBufferCore::Impl
             {
                 frameResource.uploadBuffer->Unmap(0, nullptr);
             }
+
+            EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
+
+        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const void* data, size_t size)

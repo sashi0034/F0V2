@@ -82,7 +82,11 @@ struct IndexBuffer::Impl::Default : Impl
             {
                 frameResource.uploadBuffer->Unmap(0, nullptr);
             }
+
+            EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
+
+        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const Array<index_type>& indices) override

@@ -26,9 +26,20 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
         Impl::HotReload();
     }
 
+    ~Impl()
+    {
+        DisposeRenderResource();
+    }
+
     uint64_t timestamp() const override
     {
         return m_timestamp;
+    }
+
+    void DisposeRenderResource()
+    {
+        EngineRenderContext::SafeDisposeRenderResource(m_pso);
+        EngineRenderContext::SafeDisposeRenderResource(m_rootSignature.get());
     }
 
     void HotReload() override
