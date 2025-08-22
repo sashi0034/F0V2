@@ -164,6 +164,13 @@ namespace
                 return next_cb0 >= cbv0.materialCount();
             }
 
+            void resetSrv0(const ShaderResourceTexture& srv)
+            {
+                constexpr int tableId = 1;
+                keyResource.srv0 = srv;
+                descriptorHeap.resetSrv(srv, tableId, 0);
+            }
+
             static constexpr int DefaultCapacity = 4;
 
             static heap_type Create(const key_type& key, int cb0_capacity = DefaultCapacity)
@@ -239,14 +246,19 @@ namespace
 
         void RequestSrv0(const ShaderResourceTexture& srv)
         {
-            auto newKey = currentHeap().keyResource;
-            if (newKey.srv0.unique_id() == srv.unique_id())
+            if (currentHeap().keyResource.srv0.unique_id() == srv.unique_id())
             {
                 return;
             }
 
-            newKey.srv0 = srv;
+            if (currentHeap().keyResource.srv0.isEmpty())
+            {
+                currentHeap().resetSrv0(srv);
+                return;
+            }
 
+            auto newKey = currentHeap().keyResource;
+            newKey.srv0 = srv;
             m_currentElement = fetchHeap(newKey);
         }
 
@@ -453,7 +465,6 @@ struct ShapeDrawer2D::Impl : ShapeDrawManager2DComponent::Subscribable
 
         if (shape.isHolds<Shape2D::Text>())
         {
-            // TODO
             m_descriptorManager.RequestSrv0(ShaderResourceTexture{
                 shape.get<Shape2D::Text>().font.fetchAtlasTexture().getResource()
             });
