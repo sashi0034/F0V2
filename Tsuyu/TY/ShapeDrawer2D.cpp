@@ -120,49 +120,77 @@ namespace
         };
     }
 
-    constexpr int cb0_capacity = 64; // TODO: オーバーフローの対応
-
     class DescriptorManager
     {
     public:
-        struct heap_type
-        {
-            DescriptorHeap descriptorHeap{};
-            ConstantBuffer<ShapeDraw_b0> cb0{};
-            Array<ShapeDraw_b0> cb0_value{};
-            ShaderResourceTexture srv{};
-        };
-
         struct element_pointer
         {
+            int heapIndex{-1};
             int cb0_index{-1};
 
             bool isValid() const
             {
-                return cb0_index >= 0 && cb0_index < cb0_capacity;
+                return heapIndex >= 0;
             }
 
             bool operator ==(const element_pointer& other) const
             {
-                return std::memcmp(&cb0_index, &other.cb0_index, sizeof(cb0_index)) == 0;
+                return std::memcmp(this, &other, sizeof(element_pointer)) == 0;
             }
 
             bool operator !=(const element_pointer& other) const { return not(*this == other); }
         };
 
+        struct heap_type
+        {
+            DescriptorHeap descriptorHeap{};
+
+            ConstantBuffer<ShapeDraw_b0> cbv0{};
+            Array<ShapeDraw_b0> cb0_value{};
+            int next_cb0{};
+
+            struct key_type
+            {
+                ShaderResourceTexture srv0{};
+
+                bool operator ==(const key_type& other) const
+                {
+                    return srv0.unique_id() == other.srv0.unique_id();
+                }
+            } keyResource{};
+
+            bool isFull() const
+            {
+                return next_cb0 >= cbv0.materialCount();
+            }
+
+            static constexpr int DefaultCapacity = 4;
+
+            static heap_type Create(const key_type& key, int cb0_capacity = DefaultCapacity)
+            {
+                heap_type heap{};
+
+                heap.cbv0 = ConstantBuffer<ShapeDraw_b0>(cb0_capacity);
+                heap.cb0_value.resize(cb0_capacity);
+
+                heap.keyResource = key;
+
+                heap.descriptorHeap = DescriptorHeap({
+                    .table = descriptorTable,
+                    .materialCounts = {cb0_capacity, 1},
+                    .descriptors = {
+                        CbvSrvUavSet{{heap.cbv0}, {}, {}},
+                        CbvSrvUavSet{{}, {{heap.keyResource.srv0}}, {}}
+                    }
+                });
+
+                return heap;
+            }
+        };
+
         DescriptorManager()
         {
-            m_heap.cb0 = ConstantBuffer<ShapeDraw_b0>(cb0_capacity);
-            m_heap.cb0_value.resize(cb0_capacity);
-
-            m_heap.descriptorHeap = DescriptorHeap({
-                .table = descriptorTable,
-                .materialCounts = {cb0_capacity, 1},
-                .descriptors = {
-                    CbvSrvUavSet{{m_heap.cb0}, {}, {}},
-                    CbvSrvUavSet{{}, {{m_heap.srv}}, {}}
-                }
-            });
+            pushBackNewHeap(heap_type::key_type{}, heap_type::DefaultCapacity);
 
             Reset();
         }
@@ -176,7 +204,7 @@ namespace
             }
             else
             {
-                const auto& current_cb0 = m_heap.cb0_value[m_currentElement.cb0_index];
+                const auto& current_cb0 = currentHeap().cb0_value[m_currentElement.cb0_index];
                 isDifferent =
                     current_cb0.g_transform[0].x != transform._11 ||
                     current_cb0.g_transform[0].y != transform._12 ||
@@ -188,13 +216,19 @@ namespace
 
             if (isDifferent)
             {
-                m_currentElement.cb0_index++;
-                if (m_currentElement.cb0_index >= cb0_capacity)
                 {
-                    throw "Not Implemented: cb0_capacity exceeded"; // TODO
+                    auto& heap = currentHeap();
+                    if (heap.next_cb0 >= heap.cbv0.materialCount())
+                    {
+                        m_currentElement = pushBackNewHeap(heap.keyResource, heap.next_cb0 * 2);
+                    }
+
+                    heap.next_cb0++;
                 }
 
-                m_heap.cb0_value[m_currentElement.cb0_index] = {
+                auto& heap = currentHeap();
+                m_currentElement.cb0_index = heap.next_cb0;
+                heap.cb0_value[m_currentElement.cb0_index] = {
                     .g_transform = {
                         {transform._11, transform._12, transform._31, transform._32},
                         {transform._21, transform._22, 0.0f, 1.0f}
@@ -203,20 +237,39 @@ namespace
             }
         }
 
-        void RequestSrv(const ShaderResourceTexture& srv)
+        void RequestSrv0(const ShaderResourceTexture& srv)
         {
-            // TODO: 正しい実装
-            m_heap.descriptorHeap.resetSrv(srv, 1, 0);
+            auto newKey = currentHeap().keyResource;
+            if (newKey.srv0.unique_id() == srv.unique_id())
+            {
+                return;
+            }
+
+            newKey.srv0 = srv;
+
+            m_currentElement = fetchHeap(newKey);
         }
 
         void Upload() const
         {
-            m_heap.cb0.upload(m_heap.cb0_value); // TODO: 要素数指定してアップロード
+            for (int i = 0; i < m_heapList.size(); ++i)
+            {
+                auto& heap = m_heapList[i];
+                if (heap.next_cb0 > 0)
+                {
+                    heap.cbv0.upload(heap.cb0_value);
+                }
+            }
         }
 
         void Reset()
         {
-            m_currentElement = element_pointer{.cb0_index = -1};
+            m_currentElement = element_pointer{.heapIndex = 0, .cb0_index = -1};
+
+            for (int i = 0; i < m_heapList.size(); ++i)
+            {
+                m_heapList[i].next_cb0 = 0;
+            }
         }
 
         const element_pointer& Current() const
@@ -226,14 +279,53 @@ namespace
 
         void CommandSet(const element_pointer& element) const
         {
-            m_heap.descriptorHeap.commandSet(PipelineType::Graphics);
-            m_heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 0, element.cb0_index);
-            m_heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 1);
+            auto& heap = m_heapList[element.heapIndex];
+            heap.descriptorHeap.commandSet(PipelineType::Graphics);
+            heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 0, element.cb0_index);
+            heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 1);
         }
 
     private:
-        heap_type m_heap{};
+        Array<heap_type> m_heapList{};
         element_pointer m_currentElement{};
+
+        heap_type& currentHeap()
+        {
+            return m_heapList[m_currentElement.heapIndex];
+        }
+
+        const heap_type& currentHeap() const
+        {
+            return m_heapList[m_currentElement.heapIndex];
+        }
+
+        element_pointer fetchHeap(const heap_type::key_type& keyResource)
+        {
+            int next_cb0_capacity = heap_type::DefaultCapacity;
+            for (int i = 0; i < m_heapList.size(); ++i)
+            {
+                if (m_heapList[i].keyResource == keyResource)
+                {
+                    if (not m_heapList[i].isFull())
+                    {
+                        return element_pointer{i, m_heapList[i].next_cb0};
+                    }
+                    else
+                    {
+                        next_cb0_capacity = Max(next_cb0_capacity, m_heapList[i].next_cb0 * 2);
+                    }
+                }
+            }
+
+            return pushBackNewHeap(keyResource, next_cb0_capacity);
+        }
+
+        element_pointer pushBackNewHeap(const heap_type::key_type& keyResource, int cb0_capacity)
+        {
+            m_heapList.push_back(heap_type::Create(keyResource, cb0_capacity));
+            m_heapList.back().keyResource = keyResource;
+            return element_pointer{static_cast<int>(m_heapList.size()) - 1, -1};
+        }
     };
 
     class StateManager
@@ -359,16 +451,16 @@ struct ShapeDrawer2D::Impl : ShapeDrawManager2DComponent::Subscribable
     {
         constexpr double maxScaling = 1.0f; // TODO: Transformer の Matrix から取得
 
-        const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
-        m_descriptorManager.RequestTransform(transformMatrix);
-
         if (shape.isHolds<Shape2D::Text>())
         {
             // TODO
-            m_descriptorManager.RequestSrv(ShaderResourceTexture{
+            m_descriptorManager.RequestSrv0(ShaderResourceTexture{
                 shape.get<Shape2D::Text>().font.fetchAtlasTexture().getResource()
             });
         }
+
+        const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
+        m_descriptorManager.RequestTransform(transformMatrix);
 
         m_stateManager.RequestDescriptor(m_descriptorManager.Current());
 

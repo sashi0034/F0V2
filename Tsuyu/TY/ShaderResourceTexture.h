@@ -13,6 +13,8 @@ namespace TY
 
         bool isEmpty() const;
 
+        size_t unique_id() const;
+
         Size size() const;
 
         ID3D12Resource* getResource() const;

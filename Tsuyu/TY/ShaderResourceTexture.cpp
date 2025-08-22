@@ -236,6 +236,11 @@ namespace TY
         return p_impl == nullptr;
     }
 
+    size_t ShaderResourceTexture::unique_id() const
+    {
+        return p_impl ? reinterpret_cast<size_t>(p_impl.get()) : 0;
+    }
+
     Size ShaderResourceTexture::size() const
     {
         return p_impl ? p_impl->m_size : Size{};
