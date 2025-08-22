@@ -32,6 +32,8 @@ namespace TY::detail
     extern void InitGpgpuCacheComponent();
 
     extern void InitShapeDrawManager2DComponent();
+
+    extern void InitFreeTypeContextComponent();
 }
 
 namespace
@@ -47,6 +49,8 @@ namespace
         InitGpgpuCacheComponent();
 
         InitShapeDrawManager2DComponent();
+
+        InitFreeTypeContextComponent();
     }
 }
 

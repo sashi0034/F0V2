@@ -449,5 +449,55 @@ namespace TY
 
             return indexCount;
         }
+
+        index_type BuildText(BufferCreator& bufferCreator, const Shape2D::Text& text)
+        {
+            const int characterCount = text.text.size();
+
+            const int indexSize = characterCount * 6;
+            const auto buffer = bufferCreator.request(characterCount * 4, indexSize);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            // TODO: 改行など
+
+            const auto& vertices = buffer.vertices;
+            const auto& indices = buffer.indices;
+
+            const int textSize = text.size; // TODO
+            // if (textSize <= 0) use default size of font
+
+            const Size atlasSize = text.font.atlasImage().size();
+
+            Float2 penPos{text.position};
+            for (int i = 0; i < characterCount; ++i)
+            {
+                const auto& c = text.text[i];
+
+                const auto& glyph = text.font.fetchByCodePoint(c);
+
+                const Float2 posTL = penPos + glyph.baselineOffset();
+                const Float2 posBR = posTL + glyph.size();
+
+                const Float2 uvTL = glyph.topLeftInAtlas.cast<Float2>() / atlasSize;
+                const Float2 uvBR = uvTL + glyph.size().cast<Float2>() / atlasSize;
+
+                vertices[i * 4 + 0].set(posTL, uvTL, text.color);
+                vertices[i * 4 + 1].set({posBR.x, posTL.y}, {uvBR.x, uvTL.y}, text.color);
+                vertices[i * 4 + 2].set({posTL.x, posBR.y}, {uvTL.x, uvBR.y}, text.color);
+                vertices[i * 4 + 3].set(posBR, uvBR, text.color);
+
+                for (int j = 0; j < rectIndexTable.size(); ++j)
+                {
+                    indices[i * 6 + j] = buffer.indexOffset + i * 4 + rectIndexTable[j];
+                }
+
+                penPos.x += glyph.xAdvance;
+            }
+
+            return indexSize;
+        }
     }
 }

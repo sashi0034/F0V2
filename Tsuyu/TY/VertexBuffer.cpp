@@ -44,7 +44,7 @@ struct VertexBufferCore::Impl
                 IID_PPV_ARGS(&m_finalBuffer));
             FAILED(hr))
         {
-            LogError.writeln("VertexBuffer: Failed to create buffer");
+            LogError.writeln("VertexBuffer: Failed to create m_finalBuffer");
             return;
         }
 
@@ -96,6 +96,8 @@ struct VertexBufferCore::Impl
                 LogError.writeln("VertexBuffer: Failed to create uploadBuffer.");
                 return;
             }
+
+            frameResource.uploadBuffer->SetName(L"VertexBuffer::uploadBuffer");
         }
 
         if (not frameResource.dest)
@@ -104,12 +106,9 @@ struct VertexBufferCore::Impl
                     0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
                 FAILED(hr))
             {
-                LogError.writeln(std::format("VertexBuffer: Failed to map resource for 0x{:016x}",
-                                             reinterpret_cast<size_t>(data)));
+                LogError.writeln("VertexBuffer: Failed to map uploadBuffer");
                 return;
             }
-
-            frameResource.uploadBuffer->SetName(L"VertexBuffer::uploadBuffer");
         }
 
         uint8_t* dest = frameResource.dest;

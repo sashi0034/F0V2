@@ -7,6 +7,8 @@ namespace TY
 
     std::string ToUtf8(const std::wstring& wstr);
 
+    std::u32string ToUtf32(const std::wstring& wstr);
+
     std::wstring StringifyBlob(ID3DBlob* blob);
 
     /// @brief アライメントに揃えたサイズを取得する

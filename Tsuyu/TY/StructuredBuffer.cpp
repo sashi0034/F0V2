@@ -67,6 +67,22 @@ struct StructuredBuffer::Impl
         m_valid = true;
     }
 
+    Impl()
+    {
+        for (auto& frameResource : m_frameResources)
+        {
+            if (frameResource.uploadBuffer && frameResource.uploadDest)
+            {
+                frameResource.uploadBuffer->Unmap(0, nullptr);
+            }
+
+            if (frameResource.readbackBuffer && frameResource.readbackSrc)
+            {
+                frameResource.readbackBuffer->Unmap(0, nullptr);
+            }
+        }
+    }
+
     void Upload(const uint8_t* src)
     {
         m_flushTimestamp = EngineRenderContext::GetFlushTimestamp();
@@ -264,7 +280,7 @@ private:
                     0, nullptr, reinterpret_cast<void**>(&frameResource.uploadDest));
                 FAILED(hr))
             {
-                LogError.writeln("StructuredBuffer: Failed to map resource.");
+                LogError.writeln("StructuredBuffer: Failed to map uploadBuffer.");
                 return false;
             }
         }
@@ -300,7 +316,7 @@ private:
                     0, nullptr, reinterpret_cast<void**>(&frameResource.readbackSrc));
                 FAILED(hr))
             {
-                LogError.writeln("StructuredBuffer: Failed to map readback buffer.");
+                LogError.writeln("StructuredBuffer: Failed to map readbackBuffer.");
                 return false;
             }
         }

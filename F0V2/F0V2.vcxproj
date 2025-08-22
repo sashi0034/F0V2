@@ -149,6 +149,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Content Include="asset\font\RocknRoll\OFL.txt" />
+    <Content Include="asset\font\RocknRoll\README-JP.md" />
+    <Content Include="asset\font\RocknRoll\README.md" />
+    <Content Include="asset\font\RocknRoll\RocknRollOne-Regular.ttf" />
     <Content Include="asset\shader\blinn_phong.hlsl" />
     <Content Include="asset\shader\phong_shadow.hlsl" />
     <Content Include="asset\shader\skydome.hlsl" />
@@ -158,6 +162,7 @@
     <Content Include="asset\shader\shape2d.hlsl" />
     <ClCompile Include="Demo\Demo_AirCombat.cpp" />
     <ClCompile Include="Demo\Demo_Basic3D.cpp" />
+    <ClCompile Include="Demo\Demo_Font.cpp" />
     <ClCompile Include="Demo\Demo_Ocean.cpp" />
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />
     <ClCompile Include="Demo\Demo_ShapeRenderer.cpp" />
@@ -197,6 +202,7 @@
     <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
+    <ClInclude Include="Demo\Demo_Font.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="Demo\Demo_Ocean.h" />
     <ClInclude Include="Demo\Demo_ShadowMap.h" />
