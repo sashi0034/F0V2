@@ -41,6 +41,8 @@ namespace TY
         /** @internal */
         RenderTarget(const RenderTargetParams& params, IDXGISwapChain* swapChain);
 
+        bool isEmpty() const;
+
         size_t unique_id() const;
 
         [[nodiscard]]

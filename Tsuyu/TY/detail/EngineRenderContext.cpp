@@ -352,12 +352,18 @@ private:
     void recreateSwapChain(const Size& newSize)
     {
         assert(not m_scopedBackBuffer.isActive());
+        assert(RenderTarget::Current().isEmpty());
 
         FlushAllCommand();
 
         const int bufferCount = m_backBuffer.bufferCount();
 
         m_backBuffer = {};
+
+        for (auto& rsc : m_disposedRenderResources)
+        {
+            rsc.clear();
+        }
 
         if (const auto hr = m_swapChain->ResizeBuffers(
                 bufferCount,

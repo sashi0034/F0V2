@@ -272,6 +272,11 @@ namespace TY
     {
     }
 
+    bool RenderTarget::isEmpty() const
+    {
+        return p_impl == nullptr;
+    }
+
     size_t RenderTarget::unique_id() const
     {
         return p_impl ? reinterpret_cast<size_t>(p_impl.get()) : 0;
