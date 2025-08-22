@@ -112,9 +112,11 @@ struct EngineCoreImpl
     {
         EngineImGui::Render();
 
+        EngineComponent::BeforeFlush();
+
         EngineRenderContext::Render();
 
-        EngineComponent::PostPresent();
+        EngineComponent::AfterPresent();
 
         m_inFrame = false;
     }

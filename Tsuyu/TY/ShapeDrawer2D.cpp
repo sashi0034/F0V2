@@ -33,6 +33,17 @@ namespace
 
     struct ShapeDrawManager2DComponent : IComponent
     {
+        struct Subscribable
+        {
+            virtual ~Subscribable() = default;
+
+            bool m_shouldRemove{};
+
+            virtual void beforeFlush() = 0;
+
+            virtual void afterPresent() = 0;
+        };
+
         VertexShader m_vs{shaderPath, "VS"};
 
         struct
@@ -45,6 +56,8 @@ namespace
 
             PixelShader bitmapFont{shaderPath, "PS_BitmapFont"};
         } m_ps{};
+
+        Array<std::shared_ptr<Subscribable>> m_subscribableList{};
 
         bool init() override
         {
@@ -60,6 +73,32 @@ namespace
             if (s_component == this)
             {
                 s_component = nullptr;
+            }
+        }
+
+        void beforeFlush() override
+        {
+            for (auto it = m_subscribableList.begin(); it != m_subscribableList.end();)
+            {
+                it->get()->beforeFlush();
+
+                if (it->get()->m_shouldRemove)
+                {
+                    it = m_subscribableList.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
+
+        void afterPresent() override
+        {
+            for (auto it = m_subscribableList.begin(); it != m_subscribableList.end();)
+            {
+                it->get()->afterPresent();
+                ++it;
             }
         }
     };
@@ -284,7 +323,7 @@ namespace
     };
 }
 
-struct ShapeDrawer2D::Impl : IEngineDrawer
+struct ShapeDrawer2D::Impl : ShapeDrawManager2DComponent::Subscribable
 {
     ShapeBuilder2D::BufferCreator m_bufferCreator{};
 
@@ -301,12 +340,17 @@ struct ShapeDrawer2D::Impl : IEngineDrawer
         resetDrawState();
     }
 
+    ~Impl()
+    {
+        m_shouldRemove = true;
+    }
+
     void beforeFlush() override
     {
         m_descriptorManager.Upload();
     }
 
-    void afterFlush() override
+    void afterPresent() override
     {
         resetDrawState();
     }
@@ -457,6 +501,7 @@ namespace TY
     ShapeDrawer2D::ShapeDrawer2D() :
         p_impl(std::make_shared<Impl>())
     {
+        s_component->m_subscribableList.push_back(p_impl);
     }
 
     const ShapeDrawer2D& ShapeDrawer2D::push(const Shape2D::shape_type& shape) const
@@ -478,7 +523,6 @@ namespace TY
         if (p_impl)
         {
             p_impl->Draw();
-            EngineRenderContext::MarkDrawerUntilFlush(p_impl);
         }
     }
 
