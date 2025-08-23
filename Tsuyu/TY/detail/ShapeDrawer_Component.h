@@ -6,7 +6,7 @@
 
 namespace TY::ShapeDrawer_detail
 {
-    const std::string ShaderPath = "asset/shader/shape2d.hlsl";
+    const std::string ShaderPath = "engine/shape2d.hlsl";
 
     struct ShapeDrawerComponent : IComponent
     {

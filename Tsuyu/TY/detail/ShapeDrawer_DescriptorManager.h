@@ -12,8 +12,8 @@ namespace TY::ShapeDrawer_detail
             DescriptorHeap descriptorHeap{};
             DescriptorTable table{};
 
-            ConstantBuffer<ShapeDraw_b0> cbv0{};
-            Array<ShapeDraw_b0> cb0_value{};
+            ConstantBuffer<ShapeDrawer_b0> cbv0{};
+            Array<ShapeDrawer_b0> cb0_value{};
             int next_cb0{};
 
             struct key_type

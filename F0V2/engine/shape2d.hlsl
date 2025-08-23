@@ -9,7 +9,7 @@ struct PSInput
     float4 color : COLOR0;
 };
 
-cbuffer ShapeDraw : register(b0)
+cbuffer ShapeDrawer : register(b0)
 {
     row_major float2x4 g_transform;
     float4 g_colorMul;

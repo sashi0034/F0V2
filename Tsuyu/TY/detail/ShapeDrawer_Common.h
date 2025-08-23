@@ -7,7 +7,7 @@ using namespace TY::detail;
 
 namespace TY::ShapeDrawer_detail
 {
-    struct ShapeDraw_b0
+    struct ShapeDrawer_b0
     {
         Float4 g_transform[2];
         Float4 g_colorMul{1.0f};

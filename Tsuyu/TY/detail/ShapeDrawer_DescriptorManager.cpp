@@ -11,7 +11,7 @@ namespace TY::ShapeDrawer_detail
     {
         heap_type heap{};
 
-        heap.cbv0 = ConstantBuffer<ShapeDraw_b0>(cb0_capacity);
+        heap.cbv0 = ConstantBuffer<ShapeDrawer_b0>(cb0_capacity);
         heap.cb0_value.resize(cb0_capacity);
 
         heap.keyResource = key;
