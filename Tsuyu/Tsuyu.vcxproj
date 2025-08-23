@@ -171,6 +171,7 @@
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\EngineComponent.h" />
     <ClInclude Include="TY\detail\FreeTypeContext.h" />
+    <ClInclude Include="TY\detail\RenderEventComponent.h" />
     <ClInclude Include="TY\detail\ShaderRegisterStart.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\detail\ShapeDrawer_Common.h" />
@@ -315,6 +316,7 @@
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\detail\EngineComponent.cpp" />
     <ClCompile Include="TY\detail\FreeTypeContext.cpp" />
+    <ClCompile Include="TY\detail\RenderEventComponent.cpp" />
     <ClCompile Include="TY\detail\ShapeDrawer_Common.cpp" />
     <ClCompile Include="TY\detail\ShapeDrawer_Component.cpp" />
     <ClCompile Include="TY\detail\ShapeDrawer_DescriptorManager.cpp" />

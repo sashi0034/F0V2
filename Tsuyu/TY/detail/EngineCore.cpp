@@ -21,6 +21,8 @@ using namespace std::string_view_literals;
 namespace TY::detail
 {
     // predefined components
+    extern void InitRenderEventComponent();
+
     extern void InitGameTimeComponent();
 
     extern void InitGameStepComponent();
@@ -38,6 +40,8 @@ namespace
 {
     void initPredefinedComponents()
     {
+        InitRenderEventComponent();
+
         InitGameTimeComponent();
 
         InitGameStepComponent();

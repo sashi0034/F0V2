@@ -16,6 +16,8 @@ struct DynamicTexture::Impl
 
     ComPtr<ID3D12Resource> m_finalBuffer{};
 
+    TextureResource m_textureResource{};
+
     struct frame_resources
     {
         ComPtr<ID3D12Resource> uploadBuffer;
@@ -61,6 +63,8 @@ struct DynamicTexture::Impl
         }
 
         m_finalBuffer->SetName(L"DynamicTexture::m_finalBuffer");
+
+        m_textureResource = TextureResource{m_finalBuffer.Get()};
 
         Upload(image);
 
@@ -202,8 +206,8 @@ namespace TY
         }
     }
 
-    ID3D12Resource* DynamicTexture::getResource()
+    TextureResource DynamicTexture::getResource() const
     {
-        return p_impl ? p_impl->m_finalBuffer.Get() : nullptr;
+        return p_impl ? p_impl->m_textureResource : TextureResource{};
     }
 }

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "ImageView.h"
+#include "TextureResource.h"
 
 namespace TY
 {
@@ -12,7 +13,7 @@ namespace TY
 
         void upload(const ImageView& image);
 
-        ID3D12Resource* getResource();
+        TextureResource getResource() const;
 
     private:
         struct Impl;

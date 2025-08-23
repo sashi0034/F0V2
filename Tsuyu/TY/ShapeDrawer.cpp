@@ -10,6 +10,7 @@
 #include "detail/EngineComponent.h"
 #include "detail/EngineRenderContext.h"
 #include "detail/GraphicsPipelineState.h"
+#include "detail/RenderEventComponent.h"
 #include "detail/ShapeDrawer_Component.h"
 #include "detail/ShapeDrawer_DescriptorManager.h"
 #include "detail/ShapeDrawer_StateManager.h"
@@ -30,7 +31,7 @@ namespace
     };
 }
 
-struct ShapeDrawer::Impl : ShapeDrawerComponent::Subscribable
+struct ShapeDrawer::Impl : RenderEvent::Lister
 {
     ShapeBuilder2D::BufferCreator m_bufferCreator{};
 
@@ -45,11 +46,6 @@ struct ShapeDrawer::Impl : ShapeDrawerComponent::Subscribable
     Impl()
     {
         resetDrawState();
-    }
-
-    ~Impl()
-    {
-        m_shouldRemove = true;
     }
 
     void beforeFlush() override
@@ -68,7 +64,7 @@ struct ShapeDrawer::Impl : ShapeDrawerComponent::Subscribable
 
         if (shape.isHolds<Shape2D::Text>())
         {
-            m_descriptorManager.RequestSrv0(shape.get<Shape2D::Text>().font.fetchAtlasSrv());
+            m_descriptorManager.RequestSrv0(shape.get<Shape2D::Text>().font.atlasTexture());
         }
 
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
@@ -206,7 +202,7 @@ namespace TY
     ShapeDrawer::ShapeDrawer() :
         p_impl(std::make_shared<Impl>())
     {
-        ShapeDrawerComponent::Instance->m_subscribableList.push_back(p_impl);
+        RenderEvent::AddLister(p_impl);
     }
 
     const ShapeDrawer& ShapeDrawer::push(const Shape2D::shape_type& shape) const

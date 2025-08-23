@@ -8,6 +8,7 @@
 #include "Grid.h"
 #include "Logger.h"
 #include "detail/FreeTypeContext.h"
+#include "detail/RenderEventComponent.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -16,25 +17,25 @@ namespace
 {
     constexpr int padding_1 = 1;
 
-    Size getBaseSize(int32_t fontSize)
-    {
-        int32_t baseWidth;
-        if (fontSize <= 16) baseWidth = 512;
-        else if (fontSize <= 32) baseWidth = 768;
-        else if (fontSize <= 48) baseWidth = 1024;
-        else if (fontSize <= 64) baseWidth = 1536;
-        else if (fontSize <= 256) baseWidth = 2048;
-        else baseWidth = 4096;
-
-        const int32_t baseHeight = (fontSize <= 256 ? 256 : 512);
-
-        return Size{baseWidth, baseHeight};
-    }
+    // Size getBaseSize(int32_t fontSize)
+    // {
+    //     int32_t baseWidth;
+    //     if (fontSize <= 16) baseWidth = 512;
+    //     else if (fontSize <= 32) baseWidth = 768;
+    //     else if (fontSize <= 48) baseWidth = 1024;
+    //     else if (fontSize <= 64) baseWidth = 1536;
+    //     else if (fontSize <= 256) baseWidth = 2048;
+    //     else baseWidth = 4096;
+    //
+    //     const int32_t baseHeight = (fontSize <= 256 ? 2048 : 4096);
+    //
+    //     return Size{baseWidth, baseHeight};
+    // }
 
     GlyphInfo stubGlyph{};
 }
 
-struct BitmapFont::Impl
+struct BitmapFont::Impl : RenderEvent::Lister
 {
     int m_fontSize{};
 
@@ -43,7 +44,6 @@ struct BitmapFont::Impl
     Grid<uint8_t> m_atlasImage{};
 
     DynamicTexture m_atlasTexture{};
-    TextureResource m_atlasSrv{};
 
     std::unordered_map<char32_t, GlyphInfo> m_glyphTable{};
 
@@ -53,9 +53,11 @@ struct BitmapFont::Impl
         int maxHeightInCurrentLine{};
     } m_cursor{};
 
+    bool m_shouldUpdateAtlas{};
+
     bool m_valid{};
 
-    Impl(const std::string& filepath, int fontSize)
+    Impl(const std::string& filepath, int fontSize, const BitmapFontOptions& options)
         : m_fontSize(fontSize)
     {
         if (FT_New_Face(GetFreeType(), filepath.c_str(), 0, &m_face))
@@ -66,9 +68,8 @@ struct BitmapFont::Impl
 
         FT_Set_Pixel_Sizes(m_face, 0, fontSize);
 
-        m_atlasImage = Grid<uint8_t>(getBaseSize(m_fontSize));
+        m_atlasImage = Grid<uint8_t>(Size{options.atlasSize, options.atlasSize});
         m_atlasTexture = DynamicTexture(getAtlasImageView());
-        m_atlasSrv = TextureResource(m_atlasTexture.getResource());
 
         m_valid = true;
     }
@@ -141,17 +142,18 @@ struct BitmapFont::Impl
 
         // -----------------------------------------------
 
+        m_shouldUpdateAtlas = true;
+
         m_glyphTable[codePoint] = glyph;
         return m_glyphTable[codePoint];
     }
 
-    const TextureResource& fetchAtlasSrv()
+    void beforeFlush() override
     {
-        m_atlasTexture.upload(getAtlasImageView());
-        // TODO: アトラス画像変更時にリフレッシュする
-        // フレーム終わりにイベントを購読するのがいいかも?
-
-        return m_atlasSrv;
+        if (m_shouldUpdateAtlas)
+        {
+            m_atlasTexture.upload(getAtlasImageView());
+        }
     }
 
 private:
@@ -168,10 +170,14 @@ private:
 
 namespace TY
 {
-    BitmapFont::BitmapFont(const std::string& filepath, int fontSize)
-        : p_impl(std::make_shared<Impl>(filepath, fontSize))
+    BitmapFont::BitmapFont(const std::string& filepath, int fontSize, const BitmapFontOptions& options)
+        : p_impl(std::make_shared<Impl>(filepath, fontSize, options))
     {
-        if (not p_impl->m_valid)
+        if (p_impl->m_valid)
+        {
+            RenderEvent::AddLister(p_impl);
+        }
+        else
         {
             p_impl.reset();
         }
@@ -180,6 +186,11 @@ namespace TY
     const GlyphInfo& BitmapFont::fetchByCodePoint(char32_t codePoint) const
     {
         return p_impl ? p_impl->FetchGlyph(codePoint) : stubGlyph;
+    }
+
+    int BitmapFont::fontSize() const
+    {
+        return p_impl ? p_impl->m_fontSize : 0;
     }
 
     const Grid<uint8_t>& BitmapFont::atlasImage() const
@@ -195,8 +206,8 @@ namespace TY
         }
     }
 
-    TextureResource BitmapFont::fetchAtlasSrv() const
+    TextureResource BitmapFont::atlasTexture() const
     {
-        return p_impl ? p_impl->fetchAtlasSrv() : TextureResource{};
+        return p_impl ? p_impl->m_atlasTexture.getResource() : TextureResource{};
     }
 }

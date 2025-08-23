@@ -5,18 +5,25 @@
 
 namespace TY
 {
+    struct BitmapFontOptions
+    {
+        int atlasSize{1024};
+    };
+
     class BitmapFont
     {
     public:
         BitmapFont() = default;
 
-        BitmapFont(const std::string& filepath, int fontSize);
+        BitmapFont(const std::string& filepath, int fontSize, const BitmapFontOptions& options = {});
 
         const GlyphInfo& fetchByCodePoint(char32_t codePoint) const;
 
+        int fontSize() const;
+
         const Grid<uint8_t>& atlasImage() const;
 
-        TextureResource fetchAtlasSrv() const;
+        TextureResource atlasTexture() const;
 
     private:
         struct Impl;
