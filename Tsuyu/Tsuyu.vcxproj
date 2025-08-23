@@ -173,6 +173,10 @@
     <ClInclude Include="TY\detail\FreeTypeContext.h" />
     <ClInclude Include="TY\detail\ShaderRegisterStart.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
+    <ClInclude Include="TY\detail\ShapeDrawer_Common.h" />
+    <ClInclude Include="TY\detail\ShapeDrawer_Component.h" />
+    <ClInclude Include="TY\detail\ShapeDrawer_DescriptorManager.h" />
+    <ClInclude Include="TY\detail\ShapeDrawer_StateManager.h" />
     <ClInclude Include="TY\Duration.h" />
     <ClInclude Include="TY\DynamicTexture.h" />
     <ClInclude Include="TY\GameStep.h" />
@@ -311,6 +315,10 @@
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\detail\EngineComponent.cpp" />
     <ClCompile Include="TY\detail\FreeTypeContext.cpp" />
+    <ClCompile Include="TY\detail\ShapeDrawer_Common.cpp" />
+    <ClCompile Include="TY\detail\ShapeDrawer_Component.cpp" />
+    <ClCompile Include="TY\detail\ShapeDrawer_DescriptorManager.cpp" />
+    <ClCompile Include="TY\detail\ShapeDrawer_StateManager.cpp" />
     <ClCompile Include="TY\DynamicTexture.cpp" />
     <ClCompile Include="TY\GameStep.cpp" />
     <ClCompile Include="TY\GameTime.cpp" />
