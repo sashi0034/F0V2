@@ -4,7 +4,7 @@
 
 namespace TY::ShapeDrawer_detail
 {
-    class DescriptorManager
+    class SD_DescriptorManager
     {
     public:
         struct heap_type
@@ -61,7 +61,7 @@ namespace TY::ShapeDrawer_detail
             bool operator !=(const element_pointer& other) const { return not(*this == other); }
         };
 
-        DescriptorManager()
+        SD_DescriptorManager()
         {
             pushBackNewHeap(heap_type::key_type{}, heap_type::DefaultCapacity);
 

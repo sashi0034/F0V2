@@ -23,7 +23,7 @@ namespace
     struct BufferUnit
     {
         GraphicsPipelineState pso{};
-        DescriptorManager::element_pointer descriptor{};
+        SD_DescriptorManager::element_pointer descriptor{};
         IndexBuffer indexBuffer{Empty};
         VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer{Empty};
         size_t indexCount{0};
@@ -36,9 +36,9 @@ struct ShapeDrawer::Impl : ShapeDrawerComponent::Subscribable
 
     ArrayPool<BufferUnit> m_bufferUnitList{};
 
-    DescriptorManager m_descriptorManager{};
+    SD_DescriptorManager m_descriptorManager{};
 
-    StateManager m_stateManager{};
+    SD_StateManager m_stateManager{};
 
     size_t m_drawUnitIndex{};
 
@@ -153,7 +153,7 @@ private:
         }
     }
 
-    void flushCurrentBuffer(const StateManager::state_type& state)
+    void flushCurrentBuffer(const SD_StateManager::state_type& state)
     {
         for (const auto& buffer : m_bufferCreator.buffers())
         {

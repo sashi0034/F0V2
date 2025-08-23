@@ -4,13 +4,13 @@
 
 namespace TY::ShapeDrawer_detail
 {
-    class StateManager
+    class SD_StateManager
     {
     public:
         struct state_type
         {
             GraphicsPipelineStateParams psoParams{};
-            DescriptorManager::element_pointer descriptor{};
+            SD_DescriptorManager::element_pointer descriptor{};
 
             static state_type Default(const DescriptorTable& descriptorTable);
         };
@@ -18,7 +18,7 @@ namespace TY::ShapeDrawer_detail
         void Reset(const DescriptorTable& descriptorTable);
 
         void RequestDescriptor(
-            const DescriptorManager::element_pointer& descriptor,
+            const SD_DescriptorManager::element_pointer& descriptor,
             const DescriptorTable& descriptorTable);
 
         void RequestPixelShader(const PixelShader& ps);

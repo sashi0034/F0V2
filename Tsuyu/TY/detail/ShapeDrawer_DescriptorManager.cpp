@@ -7,7 +7,7 @@ namespace
 
 namespace TY::ShapeDrawer_detail
 {
-    DescriptorManager::heap_type DescriptorManager::heap_type::Create(const key_type& key, int cb0_capacity)
+    SD_DescriptorManager::heap_type SD_DescriptorManager::heap_type::Create(const key_type& key, int cb0_capacity)
     {
         heap_type heap{};
 
@@ -32,7 +32,7 @@ namespace TY::ShapeDrawer_detail
         return heap;
     }
 
-    void DescriptorManager::RequestTransform(const Mat3x2& transform)
+    void SD_DescriptorManager::RequestTransform(const Mat3x2& transform)
     {
         bool isDifferent;
         if (m_currentPointer.cb0_index == -1)
@@ -74,7 +74,7 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
-    void DescriptorManager::RequestSrv0(const ShaderResourceTexture& srv)
+    void SD_DescriptorManager::RequestSrv0(const ShaderResourceTexture& srv)
     {
         if (currentHeap().keyResource.srv0.unique_id() == srv.unique_id())
         {
@@ -92,7 +92,7 @@ namespace TY::ShapeDrawer_detail
         m_currentPointer = fetchHeap(newKey);
     }
 
-    void DescriptorManager::Upload() const
+    void SD_DescriptorManager::Upload() const
     {
         for (int i = 0; i < m_heapList.size(); ++i)
         {
@@ -104,7 +104,7 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
-    void DescriptorManager::Reset()
+    void SD_DescriptorManager::Reset()
     {
         m_currentPointer = element_pointer{.heapIndex = 0, .cb0_index = -1};
 
@@ -114,7 +114,7 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
-    void DescriptorManager::CommandSet(const element_pointer& element) const
+    void SD_DescriptorManager::CommandSet(const element_pointer& element) const
     {
         auto& heap = m_heapList[element.heapIndex];
         heap.descriptorHeap.commandSet(PipelineType::Graphics);
@@ -122,7 +122,7 @@ namespace TY::ShapeDrawer_detail
         heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 1);
     }
 
-    DescriptorManager::element_pointer DescriptorManager::fetchHeap(const heap_type::key_type& keyResource)
+    SD_DescriptorManager::element_pointer SD_DescriptorManager::fetchHeap(const heap_type::key_type& keyResource)
     {
         int next_cb0_capacity = heap_type::DefaultCapacity;
         for (int i = 0; i < m_heapList.size(); ++i)
@@ -143,7 +143,7 @@ namespace TY::ShapeDrawer_detail
         return pushBackNewHeap(keyResource, next_cb0_capacity);
     }
 
-    DescriptorManager::element_pointer DescriptorManager::pushBackNewHeap(
+    SD_DescriptorManager::element_pointer SD_DescriptorManager::pushBackNewHeap(
         const heap_type::key_type& keyResource,
         int cb0_capacity)
     {

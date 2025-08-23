@@ -26,7 +26,7 @@ namespace
 
 namespace TY::ShapeDrawer_detail
 {
-    StateManager::state_type StateManager::state_type::Default(const DescriptorTable& descriptorTable)
+    SD_StateManager::state_type SD_StateManager::state_type::Default(const DescriptorTable& descriptorTable)
     {
         return state_type{
             .psoParams = getDefaultPsoParams(descriptorTable),
@@ -34,14 +34,15 @@ namespace TY::ShapeDrawer_detail
         };
     }
 
-    void StateManager::Reset(const DescriptorTable& descriptorTable)
+    void SD_StateManager::Reset(const DescriptorTable& descriptorTable)
     {
         m_current = state_type::Default(descriptorTable);
         m_next.reset();
     }
 
-    void StateManager::RequestDescriptor(const DescriptorManager::element_pointer& descriptor,
-                                         const DescriptorTable& descriptorTable)
+    void SD_StateManager::RequestDescriptor(
+        const SD_DescriptorManager::element_pointer& descriptor,
+        const DescriptorTable& descriptorTable)
     {
         assert(descriptor.isValid());
 
@@ -52,7 +53,7 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
-    void StateManager::RequestPixelShader(const PixelShader& ps)
+    void SD_StateManager::RequestPixelShader(const PixelShader& ps)
     {
         if (m_current.psoParams.shader.ps.unique_id() != ps.unique_id())
         {
@@ -60,7 +61,7 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
-    std::optional<StateManager::state_type> StateManager::ApplyNext()
+    std::optional<SD_StateManager::state_type> SD_StateManager::ApplyNext()
     {
         if (m_next.has_value())
         {
@@ -73,7 +74,7 @@ namespace TY::ShapeDrawer_detail
         return std::nullopt;
     }
 
-    StateManager::state_type& StateManager::getNext()
+    SD_StateManager::state_type& SD_StateManager::getNext()
     {
         if (m_next.has_value())
         {
