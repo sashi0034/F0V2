@@ -181,6 +181,7 @@
     <ClInclude Include="TY\detail\ShapeDrawer_StateManager.h" />
     <ClInclude Include="TY\Duration.h" />
     <ClInclude Include="TY\DynamicTexture.h" />
+    <ClInclude Include="TY\FontObject.h" />
     <ClInclude Include="TY\GameStep.h" />
     <ClInclude Include="TY\GameTime.h" />
     <ClInclude Include="TY\GenericModelBuffer.h" />
@@ -203,6 +204,7 @@
     <ClInclude Include="TY\Quaternion.h" />
     <ClInclude Include="TY\Random.h" />
     <ClInclude Include="TY\ScopedDeferStack.h" />
+    <ClInclude Include="TY\SdfFont.h" />
     <ClInclude Include="TY\Shape2D.h" />
     <ClInclude Include="TY\ShapeBuilder2D.h" />
     <ClInclude Include="TY\ShapeDrawer.h" />
@@ -339,6 +341,7 @@
     <ClCompile Include="TY\Quaternion.cpp" />
     <ClCompile Include="TY\Random.cpp" />
     <ClCompile Include="TY\ScopedDeferStack.cpp" />
+    <ClCompile Include="TY\SdfFont.cpp" />
     <ClCompile Include="TY\Shape2D.cpp" />
     <ClCompile Include="TY\ShapeBuilder2D.cpp" />
     <ClCompile Include="TY\ShapeDrawer.cpp" />
