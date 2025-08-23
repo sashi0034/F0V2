@@ -465,9 +465,7 @@ struct ShapeDrawer2D::Impl : ShapeDrawManager2DComponent::Subscribable
 
         if (shape.isHolds<Shape2D::Text>())
         {
-            m_descriptorManager.RequestSrv0(ShaderResourceTexture{
-                shape.get<Shape2D::Text>().font.fetchAtlasTexture().getResource()
-            });
+            m_descriptorManager.RequestSrv0(shape.get<Shape2D::Text>().font.fetchAtlasSrv());
         }
 
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ

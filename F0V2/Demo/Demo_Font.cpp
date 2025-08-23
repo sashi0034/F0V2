@@ -206,7 +206,7 @@ struct Demo_Font_impl
 
         m_fontDrawer = TextureDrawer{
             TextureDrawerParams{}
-            .setTexture(ShaderResourceTexture{m_fontBitmap.fetchAtlasTexture().getResource()})
+            .setTexture(ShaderResourceTexture{m_fontBitmap.fetchAtlasSrv().getResource()})
             .setShader(m_shaders.default2d)
         };
     }
@@ -278,7 +278,7 @@ struct Demo_Font_impl
         {
             m_fontBitmap.fetchByCodePoint(text[System::FrameCount() - 50]);
 
-            m_fontBitmap.fetchAtlasTexture();
+            m_fontBitmap.fetchAtlasSrv();
         }
 
         m_fontDrawer.as2D().scaled(3.0f).draw({20.0f, 20.0f});

@@ -43,6 +43,7 @@ struct BitmapFont::Impl
     Grid<uint8_t> m_atlasImage{};
 
     DynamicTexture m_atlasTexture{};
+    ShaderResourceTexture m_atlasSrv{};
 
     std::unordered_map<char32_t, GlyphInfo> m_glyphTable{};
 
@@ -67,6 +68,7 @@ struct BitmapFont::Impl
 
         m_atlasImage = Grid<uint8_t>(getBaseSize(m_fontSize));
         m_atlasTexture = DynamicTexture(getAtlasImageView());
+        m_atlasSrv = ShaderResourceTexture(m_atlasTexture.getResource());
 
         m_valid = true;
     }
@@ -143,13 +145,13 @@ struct BitmapFont::Impl
         return m_glyphTable[codePoint];
     }
 
-    const DynamicTexture& fetchAtlasTexture()
+    const ShaderResourceTexture& fetchAtlasSrv()
     {
         m_atlasTexture.upload(getAtlasImageView());
         // TODO: アトラス画像変更時にリフレッシュする
         // フレーム終わりにイベントを購読するのがいいかも?
 
-        return m_atlasTexture;
+        return m_atlasSrv;
     }
 
 private:
@@ -193,8 +195,8 @@ namespace TY
         }
     }
 
-    DynamicTexture BitmapFont::fetchAtlasTexture() const
+    ShaderResourceTexture BitmapFont::fetchAtlasSrv() const
     {
-        return p_impl ? p_impl->fetchAtlasTexture() : DynamicTexture{};
+        return p_impl ? p_impl->fetchAtlasSrv() : ShaderResourceTexture{};
     }
 }

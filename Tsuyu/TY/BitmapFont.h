@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "DynamicTexture.h"
 #include "GlyphInfo.h"
 #include "Grid.h"
+#include "ShaderResourceTexture.h"
 
 namespace TY
 {
@@ -16,7 +16,7 @@ namespace TY
 
         const Grid<uint8_t>& atlasImage() const;
 
-        DynamicTexture fetchAtlasTexture() const;
+        ShaderResourceTexture fetchAtlasSrv() const;
 
     private:
         struct Impl;
