@@ -466,8 +466,7 @@ namespace TY
             const auto& vertices = buffer.vertices;
             const auto& indices = buffer.indices;
 
-            const int textSize = text.size; // TODO
-            // if (textSize <= 0) use default size of font
+            const float textScaling = text.size.has_value() ? *text.size / text.font.fontSize() : 1.0f;
 
             const Size atlasSize = text.font.atlasImage().size();
 
@@ -478,8 +477,8 @@ namespace TY
 
                 const auto& glyph = text.font.fetchByCodePoint(c);
 
-                const Float2 posTL = penPos + glyph.baselineOffset();
-                const Float2 posBR = posTL + glyph.size();
+                const Float2 posTL = penPos + glyph.baselineOffset() * textScaling;
+                const Float2 posBR = posTL + glyph.size() * textScaling;
 
                 const Float2 uvTL = glyph.topLeftInAtlas.cast<Float2>() / atlasSize;
                 const Float2 uvBR = uvTL + glyph.size().cast<Float2>() / atlasSize;
@@ -494,7 +493,7 @@ namespace TY
                     indices[i * 6 + j] = buffer.indexOffset + i * 4 + rectIndexTable[j];
                 }
 
-                penPos.x += glyph.xAdvance;
+                penPos.x += glyph.xAdvance * textScaling;
             }
 
             return indexSize;

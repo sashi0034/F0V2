@@ -85,7 +85,7 @@ namespace TY
         {
             BitmapFont font;
             std::u32string text;
-            float size{};
+            std::optional<float> size{};
             Float2 position{0.0f, 0.0f};
             ColorF32 color{ColorF32{1.0}};
 
