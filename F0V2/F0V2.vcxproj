@@ -149,6 +149,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
+    <Content Include="asset\font\0xProto\README.md" />
     <Content Include="asset\font\RocknRoll\OFL.txt" />
     <Content Include="asset\font\RocknRoll\README-JP.md" />
     <Content Include="asset\font\RocknRoll\README.md" />

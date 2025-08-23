@@ -135,7 +135,9 @@ struct Demo_ShapeRenderer_impl
         ConstantBufferWrapper<PhongLight_b4> phongLight{};
     } m_cb;
 
-    BitmapFont m_bitmapFont{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
+    BitmapFont m_zxProtoBitmap{"asset/font/0xProto/0xProto-Regular.ttf", 32};
+
+    BitmapFont m_rocknRollOneBitmap{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
 
     SimpleCamera3D m_camera{};
 
@@ -297,12 +299,17 @@ struct Demo_ShapeRenderer_impl
                    })
                    .setThickness(50.0f)
                    .setColor(ColorF32{0.3f, 1.0f, 0.7f})
-            ).push(Shape2D::Path({{1000, 600}, {1200, 600}, {1300, 800}, {1200, 1000}, {1000, 1000}, {900, 800}})
-                   .setThickness(50.0f)
-                   .setColor(ColorF32{0.1f, 1.0f, 0.3f})
-                   .asCycle()
             )
-            .push(Shape2D::Text(m_bitmapFont, U"メインシステム: 戦闘モード起動")
+            .push(Shape2D::Text(m_zxProtoBitmap, U"強化人間-san IS VERY INTERESTING")
+                  .setPosition({300, 300})
+                  .setColor(ColorF32{0.7, 0.4, 1.0})
+            )
+            .push(Shape2D::Path({{1000, 600}, {1200, 600}, {1300, 800}, {1200, 1000}, {1000, 1000}, {900, 800}})
+                  .setThickness(50.0f)
+                  .setColor(ColorF32{0.1f, 1.0f, 0.3f})
+                  .asCycle()
+            )
+            .push(Shape2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
                   .setPosition(Scene::Center())
                   .setColor(ColorF32{0.7})
             );
