@@ -122,7 +122,7 @@ namespace TY
         return data;
     }
 
-    ModelData PrimitiveModel3D::TexturePlane(const ShaderResourceTexture& texture, const Float2& size)
+    ModelData PrimitiveModel3D::TexturePlane(const TextureResource& texture, const Float2& size)
     {
         ModelData data;
 

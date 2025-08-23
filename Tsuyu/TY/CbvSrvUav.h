@@ -1,27 +1,27 @@
 #pragma once
-#include "ShaderResourceTexture.h"
 #include "StructuredBuffer.h"
+#include "TextureResource.h"
 
 namespace TY
 {
-    class ShaderResourceType : public Variant<ShaderResourceTexture, StructuredBuffer>
+    class ShaderResourceType : public Variant<TextureResource, StructuredBuffer>
     {
     public:
         using Variant::Variant;
 
         bool isEmpty() const
         {
-            return isHolds<ShaderResourceTexture>() && get<ShaderResourceTexture>().isEmpty();
+            return isHolds<TextureResource>() && get<TextureResource>().isEmpty();
         }
     };
 
-    class UnorderedAccessType : public StructuredBuffer
+    class UnorderedAccessType : public UnorderedStructuredBuffer
     {
     public:
-        using StructuredBuffer::StructuredBuffer;
+        using UnorderedStructuredBuffer::UnorderedStructuredBuffer;
 
-        UnorderedAccessType(const StructuredBuffer& other)
-            : StructuredBuffer(other)
+        UnorderedAccessType(const UnorderedStructuredBuffer& other)
+            : UnorderedStructuredBuffer(other)
         {
         }
 

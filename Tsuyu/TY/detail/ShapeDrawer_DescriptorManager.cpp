@@ -74,7 +74,7 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
-    void SD_DescriptorManager::RequestSrv0(const ShaderResourceTexture& srv)
+    void SD_DescriptorManager::RequestSrv0(const TextureResource& srv)
     {
         if (currentHeap().keyResource.srv0.unique_id() == srv.unique_id())
         {

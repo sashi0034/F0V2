@@ -66,7 +66,7 @@ namespace
         }
     };
 
-    ShaderResourceTexture makeGroundPlane(
+    TextureResource makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
@@ -98,7 +98,7 @@ namespace
             }
         }
 
-        return ShaderResourceTexture{image};
+        return TextureResource{image};
     }
 
     constexpr float groundPositionY = -10.0f;

@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ShaderResourceTexture.h"
+#include "TextureResource.h"
 
 #include "detail/EngineRenderContext.h"
 #include "TY/AssertObject.h"
@@ -13,7 +13,7 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct ShaderResourceTexture::Impl
+struct TextureResource::Impl
 {
     DXGI_FORMAT m_format{};
     Size m_size{};
@@ -211,7 +211,7 @@ struct ShaderResourceTexture::Impl
 
 namespace TY
 {
-    ShaderResourceTexture::ShaderResourceTexture(const TextureSource& source)
+    TextureResource::TextureResource(const TextureSource& source)
     {
         if (const auto path = source.tryGet<std::string>())
         {
@@ -231,27 +231,27 @@ namespace TY
         }
     }
 
-    bool ShaderResourceTexture::isEmpty() const
+    bool TextureResource::isEmpty() const
     {
         return p_impl == nullptr;
     }
 
-    size_t ShaderResourceTexture::unique_id() const
+    size_t TextureResource::unique_id() const
     {
         return p_impl ? reinterpret_cast<size_t>(p_impl.get()) : 0;
     }
 
-    Size ShaderResourceTexture::size() const
+    Size TextureResource::size() const
     {
         return p_impl ? p_impl->m_size : Size{};
     }
 
-    ID3D12Resource* ShaderResourceTexture::getResource() const
+    ID3D12Resource* TextureResource::getResource() const
     {
         return p_impl ? p_impl->m_finalBuffer.Get() : nullptr;
     }
 
-    DXGI_FORMAT ShaderResourceTexture::getFormat() const
+    DXGI_FORMAT TextureResource::getFormat() const
     {
         return p_impl ? p_impl->m_format : DXGI_FORMAT_UNKNOWN;
     }

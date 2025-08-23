@@ -3,7 +3,7 @@
 
 #include "TY/Image.h"
 #include "TY/Shader.h"
-#include "TY/ShaderResourceTexture.h"
+#include "TY/TextureResource.h"
 #include "TY/StructuredBuffer.h"
 #include "TY/Vector2D.h"
 
@@ -14,7 +14,7 @@ struct EnginePresetAssetImpl
 {
     bool m_initialized = false;
 
-    ShaderResourceTexture m_whiteTexture{};
+    TextureResource m_whiteTexture{};
 
     VertexShader m_stubVS{};
 
@@ -27,7 +27,7 @@ struct EnginePresetAssetImpl
     void Init()
     {
         const Image whiteImage{Size{16, 16}, ColorU8{255}};
-        m_whiteTexture = ShaderResourceTexture(whiteImage);
+        m_whiteTexture = TextureResource(whiteImage);
 
         m_stubVS = VertexShader{ShaderParams::VS("engine/graphics_stub.hlsl")};
 
@@ -63,7 +63,7 @@ namespace TY::detail
         s_enginePresetAsset = {};
     }
 
-    ShaderResourceTexture EnginePresetAsset::GetWhiteTexture()
+    TextureResource EnginePresetAsset::GetWhiteTexture()
     {
         assert(s_enginePresetAsset.m_initialized);
         return s_enginePresetAsset.m_whiteTexture;

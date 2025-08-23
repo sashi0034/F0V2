@@ -67,7 +67,7 @@ namespace
         }
     };
 
-    ShaderResourceTexture makeGroundPlane(
+    TextureResource makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
@@ -99,10 +99,10 @@ namespace
             }
         }
 
-        return ShaderResourceTexture{image};
+        return TextureResource{image};
     }
 
-    ShaderResourceTexture makeAimIcon(const Size& size, const UnifiedColor& color)
+    TextureResource makeAimIcon(const Size& size, const UnifiedColor& color)
     {
         Image image{size, ColorU8{}};
 
@@ -122,7 +122,7 @@ namespace
             }
         }
 
-        return ShaderResourceTexture{image};
+        return TextureResource{image};
     }
 
     struct CommonResource : IInlineComponent

@@ -100,7 +100,7 @@ namespace
 
 struct TextureDrawer::Impl
 {
-    ShaderResourceTexture m_sr;
+    TextureResource m_sr;
 
     GraphicsPipelineState m_pso;
 
@@ -117,7 +117,7 @@ struct TextureDrawer::Impl
     Impl(const TextureDrawerParams& options) :
         m_pso(makePipelineState(options))
     {
-        m_sr = ShaderResourceTexture{options.texture};
+        m_sr = TextureResource{options.texture};
 
         m_cb0 = ConstantBuffer<SceneState_b0>{1};
 
@@ -177,13 +177,13 @@ namespace TY
 {
     TextureDrawerParams& TextureDrawerParams::loadTexture(const TextureSource& source)
     {
-        texture = ShaderResourceTexture{source};
+        texture = TextureResource{source};
         return *this;
     }
 
-    TextureDrawerParams& TextureDrawerParams::setTexture(const ShaderResourceTexture& texture_)
+    TextureDrawerParams& TextureDrawerParams::setTexture(const TextureResource& texture_)
     {
-        texture = ShaderResourceTexture{texture_};
+        texture = TextureResource{texture_};
         return *this;
     }
 

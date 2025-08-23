@@ -18,7 +18,7 @@ namespace TY::ShapeDrawer_detail
 
             struct key_type
             {
-                ShaderResourceTexture srv0{};
+                TextureResource srv0{};
 
                 bool operator ==(const key_type& other) const
                 {
@@ -31,7 +31,7 @@ namespace TY::ShapeDrawer_detail
                 return next_cb0 >= cbv0.materialCount();
             }
 
-            void resetSrv0(const ShaderResourceTexture& srv)
+            void resetSrv0(const TextureResource& srv)
             {
                 constexpr int tableId = 1;
                 keyResource.srv0 = srv;
@@ -70,7 +70,7 @@ namespace TY::ShapeDrawer_detail
 
         void RequestTransform(const Mat3x2& transform);
 
-        void RequestSrv0(const ShaderResourceTexture& srv);
+        void RequestSrv0(const TextureResource& srv);
 
         void Upload() const;
 

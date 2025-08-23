@@ -1,14 +1,14 @@
 ﻿#pragma once
 #include "Rect.h"
 #include "Shader.h"
-#include "ShaderResourceTexture.h"
+#include "TextureResource.h"
 #include "TextureSource.h"
 
 namespace TY
 {
     struct TextureDrawerParams
     {
-        ShaderResourceTexture texture;
+        TextureResource texture;
 
         GraphicsShader shader;
 
@@ -16,7 +16,7 @@ namespace TY
 
         TextureDrawerParams& loadTexture(const TextureSource& source);
 
-        TextureDrawerParams& setTexture(const ShaderResourceTexture& texture_);
+        TextureDrawerParams& setTexture(const TextureResource& texture_);
 
         TextureDrawerParams& setPS(const PixelShader& ps_)
         {

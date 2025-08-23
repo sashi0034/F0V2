@@ -107,9 +107,9 @@ namespace
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         ID3D12Resource* p_resource{};
-        if (sr.isHolds<ShaderResourceTexture>())
+        if (sr.isHolds<TextureResource>())
         {
-            const auto& t = sr.get<ShaderResourceTexture>();
+            const auto& t = sr.get<TextureResource>();
             const auto texture =
                 t.isEmpty() ? EnginePresetAsset::GetWhiteTexture() : t;
 

@@ -4,12 +4,12 @@
 
 namespace TY
 {
-    class ShaderResourceTexture
+    class TextureResource
     {
     public:
-        ShaderResourceTexture() = default;
+        TextureResource() = default;
 
-        ShaderResourceTexture(const TextureSource& source);
+        TextureResource(const TextureSource& source);
 
         bool isEmpty() const;
 

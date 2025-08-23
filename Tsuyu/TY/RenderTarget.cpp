@@ -29,7 +29,7 @@ struct RenderTarget::Impl
     Array<ComPtr<ID3D12Resource>> m_rtvResources{};
     ComPtr<ID3D12Resource> m_dsvResource{};
 
-    Array<ShaderResourceTexture> m_rtvAsShaderResource{};
+    Array<TextureResource> m_rtvAsShaderResource{};
 
     RectF m_viewport{};
 
@@ -160,7 +160,7 @@ struct RenderTarget::Impl
 
         for (int i = 0; i < params.bufferCount; ++i)
         {
-            m_rtvAsShaderResource.push_back(ShaderResourceTexture{m_rtvResources[i].Get()});
+            m_rtvAsShaderResource.push_back(TextureResource{m_rtvResources[i].Get()});
         }
     }
 
@@ -310,11 +310,11 @@ namespace TY
         return p_impl->ScopedBind(index);
     }
 
-    ShaderResourceTexture RenderTarget::asShaderResource(int index) const
+    TextureResource RenderTarget::asShaderResource(int index) const
     {
         if (not p_impl || index < 0 || index >= p_impl->m_rtvAsShaderResource.size())
         {
-            return ShaderResourceTexture{};
+            return TextureResource{};
         }
 
         return p_impl->m_rtvAsShaderResource[index];

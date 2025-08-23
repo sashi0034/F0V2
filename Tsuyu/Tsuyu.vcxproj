@@ -252,7 +252,7 @@
     <ClInclude Include="TY\Scene.h" />
     <ClInclude Include="TY\ScopedDefer.h" />
     <ClInclude Include="TY\Shader.h" />
-    <ClInclude Include="TY\ShaderResourceTexture.h" />
+    <ClInclude Include="TY\TextureResource.h" />
     <ClInclude Include="TY\PrimitiveModel3D.h" />
     <ClInclude Include="TY\SimpleInput.h" />
     <ClInclude Include="TY\UnifiedString.h" />
@@ -378,7 +378,7 @@
     <ClCompile Include="TY\Scene.cpp" />
     <ClCompile Include="TY\ScopedDefer.cpp" />
     <ClCompile Include="TY\Shader.cpp" />
-    <ClCompile Include="TY\ShaderResourceTexture.cpp" />
+    <ClCompile Include="TY\TextureResource.cpp" />
     <ClCompile Include="TY\PrimitiveModel3D.cpp" />
     <ClCompile Include="TY\SimpleInput.cpp" />
     <ClCompile Include="TY\UnifiedString.cpp" />
