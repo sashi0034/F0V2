@@ -11,6 +11,7 @@ namespace TY
         int atlasSize{2048};
     };
 
+    // TODO: 実装途中
     class SdfFont
     {
     public:
