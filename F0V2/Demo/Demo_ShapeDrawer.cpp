@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Demo_ShapeRenderer.h"
+#include "Demo_ShapeDrawer.h"
 
 #include "TY/BitmapFont.h"
 #include "TY/ConstantBufferWrapper.h"
@@ -108,7 +108,7 @@ namespace
     constexpr float fovFarZ = 1000.0f;
 }
 
-struct Demo_ShapeRenderer_impl
+struct Demo_ShapeDrawer_impl
 {
     struct
     {
@@ -158,7 +158,7 @@ struct Demo_ShapeRenderer_impl
 
     TextureDrawer m_miniMapDrawer{};
 
-    Demo_ShapeRenderer_impl()
+    Demo_ShapeDrawer_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -388,9 +388,9 @@ private:
     }
 };
 
-void Demo_ShapeRenderer()
+void Demo_ShapeDrawer()
 {
-    Demo_ShapeRenderer_impl impl{};
+    Demo_ShapeDrawer_impl impl{};
 
     Scene::RequestResize({1920, 1080});
 

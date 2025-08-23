@@ -9,7 +9,7 @@
 #include "Demo/Demo_Ocean.h"
 #include "Demo/Demo_RenderTarget.h"
 #include "Demo/Demo_ShadowMap.h"
-#include "Demo/Demo_ShapeRenderer.h"
+#include "Demo/Demo_ShapeDrawer.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 
@@ -18,7 +18,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_ShapeRenderer();
+    Demo_ShapeDrawer();
 #else
     using namespace TY;
 
