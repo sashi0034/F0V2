@@ -139,6 +139,21 @@ namespace TY
             return {x, newY};
         }
 
+        [[nodiscard]] constexpr Integer2D movedBy(value_type dx, value_type dy) const noexcept
+        {
+            return {x + dx, y + dy};
+        }
+
+        [[nodiscard]] constexpr Integer2D movedBy(const Integer2D& d) const noexcept
+        {
+            return {x + d.x, y + d.y};
+        }
+
+        [[nodiscard]] float_type length() const noexcept
+        {
+            return std::sqrt(static_cast<float_type>(x) * x + static_cast<float_type>(y) * y);
+        }
+
         [[nodiscard]] bool isZero() const noexcept
         {
             return x == 0 && y == 0;

@@ -22,6 +22,8 @@ namespace TY::ShapeDrawer_detail
             PixelShader roundDot{ShaderPath, "PS_RoundDot"};
 
             PixelShader bitmapFont{ShaderPath, "PS_BitmapFont"};
+
+            PixelShader sdfFont{ShaderPath, "PS_SdfFont"};
         } m_ps{};
 
         bool init() override;

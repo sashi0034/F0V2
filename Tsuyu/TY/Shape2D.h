@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "Alignment.h"
 #include "Array.h"
-#include "BitmapFont.h"
 #include "Color.h"
+#include "FontObject.h"
 #include "Rect.h"
 #include "Variant.h"
 
@@ -84,7 +84,7 @@ namespace TY
 
         struct Text
         {
-            BitmapFont font;
+            FontObject font;
             std::u32string text;
             std::optional<float> size{};
             Float2 position{0.0f, 0.0f};
@@ -93,7 +93,7 @@ namespace TY
 
             Text() = default;
 
-            Text(const BitmapFont& font_, const std::u32string& text_);
+            Text(const FontObject& font_, const std::u32string& text_);
 
             Text& setSize(float size_);
 

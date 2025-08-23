@@ -139,6 +139,8 @@ struct Demo_ShapeDrawer_impl
 
     BitmapFont m_rocknRollOneBitmap{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
 
+    SdfFont m_rocknRollOneSdf{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
+
     SimpleCamera3D m_camera{};
 
     ModelDrawer m_skydomeModel{};
@@ -309,10 +311,14 @@ struct Demo_ShapeDrawer_impl
                   .setColor(ColorF32{0.1f, 1.0f, 0.3f})
                   .asCycle()
             )
-            .push(Shape2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
-                  .setSize(16.0f)
-                  .setPosition(Scene::Center(), Alignment9::MiddleLeft)
-                  .setColor(ColorF32{0.7})
+            .push(Shape2D::Text(m_rocknRollOneSdf, U"メイン")
+                  .setSize(200.0f)
+                  .setPosition(Scene::Center().movedBy(0, 100), Alignment9::MiddleCenter)
+                  .setColor(ColorF32{0.7, 1.0, 0.3})
+            ).push(Shape2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
+                   .setSize(16.0f)
+                   .setPosition(Scene::Center(), Alignment9::MiddleLeft)
+                   .setColor(ColorF32{0.7})
             );
 
         ShapeDrawer::Global().draw();

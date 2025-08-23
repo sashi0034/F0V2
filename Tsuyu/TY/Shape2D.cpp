@@ -91,7 +91,7 @@ namespace TY
     {
     }
 
-    Shape2D::Text::Text(const BitmapFont& font_, const std::u32string& text_)
+    Shape2D::Text::Text(const FontObject& font_, const std::u32string& text_)
     {
         font = font_;
         text = text_;

@@ -105,7 +105,20 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
         }
         else if (shape.isHolds<Shape2D::Text>())
         {
-            m_stateManager.RequestPixelShader(component->m_ps.bitmapFont);
+            auto& font = shape.get<Shape2D::Text>().font;
+            if (font.isBitmap())
+            {
+                m_stateManager.RequestPixelShader(component->m_ps.bitmapFont);
+            }
+            else if (font.isSdf())
+            {
+                m_stateManager.RequestPixelShader(component->m_ps.sdfFont);
+            }
+            else
+            {
+                assert(false);
+            }
+
             applyNextState();
             ShapeBuilder2D::BuildText(m_bufferCreator, shape.get<Shape2D::Text>());
         }

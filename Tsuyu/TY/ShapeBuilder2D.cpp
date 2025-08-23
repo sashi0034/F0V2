@@ -468,7 +468,7 @@ namespace TY
 
             const float textScaling = text.size.has_value() ? *text.size / text.font.fontSize() : 1.0f;
 
-            const Size atlasSize = text.font.atlasImage().size();
+            const Size atlasSize = text.font.atlasTexture().size();
 
             Float2 penPos{text.position};
             Float2 regionTL{};

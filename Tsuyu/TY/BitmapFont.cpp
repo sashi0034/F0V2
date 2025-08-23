@@ -17,6 +17,8 @@ namespace
 {
     constexpr int padding_1 = 1;
 
+    constexpr GlyphInfo stubGlyph{};
+
     // Size getBaseSize(int32_t fontSize)
     // {
     //     int32_t baseWidth;
@@ -31,8 +33,6 @@ namespace
     //
     //     return Size{baseWidth, baseHeight};
     // }
-
-    GlyphInfo stubGlyph{};
 }
 
 struct BitmapFont::Impl : RenderEvent::Lister

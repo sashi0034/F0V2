@@ -7,6 +7,7 @@
 #include "GlyphInfo.h"
 #include "Grid.h"
 #include "Logger.h"
+#include "Rect.h"
 #include "detail/FreeTypeContext.h"
 #include "detail/RenderEventComponent.h"
 
@@ -15,7 +16,149 @@ using namespace TY::detail;
 
 namespace
 {
-    GlyphInfo stubGlyph{};
+    constexpr GlyphInfo stubGlyph{};
+
+    struct DistanceFieldElement
+    {
+        bool dirty;
+
+        /// @brief ピクセルが存在する領域からの距離
+        float distance;
+
+        void write(float d)
+        {
+            dirty = true;
+            distance = d;
+        }
+    };
+
+    struct QueueElement
+    {
+        Point nextPoint;
+    };
+
+    constexpr std::array directionOnes = {Point{1, 0}, Point{0, 1}, Point{-1, 0}, Point{0, -1}};
+
+    struct BitmapView
+    {
+        uint8_t* data;
+        int pitch;
+        int width;
+        int height;
+
+        // TODO: padding
+
+        bool inBounds(const Point& p) const
+        {
+            return 0 <= p.x && p.x < width && 0 <= p.y && p.y < height;
+        }
+
+        uint8_t operator[](const Point& p) const
+        {
+            return data[p.y * pitch + p.x];
+        }
+    };
+
+    void exploreAndPushForTransparent(
+        Grid<DistanceFieldElement>& distanceField,
+        std::deque<QueueElement>& queue,
+        const BitmapView& bitmap,
+        const Point& p)
+    {
+        for (int i = 0; i < directionOnes.size(); ++i)
+        {
+            const auto p1 = p.movedBy(directionOnes[i]);
+            const bool isTransparent = bitmap.inBounds(p1) && bitmap[p1] == 0;
+            if (not isTransparent) continue;
+
+            const auto nextDistance = distanceField[p].distance + 1;
+            if (distanceField[p1].dirty == false)
+            {
+                distanceField[p1].write(nextDistance);
+                queue.push_back(QueueElement{p1});
+            }
+        }
+    }
+
+    void exploreAndPushForNonTransparent(
+        Grid<DistanceFieldElement>& distanceField,
+        std::deque<QueueElement>& queue,
+        const BitmapView& bitmap,
+        const Point& p)
+    {
+        for (int i = 0; i < directionOnes.size(); ++i)
+        {
+            const auto p1 = p.movedBy(directionOnes[i]);
+            const bool nonTransparent = bitmap.inBounds(p1) && bitmap[p1] != 0;
+            if (not nonTransparent) continue;
+
+            if (distanceField[p1].dirty == false)
+            {
+                const auto nextDistance = distanceField[p].distance - 1;
+                distanceField[p1].write(nextDistance);
+                queue.push_back(QueueElement{p1});
+            }
+        }
+    }
+
+    void makeDistanceField(Grid<uint8_t>& atlasImage, const Rect& region, const BitmapView& bitmap)
+    {
+        const auto fieldSize = atlasImage.size();
+        auto distanceField = Grid<DistanceFieldElement>{fieldSize};
+
+        std::deque<QueueElement> queue{};
+
+        // 初回探索
+        for (int x = 0; x < fieldSize.x; ++x)
+        {
+            for (int y = 0; y < fieldSize.y; ++y)
+            {
+                Point p{x, y};
+                if (atlasImage[p] != 0)
+                {
+                    // 不透明ピクセル
+                    exploreAndPushForTransparent(distanceField, queue, bitmap, p);
+                }
+                else
+                {
+                    // 透明ピクセル
+                    distanceField[p].distance = 1;
+                    exploreAndPushForNonTransparent(distanceField, queue, bitmap, p);
+                }
+            }
+        }
+
+        // キューがなくなるまで探索
+        while (queue.size() > 0)
+        {
+            const auto element = queue.front();
+            queue.pop_front();
+
+            exploreAndPushForTransparent(distanceField, queue, bitmap, element.nextPoint);
+            exploreAndPushForNonTransparent(distanceField, queue, bitmap, element.nextPoint);
+        }
+
+        float minDistance{-1};
+        float maxDistance{1};
+        for (const auto& element : distanceField)
+        {
+            if (element.dirty)
+            {
+                minDistance = Min(minDistance, element.distance);
+                maxDistance = Max(maxDistance, element.distance);
+            }
+        }
+
+        for (int x = region.leftX(); x < region.rightX(); ++x)
+        {
+            for (int y = region.topY(); y < region.bottomY(); ++y)
+            {
+                float d = distanceField[y - region.topY()][x - region.leftX()].distance;
+                d = (d - minDistance) / (maxDistance - minDistance);
+                atlasImage[Point{x, y}] = 255 - d * 255;
+            }
+        }
+    }
 }
 
 struct SdfFont::Impl : RenderEvent::Lister
@@ -109,12 +252,11 @@ struct SdfFont::Impl : RenderEvent::Lister
 
         glyph.topLeftInAtlas = m_cursor.pos;
 
-        for (int y = 0; y < glyph.height; ++y)
-        {
-            std::memcpy(&m_atlasImage[glyph.topLeftInAtlas.y + y][glyph.topLeftInAtlas.x],
-                        bitmap.buffer + y * bitmap.pitch,
-                        glyph.width);
-        }
+        makeDistanceField(
+            m_atlasImage,
+            Rect{m_cursor.pos, Size{glyph.width, glyph.height}},
+            BitmapView{bitmap.buffer, bitmap.pitch, static_cast<int>(bitmap.width), static_cast<int>(bitmap.rows)}
+        );
 
         m_cursor.pos.x += glyph.width + m_atlasPadding;
 
@@ -187,18 +329,18 @@ namespace TY
         return p_impl ? p_impl->m_fontSize : 0;
     }
 
-    const Grid<uint8_t>& SdfFont::atlasImage() const
-    {
-        if (p_impl)
-        {
-            return p_impl->m_atlasImage;
-        }
-        else
-        {
-            static const Grid<uint8_t> empty{};
-            return empty;
-        }
-    }
+    // const Grid<uint8_t>& SdfFont::atlasImage() const
+    // {
+    //     if (p_impl)
+    //     {
+    //         return p_impl->m_atlasImage;
+    //     }
+    //     else
+    //     {
+    //         static const Grid<uint8_t> empty{};
+    //         return empty;
+    //     }
+    // }
 
     TextureResource SdfFont::atlasTexture() const
     {

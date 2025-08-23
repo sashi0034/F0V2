@@ -7,6 +7,19 @@ namespace TY
 {
     class FontObject : public Variant<BitmapFont, SdfFont>
     {
+    public:
+        using Variant::Variant;
+
+        bool isBitmap() const
+        {
+            return isHolds<BitmapFont>();
+        }
+
+        bool isSdf() const
+        {
+            return isHolds<SdfFont>();
+        }
+
         const GlyphInfo& fetchByCodePoint(char32_t codePoint) const
         {
             return std::visit([codePoint](const auto& font) -> const GlyphInfo&

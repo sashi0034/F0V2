@@ -9,6 +9,8 @@ namespace TY
     {
     public:
         using container_type = Array<Type>;
+        using iterator = typename container_type::iterator;
+        using const_iterator = typename container_type::const_iterator;
         using value_type = Type;
         using size_type = size_t;
 
@@ -94,6 +96,18 @@ namespace TY
         {
             return m_data.data();
         }
+
+        [[nodiscard]]
+        iterator begin() noexcept { return m_data.begin(); }
+
+        [[nodiscard]]
+        iterator end() noexcept { return m_data.end(); }
+
+        [[nodiscard]]
+        const_iterator cbegin() const noexcept { return m_data.begin(); }
+
+        [[nodiscard]]
+        const_iterator cend() const noexcept { return m_data.end(); }
 
     private:
         container_type m_data{};
