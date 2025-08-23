@@ -21,7 +21,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/ShapeDrawer2D.h"
+#include "TY/ShapeDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -280,7 +280,7 @@ struct Demo_ShapeRenderer_impl
 
         // -----------------------------------------------
 
-        ShapeDrawer2D::Global()
+        ShapeDrawer::Global()
             .push(Shape2D::Rectangle{RectF{10, 10, 100, 50}})
             .push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}}
                 .setColor(ColorF32{1.0f, 0.3f, 0.7f, 0.5f})
@@ -314,23 +314,23 @@ struct Demo_ShapeRenderer_impl
                   .setColor(ColorF32{0.7})
             );
 
-        ShapeDrawer2D::Global().draw();
+        ShapeDrawer::Global().draw();
 
         if (KeySpace.down())
         {
-            ShapeDrawer2D::Global() = ShapeDrawer2D{};
+            ShapeDrawer::Global() = ShapeDrawer{};
         }
 
-        ShapeDrawer2D::Global()
+        ShapeDrawer::Global()
             .push(Shape2D::Rectangle{RectF{50, 500, 50, 50}})
             .draw();
 
         {
             const auto bind = m_miniMap.scopedBind();
 
-            ShapeDrawer2D::Global()
+            ShapeDrawer::Global()
                 .push(Shape2D::Rectangle{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
-            ShapeDrawer2D::Global().draw();
+            ShapeDrawer::Global().draw();
         }
 
         m_miniMapDrawer.as2D().draw(Float2{500, 10});

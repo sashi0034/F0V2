@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ShapeDrawer2D.h"
+#include "ShapeDrawer.h"
 
 #include "ArrayPool.h"
 #include "ConstantBufferWrapper.h"
@@ -27,11 +27,11 @@ namespace
         Float4 g_colorAdd{0.0f};
     };
 
-    struct ShapeDrawManager2DComponent* s_component;
+    struct ShapeDrawerComponent* s_component;
 
     const std::string shaderPath = "asset/shader/shape2d.hlsl";
 
-    struct ShapeDrawManager2DComponent : IComponent
+    struct ShapeDrawerComponent : IComponent
     {
         struct Subscribable
         {
@@ -68,7 +68,7 @@ namespace
             return true;
         }
 
-        ~ShapeDrawManager2DComponent()
+        ~ShapeDrawerComponent()
         {
             if (s_component == this)
             {
@@ -427,7 +427,7 @@ namespace
     };
 }
 
-struct ShapeDrawer2D::Impl : ShapeDrawManager2DComponent::Subscribable
+struct ShapeDrawer::Impl : ShapeDrawerComponent::Subscribable
 {
     ShapeBuilder2D::BufferCreator m_bufferCreator{};
 
@@ -591,7 +591,7 @@ namespace
 {
     struct GlobalInstance : IInlineComponent
     {
-        ShapeDrawer2D instance{};
+        ShapeDrawer instance{};
     };
 
     InlineComponent<GlobalInstance> s_global{};
@@ -599,13 +599,13 @@ namespace
 
 namespace TY
 {
-    ShapeDrawer2D::ShapeDrawer2D() :
+    ShapeDrawer::ShapeDrawer() :
         p_impl(std::make_shared<Impl>())
     {
         s_component->m_subscribableList.push_back(p_impl);
     }
 
-    const ShapeDrawer2D& ShapeDrawer2D::push(const Shape2D::shape_type& shape) const
+    const ShapeDrawer& ShapeDrawer::push(const Shape2D::shape_type& shape) const
     {
         if (not p_impl) return *this;
 
@@ -614,12 +614,12 @@ namespace TY
         return *this;
     }
 
-    const ShapeDrawer2D& ShapeDrawer2D::operator<<(const Shape2D::shape_type& shape) const
+    const ShapeDrawer& ShapeDrawer::operator<<(const Shape2D::shape_type& shape) const
     {
         return push(shape);
     }
 
-    void ShapeDrawer2D::draw() const
+    void ShapeDrawer::draw() const
     {
         if (p_impl)
         {
@@ -627,16 +627,16 @@ namespace TY
         }
     }
 
-    ShapeDrawer2D& ShapeDrawer2D::Global()
+    ShapeDrawer& ShapeDrawer::Global()
     {
         return s_global->instance;
     }
 
     namespace detail
     {
-        void InitShapeDrawManager2DComponent()
+        void InitShapeDrawerComponent()
         {
-            EngineComponent::Register<ShapeDrawManager2DComponent>("ShapeDrawManager2DComponent");
+            EngineComponent::Register<ShapeDrawerComponent>("ShapeDrawerComponent");
         }
     }
 }
