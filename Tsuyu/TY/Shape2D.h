@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Alignment.h"
 #include "Array.h"
 #include "BitmapFont.h"
 #include "Color.h"
@@ -87,6 +88,7 @@ namespace TY
             std::u32string text;
             std::optional<float> size{};
             Float2 position{0.0f, 0.0f};
+            Float2 pivot{};
             ColorF32 color{ColorF32{1.0}};
 
             Text() = default;
@@ -95,7 +97,7 @@ namespace TY
 
             Text& setSize(float size_);
 
-            Text& setPosition(const Float2& position_);
+            Text& setPosition(const Float2& position_, Alignment9 alignment = Alignment9::TopLeft);
 
             Text& setColor(const ColorF32& color_);
         };

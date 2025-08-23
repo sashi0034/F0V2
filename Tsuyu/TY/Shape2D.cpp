@@ -103,9 +103,10 @@ namespace TY
         return *this;
     }
 
-    Shape2D::Text& Shape2D::Text::setPosition(const Float2& position_)
+    Shape2D::Text& Shape2D::Text::setPosition(const Float2& position_, Alignment9 alignment)
     {
         position = position_;
+        pivot = AlignmentToPivot(alignment);
         return *this;
     }
 

@@ -311,7 +311,7 @@ struct Demo_ShapeDrawer_impl
             )
             .push(Shape2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
                   .setSize(16.0f)
-                  .setPosition(Scene::Center())
+                  .setPosition(Scene::Center(), Alignment9::MiddleLeft)
                   .setColor(ColorF32{0.7})
             );
 

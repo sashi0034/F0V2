@@ -471,6 +471,8 @@ namespace TY
             const Size atlasSize = text.font.atlasImage().size();
 
             Float2 penPos{text.position};
+            Float2 regionTL{};
+            Float2 regionBR{};
             for (int i = 0; i < characterCount; ++i)
             {
                 const auto& c = text.text[i];
@@ -483,6 +485,8 @@ namespace TY
                 const Float2 uvTL = glyph.topLeftInAtlas.cast<Float2>() / atlasSize;
                 const Float2 uvBR = uvTL + glyph.size().cast<Float2>() / atlasSize;
 
+                // -----------------------------------------------
+
                 vertices[i * 4 + 0].set(posTL, uvTL, text.color);
                 vertices[i * 4 + 1].set({posBR.x, posTL.y}, {uvBR.x, uvTL.y}, text.color);
                 vertices[i * 4 + 2].set({posTL.x, posBR.y}, {uvTL.x, uvBR.y}, text.color);
@@ -493,7 +497,29 @@ namespace TY
                     indices[i * 6 + j] = buffer.indexOffset + i * 4 + rectIndexTable[j];
                 }
 
+                // -----------------------------------------------
+
                 penPos.x += glyph.xAdvance * textScaling;
+
+                if (i == 0)
+                {
+                    regionTL = posTL - text.position;
+                }
+
+                if (i == characterCount - 1)
+                {
+                    regionBR = posBR - text.position;
+                }
+            }
+
+            if (not text.pivot.isZero())
+            {
+                const SizeF regionSize = regionBR - regionTL;
+                const Float2 regionOffset = -regionSize * text.pivot;
+                for (int i = 0; i < vertices.size(); ++i)
+                {
+                    vertices[i].pos += regionOffset;
+                }
             }
 
             return indexSize;

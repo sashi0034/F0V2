@@ -148,6 +148,17 @@ struct BitmapFont::Impl : RenderEvent::Lister
         return m_glyphTable[codePoint];
     }
 
+    Array<GlyphInfo> fetchByString(const std::u32string& str)
+    {
+        Array<GlyphInfo> glyphs;
+        for (const char32_t codePoint : str)
+        {
+            glyphs.push_back(FetchGlyph(codePoint));
+        }
+
+        return glyphs;
+    }
+
     void beforeFlush() override
     {
         if (m_shouldUpdateAtlas)
@@ -186,6 +197,11 @@ namespace TY
     const GlyphInfo& BitmapFont::fetchByCodePoint(char32_t codePoint) const
     {
         return p_impl ? p_impl->FetchGlyph(codePoint) : stubGlyph;
+    }
+
+    Array<GlyphInfo> BitmapFont::fetchByString(const std::u32string& str) const
+    {
+        return p_impl ? p_impl->fetchByString(str) : Array<GlyphInfo>{};
     }
 
     int BitmapFont::fontSize() const

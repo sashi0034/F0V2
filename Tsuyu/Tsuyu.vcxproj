@@ -162,6 +162,7 @@
     <ClInclude Include="TY\ActorHandle.h" />
     <ClInclude Include="TY\ActorLifetimeScope.h" />
     <ClInclude Include="TY\Addon.h" />
+    <ClInclude Include="TY\Alignment.h" />
     <ClInclude Include="TY\Array.h" />
     <ClInclude Include="TY\ArrayPool.h" />
     <ClInclude Include="TY\AssertObject.h" />
@@ -309,6 +310,7 @@
     <ClCompile Include="TY\ActorHandle.cpp" />
     <ClCompile Include="TY\ActorLifetimeScope.cpp" />
     <ClCompile Include="TY\Addon.cpp" />
+    <ClCompile Include="TY\Alignment.cpp" />
     <ClCompile Include="TY\ArrayPool.cpp" />
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\BitmapFont.cpp" />

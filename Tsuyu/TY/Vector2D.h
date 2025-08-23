@@ -56,9 +56,23 @@ namespace TY
             return {x + v.x, y + v.y};
         }
 
+        constexpr Vector2D operator+=(const Vector2D& v) noexcept
+        {
+            x += v.x;
+            y += v.y;
+            return *this;
+        }
+
         [[nodiscard]] constexpr Vector2D operator -(Vector2D v) const noexcept
         {
             return {x - v.x, y - v.y};
+        }
+
+        constexpr Vector2D operator-=(const Vector2D& v) noexcept
+        {
+            x -= v.x;
+            y -= v.y;
+            return *this;
         }
 
         [[nodiscard]] constexpr Vector2D operator *(value_type s) const noexcept
@@ -66,9 +80,23 @@ namespace TY
             return {x * s, y * s};
         }
 
+        constexpr Vector2D operator*=(const Vector2D& v) noexcept
+        {
+            x *= v.x;
+            y *= v.y;
+            return *this;
+        }
+
         [[nodiscard]] constexpr Vector2D operator *(Vector2D v) const noexcept
         {
             return {x * v.x, y * v.y};
+        }
+
+        constexpr Vector2D operator*=(value_type s) noexcept
+        {
+            x *= s;
+            y *= s;
+            return *this;
         }
 
         [[nodiscard]] friend Vector2D operator*(value_type lhs, const Vector2D& rhs)
@@ -81,14 +109,35 @@ namespace TY
             return {x / s, y / s};
         }
 
+        constexpr Vector2D operator/=(value_type s) noexcept
+        {
+            x /= s;
+            y /= s;
+            return *this;
+        }
+
         [[nodiscard]] constexpr Vector2D operator /(Vector2D v) const noexcept
         {
             return {x / v.x, y / v.y};
         }
 
+        constexpr Vector2D operator/=(const Vector2D& v) noexcept
+        {
+            x /= v.x;
+            y /= v.y;
+            return *this;
+        }
+
         [[nodiscard]] constexpr Vector2D operator %(value_type s) const noexcept
         {
             return {x % s, y % s};
+        }
+
+        [[nodiscard]] constexpr Vector2D operator%=(value_type s) noexcept
+        {
+            x %= s;
+            y %= s;
+            return *this;
         }
 
         [[nodiscard]] constexpr Vector2D withX(value_type newX) const noexcept
@@ -184,4 +233,6 @@ namespace TY
     using Vec2 = Vector2D<double>;
 
     using Float2 = Vector2D<float>;
+
+    using SizeF = Float2;
 }

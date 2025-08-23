@@ -19,6 +19,8 @@ namespace TY
 
         const GlyphInfo& fetchByCodePoint(char32_t codePoint) const;
 
+        Array<GlyphInfo> fetchByString(const std::u32string& str) const;
+
         int fontSize() const;
 
         const Grid<uint8_t>& atlasImage() const;
