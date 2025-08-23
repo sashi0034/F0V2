@@ -76,39 +76,40 @@ struct ShapeDrawer::Impl : ShapeDrawerComponent::Subscribable
 
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentPointer(), m_descriptorManager.CurrentHeap().table);
 
+        auto&& component = ShapeDrawerComponent::Instance;
         if (shape.isHolds<Shape2D::Rectangle>())
         {
-            m_stateManager.RequestPixelShader(s_component->m_ps.shape);
+            m_stateManager.RequestPixelShader(component->m_ps.shape);
             applyNextState();
             ShapeBuilder2D::BuildRetangle(m_bufferCreator, shape.get<Shape2D::Rectangle>());
         }
         else if (shape.isHolds<Shape2D::Line>())
         {
-            m_stateManager.RequestPixelShader(s_component->m_ps.shape);
+            m_stateManager.RequestPixelShader(component->m_ps.shape);
             applyNextState();
             ShapeBuilder2D::BuildLine(m_bufferCreator, shape.get<Shape2D::Line>());
         }
         else if (shape.isHolds<Shape2D::SquareDotLine>())
         {
-            m_stateManager.RequestPixelShader(s_component->m_ps.squareDot);
+            m_stateManager.RequestPixelShader(component->m_ps.squareDot);
             applyNextState();
             ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator, shape.get<Shape2D::SquareDotLine>(), maxScaling);
         }
         else if (shape.isHolds<Shape2D::Path>())
         {
-            m_stateManager.RequestPixelShader(s_component->m_ps.shape);
+            m_stateManager.RequestPixelShader(component->m_ps.shape);
             applyNextState();
             ShapeBuilder2D::BuildPath(m_bufferCreator, shape.get<Shape2D::Path>());
         }
         else if (shape.isHolds<Shape2D::CyclePath>())
         {
-            m_stateManager.RequestPixelShader(s_component->m_ps.shape);
+            m_stateManager.RequestPixelShader(component->m_ps.shape);
             applyNextState();
             ShapeBuilder2D::BuildCyclePath(m_bufferCreator, shape.get<Shape2D::CyclePath>());
         }
         else if (shape.isHolds<Shape2D::Text>())
         {
-            m_stateManager.RequestPixelShader(s_component->m_ps.bitmapFont);
+            m_stateManager.RequestPixelShader(component->m_ps.bitmapFont);
             applyNextState();
             ShapeBuilder2D::BuildText(m_bufferCreator, shape.get<Shape2D::Text>());
         }
@@ -205,7 +206,7 @@ namespace TY
     ShapeDrawer::ShapeDrawer() :
         p_impl(std::make_shared<Impl>())
     {
-        s_component->m_subscribableList.push_back(p_impl);
+        ShapeDrawerComponent::Instance->m_subscribableList.push_back(p_impl);
     }
 
     const ShapeDrawer& ShapeDrawer::push(const Shape2D::shape_type& shape) const

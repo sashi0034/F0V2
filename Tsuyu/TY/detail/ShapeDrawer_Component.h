@@ -8,10 +8,10 @@ namespace TY::ShapeDrawer_detail
 {
     const std::string ShaderPath = "asset/shader/shape2d.hlsl";
 
-    inline struct ShapeDrawerComponent* s_component;
-
     struct ShapeDrawerComponent : IComponent
     {
+        static inline ShapeDrawerComponent* Instance{};
+
         struct Subscribable
         {
             virtual ~Subscribable() = default;
@@ -38,47 +38,12 @@ namespace TY::ShapeDrawer_detail
 
         Array<std::shared_ptr<Subscribable>> m_subscribableList{};
 
-        bool init() override
-        {
-            assert(not s_component);
+        bool init() override;
 
-            s_component = this;
+        ~ShapeDrawerComponent() override;
 
-            return true;
-        }
+        void beforeFlush() override;
 
-        ~ShapeDrawerComponent()
-        {
-            if (s_component == this)
-            {
-                s_component = nullptr;
-            }
-        }
-
-        void beforeFlush() override
-        {
-            for (auto it = m_subscribableList.begin(); it != m_subscribableList.end();)
-            {
-                it->get()->beforeFlush();
-
-                if (it->get()->m_shouldRemove)
-                {
-                    it = m_subscribableList.erase(it);
-                }
-                else
-                {
-                    ++it;
-                }
-            }
-        }
-
-        void afterPresent() override
-        {
-            for (auto it = m_subscribableList.begin(); it != m_subscribableList.end();)
-            {
-                it->get()->afterPresent();
-                ++it;
-            }
-        }
+        void afterPresent() override;
     };
 }
