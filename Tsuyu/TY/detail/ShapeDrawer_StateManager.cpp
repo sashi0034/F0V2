@@ -33,7 +33,7 @@ namespace
                     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                     {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
                 },
-                .options = GraphicsOptions::Default3D(),
+                .options = GraphicsOptions::Default3D().setTopology(GraphicsPrimitiveTopology::LineList),
                 .descriptorTable = descriptorTable
             };
         }

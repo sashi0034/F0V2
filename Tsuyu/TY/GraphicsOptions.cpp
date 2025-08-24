@@ -92,6 +92,12 @@ namespace TY
         return *this;
     }
 
+    GraphicsOptions& GraphicsOptions::setTopology(GraphicsPrimitiveTopology topology_)
+    {
+        topology = topology_;
+        return *this;
+    }
+
     GraphicsOptions GraphicsOptions::Default3D()
     {
         GraphicsOptions settings{};

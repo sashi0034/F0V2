@@ -67,6 +67,20 @@ namespace
             return {};
         }
     }
+
+    D3D12_PRIMITIVE_TOPOLOGY_TYPE getPrimitiveTopology(GraphicsPrimitiveTopology topo)
+    {
+        switch (topo)
+        {
+        case GraphicsPrimitiveTopology::TriangleList:
+            return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        case GraphicsPrimitiveTopology::LineList:
+            return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+        default:
+            assert(false);
+            return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+        }
+    }
 }
 
 struct GraphicsPipelineState::Impl : IEngineHotReloadable
@@ -203,7 +217,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.InputLayout.NumElements = static_cast<UINT>(inputLayout.size());
 
         pipelineDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED; // ストリップ時のカットなし
-        pipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // 三角形で構成
+        pipelineDesc.PrimitiveTopologyType = getPrimitiveTopology(params.options.topology);
 
         auto rtvFormats = params.options.rtvFormats;
         if (params.options.rtvFormats.size() >= 8)

@@ -93,12 +93,19 @@ namespace TY
         static GraphicsDepthOptions Default3D();
     };
 
+    enum class GraphicsPrimitiveTopology : uint8_t
+    {
+        TriangleList,
+        LineList
+    };
+
     struct GraphicsOptions
     {
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
         GraphicsRasterizerOptions rasterizer{};
         GraphicsDepthOptions depth{};
         Array<GraphicsFormat> rtvFormats{DXGI_FORMAT_R8G8B8A8_UNORM};
+        GraphicsPrimitiveTopology topology{GraphicsPrimitiveTopology::TriangleList};
 
         GraphicsOptions& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
 
@@ -109,6 +116,8 @@ namespace TY
         GraphicsOptions& setDepth(const GraphicsDepthOptions& depth_);
 
         GraphicsOptions& setRtvFormats(const Array<GraphicsFormat>& formats);
+
+        GraphicsOptions& setTopology(GraphicsPrimitiveTopology topology_);
 
         bool operator ==(const GraphicsOptions& other) const = default;
 
