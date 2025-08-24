@@ -7,6 +7,35 @@
 #include "detail/EngineRenderContext.h"
 #include "detail/EngineStateContext.h"
 
+using namespace TY;
+using namespace TY::detail;
+
+namespace
+{
+    void drawInternal(
+        const VertexBufferCore& vertexBuffer,
+        const IndexBuffer& indexBuffer,
+        int indexCount,
+        D3D12_PRIMITIVE_TOPOLOGY topology)
+    {
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
+
+        if (not vertexBuffer.isEmpty())
+        {
+            vertexBuffer.commandSet();
+            indexBuffer.commandSet();
+
+            commandList->IASetPrimitiveTopology(topology);
+            commandList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
+        }
+        else
+        {
+            commandList->IASetPrimitiveTopology(topology);
+            commandList->DrawInstanced(indexCount, 1, 0, 0);
+        }
+    }
+}
+
 namespace TY
 {
     using namespace detail;
@@ -28,20 +57,16 @@ namespace TY
 
     void Graphics3D::DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
+        drawInternal(vertexBuffer, indexBuffer, indexCount, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    }
 
-        if (not vertexBuffer.isEmpty())
-        {
-            vertexBuffer.commandSet();
-            indexBuffer.commandSet();
+    void Graphics3D::DrawLines(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer)
+    {
+        DrawLines(vertexBuffer, indexBuffer, indexBuffer.count());
+    }
 
-            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            commandList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
-        }
-        else
-        {
-            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            commandList->DrawInstanced(indexCount, 1, 0, 0);
-        }
+    void Graphics3D::DrawLines(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
+    {
+        drawInternal(vertexBuffer, indexBuffer, indexCount, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
     }
 }

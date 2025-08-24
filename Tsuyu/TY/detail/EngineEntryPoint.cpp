@@ -28,6 +28,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // -----------------------------------------------
 
+#ifdef _DEBUG
+    Main();
+#else
     try
     {
         Main();
@@ -38,6 +41,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         LogError.hr().writeln(message);
         System::ModalError(message);
     }
+#endif
 
     if (EngineCore::IsInFrame()) EngineCore::EndFrame();
 

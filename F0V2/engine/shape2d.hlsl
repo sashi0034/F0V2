@@ -9,7 +9,13 @@ struct PSInput
     float4 color : COLOR0;
 };
 
-cbuffer ShapeDrawer : register(b0)
+cbuffer SceneState : register(b0)
+{
+    float4x4 g_projectionMatrix;
+    float4x4 g_viewMatrix;
+}
+
+cbuffer ShapeDrawer : register(b1)
 {
     row_major float2x4 g_transform;
     float4 g_colorMul;

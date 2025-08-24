@@ -11,8 +11,9 @@ namespace TY::ShapeDrawer_detail
         {
             GraphicsPipelineStateParams psoParams{};
             SD_DescriptorManager::element_pointer descriptor{};
+            bool is3D{}; // 2D if false
 
-            static state_type Default(const DescriptorTable& descriptorTable);
+            static state_type Default(bool is3D, const DescriptorTable& descriptorTable);
         };
 
         void Reset(const DescriptorTable& descriptorTable);
@@ -22,6 +23,10 @@ namespace TY::ShapeDrawer_detail
             const DescriptorTable& descriptorTable);
 
         void RequestPixelShader(const PixelShader& ps);
+
+        void request2D();
+
+        void request3D();
 
         const state_type& Current() const
         {

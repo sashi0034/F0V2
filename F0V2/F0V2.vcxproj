@@ -167,6 +167,7 @@
     <ClCompile Include="Demo\Demo_Ocean.cpp" />
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />
     <ClCompile Include="Demo\Demo_ShapeDrawer.cpp" />
+    <Content Include="engine\shape3d.hlsl" />
     <ClCompile Include="TY_Extension\AwaiterContext.cpp" />
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
     <ClCompile Include="TY_Extension\LivePPAddon.cpp" />

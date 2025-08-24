@@ -12,9 +12,9 @@ namespace TY::ShapeDrawer_detail
             DescriptorHeap descriptorHeap{};
             DescriptorTable table{};
 
-            ConstantBuffer<ShapeDrawer_b0> cbv0{};
-            Array<ShapeDrawer_b0> cb0_value{};
-            int next_cb0{};
+            ConstantBuffer<ShapeDrawer_b1> cbv1{};
+            Array<ShapeDrawer_b1> cbv1_value{};
+            int next_cbv1{};
 
             struct key_type
             {
@@ -28,25 +28,25 @@ namespace TY::ShapeDrawer_detail
 
             bool isFull() const
             {
-                return next_cb0 >= cbv0.materialCount();
+                return next_cbv1 >= cbv1.materialCount();
             }
 
             void resetSrv0(const TextureResource& srv)
             {
-                constexpr int tableId = 1;
+                constexpr int tableId = 0;
                 keyResource.srv0 = srv;
                 descriptorHeap.resetSrv(srv, tableId, 0);
             }
 
             static constexpr int DefaultCapacity = 4;
 
-            static heap_type Create(const key_type& key, int cb0_capacity = DefaultCapacity);
+            static heap_type Create(const key_type& key, int cbv1_capacity = DefaultCapacity);
         };
 
         struct element_pointer
         {
             int heapIndex{-1};
-            int cb0_index{-1};
+            int cb1_index{-1};
 
             bool isValid() const
             {
@@ -99,6 +99,6 @@ namespace TY::ShapeDrawer_detail
 
         element_pointer fetchHeap(const heap_type::key_type& keyResource);
 
-        element_pointer pushBackNewHeap(const heap_type::key_type& keyResource, int cb0_capacity);
+        element_pointer pushBackNewHeap(const heap_type::key_type& keyResource, int cbv1_capacity);
     };
 }

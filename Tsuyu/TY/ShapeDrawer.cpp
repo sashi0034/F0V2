@@ -6,6 +6,7 @@
 #include "IndexBuffer.h"
 #include "InlineComponent.h"
 #include "ShapeBuilder2D.h"
+#include "ShapeBuilder3D.h"
 #include "VertexBuffer.h"
 #include "detail/EngineComponent.h"
 #include "detail/EngineRenderContext.h"
@@ -26,14 +27,30 @@ namespace
         GraphicsPipelineState pso{};
         SD_DescriptorManager::element_pointer descriptor{};
         IndexBuffer indexBuffer{Empty};
-        VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer{Empty};
+        VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer2D{Empty};
+        VertexBuffer<ShapeBuilder3D::Vertex3D> vertexBuffer3D{Empty};
         size_t indexCount{0};
+        bool is3D{};
+
+        template <bool is3D>
+        auto& getVertexBuffer()
+        {
+            if constexpr (is3D)
+            {
+                return vertexBuffer3D;
+            }
+            else
+            {
+                return vertexBuffer2D;
+            }
+        }
     };
 }
 
 struct ShapeDrawer::Impl : RenderEvent::Lister
 {
-    ShapeBuilder2D::BufferCreator m_bufferCreator{};
+    ShapeBuilder2D::BufferCreator m_bufferCreator2D{};
+    ShapeBuilder3D::BufferCreator m_bufferCreator3D{};
 
     ArrayPool<BufferUnit> m_bufferUnitList{};
 
@@ -70,49 +87,50 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
         m_descriptorManager.RequestTransform(transformMatrix);
 
+        m_stateManager.request2D();
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentPointer(), m_descriptorManager.CurrentHeap().table);
 
         auto&& component = ShapeDrawerComponent::Instance;
         if (shape.isHolds<Shape2D::Rectangle>())
         {
-            m_stateManager.RequestPixelShader(component->m_ps.shape);
+            m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             applyNextState();
-            ShapeBuilder2D::BuildRetangle(m_bufferCreator, shape.get<Shape2D::Rectangle>());
+            ShapeBuilder2D::BuildRetangle(m_bufferCreator2D, shape.get<Shape2D::Rectangle>());
         }
         else if (shape.isHolds<Shape2D::Line>())
         {
-            m_stateManager.RequestPixelShader(component->m_ps.shape);
+            m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             applyNextState();
-            ShapeBuilder2D::BuildLine(m_bufferCreator, shape.get<Shape2D::Line>());
+            ShapeBuilder2D::BuildLine(m_bufferCreator2D, shape.get<Shape2D::Line>());
         }
         else if (shape.isHolds<Shape2D::SquareDotLine>())
         {
-            m_stateManager.RequestPixelShader(component->m_ps.squareDot);
+            m_stateManager.RequestPixelShader(component->m_ps2d.squareDot);
             applyNextState();
-            ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator, shape.get<Shape2D::SquareDotLine>(), maxScaling);
+            ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator2D, shape.get<Shape2D::SquareDotLine>(), maxScaling);
         }
         else if (shape.isHolds<Shape2D::Path>())
         {
-            m_stateManager.RequestPixelShader(component->m_ps.shape);
+            m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             applyNextState();
-            ShapeBuilder2D::BuildPath(m_bufferCreator, shape.get<Shape2D::Path>());
+            ShapeBuilder2D::BuildPath(m_bufferCreator2D, shape.get<Shape2D::Path>());
         }
         else if (shape.isHolds<Shape2D::CyclePath>())
         {
-            m_stateManager.RequestPixelShader(component->m_ps.shape);
+            m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             applyNextState();
-            ShapeBuilder2D::BuildCyclePath(m_bufferCreator, shape.get<Shape2D::CyclePath>());
+            ShapeBuilder2D::BuildCyclePath(m_bufferCreator2D, shape.get<Shape2D::CyclePath>());
         }
         else if (shape.isHolds<Shape2D::Text>())
         {
             auto& font = shape.get<Shape2D::Text>().font;
             if (font.isBitmap())
             {
-                m_stateManager.RequestPixelShader(component->m_ps.bitmapFont);
+                m_stateManager.RequestPixelShader(component->m_ps2d.bitmapFont);
             }
             else if (font.isSdf())
             {
-                m_stateManager.RequestPixelShader(component->m_ps.sdfFont);
+                m_stateManager.RequestPixelShader(component->m_ps2d.sdfFont);
             }
             else
             {
@@ -120,7 +138,28 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
             }
 
             applyNextState();
-            ShapeBuilder2D::BuildText(m_bufferCreator, shape.get<Shape2D::Text>());
+            ShapeBuilder2D::BuildText(m_bufferCreator2D, shape.get<Shape2D::Text>());
+        }
+        else
+        {
+            assert(false);
+        }
+    }
+
+    void Push(const Shape3D::shape_type& shape)
+    {
+        const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
+        m_descriptorManager.RequestTransform(transformMatrix);
+
+        m_stateManager.request3D();
+        m_stateManager.RequestDescriptor(m_descriptorManager.CurrentPointer(), m_descriptorManager.CurrentHeap().table);
+
+        auto&& component = ShapeDrawerComponent::Instance;
+        if (shape.isHolds<Shape3D::Line>())
+        {
+            m_stateManager.RequestPixelShader(component->m_ps3d.shape);
+            applyNextState();
+            ShapeBuilder3D::BuildLine(m_bufferCreator3D, shape.get<Shape3D::Line>());
         }
         else
         {
@@ -140,14 +179,21 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
 
             m_descriptorManager.CommandSet(buffer.descriptor);
 
-            Graphics3D::DrawTriangles(buffer.vertexBuffer, buffer.indexBuffer, buffer.indexCount);
+            if (buffer.is3D)
+            {
+                Graphics3D::DrawLines(buffer.vertexBuffer3D, buffer.indexBuffer, buffer.indexCount);
+            }
+            else
+            {
+                Graphics3D::DrawTriangles(buffer.vertexBuffer2D, buffer.indexBuffer, buffer.indexCount);
+            }
         }
     }
 
 private:
     void resetDrawState()
     {
-        m_bufferCreator.clear();
+        m_bufferCreator2D.clear();
         m_bufferUnitList.logical_resize(0);
         m_descriptorManager.Reset();
         m_stateManager.Reset(m_descriptorManager.CurrentHeap().table);
@@ -164,39 +210,56 @@ private:
 
     void flushCurrentBuffer(const SD_StateManager::state_type& state)
     {
-        for (const auto& buffer : m_bufferCreator.buffers())
+        for (const auto& buffer : m_bufferCreator2D.buffers())
         {
-            m_bufferUnitList.add_logical_size(1);
-
-            m_bufferUnitList.logical_back().pso = GraphicsPipelineState{state.psoParams};
-
-            m_bufferUnitList.logical_back().descriptor = state.descriptor;
-            assert(state.descriptor.isValid());
-
-            auto& indexBuffer = m_bufferUnitList.logical_back().indexBuffer;
-            auto& vertexBuffer = m_bufferUnitList.logical_back().vertexBuffer;
-
-            // インデックスと頂点バッファのサイズを確認し、必要に応じて再確保
-            if (indexBuffer.count() < buffer.indices.size())
-            {
-                // ここでは、あえて size() ではなく capacity() の値を用いる
-                indexBuffer =
-                    IndexBuffer(Min<int>(buffer.indices.capacity(), UINT16_MAX));
-            }
-
-            if (vertexBuffer.count() < buffer.vertices.size())
-            {
-                vertexBuffer =
-                    VertexBuffer<ShapeBuilder2D::Vertex2D>(Min<int>(buffer.vertices.capacity(), UINT16_MAX));
-            }
-
-            // インデックスと頂点バッファにデータをアップロード
-            indexBuffer.upload(buffer.indices);
-            vertexBuffer.upload(buffer.vertices);
-            m_bufferUnitList.logical_back().indexCount = buffer.indices.size();
+            flushCurrentBuffer_internal<ShapeBuilder2D::Vertex2D, false>(state, buffer);
         }
 
-        m_bufferCreator.clear();
+        m_bufferCreator2D.clear();
+
+        for (const auto& buffer : m_bufferCreator3D.buffers())
+        {
+            flushCurrentBuffer_internal<ShapeBuilder3D::Vertex3D, true>(state, buffer);
+        }
+
+        m_bufferCreator3D.clear();
+    }
+
+    // using VertexType = ShapeBuilder2D::Vertex2D; // for IDE
+    template <typename VertexType, bool is3D>
+    void flushCurrentBuffer_internal(
+        const SD_StateManager::state_type& state,
+        const ShapeBufferCreator<VertexType>::buffer_type& buffer)
+    {
+        m_bufferUnitList.add_logical_size(1);
+
+        m_bufferUnitList.logical_back().pso = GraphicsPipelineState{state.psoParams};
+
+        m_bufferUnitList.logical_back().descriptor = state.descriptor;
+        assert(state.descriptor.isValid());
+
+        auto& indexBuffer = m_bufferUnitList.logical_back().indexBuffer;
+        auto& vertexBuffer = m_bufferUnitList.logical_back().getVertexBuffer<is3D>();
+
+        // インデックスと頂点バッファのサイズを確認し、必要に応じて再確保
+        if (indexBuffer.count() < buffer.indices.size())
+        {
+            // ここでは、あえて size() ではなく capacity() の値を用いる
+            indexBuffer =
+                IndexBuffer(Min<int>(buffer.indices.capacity(), UINT16_MAX));
+        }
+
+        if (vertexBuffer.count() < buffer.vertices.size())
+        {
+            vertexBuffer =
+                VertexBuffer<VertexType>(Min<int>(buffer.vertices.capacity(), UINT16_MAX));
+        }
+
+        // インデックスと頂点バッファにデータをアップロード
+        indexBuffer.upload(buffer.indices);
+        vertexBuffer.upload(buffer.vertices);
+        m_bufferUnitList.logical_back().indexCount = buffer.indices.size();
+        m_bufferUnitList.logical_back().is3D = is3D;
     }
 };
 
@@ -219,6 +282,15 @@ namespace TY
     }
 
     const ShapeDrawer& ShapeDrawer::push(const Shape2D::shape_type& shape) const
+    {
+        if (not p_impl) return *this;
+
+        p_impl->Push(shape);
+
+        return *this;
+    }
+
+    const ShapeDrawer& ShapeDrawer::push(const Shape3D::shape_type& shape) const
     {
         if (not p_impl) return *this;
 

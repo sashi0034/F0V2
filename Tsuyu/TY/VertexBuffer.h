@@ -17,6 +17,8 @@ namespace TY
 
         int count() const;
 
+        size_t size_in_bytes() const;
+
         void upload(const void* data);
 
         void upload(const void* data, int count);

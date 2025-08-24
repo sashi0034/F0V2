@@ -1,16 +1,12 @@
 ﻿#include "pch.h"
 #include "ShapeBuilder2D.h"
 
-#include "Logger.h"
-
 using namespace TY;
 
 // reference: https://github.com/Siv3D/OpenSiv3D/blob/main/Siv3D/src/Siv3D/Renderer2D/Vertex2DBuilder.cpp
 
 namespace
 {
-    constexpr int maxIndices = 65535;
-
     constexpr std::array<ShapeBuilder2D::index_type, 6> rectIndexTable = {0, 1, 2, 2, 1, 3}; // 1-2 対角線
 
     constexpr std::array<ShapeBuilder2D::index_type, 6> rectIndexTable02 = {0, 1, 2, 2, 0, 3}; // 0-2 対角線
@@ -53,54 +49,6 @@ namespace TY
             pos = pos_;
             tex = tex_;
             color = color_.toFloat4();
-        }
-
-        bool BufferSpan::isEmpty() const
-        {
-            return vertices.empty() || indices.empty();
-        }
-
-        BufferSpan BufferCreator::request(int vertexCount, int indexCount)
-        {
-            if (indexCount > maxIndices || vertexCount > maxIndices)
-            {
-                LogError.writeln("BufferCreator: Requested vertex or index count exceeds maximum allowed size.");
-                return {};
-            }
-
-            // インデックスバッファの容量が一杯になった場合は次のバッファを使う
-            if (m_buffers.logical_empty() ||
-                static_cast<int>(m_buffers.logical_back().indices.size()) + indexCount > maxIndices)
-            {
-                m_buffers.add_logical_size(1);
-                m_buffers.logical_back().indices.resize(0);
-                m_buffers.logical_back().vertices.resize(0);
-            }
-
-            auto& buffer = m_buffers.logical_back();
-
-            const size_t currentVertexCount = buffer.vertices.size();
-            const size_t currentIndexCount = buffer.indices.size();
-
-            buffer.vertices.resize(static_cast<int>(buffer.vertices.size()) + vertexCount);
-            buffer.indices.resize(static_cast<int>(buffer.indices.size()) + indexCount);
-
-            BufferSpan span;
-            span.vertices = {buffer.vertices.data() + currentVertexCount, static_cast<uint16_t>(vertexCount)};
-            span.indices = {buffer.indices.data() + currentIndexCount, static_cast<uint16_t>(indexCount)};
-            span.indexOffset = static_cast<uint16_t>(currentVertexCount);
-
-            return span;
-        }
-
-        void BufferCreator::clear()
-        {
-            m_buffers.logical_resize(0);
-        }
-
-        void BufferCreator::step()
-        {
-            m_buffers.add_logical_size(1);
         }
 
         // -----------------------------------------------

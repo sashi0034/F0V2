@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Shape2D.h"
+#include "Shape3D.h"
 
 namespace TY
 {
@@ -9,6 +10,8 @@ namespace TY
         ShapeDrawer();
 
         const ShapeDrawer& push(const Shape2D::shape_type& shape) const;
+
+        const ShapeDrawer& push(const Shape3D::shape_type& shape) const;
 
         const ShapeDrawer& operator <<(const Shape2D::shape_type& shape) const;
 

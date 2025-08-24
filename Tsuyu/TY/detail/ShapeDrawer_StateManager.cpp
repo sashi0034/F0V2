@@ -7,36 +7,54 @@ using namespace ShapeDrawer_detail;
 
 namespace
 {
-    GraphicsPipelineStateParams getDefaultPsoParams(const DescriptorTable& descriptorTable)
+    GraphicsPipelineStateParams getDefaultPsoParams(bool is3D, const DescriptorTable& descriptorTable)
     {
         auto&& component = ShapeDrawerComponent::Instance;
-        return GraphicsPipelineStateParams{
-            .shader = GraphicsShader{component->m_vs, component->m_ps.shape},
-            .vertexInput = {
-                {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
-                {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
-                {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
-            },
-            .options = GraphicsOptions(),
-            // .setRasterizer(GraphicsRasterizerOptions().setFill(GraphicsFillMode::Wireframe)),
-            .descriptorTable = descriptorTable
-        };
+
+        if (not is3D)
+        {
+            return GraphicsPipelineStateParams{
+                .shader = GraphicsShader{component->m_vs2d, component->m_ps2d.shape},
+                .vertexInput = {
+                    {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT},
+                    {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
+                    {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
+                },
+                .options = GraphicsOptions(),
+                // .setRasterizer(GraphicsRasterizerOptions().setFill(GraphicsFillMode::Wireframe)),
+                .descriptorTable = descriptorTable
+            };
+        }
+        else
+        {
+            return GraphicsPipelineStateParams{
+                .shader = GraphicsShader{component->m_vs3d, component->m_ps3d.shape},
+                .vertexInput = {
+                    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT},
+                    {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT},
+                },
+                .options = GraphicsOptions::Default3D(),
+                .descriptorTable = descriptorTable
+            };
+        }
     }
 }
 
 namespace TY::ShapeDrawer_detail
 {
-    SD_StateManager::state_type SD_StateManager::state_type::Default(const DescriptorTable& descriptorTable)
+    SD_StateManager::state_type SD_StateManager::state_type::Default(
+        bool is3D,
+        const DescriptorTable& descriptorTable)
     {
         return state_type{
-            .psoParams = getDefaultPsoParams(descriptorTable),
+            .psoParams = getDefaultPsoParams(is3D, descriptorTable),
             .descriptor = {}
         };
     }
 
     void SD_StateManager::Reset(const DescriptorTable& descriptorTable)
     {
-        m_current = state_type::Default(descriptorTable);
+        m_current = state_type::Default(false, descriptorTable);
         m_next.reset();
     }
 
@@ -61,6 +79,24 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
+    void SD_StateManager::request2D()
+    {
+        if (m_current.is3D)
+        {
+            getNext().psoParams = getDefaultPsoParams(false, m_current.psoParams.descriptorTable);
+            // TODO: 2D から設定引き継ぎ?
+        }
+    }
+
+    void SD_StateManager::request3D()
+    {
+        if (not m_current.is3D)
+        {
+            getNext().psoParams = getDefaultPsoParams(true, m_current.psoParams.descriptorTable);
+            // TODO: 3D から設定引き継ぎ?
+        }
+    }
+
     std::optional<SD_StateManager::state_type> SD_StateManager::ApplyNext()
     {
         if (m_next.has_value())
@@ -81,7 +117,7 @@ namespace TY::ShapeDrawer_detail
             return m_next.value();
         }
 
-        m_next = state_type::Default(m_current.psoParams.descriptorTable);
+        m_next = state_type::Default(false, m_current.psoParams.descriptorTable);
         m_next->descriptor = m_current.descriptor;
         return m_next.value();
     }

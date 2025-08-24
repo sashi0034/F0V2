@@ -15,5 +15,9 @@ namespace TY
         void DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer);
 
         void DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
+
+        void DrawLines(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer);
+
+        void DrawLines(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
     }
 }

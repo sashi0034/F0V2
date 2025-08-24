@@ -1,7 +1,6 @@
 ﻿#pragma once
-#include "Array.h"
-#include "ArrayPool.h"
 #include "Shape2D.h"
+#include "ShapeBufferCreator.h"
 #include "Vector2D.h"
 #include "Vector4D.h"
 
@@ -20,40 +19,9 @@ namespace TY
             void set(const Float2& pos_, const Float2& tex_, const ColorF32& color_);
         };
 
-        using index_type = uint16_t;
+        using BufferCreator = ShapeBufferCreator<Vertex2D>;
 
-        struct BufferSpan
-        {
-            std::span<Vertex2D> vertices;
-            std::span<index_type> indices;
-            uint16_t indexOffset;
-
-            bool isEmpty() const;
-        };
-
-        class BufferCreator
-        {
-        public:
-            struct buffer_type
-            {
-                Array<Vertex2D> vertices;
-                Array<index_type> indices;
-            };
-
-            BufferSpan request(int vertexCount, int indexCount);
-
-            void clear();
-
-            void step();
-
-            const ArrayPool<buffer_type>& buffers() const
-            {
-                return m_buffers;
-            }
-
-        private:
-            ArrayPool<buffer_type> m_buffers{};
-        };
+        using index_type = BufferCreator::index_type;
 
         // -----------------------------------------------
 

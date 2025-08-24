@@ -162,6 +162,11 @@ namespace TY
         return p_impl ? p_impl->m_count : 0;
     }
 
+    size_t VertexBufferCore::size_in_bytes() const
+    {
+        return p_impl ? p_impl->m_vertBufferView.SizeInBytes : 0;
+    }
+
     void VertexBufferCore::upload(const void* data)
     {
         if (not p_impl) return;

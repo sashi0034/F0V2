@@ -283,6 +283,11 @@ struct Demo_ShapeDrawer_impl
         // -----------------------------------------------
 
         ShapeDrawer::Global()
+            .push(Shape3D::Line{
+                    Float3{0, -5, 0},
+                    Float3{10, 30, 10}
+                }.setColor(ColorF32{1.0f, 0.3f, 0.7f})
+            )
             .push(Shape2D::Rectangle{RectF{10, 10, 100, 50}})
             .push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}}
                 .setColor(ColorF32{1.0f, 0.3f, 0.7f, 0.5f})
