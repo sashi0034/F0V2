@@ -14,7 +14,7 @@
 #include "TY/SimpleInput.h"
 #include "TY/System.h"
 #include "TY/TextureResource.h"
-#include "TY_Extension/ResourceCache.h"
+#include "TY_Extension/SerializeTransform.h"
 
 using namespace Combat;
 
@@ -22,6 +22,152 @@ using namespace TY;
 
 namespace
 {
+    void transformListEditorDemo(Array<SerializeTransform>& transformList)
+    {
+        if (ImGui::Begin("Transform List"))
+        {
+            // Add ボタン
+            if (ImGui::Button("Add Entity"))
+            {
+                transformList.push_back(SerializeTransform{
+                    "NewEntity",
+                    {0, 0, 0},
+                    {0, 0, 0},
+                    {1, 1, 1}
+                });
+            }
+
+            ImGui::Separator();
+
+            // リスト表示
+            for (size_t i = 0; i < transformList.size();)
+            {
+                auto& e = transformList[i];
+                ImGui::PushID(static_cast<int>(i)); // ID衝突防止
+
+                // タグ名を編集
+                char buffer[128];
+                std::snprintf(buffer, sizeof(buffer), "%s", e.tag.c_str());
+                if (ImGui::InputText("Tag", buffer, sizeof(buffer)))
+                {
+                    e.tag = buffer;
+                }
+
+                ImGui::DragFloat3("Position", &e.position.x, 0.1f);
+                ImGui::DragFloat3("Rotation", &e.rotation.x, 0.5f);
+                ImGui::DragFloat3("Scale", &e.scale.x, 0.1f);
+
+                // Remove ボタン
+                if (ImGui::Button("Remove"))
+                {
+                    transformList.erase(transformList.begin() + i);
+                    ImGui::PopID();
+                    continue; // eraseしたので i を進めない
+                }
+
+                ImGui::Separator();
+                ImGui::PopID();
+                ++i;
+            }
+        }
+
+        ImGui::End();
+    }
+
+    // -----------------------------------------------
+
+    const std::string transformsFilepath = "asset/edit/transforms.toml";
+
+    Float3 parse_vec3(const toml::array& arr, Float3 def = {0, 0, 0})
+    {
+        Float3 f = def;
+        if (arr.size() >= 3)
+        {
+            f.x = arr[0].value_or(def.x);
+            f.y = arr[1].value_or(def.y);
+            f.z = arr[2].value_or(def.z);
+        }
+        return f;
+    }
+
+    SerializeTransform from_toml(const toml::table& tbl)
+    {
+        SerializeTransform st;
+        st.tag = tbl["tag"].value_or<std::string>("");
+
+        if (auto* arr = tbl["transform"].as_array())
+        {
+            if (arr->size() >= 3)
+            {
+                if (auto* pos = (*arr)[0].as_array())
+                    st.position = parse_vec3(*pos, {0, 0, 0});
+                if (auto* rot = (*arr)[1].as_array())
+                    st.rotation = parse_vec3(*rot, {0, 0, 0});
+                if (auto* scale = (*arr)[2].as_array())
+                    st.scale = parse_vec3(*scale, {1, 1, 1});
+            }
+        }
+        return st;
+    }
+
+    Array<SerializeTransform> loadTransformList()
+    {
+        Array<SerializeTransform> result;
+
+        try
+        {
+            auto tbl = toml::parse_file(transformsFilepath);
+
+            if (auto* arr = tbl["list"].as_array())
+            {
+                for (auto&& node : *arr)
+                {
+                    if (auto* t = node.as_table())
+                        result.push_back(from_toml(*t));
+                }
+            }
+        }
+        catch (const toml::parse_error& err)
+        {
+            std::cerr << "TOML parse error: " << err.description() << " at " << err.source().begin << "\n";
+        }
+
+        return result;
+    }
+
+    toml::table to_toml(const SerializeTransform& st)
+    {
+        return toml::table{
+            {"tag", st.tag},
+            {
+                "transform",
+                toml::array{
+                    toml::array{st.position.x, st.position.y, st.position.z},
+                    toml::array{st.rotation.x, st.rotation.y, st.rotation.z},
+                    toml::array{st.scale.x, st.scale.y, st.scale.z},
+                },
+            }
+        };
+    }
+
+    void saveTransformList(const Array<SerializeTransform>& transformList)
+    {
+        toml::array transforms;
+        for (auto& e : transformList)
+        {
+            transforms.push_back(to_toml(e));
+        }
+
+        toml::table root{
+            {"list", transforms}
+        };
+
+        std::ofstream file(transformsFilepath);
+        file << root;
+    }
+
+    // -----------------------------------------------
+
     struct LambertLight_b4
     {
         alignas(16) Float3 lightDirection;
@@ -117,6 +263,8 @@ struct DebugPlayground::Impl : ActorBase
 
     ModelDrawer m_groundPlaneDrawer{};
 
+    Array<SerializeTransform> m_transformList{};
+
     void init()
     {
         m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
@@ -160,6 +308,8 @@ struct DebugPlayground::Impl : ActorBase
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
             .setShader(Asset_shader::model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
+
+        m_transformList = loadTransformList();
     }
 
     void update() override
@@ -214,6 +364,10 @@ struct DebugPlayground::Impl : ActorBase
         m_playerDrawer.draw();
 
         m_groundPlaneDrawer.draw();
+
+        // -----------------------------------------------
+
+        transformListEditorDemo(m_transformList);
     }
 
     void draw() const override
@@ -224,6 +378,8 @@ struct DebugPlayground::Impl : ActorBase
     void killed() override
     {
         m_children.killEach();
+
+        saveTransformList(m_transformList);
     }
 };
 

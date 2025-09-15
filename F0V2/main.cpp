@@ -31,5 +31,7 @@ void Main()
     {
         actors.updateEach();
     }
+
+    actors.killEach();
 #endif
 }

@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
+    <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
     <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
     <Content Include="asset\font\0xProto\README.md" />
     <Content Include="asset\font\RocknRoll\OFL.txt" />
@@ -222,6 +223,8 @@
     <ClInclude Include="TY_Extension\CoroutineActor.h" />
     <ClInclude Include="TY_Extension\LivePPAddon.h" />
     <ClInclude Include="TY_Extension\ResourceCache.h" />
+    <ClInclude Include="TY_Extension\SerializeTransform.h" />
+    <ClInclude Include="TY_Extension\Transform.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">
@@ -232,6 +235,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="asset\edit\" />
     <Folder Include="Combat\Player\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
