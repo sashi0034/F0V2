@@ -130,7 +130,7 @@ struct DebugPlayground::Impl : ActorBase
         m_skydomeDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShader(GraphicsShaderCache(Asset_shader::skydome))
+            .setShader(Asset_shader::skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
@@ -148,8 +148,8 @@ struct DebugPlayground::Impl : ActorBase
 
         m_playerDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(ModelBufferCache(Asset_model::tie_fighter))
-            .setShader(GraphicsShaderCache(Asset_shader::phong))
+            .setModel(Asset_model::tie_fighter)
+            .setShader(Asset_shader::phong)
             .setCbv10AndLater({phongLight})
         };
 
@@ -158,7 +158,7 @@ struct DebugPlayground::Impl : ActorBase
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
-            .setShader(GraphicsShaderCache(Asset_shader::model))
+            .setShader(Asset_shader::model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
     }
 

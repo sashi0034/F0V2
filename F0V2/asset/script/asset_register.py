@@ -2,24 +2,49 @@
 # -*- coding: utf-8 -*-
 
 """
-Generate `AssetPath.generated.h` by scanning:
-- F0V2/asset/shader/**.hlsl
-- F0V2/asset/model/**.obj
+Generate `Assets.generated.h` by scanning asset directories.
+
+Default targets (easy to extend via ASSET_SPECS):
+- F0V2/asset/shader/**.hlsl  -> namespace Asset_shader
+- F0V2/asset/model/**.obj    -> namespace Asset_model
 
 Searches upward from the current directory until a directory named "F0V2" is found.
 Writes the header into that root directory.
 
-Entry point: __name__ == "main" (also supports the usual "__main__").
+Entry point: __name__ in {"main", "__main__"}.
 """
 
 from __future__ import annotations
 import os
 from pathlib import Path
 import re
-from typing import Dict, List, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Iterable
 
 ROOT_DIR_NAME = "F0V2"
 OUTPUT_FILENAME = "Assets.generated.h"
+
+CPP_VALUE_DECL = "static const inline"
+CPP_INCLUDE = ["<string>", "\"ResourcePathWrapper.h\""]
+
+
+# -----------------------------------------------
+# 設定: ここにカテゴリを足すだけで拡張できます
+
+@dataclass(frozen=True)
+class AssetSpec:
+    namespace: str  # 出力するC++のnamespace名
+    typename: str  # パスの型名
+    subdir: Tuple[str, ...]  # ルートからの相対ディレクトリ（分割）
+    globs: Tuple[str, ...]  # 収集するglobパターン（複数可）
+
+
+# 例: テクスチャ系を追加したい場合
+# AssetSpec("Asset_texture", ("asset", "texture"), ("**/*.png", "**/*.jpg"))
+ASSET_SPECS: List[AssetSpec] = [
+    AssetSpec("Asset_shader", "ShaderPathWrapper", ("asset", "shader"), ("**/*.hlsl",)),
+    AssetSpec("Asset_model", "ModelPathWrapper", ("asset", "model"), ("**/*.obj",)),
+]
 
 
 # -----------------------------------------------
@@ -58,28 +83,26 @@ def make_identifier(stem: str, used: set[str]) -> str:
     return name
 
 
-def collect_paths(root: Path) -> Tuple[List[Path], List[Path]]:
-    """Collect shader .hlsl paths and model .obj paths under root."""
-    shader_root = root / "asset" / "shader"
-    model_root = root / "asset" / "model"
-
-    shader_files: List[Path] = []
-    model_files: List[Path] = []
-
-    if shader_root.is_dir():
-        shader_files = sorted(shader_root.rglob("*.hlsl"))
-    if model_root.is_dir():
-        model_files = sorted(model_root.rglob("*.obj"))
-
-    return shader_files, model_files
-
-
 def to_posix_rel(root: Path, p: Path) -> str:
     """Return a forward-slash relative path string from root."""
     return p.resolve().relative_to(root.resolve()).as_posix()
 
 
-def emit_namespace(namespace: str, entries: List[Tuple[str, str]]) -> str:
+def iter_files(base: Path, patterns: Iterable[str]) -> Iterable[Path]:
+    """base 以下を patterns で列挙（存在しない場合は空）。"""
+    if not base.is_dir():
+        return []
+    out: List[Path] = []
+    for pat in patterns:
+        out.extend(base.rglob(pat))
+    # 重複除去して安定化
+    return sorted(set(out))
+
+
+# -----------------------------------------------
+# Emission
+
+def emit_namespace(namespace: str, typename: str, entries: List[Tuple[str, str]]) -> str:
     """
     Build C++ namespace block.
     entries: list of (identifier, path_string)
@@ -88,7 +111,7 @@ def emit_namespace(namespace: str, entries: List[Tuple[str, str]]) -> str:
     lines.append(f"namespace {namespace}")
     lines.append("{")
     for ident, relpath in entries:
-        lines.append(f'    static const inline std::string {ident} = "{relpath}";')
+        lines.append(f'    {CPP_VALUE_DECL} {typename} {ident}{{"{relpath}"}};')
     lines.append("}")
     lines.append("")  # trailing newline
     return "\n".join(lines)
@@ -97,54 +120,57 @@ def emit_namespace(namespace: str, entries: List[Tuple[str, str]]) -> str:
 # -----------------------------------------------
 # Main
 
+def build_entries_for_spec(root: Path, spec: AssetSpec) -> List[Tuple[str, str]]:
+    """AssetSpec に基づいて (identifier, relpath) のリストを作る。"""
+    base = root.joinpath(*spec.subdir)
+    files = iter_files(base, spec.globs)
+
+    used: set[str] = set()
+    entries: List[Tuple[str, str]] = []
+    for p in files:
+        ident = make_identifier(p.stem, used)
+        rel = to_posix_rel(root, p)
+        entries.append((ident, rel))
+
+    # ソートはパスで安定化
+    entries.sort(key=lambda kv: kv[1])
+    return entries
+
+
 def main() -> None:
     cwd = Path(os.getcwd())
     root = find_root_dir(cwd, ROOT_DIR_NAME)
 
-    shader_files, model_files = collect_paths(root)
+    # すべてのカテゴリを処理
+    ns_to_entries: Dict[str, List[Tuple[str, str]]] = {}
+    for spec in ASSET_SPECS:
+        ns_to_entries[spec.namespace] = build_entries_for_spec(root, spec)
 
-    # Prepare entries
-    shader_used: set[str] = set()
-    model_used: set[str] = set()
-
-    shader_entries: List[Tuple[str, str]] = []
-    for p in shader_files:
-        ident = make_identifier(p.stem, shader_used)
-        rel = to_posix_rel(root, p)
-        shader_entries.append((ident, rel))
-
-    model_entries: List[Tuple[str, str]] = []
-    for p in model_files:
-        ident = make_identifier(p.stem, model_used)
-        rel = to_posix_rel(root, p)
-        model_entries.append((ident, rel))
-
-    # Sort entries by their relative path for deterministic output
-    shader_entries.sort(key=lambda kv: kv[1])
-    model_entries.sort(key=lambda kv: kv[1])
-
-    # Build header content
+    # ヘッダー構築
     header_lines: List[str] = []
     header_lines.append("// This file is AUTO-GENERATED. Do not edit manually.")
     header_lines.append("#pragma once")
-    header_lines.append("#include <string>")
+    for inc in CPP_INCLUDE:
+        header_lines.append(f"#include {inc}")
     header_lines.append("")
-    if shader_entries:
-        header_lines.append(emit_namespace("Asset_shader", shader_entries))
-    else:
-        header_lines.append("namespace Asset_shader {}\n")
-    if model_entries:
-        header_lines.append(emit_namespace("Asset_model", model_entries))
-    else:
-        header_lines.append("namespace Asset_model {}\n")
+
+    for spec in ASSET_SPECS:
+        entries = ns_to_entries[spec.namespace]
+        if entries:
+            header_lines.append(emit_namespace(spec.namespace, spec.typename, entries))
+        else:
+            header_lines.append(f"namespace {spec.namespace} {{}}\n")
 
     content = "\n".join(header_lines).rstrip() + "\n"
 
     out_path = root / OUTPUT_FILENAME
     out_path.write_text(content, encoding="utf-8", newline="\n")
 
-    # Optional console log
-    print(f'Generated: {out_path} ({len(shader_entries)} shaders, {len(model_entries)} models)')
+    # Optional console log（各カテゴリの件数も表示）
+    counts = ", ".join(
+        f"{ns}: {len(ns_to_entries[ns])}" for ns in (spec.namespace for spec in ASSET_SPECS)
+    )
+    print(f'Generated: {out_path} ({counts})')
 
 
 # Support both the user's request and the conventional entrypoint.

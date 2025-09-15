@@ -9,8 +9,8 @@ namespace
 {
     struct CommonResourceCache : IInlineComponent
     {
-        GraphicsShaderCache_t graphicsShaderCache{};
-        ModelBufferCache_t modelBufferCache{};
+        GraphicsShaderCache::cache_type graphicsShaderCache{};
+        ModelBufferCache::cache_type modelBufferCache{};
     };
 
     InlineComponent<CommonResourceCache> s_commonResourceCache{};
@@ -18,37 +18,28 @@ namespace
 
 namespace TY
 {
-    GraphicsShader detail::DefaultGraphicsShaderCacheLoader(const std::string& path)
-    {
-        return GraphicsShader::VS_PS(path);
-    }
-
     ModelBuffer detail::DefaultModelBufferCacheLoader(const std::string& path)
     {
         return ModelBuffer(ModelLoader::Load(path));
     }
 
-    GraphicsShaderCache_t& GraphicsShaderCache()
+    GraphicsShader GraphicsShaderCache::DefaultLoad(const std::string& path)
+    {
+        return GraphicsShader::VS_PS(path);
+    }
+
+    GraphicsShaderCache::cache_type& GraphicsShaderCache::operator()() const
     {
         return s_commonResourceCache->graphicsShaderCache;
     }
 
-    GraphicsShader GraphicsShaderCache(
-        const std::string& path,
-        const std::function<GraphicsShader(const std::string& path)>& loader)
+    ModelBuffer ModelBufferCache::DefaultLoad(const std::string& path)
     {
-        return GraphicsShaderCache().fetch(path, loader);
+        return detail::DefaultModelBufferCacheLoader(path);
     }
 
-    ModelBufferCache_t& ModelBufferCache()
+    ModelBufferCache::cache_type& ModelBufferCache::operator()() const
     {
         return s_commonResourceCache->modelBufferCache;
-    }
-
-    ModelBuffer ModelBufferCache(
-        const std::string& path,
-        const std::function<ModelBuffer(const std::string& path)>& loader)
-    {
-        return ModelBufferCache().fetch(path, loader);
     }
 }

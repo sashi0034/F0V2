@@ -217,6 +217,7 @@
     <ClInclude Include="Demo\Demo_ShapeDrawer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Demo\Demo_RenderTarget.h" />
+    <ClInclude Include="ResourcePathWrapper.h" />
     <ClInclude Include="TY_Extension\AwaiterContext.h" />
     <ClInclude Include="TY_Extension\CoroutineActor.h" />
     <ClInclude Include="TY_Extension\LivePPAddon.h" />

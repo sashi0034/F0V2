@@ -11,6 +11,13 @@ namespace TY
     public:
         ResourceCache() = default;
 
+        using resource_type = T;
+
+        void upload(const std::string& path, const T& resource)
+        {
+            m_cache[path] = resource;
+        }
+
         /// @brief 登録されたローダー関数を使ってリソースを取得する
         /// @param path リソースのパス
         /// @param loader ローダー関数
@@ -54,19 +61,21 @@ namespace TY
         ModelBuffer DefaultModelBufferCacheLoader(const std::string& path);
     }
 
-    using GraphicsShaderCache_t = ResourceCache<GraphicsShader, detail::DefaultGraphicsShaderCacheLoader>;
+    struct GraphicsShaderCache
+    {
+        static GraphicsShader DefaultLoad(const std::string& path);
 
-    GraphicsShaderCache_t& GraphicsShaderCache();
+        using cache_type = ResourceCache<GraphicsShader, DefaultLoad>;
 
-    GraphicsShader GraphicsShaderCache(
-        const std::string& path,
-        const std::function<GraphicsShader(const std::string& path)>& loader = nullptr);
+        cache_type& operator ()() const;
+    };
 
-    using ModelBufferCache_t = ResourceCache<ModelBuffer, detail::DefaultModelBufferCacheLoader>;
+    struct ModelBufferCache
+    {
+        static ModelBuffer DefaultLoad(const std::string& path);
 
-    ModelBufferCache_t& ModelBufferCache();
+        using cache_type = ResourceCache<ModelBuffer, detail::DefaultModelBufferCacheLoader>;
 
-    ModelBuffer ModelBufferCache(
-        const std::string& path,
-        const std::function<ModelBuffer(const std::string& path)>& loader = nullptr);
+        cache_type& operator ()() const;
+    };
 }
