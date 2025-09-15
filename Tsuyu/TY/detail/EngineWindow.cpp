@@ -13,7 +13,7 @@ using namespace TY::detail;
 
 namespace
 {
-    constexpr Point defaultWindowSize{1280, 720};
+    constexpr Point defaultWindowSize{1600, 900};
 
     LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 

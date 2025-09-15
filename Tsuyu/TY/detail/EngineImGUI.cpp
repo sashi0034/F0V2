@@ -49,6 +49,11 @@ struct EngineImGuiImpl
 
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->AddFontFromFileTTF("engine/font/0xProto/0xProto-Regular.ttf", 14.0f);
+
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+        io.Fonts->Build();
     }
 };
 

@@ -24,7 +24,7 @@ namespace
 {
     void transformListEditorDemo(Array<SerializeTransform>& transformList)
     {
-        if (ImGui::Begin("Transform List"))
+        if (ImGui::Begin("Transform Editor"))
         {
             // Add ボタン
             if (ImGui::Button("Add Entity"))
@@ -315,6 +315,9 @@ struct DebugPlayground::Impl : ActorBase
     void update() override
     {
         m_children.updateEach();
+
+        // ウィンドウ内でドック可能にする
+        // ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
         // -----------------------------------------------
 
