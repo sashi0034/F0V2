@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TY/InlineComponent.h"
 #include "TY/ModelBuffer.h"
 #include "TY/Shader.h"
 
@@ -54,8 +55,18 @@ namespace TY
     }
 
     using GraphicsShaderCache_t = ResourceCache<GraphicsShader, detail::DefaultGraphicsShaderCacheLoader>;
-    inline GraphicsShaderCache_t GraphicsShaderCache{};
+
+    GraphicsShaderCache_t& GraphicsShaderCache();
+
+    GraphicsShader GraphicsShaderCache(
+        const std::string& path,
+        const std::function<GraphicsShader(const std::string& path)>& loader = nullptr);
 
     using ModelBufferCache_t = ResourceCache<ModelBuffer, detail::DefaultModelBufferCacheLoader>;
-    inline ModelBufferCache_t ModelBufferCache{};
+
+    ModelBufferCache_t& ModelBufferCache();
+
+    ModelBuffer ModelBufferCache(
+        const std::string& path,
+        const std::function<ModelBuffer(const std::string& path)>& loader = nullptr);
 }
