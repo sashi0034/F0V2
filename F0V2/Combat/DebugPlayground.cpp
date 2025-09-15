@@ -118,7 +118,7 @@ namespace
         {
             auto tbl = toml::parse_file(transformsFilepath);
 
-            if (auto* arr = tbl["list"].as_array())
+            if (auto* arr = tbl["transforms"].as_array())
             {
                 for (auto&& node : *arr)
                 {
@@ -159,7 +159,7 @@ namespace
         }
 
         toml::table root{
-            {"list", transforms}
+            {"transforms", transforms}
         };
 
         std::ofstream file(transformsFilepath);
@@ -335,26 +335,29 @@ struct DebugPlayground::Impl : ActorBase
 
         m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
 
-        if (not KeyShift.pressed())
+        if (not ImGui::IsAnyItemActive())
         {
-            m_camera.transformBySimpleInput();
-        }
-        else
-        {
-            const auto matrix = m_playerPose.getMatrix();
-            const auto forward = matrix.forward();
-            const auto right = matrix.right();
-            const auto up = matrix.up();
+            if (not KeyShift.pressed())
+            {
+                m_camera.transformBySimpleInput();
+            }
+            else
+            {
+                const auto matrix = m_playerPose.getMatrix();
+                const auto forward = matrix.forward();
+                const auto right = matrix.right();
+                const auto up = matrix.up();
 
-            const auto moveInput = SimpleInput::GetPlayerMovement3D();
-            constexpr auto speed = 10.0f;
-            m_playerPose.position += forward * moveInput.z * speed * System::DeltaTime();
-            m_playerPose.position += right * moveInput.x * speed * System::DeltaTime();
-            m_playerPose.position += up * moveInput.y * speed * System::DeltaTime();
+                const auto moveInput = SimpleInput::GetPlayerMovement3D();
+                constexpr auto speed = 10.0f;
+                m_playerPose.position += forward * moveInput.z * speed * System::DeltaTime();
+                m_playerPose.position += right * moveInput.x * speed * System::DeltaTime();
+                m_playerPose.position += up * moveInput.y * speed * System::DeltaTime();
 
-            const auto rotateInput = SimpleInput::GetCameraRotation();
-            constexpr auto rotationSpeed = 2.0f;
-            m_playerPose.rotation *= Quaternion::RotateY(rotateInput.x * rotationSpeed * System::DeltaTime());
+                const auto rotateInput = SimpleInput::GetCameraRotation();
+                constexpr auto rotationSpeed = 2.0f;
+                m_playerPose.rotation *= Quaternion::RotateY(rotateInput.x * rotationSpeed * System::DeltaTime());
+            }
         }
 
         // -----------------------------------------------
