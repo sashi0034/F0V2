@@ -50,23 +50,23 @@ struct $TYPE$::Impl : ActorBase
 {
 	ActorContainer m_children{};
     $END$
-	void Init()
+	void init()
 	{
 	}
 
-	void Update() override
+	void update() override
 	{
-		m_children.UpdateEach();
+		m_children.updateEach();
 	}
 
-	void Draw() const override
+	void draw() const override
 	{
-		m_children.DrawEach();
+		m_children.drawEach();
 	}
 
-	void Killed() override
+	void killed() override
 	{
-		m_children.KillEach();
+		m_children.killEach();
 	}
 };
 
@@ -79,7 +79,7 @@ namespace $NS$
 
 	void $TYPE$::init()
 	{
-		p_impl-&gt;Init();
+		p_impl-&gt;init();
 	}
 
 	std::shared_ptr&lt;ActorBase&gt; $TYPE$::asActor() const

@@ -149,18 +149,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
     <Content Include="asset\font\0xProto\README.md" />
     <Content Include="asset\font\RocknRoll\OFL.txt" />
     <Content Include="asset\font\RocknRoll\README-JP.md" />
     <Content Include="asset\font\RocknRoll\README.md" />
     <Content Include="asset\font\RocknRoll\RocknRollOne-Regular.ttf" />
+    <Content Include="asset\script\asset_register.py" />
     <Content Include="asset\shader\blinn_phong.hlsl" />
     <Content Include="asset\shader\phong_shadow.hlsl" />
     <Content Include="asset\shader\skydome.hlsl" />
     <Content Include="asset\shader\shadow_caster.hlsl" />
     <Content Include="asset\shader\r32_float_visualizer.hlsl" />
     <Content Include="asset\shader\dynamic_ocean.hlsl" />
+    <ClCompile Include="Combat\DebugPlayground.cpp" />
     <ClCompile Include="Demo\Demo_AirCombat.cpp" />
     <ClCompile Include="Demo\Demo_Basic3D.cpp" />
     <ClCompile Include="Demo\Demo_Font.cpp" />
@@ -201,8 +204,10 @@
     <Content Include="engine\shape2d.hlsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Assets.generated.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="Combat\CombatScene.h" />
+    <ClInclude Include="Combat\DebugPlayground.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
     <ClInclude Include="Demo\Demo_Font.h" />
@@ -215,6 +220,7 @@
     <ClInclude Include="TY_Extension\AwaiterContext.h" />
     <ClInclude Include="TY_Extension\CoroutineActor.h" />
     <ClInclude Include="TY_Extension\LivePPAddon.h" />
+    <ClInclude Include="TY_Extension\ResourceCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">

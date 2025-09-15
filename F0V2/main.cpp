@@ -17,8 +17,8 @@ void Main()
 {
     InitLivePPAddon();
 
-#if 1
-    Demo_ShapeDrawer();
+#if 0
+    Demo_AirCombat();
 #else
     using namespace TY;
 

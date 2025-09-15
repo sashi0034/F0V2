@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "CombatScene.h"
 
+#include "DebugPlayground.h"
 #include "TY/ActorContainer.h"
 #include "TY/Logger.h"
 #include "TY_Extension/AwaiterContext.h"
@@ -12,10 +13,15 @@ struct CombatScene::Impl : ActorBase
 {
     ActorContainer m_children{};
 
+    DebugPlayground m_debugPlayground{};
+
     CoroutineActor m_coro{};
 
     void Init()
     {
+        m_debugPlayground = m_children.birth(DebugPlayground());
+        m_debugPlayground.init();
+
         m_coro = StartCoroutine(m_children, [this](AwaiterContext& await)
         {
             await.waitForTime(2.0s);
