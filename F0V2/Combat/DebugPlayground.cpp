@@ -115,6 +115,8 @@ struct DebugPlayground::Impl : ActorBase
 
     Mat4x4 m_projectionMat{};
 
+    ModelDrawer m_groundPlaneDrawer{};
+
     void init()
     {
         m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
@@ -150,6 +152,14 @@ struct DebugPlayground::Impl : ActorBase
             .setShader(GraphicsShaderCache(Asset_shader::phong))
             .setCbv10AndLater({phongLight})
         };
+
+        const auto groundPlaneTexture = makeGroundPlane(
+            Size{1024, 1024}, 32, ColorF32{0.9}, ColorF32{0.3});
+        m_groundPlaneDrawer = ModelDrawer{
+            ModelDrawerParams{}
+            .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
+            .setShader(GraphicsShaderCache(Asset_shader::model))
+        }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
     }
 
     void update() override
@@ -202,6 +212,8 @@ struct DebugPlayground::Impl : ActorBase
         m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(m_camera.eyePosition())).draw();
 
         m_playerDrawer.draw();
+
+        m_groundPlaneDrawer.draw();
     }
 
     void draw() const override
