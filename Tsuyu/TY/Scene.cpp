@@ -22,4 +22,9 @@ namespace TY
     {
         return Size() / 2;
     }
+
+    TY::Rect Scene::Rect()
+    {
+        return TY::Rect{Point::Zero(), Size()};
+    }
 }

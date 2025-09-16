@@ -71,12 +71,12 @@ namespace TY::detail
 
     void EngineImGui::NewFrame()
     {
-        const auto windowSize = EngineWindow::WindowSize();
+        const auto windowSize = EngineWindow::GetSize();
         ImGuiIO& io = ImGui::GetIO();
         io.DisplaySize = windowSize.cast<ImVec2>();
 
         io.DisplayFramebufferScale =
-            (Float2(EngineRenderContext::FrameBufferSize()) / Float2(EngineWindow::WindowSize())).cast<ImVec2>();
+            (Float2(EngineRenderContext::FrameBufferSize()) / Float2(EngineWindow::GetSize())).cast<ImVec2>();
 
         ImGui_ImplDX12_NewFrame();
         ImGui_ImplWin32_NewFrame();

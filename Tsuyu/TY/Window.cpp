@@ -12,4 +12,14 @@ namespace TY
     {
         EngineWindow::SetTitle(title);
     }
+
+    Size Window::GetSize()
+    {
+        return EngineWindow::GetSize();
+    }
+
+    void Window::Resize(Size size)
+    {
+        EngineWindow::Resize(size);
+    }
 }

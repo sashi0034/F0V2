@@ -22,8 +22,10 @@ namespace TY::detail
         HWND Handle();
 
         [[nodiscard]]
-        Size WindowSize();
+        Size GetSize();
+
+        void Resize(Size size);
 
         void SetTitle(const std::wstring& title);
-    };
+    }
 }

@@ -73,7 +73,7 @@ namespace TY
 
         position_type tr() const
         {
-            return Float2{pos.x + size.x, pos.y};
+            return position_type{pos.x + size.x, pos.y};
         }
 
         position_type br() const
@@ -83,7 +83,7 @@ namespace TY
 
         position_type bl() const
         {
-            return Float2{pos.x, pos.y + size.y};
+            return position_type{pos.x, pos.y + size.y};
         }
 
         position_type center() const

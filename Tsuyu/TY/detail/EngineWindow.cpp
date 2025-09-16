@@ -122,6 +122,25 @@ struct EngineWindowImpl
         }
     }
 
+    void Resize(const Point& newSize)
+    {
+        m_windowSize = newSize;
+
+        RECT rect{0, 0, m_windowSize.x, m_windowSize.y};
+        AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
+
+        // FIXME: Remove it?
+        SetWindowPos(
+            m_handle,
+            nullptr,
+            0,
+            0,
+            rect.right - rect.left,
+            rect.bottom - rect.top,
+            SWP_NOMOVE | SWP_NOZORDER
+        );
+    }
+
     void Shutdown()
     {
         UnregisterClass(m_windowClass.lpszClassName, m_windowClass.hInstance);
@@ -183,9 +202,14 @@ namespace TY::detail
         return s_engineWindow.m_handle;
     }
 
-    Size EngineWindow::WindowSize()
+    Size EngineWindow::GetSize()
     {
         return s_engineWindow.m_windowSize;
+    }
+
+    void EngineWindow::Resize(Size size)
+    {
+        s_engineWindow.Resize(size);
     }
 
     void EngineWindow::SetTitle(const std::wstring& title)

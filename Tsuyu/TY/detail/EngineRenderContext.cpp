@@ -276,7 +276,7 @@ struct EngineRenderContextImpl
 private:
     RectF calculateViewportRect() const
     {
-        const auto windowSize = EngineWindow::WindowSize();
+        const auto windowSize = EngineWindow::GetSize();
 
         if (windowSize == m_frameBufferSize)
         {
@@ -307,7 +307,7 @@ private:
 
     Mat3x2 calculateWindowToFrameBuffer() const
     {
-        const Float2 windowSize = EngineWindow::WindowSize();
+        const Float2 windowSize = EngineWindow::GetSize();
         const float fameBufferScaling = (Float2(m_frameBufferSize) / windowSize).maxComponent();
         const Float2 windowSizeInScene = windowSize * fameBufferScaling;
         return Mat3x2::Identity()
