@@ -54,7 +54,7 @@ namespace
             return 0 <= p.x && p.x < width + margin * 2 && 0 <= p.y && p.y < height + margin * 2;
         }
 
-        uint8_t operator[](const Point& p) const
+        uint8_t at(const Point& p) const
         {
             if (p.x < margin || width + margin <= p.x || p.y < margin || height + margin <= p.y)
             {
@@ -74,7 +74,7 @@ namespace
         for (int i = 0; i < directionOnes.size(); ++i)
         {
             const auto p1 = p.movedBy(directionOnes[i]);
-            const bool isTransparent = bitmap.inBounds(p1) && bitmap[p1] == 0;
+            const bool isTransparent = bitmap.inBounds(p1) && bitmap.at(p1) == 0;
             if (not isTransparent) continue;
 
             const auto nextDistance = distanceField[p].distance + 1;
@@ -95,7 +95,7 @@ namespace
         for (int i = 0; i < directionOnes.size(); ++i)
         {
             const auto p1 = p.movedBy(directionOnes[i]);
-            const bool nonTransparent = bitmap.inBounds(p1) && bitmap[p1] != 0;
+            const bool nonTransparent = bitmap.inBounds(p1) && bitmap.at(p1) != 0;
             if (not nonTransparent) continue;
 
             if (distanceField[p1].dirty == false)
