@@ -153,6 +153,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Asset0.cpp" />
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
     <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
@@ -209,7 +210,8 @@
     <Content Include="engine\shape2d.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Assets.generated.h" />
+    <ClInclude Include="Asset0.h" />
+    <ClInclude Include="Asset.generated.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Combat\DebugPlayground.h" />

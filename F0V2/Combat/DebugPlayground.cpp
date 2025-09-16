@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "DebugPlayground.h"
 
-#include "Assets.generated.h"
+#include "Asset.generated.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Graphics3D.h"
@@ -10,6 +10,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/Scene.h"
+#include "TY/ShapeDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 #include "TY/System.h"

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Generate `Assets.generated.h` by scanning asset directories.
+Generate `Asset.generated.h` by scanning asset directories.
 
 Default targets (easy to extend via ASSET_SPECS):
 - F0V2/asset/shader/**.hlsl  -> namespace Asset_shader
@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Iterable
 
 ROOT_DIR_NAME = "F0V2"
-OUTPUT_FILENAME = "Assets.generated.h"
+OUTPUT_FILENAME = "Asset.generated.h"
 
 CPP_VALUE_DECL = "static const inline"
 CPP_INCLUDE = ["<string>", "\"ResourcePathWrapper.h\""]
