@@ -2,6 +2,7 @@
 #include "DebugPlayground.h"
 
 #include "Asset.generated.h"
+#include "Asset0.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Graphics3D.h"
@@ -25,6 +26,15 @@ namespace
 {
     void transformListEditorDemo(Array<SerializeTransform>& transformList)
     {
+        Shape2D::Rectangle{RectF{5, 5, 400, 50}}
+            .setColor(ColorF32{0.3})
+            .pushAuto();
+        Shape2D_Text::RocknRoll_24_Bitmap(U"デバッグ機能")
+            .setPosition(Float2{10, 10})
+            .pushAuto();
+
+        ShapeDrawer::Global().draw();
+
         if (ImGui::Begin("Transform Editor"))
         {
             // Add ボタン

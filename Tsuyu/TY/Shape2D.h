@@ -20,6 +20,8 @@ namespace TY
             Rectangle(const RectF& rect_);
 
             Rectangle& setColor(const ColorF32& color_);
+
+            void pushAuto();
         };
 
         struct SquareDotLine;
@@ -42,6 +44,8 @@ namespace TY
             Line& setColor(const ColorF32& color_);
 
             SquareDotLine asDotLine(float dotOffset = 0.0f) const;
+
+            void pushAuto();
         };
 
         struct SquareDotLine
@@ -50,6 +54,8 @@ namespace TY
             float dotOffset;
 
             SquareDotLine& setDotOffset(float offset_);
+
+            void pushAuto();
         };
 
         struct CyclePath;
@@ -71,6 +77,8 @@ namespace TY
             Path& setColor(const ColorF32& color_);
 
             CyclePath asCycle();
+
+            void pushAuto();
         };
 
         struct CyclePath
@@ -80,6 +88,8 @@ namespace TY
             CyclePath() = default;
 
             CyclePath(Path path_);
+
+            void pushAuto();
         };
 
         struct Text
@@ -100,6 +110,8 @@ namespace TY
             Text& setPosition(const Float2& position_, Alignment9 alignment = Alignment9::TopLeft);
 
             Text& setColor(const ColorF32& color_);
+
+            void pushAuto();
         };
 
         // -----------------------------------------------

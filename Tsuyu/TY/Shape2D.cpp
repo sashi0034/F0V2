@@ -1,6 +1,18 @@
 ﻿#include "pch.h"
 #include "Shape2D.h"
 
+#include "ShapeDrawer.h"
+
+using namespace TY;
+
+namespace
+{
+    ShapeDrawer& activeShapeDrawer()
+    {
+        return ShapeDrawer::Global();
+    }
+}
+
 namespace TY
 {
     Shape2D::Rectangle::Rectangle(const RectF& rect_)
@@ -16,6 +28,11 @@ namespace TY
         }
 
         return *this;
+    }
+
+    void Shape2D::Rectangle::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
     }
 
     Shape2D::Line::Line(const Float2& start_, const Float2& end_)
@@ -52,10 +69,20 @@ namespace TY
         return dotLine;
     }
 
+    void Shape2D::Line::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
+    }
+
     Shape2D::SquareDotLine& Shape2D::SquareDotLine::setDotOffset(float offset_)
     {
         dotOffset = offset_;
         return *this;
+    }
+
+    void Shape2D::SquareDotLine::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
     }
 
     Shape2D::Path::Path(const Array<Float2>& points_)
@@ -86,9 +113,19 @@ namespace TY
         return CyclePath(std::move(*this));
     }
 
+    void Shape2D::Path::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
+    }
+
     Shape2D::CyclePath::CyclePath(Path path_)
         : path(std::move(path_))
     {
+    }
+
+    void Shape2D::CyclePath::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
     }
 
     Shape2D::Text::Text(const FontObject& font_, const std::u32string& text_)
@@ -114,5 +151,10 @@ namespace TY
     {
         color = color_;
         return *this;
+    }
+
+    void Shape2D::Text::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
     }
 }

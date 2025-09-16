@@ -427,7 +427,7 @@ namespace TY
 
                 const auto& glyph = text.font.fetchByCodePoint(c);
 
-                const Float2 posTL = penPos + glyph.baselineOffset() * textScaling;
+                const Float2 posTL = penPos + (glyph.baselineOffset() + Point{0, text.font.fontSize()}) * textScaling;
                 const Float2 posBR = posTL + glyph.size() * textScaling;
 
                 const Float2 uvTL = glyph.topLeftInAtlas.cast<Float2>() / atlasSize;

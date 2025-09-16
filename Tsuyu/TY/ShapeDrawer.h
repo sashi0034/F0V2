@@ -15,6 +15,12 @@ namespace TY
 
         const ShapeDrawer& operator <<(const Shape2D::shape_type& shape) const;
 
+        const ShapeDrawer& operator <<(const Shape3D::shape_type& shape) const;
+
+        friend void operator >>(const Shape2D::shape_type& shape, const ShapeDrawer& drawer);
+
+        friend void operator >>(const Shape3D::shape_type& shape, const ShapeDrawer& drawer);
+
         void draw() const;
 
         static ShapeDrawer& Global();

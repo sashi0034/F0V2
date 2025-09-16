@@ -304,6 +304,11 @@ namespace TY
         return push(shape);
     }
 
+    const ShapeDrawer& ShapeDrawer::operator<<(const Shape3D::shape_type& shape) const
+    {
+        return push(shape);
+    }
+
     void ShapeDrawer::draw() const
     {
         if (p_impl)
@@ -323,5 +328,15 @@ namespace TY
         {
             EngineComponent::Register<ShapeDrawerComponent>("ShapeDrawerComponent");
         }
+    }
+
+    void operator>>(const Shape2D::shape_type& shape, const ShapeDrawer& drawer)
+    {
+        (void)drawer.push(shape);
+    }
+
+    void operator>>(const Shape3D::shape_type& shape, const ShapeDrawer& drawer)
+    {
+        (void)drawer.push(shape);
     }
 }

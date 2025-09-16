@@ -78,4 +78,13 @@ namespace TY
 
         cache_type& operator ()() const;
     };
+
+    struct FontObjectCache
+    {
+        static ModelBuffer DefaultLoad(const std::string& path);
+
+        using cache_type = ResourceCache<ModelBuffer, DefaultLoad>;
+
+        cache_type& operator ()() const;
+    };
 }
