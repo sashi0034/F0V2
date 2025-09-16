@@ -20,10 +20,10 @@ namespace
 
     struct DistanceFieldElement
     {
-        bool dirty;
+        bool dirty{};
 
         /// @brief ピクセルが存在する領域からの距離
-        float distance;
+        float distance{};
 
         void write(float d)
         {
@@ -34,7 +34,7 @@ namespace
 
     struct QueueElement
     {
-        Point nextPoint;
+        Point nextPoint{};
     };
 
     constexpr std::array directionOnes = {Point{1, 0}, Point{0, 1}, Point{-1, 0}, Point{0, -1}};
@@ -45,17 +45,23 @@ namespace
         int pitch;
         int width;
         int height;
+        int margin;
 
         // TODO: padding
 
         bool inBounds(const Point& p) const
         {
-            return 0 <= p.x && p.x < width && 0 <= p.y && p.y < height;
+            return 0 <= p.x && p.x < width + margin * 2 && 0 <= p.y && p.y < height + margin * 2;
         }
 
         uint8_t operator[](const Point& p) const
         {
-            return data[p.y * pitch + p.x];
+            if (p.x < margin || width + margin <= p.x || p.y < margin || height + margin <= p.y)
+            {
+                return 0;
+            }
+
+            return data[((p.y - margin) * pitch) + p.x - margin];
         }
     };
 
@@ -103,7 +109,7 @@ namespace
 
     void makeDistanceField(Grid<uint8_t>& atlasImage, const Rect& region, const BitmapView& bitmap)
     {
-        const auto fieldSize = atlasImage.size();
+        const auto fieldSize = region.size;
         auto distanceField = Grid<DistanceFieldElement>{fieldSize};
 
         std::deque<QueueElement> queue{};
@@ -114,7 +120,7 @@ namespace
             for (int y = 0; y < fieldSize.y; ++y)
             {
                 Point p{x, y};
-                if (atlasImage[p] != 0)
+                if (atlasImage[p.movedBy(region.tl())] != 0)
                 {
                     // 不透明ピクセル
                     exploreAndPushForTransparent(distanceField, queue, bitmap, p);
@@ -138,16 +144,34 @@ namespace
             exploreAndPushForNonTransparent(distanceField, queue, bitmap, element.nextPoint);
         }
 
-        float minDistance{-1};
-        float maxDistance{1};
-        for (const auto& element : distanceField)
+        float minDistance{1};
+        float maxDistance{INT16_MAX};
+        for (int y = 0; y < fieldSize.y; ++y)
         {
-            if (element.dirty)
+            for (int x = 0; x < fieldSize.x; ++x)
             {
-                minDistance = Min(minDistance, element.distance);
-                maxDistance = Max(maxDistance, element.distance);
+                const auto& element = distanceField[Point{x, y}];
+                minDistance = Min<float>(minDistance, element.distance);
+
+                if (x == 0 || y == 0 || x == fieldSize.x - 1 || y == fieldSize.y - 1)
+                {
+                    // 最大値は、画像端に存在する値のうち最小のものを利用する
+                    maxDistance = Min<float>(maxDistance, element.distance);
+                }
             }
         }
+
+#if 0
+        for (int y = 0; y < fieldSize.y; ++y)
+        {
+            for (int x = 0; x < fieldSize.x; ++x)
+            {
+                std::cout << distanceField[Point{x, y}].distance << ' ';
+            }
+
+            std::cout << std::endl;
+        }
+#endif
 
         for (int x = region.leftX(); x < region.rightX(); ++x)
         {
@@ -155,9 +179,22 @@ namespace
             {
                 float d = distanceField[y - region.topY()][x - region.leftX()].distance;
                 d = (d - minDistance) / (maxDistance - minDistance);
+                d = Math::Clamp(d, 0.0f, 1.0f);
                 atlasImage[Point{x, y}] = 255 - d * 255;
             }
         }
+
+#if 0
+        for (int y = region.topY(); y < region.bottomY(); ++y)
+        {
+            for (int x = region.leftX(); x < region.rightX(); ++x)
+            {
+                std::cout << static_cast<int>(atlasImage[Point{x, y}]) << " ";
+            }
+
+            std::cout << std::endl;
+        }
+#endif
     }
 }
 
@@ -168,6 +205,8 @@ struct SdfFont::Impl : RenderEvent::Lister
     FT_Face m_face{};
 
     int m_atlasPadding{};
+
+    int m_sdfMargin{};
 
     Grid<uint8_t> m_atlasImage{};
 
@@ -185,8 +224,17 @@ struct SdfFont::Impl : RenderEvent::Lister
 
     bool m_valid{};
 
+    // *********************    '*' m_atlasPadding (transparent)
+    // *+========*=========*    '=' m_sdfMargin
+    // *=========*=========*
+    // *==     ==*==     ==*
+    // *==     ==*==     ==*
+    // *=========*=========*
+    // *=========*=========*
+    // *********************
+
     Impl(const std::string& filepath, int fontSize, const SdfFontOptions& options)
-        : m_fontSize(fontSize), m_atlasPadding(options.atlasPadding)
+        : m_fontSize(fontSize), m_atlasPadding(options.atlasPadding), m_sdfMargin(options.sdfMargin)
     {
         m_cursor.pos = Point{m_atlasPadding, m_atlasPadding};
 
@@ -223,19 +271,19 @@ struct SdfFont::Impl : RenderEvent::Lister
 
         GlyphInfo glyph{};
         glyph.glyphIndex = codePoint;
-        glyph.width = bitmap.width;
-        glyph.height = bitmap.rows;
-        glyph.left = glyphSlot->bitmap_left;
-        glyph.top = glyphSlot->bitmap_top;
+        glyph.width = bitmap.width + m_sdfMargin * 2;
+        glyph.height = bitmap.rows + m_sdfMargin * 2;
+        glyph.left = glyphSlot->bitmap_left - m_sdfMargin;
+        glyph.top = glyphSlot->bitmap_top + m_sdfMargin;
         glyph.xAdvance = glyphSlot->advance.x / 64.0f;
         glyph.yAdvance = glyphSlot->advance.y / 64.0f;
 
         // -----------------------------------------------
 
-        if (m_cursor.pos.x + glyph.width + m_atlasPadding >= m_atlasImage.width())
+        if (m_cursor.pos.x + glyph.width + m_atlasPadding + m_sdfMargin * 2 >= m_atlasImage.width())
         {
             m_cursor.pos.x = m_atlasPadding;
-            m_cursor.pos.y += m_cursor.maxHeightInCurrentLine + m_atlasPadding;
+            m_cursor.pos.y += m_cursor.maxHeightInCurrentLine + m_atlasPadding + m_sdfMargin * 2;
             m_cursor.maxHeightInCurrentLine = glyph.height;
         }
         else
@@ -243,7 +291,7 @@ struct SdfFont::Impl : RenderEvent::Lister
             m_cursor.maxHeightInCurrentLine = Max<int>(m_cursor.maxHeightInCurrentLine, glyph.height);
         }
 
-        if (m_cursor.pos.y + glyph.height + m_atlasPadding >= m_atlasImage.height())
+        if (m_cursor.pos.y + glyph.height + m_atlasPadding + m_sdfMargin * 2 >= m_atlasImage.height())
         {
             // TODO: Handle atlas overflow
             LogError("SdfFont: Atlas image is too small to fit the glyph.");
@@ -255,10 +303,12 @@ struct SdfFont::Impl : RenderEvent::Lister
         makeDistanceField(
             m_atlasImage,
             Rect{m_cursor.pos, Size{glyph.width, glyph.height}},
-            BitmapView{bitmap.buffer, bitmap.pitch, static_cast<int>(bitmap.width), static_cast<int>(bitmap.rows)}
+            BitmapView{
+                bitmap.buffer, bitmap.pitch, static_cast<int>(bitmap.width), static_cast<int>(bitmap.rows), m_sdfMargin
+            }
         );
 
-        m_cursor.pos.x += glyph.width + m_atlasPadding;
+        m_cursor.pos.x += glyph.width + m_atlasPadding + m_sdfMargin * 2;
 
         // -----------------------------------------------
 

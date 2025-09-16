@@ -9,6 +9,7 @@ namespace TY
     {
         int atlasPadding{1};
         int atlasSize{2048};
+        int sdfMargin{8};
     };
 
     // TODO: 実装途中

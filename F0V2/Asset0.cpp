@@ -11,6 +11,8 @@ namespace
 
         BitmapFont m_MPlus1_24_bitmap{};
 
+        SdfFont m_MPlus1_Sdf_font{};
+
         Asset0State()
         {
             const std::string rocknRollPath = "asset/font/RocknRoll/RocknRollOne-Regular.ttf";
@@ -20,6 +22,8 @@ namespace
             const std::string mplus1Path = "asset/font/M_PLUS_1/MPLUS1-Regular.ttf";
 
             m_MPlus1_24_bitmap = BitmapFont(mplus1Path, 24);
+
+            m_MPlus1_Sdf_font = SdfFont(mplus1Path, 48);
         }
     };
 
@@ -37,6 +41,11 @@ namespace Asset0
     {
         return s_asset0state->m_MPlus1_24_bitmap;
     }
+
+    SdfFont MPlus1_Sdf()
+    {
+        return s_asset0state->m_MPlus1_Sdf_font;
+    }
 }
 
 namespace Shape2D_Text
@@ -49,5 +58,10 @@ namespace Shape2D_Text
     Shape2D::Text MPlus1_24_Bitmap(const std::u32string& text)
     {
         return Shape2D::Text(Asset0::MPlus1_24_Bitmap(), text);
+    }
+
+    Shape2D::Text MPlus1_Sdf(const std::u32string& text)
+    {
+        return Shape2D::Text(Asset0::MPlus1_Sdf(), text);
     }
 }

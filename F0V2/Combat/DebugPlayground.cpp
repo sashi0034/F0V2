@@ -29,8 +29,11 @@ namespace
         Shape2D::Rectangle{RectF{5, 5, 400, 50}}
             .setColor(ColorF32{0.3})
             .pushAuto();
-        Shape2D_Text::MPlus1_24_Bitmap(U"デバッグ機能 ABC abc 012")
+        Shape2D_Text::MPlus1_Sdf(U"デバッグ機能 ABC abc 012")
+            // Shape2D_Text::MPlus1_Sdf(U"デ")
+            // Shape2D_Text::MPlus1_24_Bitmap(U"デ")
             .setPosition(Float2{10, 10})
+            .setSize(500)
             .pushAuto();
 
         ShapeDrawer::Global().draw();
@@ -343,6 +346,20 @@ struct DebugPlayground::Impl : ActorBase
             );
 
             Graphics3D::SetProjectionMatrix(m_projectionMat);
+        }
+
+        {
+            ImGui::Begin("System Settings");
+
+            static bool s_sleep{};;
+            ImGui::Checkbox("Sleep", &s_sleep);
+
+            if (s_sleep)
+            {
+                System::Sleep(500);
+            }
+
+            ImGui::End();
         }
 
         // -----------------------------------------------
