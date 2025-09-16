@@ -6,9 +6,13 @@
 namespace Asset0
 {
     BitmapFont RocknRoll_24_Bitmap();
+
+    BitmapFont MPlus1_24_Bitmap();
 }
 
 namespace Shape2D_Text
 {
     Shape2D::Text RocknRoll_24_Bitmap(const std::u32string& text);
+
+    Shape2D::Text MPlus1_24_Bitmap(const std::u32string& text);
 }

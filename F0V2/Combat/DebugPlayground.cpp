@@ -29,7 +29,7 @@ namespace
         Shape2D::Rectangle{RectF{5, 5, 400, 50}}
             .setColor(ColorF32{0.3})
             .pushAuto();
-        Shape2D_Text::RocknRoll_24_Bitmap(U"デバッグ機能")
+        Shape2D_Text::MPlus1_24_Bitmap(U"デバッグ機能 ABC abc 012")
             .setPosition(Float2{10, 10})
             .pushAuto();
 
