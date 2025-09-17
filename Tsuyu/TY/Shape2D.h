@@ -46,6 +46,7 @@ namespace TY
             ColorF32 color{ColorF32{1.0f}};
             float roundness{10.0f};
             int segments{1};
+            Outline outline{};
 
             RoundRect() = default;
 
@@ -54,6 +55,8 @@ namespace TY
             RoundRect& setColor(const ColorF32& color_);
 
             RoundRect& setRoundness(float roundness_, int segments_ = 2);
+
+            RoundRect& setOutline(const Outline& outline_);
 
             void pushAuto();
         };

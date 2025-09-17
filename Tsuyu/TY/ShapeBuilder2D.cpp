@@ -55,7 +55,7 @@ namespace TY
 
         // -----------------------------------------------
 
-        index_type BuildRect_standard(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
+        index_type BuildRect_Standard(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
         {
             constexpr int indexSize = rectIndexTable.size();
             const auto buffer = bufferCreator.request(4, indexSize);
@@ -80,7 +80,7 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildRect_outline(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
+        index_type BuildRect_Outline(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
         {
             constexpr int indexSize = rectIndexTable02.size() + 3 * 8;
             const auto buffer = bufferCreator.request(12, indexSize);
@@ -138,15 +138,35 @@ namespace TY
         {
             if (rect.outline.thickness <= 0.0f)
             {
-                return BuildRect_standard(bufferCreator, rect);
+                return BuildRect_Standard(bufferCreator, rect);
             }
             else
             {
-                return BuildRect_outline(bufferCreator, rect);
+                return BuildRect_Outline(bufferCreator, rect);
             }
         }
 
-        index_type BuildRoundRect(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
+        Array<Float2>& BuildRoundRect_offsetTable(int segments)
+        {
+            static std::unordered_map<int, Array<Float2>> s_offsetTable{};
+            if (not s_offsetTable.contains(segments))
+            {
+                for (int i = 0; i < 4; ++i)
+                {
+                    for (int s = 0; s < segments + 2; ++s)
+                    {
+                        const float angle =
+                            Math::PiF + (Math::HalfPiF * (i + static_cast<float>(s) / (segments + 1.0f)));
+                        const Float2 offset{std::cos(angle), std::sin(angle)};
+                        s_offsetTable[segments].push_back(offset);
+                    }
+                }
+            }
+
+            return s_offsetTable[segments];
+        }
+
+        index_type BuildRoundRect_Standard(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
         {
             const int indexSize = (2 + rect.segments) * 3 * 4;
             const auto buffer = bufferCreator.request(1 + (2 + rect.segments) * 4, indexSize);
@@ -165,22 +185,7 @@ namespace TY
 
             static constexpr std::array corners = {Float2{0, 0}, Float2{1, 0}, Float2{1, 1}, Float2{0, 1}};
 
-            std::unordered_map<int, Array<Float2>> s_offsetTable{};
-            if (not s_offsetTable.contains(rect.segments))
-            {
-                for (int i = 0; i < 4; ++i)
-                {
-                    for (int s = 0; s < rect.segments + 2; ++s)
-                    {
-                        const float angle =
-                            Math::PiF + (Math::HalfPiF * (i + static_cast<float>(s) / (rect.segments + 1.0f)));
-                        const Float2 offset{std::cos(angle), std::sin(angle)};
-                        s_offsetTable[rect.segments].push_back(offset);
-                    }
-                }
-            }
-
-            const Float2* nextOffset = &s_offsetTable[rect.segments][0];
+            const Float2* nextOffset = &BuildRoundRect_offsetTable(rect.segments)[0];
 
             // 左上、右上、右下、左下の順番で処理を行う
             for (int i = 0; i < 4; ++i)
@@ -211,6 +216,11 @@ namespace TY
             }
 
             return indexSize;
+        }
+
+        index_type BuildRoundRect(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
+        {
+            return BuildRoundRect_Standard(bufferCreator, rect);
         }
 
         index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line)

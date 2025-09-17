@@ -69,6 +69,12 @@ namespace TY
         return *this;
     }
 
+    Shape2D::RoundRect& Shape2D::RoundRect::setOutline(const Outline& outline_)
+    {
+        outline = outline_;
+        return *this;
+    }
+
     void Shape2D::RoundRect::pushAuto()
     {
         (void)activeShapeDrawer().push(*this);
