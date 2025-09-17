@@ -134,16 +134,61 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildRect(BufferCreator& bufferCreator, const Shape2D::Rect& rectangle)
+        index_type BuildRect(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
         {
-            if (rectangle.outline.thickness <= 0.0f)
+            if (rect.outline.thickness <= 0.0f)
             {
-                return BuildRect_standard(bufferCreator, rectangle);
+                return BuildRect_standard(bufferCreator, rect);
             }
             else
             {
-                return BuildRect_outline(bufferCreator, rectangle);
+                return BuildRect_outline(bufferCreator, rect);
             }
+        }
+
+        index_type BuildRoundRect(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
+        {
+            const int indexSize = (2 + rect.segments) * 3 * 4;
+            const auto buffer = bufferCreator.request(1 + (2 + rect.segments) * 4, indexSize);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            const auto& vertices = buffer.vertices;
+            const auto& indices = buffer.indices;
+
+            // 中心座標
+            vertices[0].set(rect.rect.center(), rect.color);
+
+            const float roundness = Min<float>(rect.roundness, rect.rect.size.minComponent() * 0.5f);
+
+            static constexpr std::array corners = {Float2{0, 0}, Float2{1, 0}, Float2{1, 1}, Float2{0, 1}};
+
+            // 左上、右上、右下、左下の順番で処理を行う
+            for (int i = 0; i < 4; ++i)
+            {
+                const auto conerPosition = rect.rect.getRelativePoint(corners[i]);
+                const auto dir = corners[i] * 2 - Point{1, 1};
+                const auto pivot = conerPosition - dir * roundness;
+
+                for (int s = 0; s < rect.segments + 2; ++s)
+                {
+                    const float angle =
+                        Math::PiF + (Math::HalfPiF * (i + static_cast<float>(s) / (rect.segments + 1.0f)));
+                    const Float2 unit{std::cos(angle), std::sin(angle)};
+                    vertices[(2 + rect.segments) * i + 1 + s].set(pivot + unit * roundness, rect.color);
+                }
+            }
+
+            for (int i = 0; i < indexSize / 3; ++i)
+            {
+                indices[i * 3 + 0] = buffer.indexOffset + 0;
+                indices[i * 3 + 1] = buffer.indexOffset + i + 1;
+                indices[i * 3 + 2] = buffer.indexOffset + (i + 1) % (indexSize / 3) + 1;
+            }
+
+            return indexSize;
         }
 
         index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line)

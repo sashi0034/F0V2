@@ -42,10 +42,20 @@ namespace TY
 
         struct RoundRect
         {
-            Rect rect;
+            RectF rect;
+            ColorF32 color{ColorF32{1.0f}};
             float roundness{10.0f};
+            int segments{1};
 
-            // TODO
+            RoundRect() = default;
+
+            RoundRect(const RectF& rect);
+
+            RoundRect& setColor(const ColorF32& color_);
+
+            RoundRect& setRoundness(float roundness_, int segments_ = 2);
+
+            void pushAuto();
         };
 
         struct SquareDotLine;
@@ -142,6 +152,7 @@ namespace TY
 
         using shape_type = Variant<
             Rect,
+            RoundRect,
             Line,
             SquareDotLine,
             Path,

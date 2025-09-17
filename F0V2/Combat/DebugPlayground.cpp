@@ -26,10 +26,15 @@ namespace
 {
     void transformListEditorDemo(Array<SerializeTransform>& transformList)
     {
-        Shape2D::Rect{RectF{25, 25, 400, 50}}
-            .setColor(ColorF32{0.3})
-            .setOutline({10.0f, ColorF32{0.1}, ColorF32{0.1, 0.0}})
+        // Shape2D::Rect{RectF{25, 25, 400, 50}}
+        //     .setColor(ColorF32{0.3})
+        //     .setOutline({10.0f, ColorF32{0.1}, ColorF32{0.1, 0.0}})
+        //     .pushAuto();
+
+        Shape2D::RoundRect{RectF{800, 25, 400, 200}}
+            .setColor(ColorF32{0.1f, 0.7f, 0.9f})
             .pushAuto();
+
         Shape2D_Text::MPlus1_Sdf(U"デバッグ機能 ABC abc 012")
             // Shape2D_Text::MPlus1_Sdf(U"デ")
             // Shape2D_Text::MPlus1_24_Bitmap(U"デ")

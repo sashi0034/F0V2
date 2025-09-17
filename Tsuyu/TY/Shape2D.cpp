@@ -51,6 +51,29 @@ namespace TY
         (void)activeShapeDrawer().push(*this);
     }
 
+    Shape2D::RoundRect::RoundRect(const RectF& rect)
+        : rect(rect)
+    {
+    }
+
+    Shape2D::RoundRect& Shape2D::RoundRect::setColor(const ColorF32& color_)
+    {
+        color = color_;
+        return *this;
+    }
+
+    Shape2D::RoundRect& Shape2D::RoundRect::setRoundness(float roundness_, int segments_)
+    {
+        roundness = roundness_;
+        segments = segments_;
+        return *this;
+    }
+
+    void Shape2D::RoundRect::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
+    }
+
     Shape2D::Line::Line(const Float2& start_, const Float2& end_)
         : start(start_), end(end_)
     {

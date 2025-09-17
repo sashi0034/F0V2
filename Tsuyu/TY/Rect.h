@@ -86,6 +86,11 @@ namespace TY
             return position_type{pos.x, pos.y + size.y};
         }
 
+        position_type getRelativePoint(const position_type& rate) const
+        {
+            return pos + size * rate;
+        }
+
         position_type center() const
         {
             return pos + size / 2;

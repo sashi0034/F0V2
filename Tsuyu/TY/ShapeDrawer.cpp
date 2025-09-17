@@ -97,6 +97,12 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
             applyNextState();
             ShapeBuilder2D::BuildRect(m_bufferCreator2D, shape.get<Shape2D::Rect>());
         }
+        else if (shape.isHolds<Shape2D::RoundRect>())
+        {
+            m_stateManager.RequestPixelShader(component->m_ps2d.shape);
+            applyNextState();
+            ShapeBuilder2D::BuildRoundRect(m_bufferCreator2D, shape.get<Shape2D::RoundRect>());
+        }
         else if (shape.isHolds<Shape2D::Line>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
