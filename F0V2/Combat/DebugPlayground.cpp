@@ -33,8 +33,13 @@ namespace
             // Shape2D_Text::MPlus1_Sdf(U"デ")
             // Shape2D_Text::MPlus1_24_Bitmap(U"デ")
             .setPosition(Float2{10, 10})
-            .setSize(500)
+            .setSize(100)
             .pushAuto();
+
+        // Shape2D_Text::MPlus1_24_Bitmap(U"デバッグ機能 ABC abc 012")
+        //     .setPosition(Float2{10, 100})
+        //     .setSize(100)
+        //     .pushAuto();
 
         ShapeDrawer::Global().draw();
 

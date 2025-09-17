@@ -83,17 +83,11 @@ float4 PS_SdfFont(PSInput input) : SV_TARGET
 {
     const float d = g_texture0.Sample(g_sampler0, input.uv).r;
 
-    // FIXME
     const float td = (d - 0.5);
-    if (td < 0.1)
-    {
-        input.color = 0;
-    }
 
-    // TODO
-    // const float textAlpha = saturate(td / fwidth(td) + 0.5);
-    //
-    // input.color.a *= textAlpha;
+    const float textAlpha = saturate(td / fwidth(td) + 0.5);
+
+    input.color.a *= textAlpha;
 
     return (input.color + g_colorAdd);
 }

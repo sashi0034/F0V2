@@ -18,25 +18,6 @@ namespace
 {
     constexpr GlyphInfo stubGlyph{};
 
-    struct DistanceFieldElement
-    {
-        bool dirty{};
-
-        /// @brief ピクセルが存在する領域からの距離
-        float distance{};
-
-        void write(float d)
-        {
-            dirty = true;
-            distance = d;
-        }
-    };
-
-    struct QueueElement
-    {
-        Point nextPoint{};
-    };
-
     constexpr std::array directionOnes = {Point{1, 0}, Point{0, 1}, Point{-1, 0}, Point{0, -1}};
 
     struct BitmapView
@@ -46,8 +27,6 @@ namespace
         int width;
         int height;
         int margin;
-
-        // TODO: padding
 
         bool inBounds(const Point& p) const
         {
@@ -65,99 +44,64 @@ namespace
         }
     };
 
-    void exploreAndPushForTransparent(
-        Grid<DistanceFieldElement>& distanceField,
-        std::deque<QueueElement>& queue,
-        const BitmapView& bitmap,
-        const Point& p)
-    {
-        for (int i = 0; i < directionOnes.size(); ++i)
-        {
-            const auto p1 = p.movedBy(directionOnes[i]);
-            const bool isTransparent = bitmap.inBounds(p1) && bitmap.at(p1) == 0;
-            if (not isTransparent) continue;
-
-            const auto nextDistance = distanceField[p].distance + 1;
-            if (distanceField[p1].dirty == false)
-            {
-                distanceField[p1].write(nextDistance);
-                queue.push_back(QueueElement{p1});
-            }
-        }
-    }
-
-    void exploreAndPushForNonTransparent(
-        Grid<DistanceFieldElement>& distanceField,
-        std::deque<QueueElement>& queue,
-        const BitmapView& bitmap,
-        const Point& p)
-    {
-        for (int i = 0; i < directionOnes.size(); ++i)
-        {
-            const auto p1 = p.movedBy(directionOnes[i]);
-            const bool nonTransparent = bitmap.inBounds(p1) && bitmap.at(p1) != 0;
-            if (not nonTransparent) continue;
-
-            if (distanceField[p1].dirty == false)
-            {
-                const auto nextDistance = distanceField[p].distance - 1;
-                distanceField[p1].write(nextDistance);
-                queue.push_back(QueueElement{p1});
-            }
-        }
-    }
-
     void makeDistanceField(Grid<uint8_t>& atlasImage, const Rect& region, const BitmapView& bitmap)
     {
         const auto fieldSize = region.size;
-        auto distanceField = Grid<DistanceFieldElement>{fieldSize};
 
-        std::deque<QueueElement> queue{};
+        auto writableBuffer = Grid<float>{fieldSize};
+        auto readonlyBuffer = Grid<float>{fieldSize};
 
         // 初回探索
         for (int x = 0; x < fieldSize.x; ++x)
         {
             for (int y = 0; y < fieldSize.y; ++y)
             {
-                Point p{x, y};
-                if (atlasImage[p.movedBy(region.tl())] != 0)
+                writableBuffer[Point{x, y}] = 1.0f - 2.0f * bitmap.at(Point{x, y}) / 255.0f;
+            }
+        }
+
+        for (int step = 0; step < bitmap.margin; ++step)
+        {
+            std::swap(writableBuffer, readonlyBuffer);
+
+            // TODO: padding
+            for (int x = 0; x < fieldSize.x; ++x)
+            {
+                for (int y = 0; y < fieldSize.y; ++y)
                 {
-                    // 不透明ピクセル
-                    exploreAndPushForTransparent(distanceField, queue, bitmap, p);
-                }
-                else
-                {
-                    // 透明ピクセル
-                    distanceField[p].distance = 1;
-                    exploreAndPushForNonTransparent(distanceField, queue, bitmap, p);
+                    Point p{x, y};
+
+                    int c{};
+                    float d{};
+                    for (int i = 0; i < directionOnes.size(); ++i)
+                    {
+                        const Point p1 = p + directionOnes[i];
+                        if (readonlyBuffer.inBounds(p1))
+                        {
+                            c++;
+                            d += readonlyBuffer[p1];
+                        }
+                    }
+
+                    if (c > 0)
+                    {
+                        d = d / static_cast<float>(c);
+                        // d = (d / static_cast<float>(c)) / (1.0f + step);
+                        writableBuffer[Point{x, y}] += d;
+                    }
                 }
             }
         }
 
-        // キューがなくなるまで探索
-        while (queue.size() > 0)
-        {
-            const auto element = queue.front();
-            queue.pop_front();
-
-            exploreAndPushForTransparent(distanceField, queue, bitmap, element.nextPoint);
-            exploreAndPushForNonTransparent(distanceField, queue, bitmap, element.nextPoint);
-        }
-
-        float minDistance{1};
-        float maxDistance{INT16_MAX};
+        float minDistance{-1};
+        float maxDistance{1};
         for (int y = 0; y < fieldSize.y; ++y)
         {
             for (int x = 0; x < fieldSize.x; ++x)
             {
-                const auto& element = distanceField[Point{x, y}];
-                minDistance = Min<float>(minDistance, element.distance);
-
-                if (x == 0 || y == 0 || x == fieldSize.x - 1 || y == fieldSize.y - 1)
-                {
-                    // 最大値は、画像端に存在する値のうち最小のものを利用する
-                    maxDistance = Min<float>(maxDistance, element.distance);
-                }
+                const auto& element = writableBuffer[Point{x, y}];
+                minDistance = Min<float>(minDistance, element);
+                maxDistance = Max<float>(maxDistance, element);
             }
         }
 
@@ -166,7 +110,7 @@ namespace
         {
             for (int x = 0; x < fieldSize.x; ++x)
             {
-                std::cout << distanceField[Point{x, y}].distance << ' ';
+                std::cout << writableBuffer[Point{x, y}] << ' ';
             }
 
             std::cout << std::endl;
@@ -177,7 +121,7 @@ namespace
         {
             for (int y = region.topY(); y < region.bottomY(); ++y)
             {
-                float d = distanceField[y - region.topY()][x - region.leftX()].distance;
+                float d = writableBuffer[Point{x, y} - region.tl()];
                 d = (d - minDistance) / (maxDistance - minDistance);
                 d = Math::Clamp(d, 0.0f, 1.0f);
                 atlasImage[Point{x, y}] = 255 - d * 255;

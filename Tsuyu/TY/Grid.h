@@ -62,6 +62,12 @@ namespace TY
         }
 
         [[nodiscard]]
+        bool inBounds(Point pos) const
+        {
+            return 0 <= pos.x && pos.x < static_cast<int>(m_width) && 0 <= pos.y && pos.y < static_cast<int>(m_height);
+        }
+
+        [[nodiscard]]
         value_type* operator [](size_t index)
         {
             return &m_data[index * m_width];
