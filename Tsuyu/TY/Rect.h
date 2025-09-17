@@ -110,6 +110,14 @@ namespace TY
         {
             return pos.y + size.y;
         }
+
+        Rectangle stretched(value_type xy) const noexcept
+        {
+            return Rectangle{
+                pos - position_type{xy, xy},
+                size + position_type{xy * 2, xy * 2}
+            };
+        }
     };
 
     using Rect = Rectangle<Point>;

@@ -64,7 +64,6 @@ namespace
         {
             std::swap(writableBuffer, readonlyBuffer);
 
-            // TODO: padding
             for (int x = 0; x < fieldSize.x; ++x)
             {
                 for (int y = 0; y < fieldSize.y; ++y)

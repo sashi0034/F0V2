@@ -15,12 +15,22 @@ namespace
 
 namespace TY
 {
-    Shape2D::Rectangle::Rectangle(const RectF& rect_)
+    Shape2D::Outline::Outline(float thickness, ColorF32 color)
+        : thickness(thickness), innerColor(color), outerColor(color)
+    {
+    }
+
+    Shape2D::Outline::Outline(float thickness, ColorF32 innerColor, ColorF32 outerColor)
+        : thickness(thickness), innerColor(innerColor), outerColor(outerColor)
+    {
+    }
+
+    Shape2D::Rect::Rect(const RectF& rect_)
     {
         rect = rect_;
     }
 
-    Shape2D::Rectangle& Shape2D::Rectangle::setColor(const ColorF32& color_)
+    Shape2D::Rect& Shape2D::Rect::setColor(const ColorF32& color_)
     {
         for (auto& c : colors)
         {
@@ -30,7 +40,13 @@ namespace TY
         return *this;
     }
 
-    void Shape2D::Rectangle::pushAuto()
+    Shape2D::Rect& Shape2D::Rect::setOutline(const Outline& outline_)
+    {
+        outline = outline_;
+        return *this;
+    }
+
+    void Shape2D::Rect::pushAuto()
     {
         (void)activeShapeDrawer().push(*this);
     }

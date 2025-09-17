@@ -91,11 +91,11 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentPointer(), m_descriptorManager.CurrentHeap().table);
 
         auto&& component = ShapeDrawerComponent::Instance;
-        if (shape.isHolds<Shape2D::Rectangle>())
+        if (shape.isHolds<Shape2D::Rect>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             applyNextState();
-            ShapeBuilder2D::BuildRetangle(m_bufferCreator2D, shape.get<Shape2D::Rectangle>());
+            ShapeBuilder2D::BuildRect(m_bufferCreator2D, shape.get<Shape2D::Rect>());
         }
         else if (shape.isHolds<Shape2D::Line>())
         {

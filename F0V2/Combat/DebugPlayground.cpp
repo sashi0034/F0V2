@@ -26,8 +26,9 @@ namespace
 {
     void transformListEditorDemo(Array<SerializeTransform>& transformList)
     {
-        Shape2D::Rectangle{RectF{5, 5, 400, 50}}
+        Shape2D::Rect{RectF{25, 25, 400, 50}}
             .setColor(ColorF32{0.3})
+            .setOutline({10.0f, ColorF32{0.1}, ColorF32{0.1, 0.0}})
             .pushAuto();
         Shape2D_Text::MPlus1_Sdf(U"デバッグ機能 ABC abc 012")
             // Shape2D_Text::MPlus1_Sdf(U"デ")

@@ -25,7 +25,7 @@ namespace TY
 
         // -----------------------------------------------
 
-        index_type BuildRetangle(BufferCreator& bufferCreator, const Shape2D::Rectangle& rectangle);
+        index_type BuildRect(BufferCreator& bufferCreator, const Shape2D::Rect& rectangle);
 
         index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line);
 

@@ -10,18 +10,42 @@ namespace TY
 {
     namespace Shape2D
     {
-        struct Rectangle
+        struct Outline
+        {
+            float thickness;
+            ColorF32 innerColor;
+            ColorF32 outerColor;
+
+            Outline() = default;
+
+            Outline(float thickness, ColorF32 color);
+
+            Outline(float thickness, ColorF32 innerColor, ColorF32 outerColor);
+        };
+
+        struct Rect
         {
             RectF rect;
             std::array<ColorF32, 4> colors = {ColorF32{1.0}, ColorF32{1.0}, ColorF32{1.0}, ColorF32{1.0}};
+            Outline outline{};
 
-            Rectangle() = default;
+            Rect() = default;
 
-            Rectangle(const RectF& rect_);
+            Rect(const RectF& rect_);
 
-            Rectangle& setColor(const ColorF32& color_);
+            Rect& setColor(const ColorF32& color_);
+
+            Rect& setOutline(const Outline& outline_);
 
             void pushAuto();
+        };
+
+        struct RoundRect
+        {
+            Rect rect;
+            float roundness{10.0f};
+
+            // TODO
         };
 
         struct SquareDotLine;
@@ -117,7 +141,7 @@ namespace TY
         // -----------------------------------------------
 
         using shape_type = Variant<
-            Rectangle,
+            Rect,
             Line,
             SquareDotLine,
             Path,

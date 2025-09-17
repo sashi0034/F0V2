@@ -288,8 +288,8 @@ struct Demo_ShapeDrawer_impl
                     Float3{10, 30, 10}
                 }.setColor(ColorF32{1.0f, 0.3f, 0.7f})
             )
-            .push(Shape2D::Rectangle{RectF{10, 10, 100, 50}})
-            .push(Shape2D::Rectangle{RectF{1000, 10, 100, 50}}
+            .push(Shape2D::Rect{RectF{10, 10, 100, 50}})
+            .push(Shape2D::Rect{RectF{1000, 10, 100, 50}}
                 .setColor(ColorF32{1.0f, 0.3f, 0.7f, 0.5f})
             )
             .push(Shape2D::Line{Float2{100, 200}, Float2{200, 300}}
@@ -338,14 +338,14 @@ struct Demo_ShapeDrawer_impl
         }
 
         ShapeDrawer::Global()
-            .push(Shape2D::Rectangle{RectF{50, 500, 50, 50}})
+            .push(Shape2D::Rect{RectF{50, 500, 50, 50}})
             .draw();
 
         {
             const auto bind = m_miniMap.scopedBind();
 
             ShapeDrawer::Global()
-                .push(Shape2D::Rectangle{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
+                .push(Shape2D::Rect{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
             ShapeDrawer::Global().draw();
         }
 

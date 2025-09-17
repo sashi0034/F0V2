@@ -32,6 +32,8 @@ namespace
         assert(vertexes.size() == 4);
         return takeRectIndexTable(vertexes[0], vertexes[1], vertexes[2], vertexes[3]);
     }
+
+    // -----------------------------------------------
 }
 
 namespace TY
@@ -53,7 +55,7 @@ namespace TY
 
         // -----------------------------------------------
 
-        index_type BuildRetangle(BufferCreator& bufferCreator, const Shape2D::Rectangle& rectangle)
+        index_type BuildRect_standard(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
         {
             constexpr int indexSize = rectIndexTable.size();
             const auto buffer = bufferCreator.request(4, indexSize);
@@ -65,10 +67,10 @@ namespace TY
             const auto& vertices = buffer.vertices;
             const auto& indices = buffer.indices;
 
-            vertices[0].set(rectangle.rect.tl(), rectangle.colors[0]);
-            vertices[1].set(rectangle.rect.tr(), rectangle.colors[1]);
-            vertices[2].set(rectangle.rect.bl(), rectangle.colors[2]);
-            vertices[3].set(rectangle.rect.br(), rectangle.colors[3]);
+            vertices[0].set(rect.rect.tl(), rect.colors[0]);
+            vertices[1].set(rect.rect.tr(), rect.colors[1]);
+            vertices[2].set(rect.rect.bl(), rect.colors[2]);
+            vertices[3].set(rect.rect.br(), rect.colors[3]);
 
             for (int i = 0; i < rectIndexTable.size(); ++i)
             {
@@ -76,6 +78,72 @@ namespace TY
             }
 
             return indexSize;
+        }
+
+        index_type BuildRect_outline(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
+        {
+            constexpr int indexSize = rectIndexTable02.size() + 3 * 8;
+            const auto buffer = bufferCreator.request(12, indexSize);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            const auto& vertices = buffer.vertices;
+            const auto& indices = buffer.indices;
+
+            vertices[0].set(rect.rect.tl(), rect.colors[0]);
+            vertices[1].set(rect.rect.tr(), rect.colors[1]);
+            vertices[2].set(rect.rect.br(), rect.colors[3]);
+            vertices[3].set(rect.rect.bl(), rect.colors[2]);
+
+            for (int i = 0; i < rectIndexTable02.size(); ++i)
+            {
+                indices[i] = buffer.indexOffset + rectIndexTable02[i];
+            }
+
+            // -----------------------------------------------
+
+            vertices[4].set(rect.rect.tl(), rect.outline.innerColor);
+            vertices[5].set(rect.rect.tr(), rect.outline.innerColor);
+            vertices[6].set(rect.rect.br(), rect.outline.innerColor);
+            vertices[7].set(rect.rect.bl(), rect.outline.innerColor);
+
+            const RectF outlineRect = rect.rect.stretched(rect.outline.thickness);
+            vertices[8].set(outlineRect.tl(), rect.outline.outerColor);
+            vertices[9].set(outlineRect.tr(), rect.outline.outerColor);
+            vertices[10].set(outlineRect.br(), rect.outline.outerColor);
+            vertices[11].set(outlineRect.bl(), rect.outline.outerColor);
+
+            for (int i = 0; i < 4; ++i)
+            {
+                const int offset = 6 + i * 3;
+                indices[offset + 0] = buffer.indexOffset + 8 + i;
+                indices[offset + 1] = buffer.indexOffset + 4 + (i + 1) % 4;
+                indices[offset + 2] = buffer.indexOffset + 4 + i;
+            }
+
+            for (int i = 0; i < 4; ++i)
+            {
+                const int offset = 6 + (i + 4) * 3;
+                indices[offset + 0] = buffer.indexOffset + 8 + i;
+                indices[offset + 1] = buffer.indexOffset + 8 + (i + 1) % 4;
+                indices[offset + 2] = buffer.indexOffset + 4 + (i + 1) % 4;
+            }
+
+            return indexSize;
+        }
+
+        index_type BuildRect(BufferCreator& bufferCreator, const Shape2D::Rect& rectangle)
+        {
+            if (rectangle.outline.thickness <= 0.0f)
+            {
+                return BuildRect_standard(bufferCreator, rectangle);
+            }
+            else
+            {
+                return BuildRect_outline(bufferCreator, rectangle);
+            }
         }
 
         index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line)

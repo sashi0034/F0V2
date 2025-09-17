@@ -12,7 +12,6 @@ namespace TY
         int sdfMargin{8};
     };
 
-    // TODO: 実装途中
     class SdfFont
     {
     public:
