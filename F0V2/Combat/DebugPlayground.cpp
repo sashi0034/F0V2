@@ -33,6 +33,7 @@ namespace
 
         Shape2D::RoundRect{RectF{800, 25, 400, 200}}
             .setColor(ColorF32{0.1f, 0.7f, 0.9f})
+            .setOutline({2.0f, ColorF32{0.3f}, ColorF32{0.3f, 0.0f}})
             .pushAuto();
 
         Shape2D_Text::MPlus1_Sdf(U"デバッグ機能 ABC abc 012")

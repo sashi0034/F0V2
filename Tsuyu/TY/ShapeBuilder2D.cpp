@@ -211,8 +211,71 @@ namespace TY
             for (int i = 0; i < indexSize / 3; ++i)
             {
                 indices[i * 3 + 0] = buffer.indexOffset + 0;
-                indices[i * 3 + 1] = buffer.indexOffset + i + 1;
+                indices[i * 3 + 1] = buffer.indexOffset + (i + 0) + 1;
                 indices[i * 3 + 2] = buffer.indexOffset + (i + 1) % (indexSize / 3) + 1;
+            }
+
+            return indexSize;
+        }
+
+        index_type BuildRoundRect_Outline(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
+        {
+            const int indexSize = (2 + rect.segments) * 3 * 4 * 3;
+            const auto buffer = bufferCreator.request(1 + (2 + rect.segments) * 4 * 3, indexSize);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            const auto& vertices = buffer.vertices;
+            const auto& indices = buffer.indices;
+
+            // 中心座標
+            vertices[0].set(rect.rect.center(), rect.color);
+
+            const float roundness = Min<float>(rect.roundness, rect.rect.size.minComponent() * 0.5f);
+
+            static constexpr std::array corners = {Float2{0, 0}, Float2{1, 0}, Float2{1, 1}, Float2{0, 1}};
+
+            const Float2* nextOffset = &BuildRoundRect_offsetTable(rect.segments)[0];
+
+            // 左上、右上、右下、左下の順番で処理を行う
+            for (int i = 0; i < 4; ++i)
+            {
+                const auto conerPosition = rect.rect.getRelativePoint(corners[i]);
+                const auto dir = corners[i] * 2 - Point{1, 1};
+                const auto pivot = conerPosition - dir * roundness;
+
+                for (int s = 0; s < rect.segments + 2; ++s)
+                {
+                    const Float2 offset = *nextOffset;
+                    nextOffset++;
+
+                    const Float2 pos = pivot + offset * roundness;
+                    vertices[(2 + rect.segments) * i + 1 + s].set(pos, rect.color);
+                    vertices[(2 + rect.segments) * (4 + i) + 1 + s].set(pos, rect.outline.innerColor);
+
+                    const Float2 pos2 = pivot + offset * (roundness + rect.outline.thickness);
+                    vertices[(2 + rect.segments) * (8 + i) + 1 + s].set(pos2, rect.outline.outerColor);
+                }
+            }
+
+            const int secondCycleStart = buffer.indexOffset + (2 + rect.segments) * 4;
+            const int thirdCycleStart = buffer.indexOffset + (2 + rect.segments) * 8;
+            const int indicesPerCycle = (2 + rect.segments) * 3 * 4;
+            for (int i = 0; i < indicesPerCycle / 3; ++i)
+            {
+                indices[i * 3 + 0] = buffer.indexOffset + 0;
+                indices[i * 3 + 1] = buffer.indexOffset + (i + 0) + 1;
+                indices[i * 3 + 2] = buffer.indexOffset + (i + 1) % (indicesPerCycle / 3) + 1;
+
+                indices[indicesPerCycle + i * 3 + 0] = thirdCycleStart + i + 1;
+                indices[indicesPerCycle + i * 3 + 1] = secondCycleStart + i + 1;
+                indices[indicesPerCycle + i * 3 + 2] = secondCycleStart + (i + 1) % (indicesPerCycle / 3) + 1;
+
+                indices[indicesPerCycle * 2 + i * 3 + 0] = thirdCycleStart + i + 1;
+                indices[indicesPerCycle * 2 + i * 3 + 1] = thirdCycleStart + (i + 1) % (indicesPerCycle / 3) + 1;
+                indices[indicesPerCycle * 2 + i * 3 + 2] = secondCycleStart + (i + 1) % (indicesPerCycle / 3) + 1;
             }
 
             return indexSize;
@@ -220,7 +283,14 @@ namespace TY
 
         index_type BuildRoundRect(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
         {
-            return BuildRoundRect_Standard(bufferCreator, rect);
+            if (rect.outline.thickness <= 0.0f)
+            {
+                return BuildRoundRect_Standard(bufferCreator, rect);
+            }
+            else
+            {
+                return BuildRoundRect_Outline(bufferCreator, rect);
+            }
         }
 
         index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line)

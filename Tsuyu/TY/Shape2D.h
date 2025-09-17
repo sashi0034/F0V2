@@ -45,7 +45,7 @@ namespace TY
             RectF rect;
             ColorF32 color{ColorF32{1.0f}};
             float roundness{10.0f};
-            int segments{1};
+            int segments{2};
             Outline outline{};
 
             RoundRect() = default;
