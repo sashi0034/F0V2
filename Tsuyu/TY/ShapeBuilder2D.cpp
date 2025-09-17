@@ -165,6 +165,23 @@ namespace TY
 
             static constexpr std::array corners = {Float2{0, 0}, Float2{1, 0}, Float2{1, 1}, Float2{0, 1}};
 
+            std::unordered_map<int, Array<Float2>> s_offsetTable{};
+            if (not s_offsetTable.contains(rect.segments))
+            {
+                for (int i = 0; i < 4; ++i)
+                {
+                    for (int s = 0; s < rect.segments + 2; ++s)
+                    {
+                        const float angle =
+                            Math::PiF + (Math::HalfPiF * (i + static_cast<float>(s) / (rect.segments + 1.0f)));
+                        const Float2 offset{std::cos(angle), std::sin(angle)};
+                        s_offsetTable[rect.segments].push_back(offset);
+                    }
+                }
+            }
+
+            const Float2* nextOffset = &s_offsetTable[rect.segments][0];
+
             // 左上、右上、右下、左下の順番で処理を行う
             for (int i = 0; i < 4; ++i)
             {
@@ -174,10 +191,15 @@ namespace TY
 
                 for (int s = 0; s < rect.segments + 2; ++s)
                 {
+#if 0
                     const float angle =
                         Math::PiF + (Math::HalfPiF * (i + static_cast<float>(s) / (rect.segments + 1.0f)));
-                    const Float2 unit{std::cos(angle), std::sin(angle)};
-                    vertices[(2 + rect.segments) * i + 1 + s].set(pivot + unit * roundness, rect.color);
+                    const Float2 offset{std::cos(angle), std::sin(angle)};
+#else
+                    const Float2 offset = *nextOffset;
+                    nextOffset++;
+#endif
+                    vertices[(2 + rect.segments) * i + 1 + s].set(pivot + offset * roundness, rect.color);
                 }
             }
 
