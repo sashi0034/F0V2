@@ -9,6 +9,8 @@ namespace
     {
         BitmapFont m_RocknRoll_24_bitmap{};
 
+        BitmapFont m_MPlus1_16_bitmap{};
+
         BitmapFont m_MPlus1_24_bitmap{};
 
         SdfFont m_MPlus1_Sdf_font{};
@@ -19,7 +21,11 @@ namespace
 
             m_RocknRoll_24_bitmap = BitmapFont(rocknRollPath, 24);
 
+            // -----------------------------------------------
+
             const std::string mplus1Path = "asset/font/M_PLUS_1/MPLUS1-Regular.ttf";
+
+            m_MPlus1_16_bitmap = BitmapFont(mplus1Path, 16);
 
             m_MPlus1_24_bitmap = BitmapFont(mplus1Path, 24);
 
@@ -35,6 +41,11 @@ namespace Asset0
     BitmapFont RocknRoll_24_Bitmap()
     {
         return s_asset0state->m_RocknRoll_24_bitmap;
+    }
+
+    BitmapFont MPlus1_16_Bitmap()
+    {
+        return s_asset0state->m_MPlus1_16_bitmap;
     }
 
     BitmapFont MPlus1_24_Bitmap()
@@ -53,6 +64,11 @@ namespace Shape2D_Text
     Shape2D::Text RocknRoll_24_Bitmap(const std::u32string& text)
     {
         return Shape2D::Text(Asset0::RocknRoll_24_Bitmap(), text);
+    }
+
+    Shape2D::Text MPlus1_16_Bitmap(const std::u32string& text)
+    {
+        return Shape2D::Text(Asset0::MPlus1_16_Bitmap(), text);
     }
 
     Shape2D::Text MPlus1_24_Bitmap(const std::u32string& text)

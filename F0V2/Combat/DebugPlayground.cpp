@@ -31,8 +31,8 @@ namespace
         //     .setOutline({10.0f, ColorF32{0.1}, ColorF32{0.1, 0.0}})
         //     .pushAuto();
 
-        Shape2D::RoundRect{RectF{800, 25, 400, 200}}
-            .setColor(ColorF32{0.1f, 0.7f, 0.9f})
+        Shape2D::RoundRect{RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 200}}}
+            .setColor(ColorF32{"#0a0a0a"})
             .setOutline({2.0f, ColorF32{0.3f}, ColorF32{0.3f, 0.0f}})
             .pushAuto();
 

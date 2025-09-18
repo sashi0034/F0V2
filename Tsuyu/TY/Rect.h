@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Alignment.h"
 #include "Vector2D.h"
 
 namespace TY
@@ -39,6 +40,12 @@ namespace TY
         [[nodiscard]]
         Rectangle(const position_type& pos, const position_type& size)
             : pos(pos), size(size)
+        {
+        }
+
+        [[nodiscard]]
+        Rectangle(const position_type& pos, Alignment9 alignment, const position_type& size)
+            : pos(pos - AlignmentToPivot(alignment) * size), size(size)
         {
         }
 
