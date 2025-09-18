@@ -183,26 +183,12 @@ namespace TY
             }
         }
 
-        Rectangle trimmed(value_type length, Direction4 dir) const noexcept
+        std::pair<Rectangle, Rectangle> separate(value_type length, Direction4 dir) const noexcept
         {
-            Rectangle result = *this;
-            switch (dir)
-            {
-            case Direction4::Right:
-                result.pos.x += result.size.x - length;
-                result.size.x = length;
-                return result;
-            case Direction4::Up:
-                result.size.y = length;
-                return result;
-            case Direction4::Left:
-                result.size.x = length;
-                return result;
-            default: // Direction4::Down
-                result.pos.y += result.size.y - length;
-                result.size.y = length;
-                return result;
-            }
+            const size_t edgeLength = IsDirectionHorizontal(dir) ? size.x : size.y;
+            const Rectangle first = this->stretched(length - edgeLength, ReverseDirection(dir));
+            const Rectangle second = this->stretched(-length, dir);
+            return {first, second};
         }
     };
 

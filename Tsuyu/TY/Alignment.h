@@ -28,8 +28,9 @@ namespace TY
         Down,
     };
 
-    /// @brief 0: Right or Left, 1: Up or Down
-    int DirectionToElemIndex(Direction4 dir);
-
     Point DirectionToPoint(Direction4 dir);
+
+    bool IsDirectionHorizontal(Direction4 dir);
+
+    Direction4 ReverseDirection(Direction4 dir);
 }

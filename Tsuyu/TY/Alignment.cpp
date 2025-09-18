@@ -30,11 +30,6 @@ namespace TY
         }
     }
 
-    int DirectionToElemIndex(Direction4 dir)
-    {
-        return dir == Direction4::Left || dir == Direction4::Right ? 0 : 1;
-    }
-
     Point DirectionToPoint(Direction4 dir)
     {
         constexpr std::array points = {
@@ -44,5 +39,15 @@ namespace TY
             Point{0, 1} // Down
         };
         return points[static_cast<int>(dir)];
+    }
+
+    bool IsDirectionHorizontal(Direction4 dir)
+    {
+        return dir == Direction4::Left || dir == Direction4::Right;
+    }
+
+    Direction4 ReverseDirection(Direction4 dir)
+    {
+        return static_cast<Direction4>((static_cast<int>(dir) + 2) % 4);
     }
 }

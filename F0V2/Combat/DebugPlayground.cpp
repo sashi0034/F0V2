@@ -34,10 +34,10 @@ namespace
             .pushAuto();
 
         constexpr float lineLength = 28.0f;
-        const auto headerRegion = backgroundRegion.trimmed(lineLength, Direction4::Up).stretched(-1);
+        const auto [headerRegion, contentRegion] = backgroundRegion.separate(lineLength, Direction4::Up);
 
-        Shape2D::RoundRect{headerRegion}
-            .setColor(ColorF32{"#294a7a"})
+        Shape2D::RoundRect{headerRegion.stretched(-1)}
+            .setColor(ColorF32{"#172b47"})
             .pushAuto();
 
         Shape2D_Text::MPlus1_16_Bitmap(U"Transform Editor")
