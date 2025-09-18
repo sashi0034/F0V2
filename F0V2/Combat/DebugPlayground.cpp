@@ -26,21 +26,22 @@ namespace
 {
     void transformListEditorDemo(Array<SerializeTransform>& transformList)
     {
-        // Shape2D::Rect{RectF{25, 25, 400, 50}}
-        //     .setColor(ColorF32{0.3})
-        //     .setOutline({10.0f, ColorF32{0.1}, ColorF32{0.1, 0.0}})
-        //     .pushAuto();
+        const auto backgroundRegion = RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 800}};
 
-        Shape2D::RoundRect{RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 200}}}
-            .setColor(ColorF32{"#0a0a0a"})
-            .setOutline({2.0f, ColorF32{0.3f}, ColorF32{0.3f, 0.0f}})
+        Shape2D::RoundRect{backgroundRegion}
+            .setColor(ColorF32{"#0a0a0ae0"})
+            .setOutline({1.0f, ColorF32{"#606080"}})
             .pushAuto();
 
-        Shape2D_Text::MPlus1_Sdf(U"デバッグ機能 ABC abc 012")
-            // Shape2D_Text::MPlus1_Sdf(U"デ")
-            // Shape2D_Text::MPlus1_24_Bitmap(U"デ")
-            .setPosition(Float2{10, 10})
-            .setSize(100)
+        constexpr float lineLength = 32.0f;
+        const auto headerRegion = backgroundRegion.trimmed(lineLength, Direction4::Up).stretched(-2);
+
+        Shape2D::RoundRect{headerRegion}
+            .setColor(ColorF32{"#262626"})
+            .pushAuto();
+
+        Shape2D_Text::MPlus1_16_Bitmap(U"Transform Editor")
+            .setPosition(headerRegion.stretched(-2).middleLeft(), Alignment9::MiddleLeft)
             .pushAuto();
 
         // Shape2D_Text::MPlus1_24_Bitmap(U"デバッグ機能 ABC abc 012")

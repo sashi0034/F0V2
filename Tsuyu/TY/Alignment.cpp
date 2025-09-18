@@ -29,4 +29,20 @@ namespace TY
             return {};
         }
     }
+
+    int DirectionToElemIndex(Direction4 dir)
+    {
+        return dir == Direction4::Left || dir == Direction4::Right ? 0 : 1;
+    }
+
+    Point DirectionToPoint(Direction4 dir)
+    {
+        constexpr std::array points = {
+            Point{1, 0}, // Right
+            Point{0, -1}, // Up
+            Point{-1, 0}, // Left
+            Point{0, 1} // Down
+        };
+        return points[static_cast<int>(dir)];
+    }
 }

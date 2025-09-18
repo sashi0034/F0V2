@@ -17,4 +17,19 @@ namespace TY
     };
 
     Float2 AlignmentToPivot(Alignment9 alignment);
+
+    // -----------------------------------------------
+
+    enum class Direction4 : uint8_t
+    {
+        Right,
+        Up,
+        Left,
+        Down,
+    };
+
+    /// @brief 0: Right or Left, 1: Up or Down
+    int DirectionToElemIndex(Direction4 dir);
+
+    Point DirectionToPoint(Direction4 dir);
 }

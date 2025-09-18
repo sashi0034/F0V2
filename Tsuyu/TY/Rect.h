@@ -93,14 +93,44 @@ namespace TY
             return position_type{pos.x, pos.y + size.y};
         }
 
+        position_type middleLeft() const
+        {
+            return position_type{pos.x, pos.y + size.y * 0.5f};
+        }
+
+        position_type middleRight() const
+        {
+            return position_type{pos.x + size.x, pos.y + size.y * 0.5f};
+        }
+
+        position_type topCenter() const
+        {
+            return position_type{pos.x + size.x * 0.5f, pos.y};
+        }
+
+        position_type bottomCenter() const
+        {
+            return position_type{pos.x + size.x * 0.5f, pos.y + size.y};
+        }
+
+        position_type middleCenter() const
+        {
+            return pos + size * 0.5f;
+        }
+
+        position_type center() const
+        {
+            return middleCenter();
+        }
+
         position_type getRelativePoint(const position_type& rate) const
         {
             return pos + size * rate;
         }
 
-        position_type center() const
+        position_type getRelativePoint(Alignment9 alignment9) const
         {
-            return pos + size / 2;
+            return pos + size * AlignmentToPivot(alignment9);
         }
 
         value_type leftX() const
@@ -129,6 +159,50 @@ namespace TY
                 pos - position_type{xy, xy},
                 size + position_type{xy * 2, xy * 2}
             };
+        }
+
+        Rectangle stretched(value_type length, Direction4 dir) const noexcept
+        {
+            Rectangle result = *this;
+            switch (dir)
+            {
+            case Direction4::Right:
+                result.size.x += length;
+                return result;
+            case Direction4::Up:
+                result.pos.y -= length;
+                result.size.y += length;
+                return result;
+            case Direction4::Left:
+                result.pos.x -= length;
+                result.size.x += length;
+                return result;
+            default: // Direction4::Down
+                result.size.y += length;
+                return result;
+            }
+        }
+
+        Rectangle trimmed(value_type length, Direction4 dir) const noexcept
+        {
+            Rectangle result = *this;
+            switch (dir)
+            {
+            case Direction4::Right:
+                result.pos.x += result.size.x - length;
+                result.size.x = length;
+                return result;
+            case Direction4::Up:
+                result.size.y = length;
+                return result;
+            case Direction4::Left:
+                result.size.x = length;
+                return result;
+            default: // Direction4::Down
+                result.pos.y += result.size.y - length;
+                result.size.y = length;
+                return result;
+            }
         }
     };
 
