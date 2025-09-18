@@ -138,7 +138,7 @@ namespace TY
     {
         const char* c = code.data();
         const size_t length = code.length();
-        if (6 <= length && length <= 8)
+        if (6 <= length && length <= 9) // 6, 7, 8, 9
         {
             if (length == 7 || length == 9)
             {
@@ -148,7 +148,7 @@ namespace TY
             r = static_cast<uint8_t>(detail::HexToDecimal(c[0]) * 16 + detail::HexToDecimal(c[1]));
             g = static_cast<uint8_t>(detail::HexToDecimal(c[2]) * 16 + detail::HexToDecimal(c[3]));
             b = static_cast<uint8_t>(detail::HexToDecimal(c[4]) * 16 + detail::HexToDecimal(c[5]));
-            a = length == 8 ? static_cast<uint8_t>(detail::HexToDecimal(c[6]) * 16 + detail::HexToDecimal(c[7])) : 255;
+            a = length >= 8 ? static_cast<uint8_t>(detail::HexToDecimal(c[6]) * 16 + detail::HexToDecimal(c[7])) : 255;
         }
         else
         {
