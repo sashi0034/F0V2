@@ -33,15 +33,15 @@ namespace
             .setOutline({1.0f, ColorF32{"#606080"}})
             .pushAuto();
 
-        constexpr float lineLength = 32.0f;
-        const auto headerRegion = backgroundRegion.trimmed(lineLength, Direction4::Up).stretched(-2);
+        constexpr float lineLength = 28.0f;
+        const auto headerRegion = backgroundRegion.trimmed(lineLength, Direction4::Up).stretched(-1);
 
         Shape2D::RoundRect{headerRegion}
-            .setColor(ColorF32{"#262626"})
+            .setColor(ColorF32{"#294a7a"})
             .pushAuto();
 
         Shape2D_Text::MPlus1_16_Bitmap(U"Transform Editor")
-            .setPosition(headerRegion.stretched(-2).middleLeft(), Alignment9::MiddleLeft)
+            .setPosition(headerRegion.stretched(-5).middleLeft(), Alignment9::MiddleLeft)
             .pushAuto();
 
         // Shape2D_Text::MPlus1_24_Bitmap(U"デバッグ機能 ABC abc 012")
