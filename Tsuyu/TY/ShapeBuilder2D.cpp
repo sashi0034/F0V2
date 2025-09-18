@@ -678,7 +678,7 @@ namespace TY
             if (not text.pivot.isZero())
             {
                 const SizeF regionSize = regionBR - regionTL;
-                const Float2 regionOffset = -regionSize * text.pivot;
+                const Float2 regionOffset = -regionTL - regionSize * text.pivot;
                 for (int i = 0; i < vertices.size(); ++i)
                 {
                     vertices[i].pos += regionOffset;
