@@ -5,6 +5,32 @@
 #include "ColorPalette.h"
 #include "TY/Intersects.h"
 #include "TY/Mouse.h"
+#include "TY/System.h"
+
+namespace
+{
+    size_t hashRect(const RectF& r) noexcept
+    {
+        const auto floatHash = [](float f) -> std::size_t
+        {
+            uint32_t u;
+            std::memcpy(&u, &f, sizeof(float));
+            return std::hash<uint32_t>{}(u);
+        };
+
+        const auto hashCombine = [](std::size_t seed, std::size_t v)
+        {
+            return seed ^ (v + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2));
+        };
+
+        std::size_t seed = 0;
+        seed = hashCombine(seed, floatHash(r.x));
+        seed = hashCombine(seed, floatHash(r.y));
+        seed = hashCombine(seed, floatHash(r.w));
+        seed = hashCombine(seed, floatHash(r.h));
+        return seed;
+    }
+}
 
 bool DebugUI::Button(const RectF& region, const std::u32string& text)
 {
@@ -29,15 +55,26 @@ bool DebugUI::ListSlider(
         return false;
     }
 
-    if (Intersects(Mouse::PosF(), scrollRegion))
+    struct state_type
     {
+        size_t dragTimestamp;
+        float dragOffsetInThumb;
+    };
+
+    static std::unordered_map<size_t, state_type> s_states{};
+
+    auto& state = s_states[hashRect(sliderRegion)];
+
+    if (Intersects(scrollRegion, Mouse::PosF()))
+    {
+        const int d = pageCapacity / 5;
         if (Mouse::Wheel() > 0.0f)
         {
-            startIndex = Max(0, startIndex - 1);
+            startIndex = Max(0, startIndex - d);
         }
         else if (Mouse::Wheel() < 0.0f)
         {
-            startIndex = Min(listCount - pageCapacity, startIndex + 1);
+            startIndex = Min(listCount - pageCapacity, startIndex + d);
         }
     }
 
@@ -45,13 +82,43 @@ bool DebugUI::ListSlider(
 
     const float startRatio = static_cast<float>(startIndex) / static_cast<float>(listCount);
 
-    const RectF drawRect = RectF{
+    const RectF thumbRect = RectF{
         sliderRegion.pos + Float2{0.0f, sliderRegion.h * startRatio},
         SizeF{sliderRegion.w, sliderRegion.h * pageRatio}
     };
-    Shape2D::RoundRect{drawRect}
-        .setColor(ColorF32{"#4F4F4F"})
+
+    const bool dragging = state.dragTimestamp == System::FrameCount() - 1;
+    if (not dragging)
+    {
+        if (MouseL.pressed() && Intersects(sliderRegion, Mouse::PosF()))
+        {
+            if (not Intersects(thumbRect, Mouse::PosF()))
+            {
+                startIndex += Max(1, pageCapacity / 2) * (thumbRect.y < Mouse::PosF().y ? 1 : -1);
+            }
+            else
+            {
+                state.dragTimestamp = System::FrameCount();
+                state.dragOffsetInThumb = Mouse::PosF().y - thumbRect.y;
+            }
+        }
+    }
+    else // dragging
+    {
+        if (MouseL.pressed())
+        {
+            state.dragTimestamp = System::FrameCount();
+            const float y = Mouse::PosF().y - state.dragOffsetInThumb;
+            const float rate = (y - sliderRegion.y) / (sliderRegion.h - thumbRect.h);
+            startIndex = static_cast<int>(rate * (listCount - pageCapacity));
+        }
+    }
+
+    startIndex = Math::Clamp(startIndex, 0, listCount - pageCapacity);
+
+    Shape2D::RoundRect{thumbRect}
+        .setColor(ColorF32{"#4F4F4F"} * (dragging ? 1.5f : 1.0f))
         .pushAuto();
 
-    return false;
+    return state.dragTimestamp == System::FrameCount();
 }
