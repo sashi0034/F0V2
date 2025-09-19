@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Alignment.h"
+#include "Array.h"
 #include "Vector2D.h"
 
 namespace TY
@@ -161,6 +162,30 @@ namespace TY
             };
         }
 
+        Rectangle stretched(value_type x, value_type y) const noexcept
+        {
+            return Rectangle{
+                pos - position_type{x, y},
+                size + position_type{x * 2, y * 2}
+            };
+        }
+
+        Rectangle stretched(const position_type& v) const noexcept
+        {
+            return Rectangle{
+                pos - v,
+                size + v * 2
+            };
+        }
+
+        Rectangle stretched(value_type top, value_type right, value_type bottom, value_type left) const noexcept
+        {
+            return Rectangle{
+                pos - position_type{right, top},
+                size + position_type{right + left, top + bottom}
+            };
+        }
+
         Rectangle stretched(value_type length, Direction4 dir) const noexcept
         {
             Rectangle result = *this;
@@ -183,9 +208,9 @@ namespace TY
             }
         }
 
-        std::pair<Rectangle, Rectangle> separate(value_type length, Direction4 dir) const noexcept
+        std::pair<Rectangle, Rectangle> separate(value_type length, Direction4 dir) const
         {
-            const size_t edgeLength = IsDirectionHorizontal(dir) ? size.x : size.y;
+            const value_type edgeLength = IsDirectionHorizontal(dir) ? size.x : size.y;
             const Rectangle first = this->stretched(length - edgeLength, ReverseDirection(dir));
             const Rectangle second = this->stretched(-length, dir);
             return {first, second};

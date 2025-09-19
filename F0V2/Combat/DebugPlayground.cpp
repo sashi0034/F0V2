@@ -3,6 +3,7 @@
 
 #include "Asset.generated.h"
 #include "Asset0.h"
+#include "ColorPalette.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Graphics3D.h"
@@ -16,6 +17,7 @@
 #include "TY/SimpleInput.h"
 #include "TY/System.h"
 #include "TY/TextureResource.h"
+#include "TY/Utils.h"
 #include "TY_Extension/SerializeTransform.h"
 
 using namespace Combat;
@@ -24,24 +26,84 @@ using namespace TY;
 
 namespace
 {
+    Array<RectF> SliceRectByLength(const RectF& rect, float length, Direction2 dir)
+    {
+        const auto& pos = rect.pos;
+        const auto& size = rect.size;
+        const float edgeLength = dir == Direction2::Horizontal ? size.x : size.y;
+        const float padding = std::fmod(edgeLength, length) / 2;
+        const int count = static_cast<int>(edgeLength / length);
+
+        Array<RectF> result(count);
+        for (int i = 0; i < count; ++i)
+        {
+            if (dir == Direction2::Horizontal)
+            {
+                result[i] = RectF{Float2{pos.x + padding + length * i, pos.y}, Float2{length, size.y}};
+            }
+            else
+            {
+                result[i] = RectF{Float2{pos.x, pos.y + padding + length * i}, Float2{size.x, length}};
+            }
+        }
+
+        return result;
+    }
+}
+
+namespace
+{
     void transformListEditorDemo(Array<SerializeTransform>& transformList)
     {
         const auto backgroundRegion = RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 800}};
 
         Shape2D::RoundRect{backgroundRegion}
-            .setColor(ColorF32{"#0a0a0ae0"})
-            .setOutline({1.0f, ColorF32{"#606080"}})
+            .setColor(ColorPalette::EditorBackground)
+            .setOutline({1.0f, ColorPalette::GrayOrange})
             .pushAuto();
 
         constexpr float lineLength = 28.0f;
-        const auto [headerRegion, contentRegion] = backgroundRegion.separate(lineLength, Direction4::Up);
+        auto [headerRegion, contentRegion] = backgroundRegion.separate(lineLength, Direction4::Up);
 
         Shape2D::RoundRect{headerRegion.stretched(-1)}
-            .setColor(ColorF32{"#172b47"})
+            .setColor(ColorF32{ColorPalette::DarkOrange} * 1.05f)
             .pushAuto();
 
         Shape2D_Text::MPlus1_16_Bitmap(U"Transform Editor")
             .setPosition(headerRegion.stretched(-5).middleLeft(), Alignment9::MiddleLeft)
+            .pushAuto();
+
+        const auto [operationRegion, contentRegion2] =
+            contentRegion.stretched(-5).stretched(5, Direction4::Up).separate(lineLength, Direction4::Down);
+
+        const auto [sliderRegion, listRegion] = contentRegion2.separate(10, Direction4::Left);
+
+        Shape2D::RoundRect{sliderRegion.stretched(0, -1)}
+            .setColor(ColorF32{"#4F4F4F"})
+            .pushAuto();
+
+        const auto listRects = SliceRectByLength(listRegion.stretched(-5), lineLength, Direction2::Vertical);
+        for (int i = 0; i < listRects.size(); ++i)
+        {
+            if (i >= transformList.size()) break;
+
+            const auto& r = listRects[i];
+            Shape2D::RoundRect{r.stretched(-1)}
+                .setColor(ColorF32{0.15})
+                .pushAuto();
+
+            const auto& e = transformList[i];
+            Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(e.tag))
+                .setPosition(r.stretched(-10).middleLeft(), Alignment9::MiddleLeft)
+                .pushAuto();
+        }
+
+        const auto operationRects = SliceRectByLength(operationRegion, operationRegion.w / 4, Direction2::Horizontal);
+        Shape2D::RoundRect{operationRects[0].stretched(-1)}
+            .setColor(ColorPalette::DarkOrange)
+            .pushAuto();
+        Shape2D_Text::MPlus1_16_Bitmap(U"Add")
+            .setPosition(operationRects[0].stretched(-1).middleCenter(), Alignment9::MiddleCenter)
             .pushAuto();
 
         // Shape2D_Text::MPlus1_24_Bitmap(U"デバッグ機能 ABC abc 012")

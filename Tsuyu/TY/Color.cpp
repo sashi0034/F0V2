@@ -5,6 +5,16 @@
 
 namespace TY
 {
+    ColorF32 ColorF32::operator*(float factor) const
+    {
+        return ColorF32{
+            Math::Clamp(r * factor, 0.0f, 1.0f),
+            Math::Clamp(g * factor, 0.0f, 1.0f),
+            Math::Clamp(b * factor, 0.0f, 1.0f),
+            Math::Clamp(a * factor, 0.0f, 1.0f)
+        };
+    }
+
     ColorU8 ColorU8::multiplied(float rgbFactor, float alphaFactor) const
     {
         return ColorU8{

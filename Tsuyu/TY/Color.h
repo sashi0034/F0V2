@@ -48,6 +48,8 @@ namespace TY
         Float4 toFloat4() const { return Float4{r, g, b, a}; }
 
         constexpr ColorU8 toColorU8() const;
+
+        ColorF32 operator*(float factor) const;
     };
 
     struct ColorU8

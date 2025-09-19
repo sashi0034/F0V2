@@ -20,6 +20,14 @@ namespace TY
 
     // -----------------------------------------------
 
+    enum class Direction2 : uint8_t
+    {
+        Horizontal,
+        Vertical,
+    };
+
+    // -----------------------------------------------
+
     enum class Direction4 : uint8_t
     {
         Right,

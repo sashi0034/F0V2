@@ -39,33 +39,157 @@ namespace TY
         return str;
     }
 
+    namespace
+    {
+        inline constexpr char32_t k_replacementChar = U'\uFFFD';
+    }
+
+    std::u32string ToUtf32(const std::string& str)
+    {
+        // UTF-8 decoder with validation. Errors -> U+FFFD.
+        std::u32string out;
+        out.reserve(str.size()); // worst-case: 1 byte -> 1 code point
+
+        const auto len = str.size();
+        size_t i = 0;
+
+        while (i < len)
+        {
+            unsigned char c0 = static_cast<unsigned char>(str[i]);
+
+            // 1-byte (ASCII)
+            if (c0 <= 0x7F)
+            {
+                out.push_back(static_cast<char32_t>(c0));
+                ++i;
+                continue;
+            }
+
+            int needed = 0;
+            char32_t cp = 0;
+
+            if ((c0 & 0xE0) == 0xC0)
+            {
+                needed = 2;
+                cp = c0 & 0x1F;
+            }
+            else if ((c0 & 0xF0) == 0xE0)
+            {
+                needed = 3;
+                cp = c0 & 0x0F;
+            }
+            else if ((c0 & 0xF8) == 0xF0)
+            {
+                needed = 4;
+                cp = c0 & 0x07;
+            }
+            else
+            {
+                // Invalid leading byte
+                out.push_back(k_replacementChar);
+                ++i;
+                continue;
+            }
+
+            if (i + needed > len)
+            {
+                // Truncated sequence at end
+                out.push_back(k_replacementChar);
+                break;
+            }
+
+            bool ok = true;
+            for (int j = 1; j < needed; ++j)
+            {
+                unsigned char cx = static_cast<unsigned char>(str[i + j]);
+                if ((cx & 0xC0) != 0x80)
+                {
+                    ok = false;
+                    // consume the invalid lead only; let the next loop re-evaluate following bytes
+                    out.push_back(k_replacementChar);
+                    ++i;
+                    break;
+                }
+                cp = (cp << 6) | (cx & 0x3F);
+            }
+            if (!ok) continue;
+
+            // Overlong-sequence checks and range checks
+            if ((needed == 2 && cp < 0x80) ||
+                (needed == 3 && cp < 0x800) ||
+                (needed == 4 && cp < 0x10000) ||
+                cp > 0x10FFFF ||
+                (cp >= 0xD800 && cp <= 0xDFFF)) // UTF-16 surrogate range not valid in Unicode scalar values
+            {
+                out.push_back(k_replacementChar);
+                i += needed;
+                continue;
+            }
+
+            out.push_back(cp);
+            i += needed;
+        }
+
+        return out;
+    }
+
     std::u32string ToUtf32(const std::wstring& wstr)
     {
+        // Portable: wchar_t could be 16-bit (Windows, UTF-16) or 32-bit (Linux, UTF-32)
         std::u32string result;
+        result.reserve(wstr.size());
+
+#if WCHAR_MAX <= 0xFFFF
+        // UTF-16 input (typical on Windows)
         for (size_t i = 0; i < wstr.size(); ++i)
         {
-            wchar_t wc = wstr[i];
+            const wchar_t wc = wstr[i];
 
-            // サロゲートペア判定
+            // High surrogate
             if (wc >= 0xD800 && wc <= 0xDBFF)
             {
-                // 上位サロゲート
                 if (i + 1 < wstr.size())
                 {
-                    wchar_t low = wstr[i + 1];
+                    const wchar_t low = wstr[i + 1];
                     if (low >= 0xDC00 && low <= 0xDFFF)
                     {
-                        // 下位サロゲート
-                        char32_t cp = ((wc - 0xD800) << 10) + (low - 0xDC00) + 0x10000;
+                        const char32_t cp = (static_cast<char32_t>(wc - 0xD800) << 10)
+                            + (static_cast<char32_t>(low - 0xDC00))
+                            + 0x10000;
                         result.push_back(cp);
                         ++i;
                         continue;
                     }
                 }
+                // Lone high surrogate -> replacement
+                result.push_back(k_replacementChar);
+                continue;
+            }
+
+            // Lone low surrogate -> replacement
+            if (wc >= 0xDC00 && wc <= 0xDFFF)
+            {
+                result.push_back(k_replacementChar);
+                continue;
             }
 
             result.push_back(static_cast<char32_t>(wc));
         }
+#else
+        // UTF-32 input (typical on Linux)
+        for (wchar_t wc : wstr)
+        {
+            char32_t cp = static_cast<char32_t>(wc);
+            if (cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
+            {
+                result.push_back(k_replacementChar);
+            }
+            else
+            {
+                result.push_back(cp);
+            }
+        }
+#endif
 
         return result;
     }

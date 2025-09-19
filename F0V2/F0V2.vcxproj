@@ -213,6 +213,7 @@
     <ClInclude Include="Asset0.h" />
     <ClInclude Include="Asset.generated.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
+    <ClInclude Include="ColorPalette.h" />
     <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Combat\DebugPlayground.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
