@@ -2,6 +2,7 @@
 #include "Mouse.h"
 
 #include "detail/EngineKeyboardMouse.h"
+#include "detail/EngineWindow.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -26,5 +27,10 @@ namespace TY
     Float2 Mouse::PosF()
     {
         return EngineKeyboardMouse::MousePos();
+    }
+
+    float Mouse::Wheel()
+    {
+        return EngineWindow::GetWheelDelta();
     }
 }

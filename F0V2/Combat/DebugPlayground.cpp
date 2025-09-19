@@ -91,14 +91,15 @@ namespace
 
         for (int i = 0; i < listRects.size(); ++i)
         {
-            if (i >= transformList.size()) break;
+            const int index = i + s_listStart;
+            if (index >= transformList.size()) break;
 
             const auto& r = listRects[i];
             Shape2D::RoundRect{r.stretched(-1)}
                 .setColor(ColorF32{0.15})
                 .pushAuto();
 
-            const auto& e = transformList[i];
+            const auto& e = transformList[index];
             Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(e.tag))
                 .setPosition(r.stretched(-10).middleLeft(), Alignment9::MiddleLeft)
                 .pushAuto();

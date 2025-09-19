@@ -118,6 +118,8 @@ struct EngineCoreImpl
 
         EngineRenderContext::Render();
 
+        EngineWindow::AfterPresent();
+
         EngineComponent::AfterPresent();
 
         m_inFrame = false;

@@ -31,7 +31,14 @@ bool DebugUI::ListSlider(
 
     if (Intersects(Mouse::PosF(), scrollRegion))
     {
-        // TODO: ホイール
+        if (Mouse::Wheel() > 0.0f)
+        {
+            startIndex = Max(0, startIndex - 1);
+        }
+        else if (Mouse::Wheel() < 0.0f)
+        {
+            startIndex = Min(listCount - pageCapacity, startIndex + 1);
+        }
     }
 
     const float pageRatio = static_cast<float>(pageCapacity) / static_cast<float>(listCount);

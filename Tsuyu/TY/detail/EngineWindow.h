@@ -13,6 +13,8 @@ namespace TY::detail
 
         void Update();
 
+        void AfterPresent();
+
         void Shutdown();
 
         [[nodiscard]]
@@ -23,6 +25,8 @@ namespace TY::detail
 
         [[nodiscard]]
         Size GetSize();
+
+        float GetWheelDelta();
 
         void Resize(Size size);
 

@@ -15,7 +15,7 @@ namespace
 {
     constexpr Point defaultWindowSize{1600, 900};
 
-    LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+    LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     std::wstring getFullTitle(const std::wstring& title, int fps)
     {
@@ -41,8 +41,10 @@ struct EngineWindowImpl
     bool m_initialized = false;
 
     WNDCLASSEX m_windowClass{};
-    Point m_windowSize{};
     HWND m_handle{};
+
+    Point m_windowSize{};
+    float m_wheelDelta{};
 
     int m_frameCount{};
     int m_fps{};
@@ -103,7 +105,10 @@ struct EngineWindowImpl
     void Update()
     {
         const double dt = EngineTimer::GetDeltaTime();
-        if (dt == 0.0) return;
+        if (dt == 0.0)
+        {
+            return;
+        }
 
         m_frameCount++;
 
@@ -120,6 +125,11 @@ struct EngineWindowImpl
 
             m_frameCount = 0;
         }
+    }
+
+    void AfterPresent()
+    {
+        m_wheelDelta = 0.0f;
     }
 
     void Resize(const Point& newSize)
@@ -151,22 +161,30 @@ namespace
 {
     EngineWindowImpl s_engineWindow{};
 
-    LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+    LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         switch (msg)
         {
-        case WM_DESTROY:
+        case WM_DESTROY: {
             PostQuitMessage(0);
             return 0;
+        }
         case WM_SIZE: {
-            s_engineWindow.m_windowSize = {LOWORD(lparam), HIWORD(lparam)};
+            s_engineWindow.m_windowSize = {LOWORD(lParam), HIWORD(lParam)};
+            break;
+        }
+        case WM_MOUSEWHEEL: {
+            s_engineWindow.m_wheelDelta += GET_WHEEL_DELTA_WPARAM(wParam) / 120.0f;
             break;
         }
         }
 
-        if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) return true;
+        if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
+        {
+            return true;
+        }
 
-        return DefWindowProc(hwnd, msg, wparam, lparam);
+        return DefWindowProc(hwnd, msg, wParam, lParam);
     }
 }
 
@@ -192,6 +210,11 @@ namespace TY::detail
         s_engineWindow.Update();
     }
 
+    void EngineWindow::AfterPresent()
+    {
+        s_engineWindow.AfterPresent();
+    }
+
     HINSTANCE EngineWindow::HInstance()
     {
         return s_engineWindow.m_windowClass.hInstance;
@@ -205,6 +228,11 @@ namespace TY::detail
     Size EngineWindow::GetSize()
     {
         return s_engineWindow.m_windowSize;
+    }
+
+    float EngineWindow::GetWheelDelta()
+    {
+        return s_engineWindow.m_wheelDelta;
     }
 
     void EngineWindow::Resize(Size size)

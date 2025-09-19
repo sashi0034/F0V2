@@ -25,5 +25,7 @@ namespace TY
         Point Pos();
 
         Float2 PosF();
+
+        float Wheel();
     }
 }
