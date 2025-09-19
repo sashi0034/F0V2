@@ -4,6 +4,7 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "ColorPalette.h"
+#include "DebugUI.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Graphics3D.h"
@@ -99,12 +100,16 @@ namespace
         }
 
         const auto operationRects = SliceRectByLength(operationRegion, operationRegion.w / 4, Direction2::Horizontal);
-        Shape2D::RoundRect{operationRects[0].stretched(-1)}
-            .setColor(ColorPalette::DarkOrange)
-            .pushAuto();
-        Shape2D_Text::MPlus1_16_Bitmap(U"Add")
-            .setPosition(operationRects[0].stretched(-1).middleCenter(), Alignment9::MiddleCenter)
-            .pushAuto();
+
+        if (DebugUI::Button(operationRects[0].stretched(-1), U"Add"))
+        {
+            transformList.push_back(SerializeTransform{
+                "NewEntity",
+                {0, 0, 0},
+                {0, 0, 0},
+                {1, 1, 1}
+            });
+        }
 
         // Shape2D_Text::MPlus1_24_Bitmap(U"デバッグ機能 ABC abc 012")
         //     .setPosition(Float2{10, 100})

@@ -154,6 +154,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <ClCompile Include="DebugUI.cpp" />
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
     <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
@@ -216,6 +217,7 @@
     <ClInclude Include="ColorPalette.h" />
     <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Combat\DebugPlayground.h" />
+    <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
     <ClInclude Include="Demo\Demo_Font.h" />
