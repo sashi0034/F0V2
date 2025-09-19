@@ -4,4 +4,7 @@
 namespace DebugUI
 {
     bool Button(const RectF& region, const std::u32string& text);
+
+    bool ListSlider(
+        int& startIndex, int pageCapacity, int listCount, const RectF& sliderRegion, const RectF& scrollRegion);
 }

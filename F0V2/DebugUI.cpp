@@ -19,3 +19,32 @@ bool DebugUI::Button(const RectF& region, const std::u32string& text)
 
     return isHovered && MouseL.down();
 }
+
+bool DebugUI::ListSlider(
+    int& startIndex, int pageCapacity, int listCount, const RectF& sliderRegion, const RectF& scrollRegion)
+{
+    if (pageCapacity >= listCount)
+    {
+        startIndex = 0;
+        return false;
+    }
+
+    if (Intersects(Mouse::PosF(), scrollRegion))
+    {
+        // TODO: ホイール
+    }
+
+    const float pageRatio = static_cast<float>(pageCapacity) / static_cast<float>(listCount);
+
+    const float startRatio = static_cast<float>(startIndex) / static_cast<float>(listCount);
+
+    const RectF drawRect = RectF{
+        sliderRegion.pos + Float2{0.0f, sliderRegion.h * startRatio},
+        SizeF{sliderRegion.w, sliderRegion.h * pageRatio}
+    };
+    Shape2D::RoundRect{drawRect}
+        .setColor(ColorF32{"#4F4F4F"})
+        .pushAuto();
+
+    return false;
+}

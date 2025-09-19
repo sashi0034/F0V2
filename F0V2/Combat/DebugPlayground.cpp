@@ -79,11 +79,16 @@ namespace
 
         const auto [sliderRegion, listRegion] = contentRegion2.separate(10, Direction4::Left);
 
-        Shape2D::RoundRect{sliderRegion.stretched(0, -1)}
-            .setColor(ColorF32{"#4F4F4F"})
-            .pushAuto();
+        // Shape2D::RoundRect{sliderRegion.stretched(0, -1)}
+        //     .setColor(ColorF32{"#4F4F4F"})
+        //     .pushAuto();
 
         const auto listRects = SliceRectByLength(listRegion.stretched(-5), lineLength, Direction2::Vertical);
+
+        static int s_listStart = 0;
+        DebugUI::ListSlider(
+            s_listStart, listRects.size(), transformList.size(), sliderRegion.stretched(0, -1), contentRegion2);
+
         for (int i = 0; i < listRects.size(); ++i)
         {
             if (i >= transformList.size()) break;
