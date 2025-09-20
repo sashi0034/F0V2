@@ -50,6 +50,87 @@ namespace
 
         return result;
     }
+
+    inline bool imguiFloat3(const char* label, Float3& v, float resetValue = 0.0f, float columnWidth = 100.0f)
+    {
+        bool changed = false;
+
+        if (ImGui::BeginTable(label, 2, ImGuiTableFlags_SizingStretchSame))
+        {
+            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, columnWidth);
+            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+            ImGui::TableNextRow();
+
+            // Label
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextUnformatted(label);
+
+            // Controls
+            ImGui::TableSetColumnIndex(1);
+
+            float fullWidth = ImGui::GetContentRegionAvail().x;
+            float itemWidth = fullWidth / 3.0f;
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {4, 0});
+
+            auto drawAxis = [&](const char* label, float& value, const ImVec4& color)
+            {
+                ImGui::PushItemWidth(itemWidth - 20.0f);
+
+                // 軸ラベル (色付き)
+                ImGui::PushStyleColor(ImGuiCol_Text, color);
+                ImGui::TextUnformatted(label);
+                ImGui::SameLine();
+                ImGui::PopStyleColor();
+
+                // 値入力
+                changed |= ImGui::DragFloat(std::string("##").append(label).c_str(), &value, 0.1f, 0.0f, 0.0f, "%.3f");
+
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+            };
+            drawAxis("X", v.x, {1.0f, 0.4f, 0.4f, 1.0f}); // 赤
+            drawAxis("Y", v.y, {0.4f, 1.0f, 0.4f, 1.0f}); // 緑
+            drawAxis("Z", v.z, {0.4f, 0.7f, 1.0f, 1.0f}); // 青
+
+            ImGui::PopStyleVar();
+
+            ImGui::EndTable();
+        }
+
+        return changed;
+    }
+
+    void imguiTransformInspector(SerializeTransform& tr)
+    {
+        ImGui::Begin("Transform Inspector");
+
+        // Tag
+        char buffer[256];
+        strcpy_s(buffer, tr.tag.c_str());
+        ImGui::Text("Tag:");
+        ImGui::SameLine();
+        if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
+        {
+            tr.tag = buffer;
+        }
+
+        ImGui::Separator();
+
+        // 各プロパティ
+        if (imguiFloat3("Position", tr.position, 0.0f))
+        {
+        }
+        if (imguiFloat3("Rotation", tr.rotation, 0.0f))
+        {
+        }
+        if (imguiFloat3("Scale", tr.scale, 1.0f))
+        {
+        }
+
+        ImGui::End();
+    }
 }
 
 namespace
@@ -102,12 +183,22 @@ namespace
             }
         }
 
+        if (InRange(s_activeItem, 0, static_cast<int>(transformList.size() - 1)))
+        {
+            imguiTransformInspector(transformList[s_activeItem]);
+
+            if (KeyDelete.down())
+            {
+                transformList.erase(transformList.begin() + s_activeItem);
+            }
+        }
+
         const auto operationRects = SliceRectByLength(operationRegion, operationRegion.w / 4, Direction2::Horizontal);
 
         if (DebugUI::Button(operationRects[0].stretched(-1), U"Add"))
         {
             transformList.push_back(SerializeTransform{
-                "NewEntity",
+                "Empty",
                 {0, 0, 0},
                 {0, 0, 0},
                 {1, 1, 1}
@@ -120,55 +211,6 @@ namespace
         //     .pushAuto();
 
         ShapeDrawer::Global().draw();
-
-        if (ImGui::Begin("Transform Editor"))
-        {
-            // Add ボタン
-            if (ImGui::Button("Add Entity"))
-            {
-                transformList.push_back(SerializeTransform{
-                    "NewEntity",
-                    {0, 0, 0},
-                    {0, 0, 0},
-                    {1, 1, 1}
-                });
-            }
-
-            ImGui::Separator();
-
-            // リスト表示
-            for (size_t i = 0; i < transformList.size();)
-            {
-                auto& e = transformList[i];
-                ImGui::PushID(static_cast<int>(i)); // ID衝突防止
-
-                // タグ名を編集
-                char buffer[128];
-                std::snprintf(buffer, sizeof(buffer), "%s", e.tag.c_str());
-                if (ImGui::InputText("Tag", buffer, sizeof(buffer)))
-                {
-                    e.tag = buffer;
-                }
-
-                ImGui::DragFloat3("Position", &e.position.x, 0.1f);
-                ImGui::DragFloat3("Rotation", &e.rotation.x, 0.5f);
-                ImGui::DragFloat3("Scale", &e.scale.x, 0.1f);
-
-                // Remove ボタン
-                if (ImGui::Button("Remove"))
-                {
-                    transformList.erase(transformList.begin() + i);
-                    ImGui::PopID();
-                    continue; // eraseしたので i を進めない
-                }
-
-                ImGui::Separator();
-                ImGui::PopID();
-                ++i;
-            }
-        }
-
-        ImGui::End();
     }
 
     // -----------------------------------------------

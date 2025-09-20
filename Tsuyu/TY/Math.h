@@ -23,6 +23,12 @@ namespace TY
     }
 
     template <typename T>
+    constexpr bool InRange(T value, T min, T max) noexcept
+    {
+        return min <= value && value <= max;
+    }
+
+    template <typename T>
     constexpr T MinVector2(T a, T b) noexcept
     {
         T result;
