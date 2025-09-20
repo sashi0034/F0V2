@@ -10,7 +10,7 @@ namespace TY
     {
         if (const auto gameObject = asGameObject())
         {
-            GlobalGameObjectHierarchy.push(gameObject);
+            GlobalGameObjectHierarchy().push(gameObject);
         }
     }
 }

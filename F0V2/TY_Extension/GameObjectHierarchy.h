@@ -20,5 +20,5 @@ namespace TY
         list_type m_list{};
     };
 
-    inline GameObjectHierarchy GlobalGameObjectHierarchy{};
+    GameObjectHierarchy& GlobalGameObjectHierarchy();
 }

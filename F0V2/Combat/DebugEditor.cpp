@@ -106,7 +106,7 @@ struct DebugEditor::Impl : ActorBase
     {
         m_children.updateEach();
 
-        gameObjectEditor(GlobalGameObjectHierarchy.list());
+        gameObjectEditor(GlobalGameObjectHierarchy().list());
     }
 
     void draw() const override
