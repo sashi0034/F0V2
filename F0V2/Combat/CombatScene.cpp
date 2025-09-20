@@ -3,6 +3,7 @@
 
 #include "DebugEditor.h"
 #include "DebugPlayground.h"
+#include "Toys/ToyCinnamon.h"
 #include "TY/ActorContainer.h"
 #include "TY/Logger.h"
 #include "TY_Extension/AwaiterContext.h"
@@ -26,6 +27,9 @@ struct CombatScene::Impl : ActorBase
 
         m_debugEditor = m_children.birth(DebugEditor());
         m_debugEditor.init();
+
+        auto cinnamon = m_children.birth(ToyCinnamon());
+        cinnamon.init();
 
         m_coro = StartCoroutine(m_children, [this](AwaiterContext& await)
         {

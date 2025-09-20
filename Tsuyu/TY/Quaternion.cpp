@@ -16,6 +16,12 @@ namespace TY
     {
     }
 
+    Quaternion Quaternion::FromEuler(const Float3& euler)
+    {
+        using namespace DirectX;
+        return XMQuaternionRotationRollPitchYaw(euler.y, euler.x, euler.z);
+    }
+
     Quaternion Quaternion::operator*(const Quaternion& q) const
     {
         return DirectX::XMQuaternionMultiply(value, q.value);

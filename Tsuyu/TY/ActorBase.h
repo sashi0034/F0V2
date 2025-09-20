@@ -12,6 +12,7 @@ namespace TY
         /// @brief 毎フレーム更新する処理
         virtual void update() { return; };
 
+        // TODO: Remove it?
         /// @brief 描画処理
         virtual void draw() const { return; }
 

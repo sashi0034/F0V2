@@ -155,7 +155,10 @@
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
     <ClCompile Include="Combat\DebugEditor.cpp" />
+    <ClCompile Include="Combat\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="DebugUI.cpp" />
+    <ClCompile Include="TY_Extension\GameObjectHandle.cpp" />
+    <ClCompile Include="TY_Extension\GameObjectHierarchy.cpp" />
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
     <ClCompile Include="Util\Utilities.cpp" />
@@ -179,6 +182,7 @@
     <ClCompile Include="Demo\Demo_Ocean.cpp" />
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />
     <ClCompile Include="Demo\Demo_ShapeDrawer.cpp" />
+    <Content Include="Combat\Toys\Toy_template.h.txt" />
     <Content Include="engine\shape3d.hlsl" />
     <ClCompile Include="TY_Extension\AwaiterContext.cpp" />
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
@@ -220,6 +224,7 @@
     <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Combat\DebugEditor.h" />
     <ClInclude Include="Combat\DebugPlayground.h" />
+    <ClInclude Include="Combat\Toys\ToyCinnamon.h" />
     <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
@@ -233,6 +238,9 @@
     <ClInclude Include="ResourcePathWrapper.h" />
     <ClInclude Include="TY_Extension\AwaiterContext.h" />
     <ClInclude Include="TY_Extension\CoroutineActor.h" />
+    <ClInclude Include="TY_Extension\GameObjectBase.h" />
+    <ClInclude Include="TY_Extension\GameObjectHandle.h" />
+    <ClInclude Include="TY_Extension\GameObjectHierarchy.h" />
     <ClInclude Include="TY_Extension\LivePPAddon.h" />
     <ClInclude Include="TY_Extension\ResourceCache.h" />
     <ClInclude Include="TY_Extension\SerializeTransform.h" />
