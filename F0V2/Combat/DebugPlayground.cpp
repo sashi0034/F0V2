@@ -89,20 +89,17 @@ namespace
         DebugUI::ListSlider(
             s_listStart, listRects.size(), transformList.size(), sliderRegion.stretched(0, -1), contentRegion2);
 
+        static int s_activeItem = -1;
         for (int i = 0; i < listRects.size(); ++i)
         {
             const int index = i + s_listStart;
             if (index >= transformList.size()) break;
 
             const auto& r = listRects[i];
-            Shape2D::RoundRect{r.stretched(-1)}
-                .setColor(ColorF32{0.15})
-                .pushAuto();
-
-            const auto& e = transformList[index];
-            Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(e.tag))
-                .setPosition(r.stretched(-10).middleLeft(), Alignment9::MiddleLeft)
-                .pushAuto();
+            if (DebugUI::ItemButton(r.stretched(-1), ToUtf32(transformList[index].tag), s_activeItem == index))
+            {
+                s_activeItem = index;
+            }
         }
 
         const auto operationRects = SliceRectByLength(operationRegion, operationRegion.w / 4, Direction2::Horizontal);

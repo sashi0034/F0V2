@@ -46,6 +46,26 @@ bool DebugUI::Button(const RectF& region, const std::u32string& text)
     return isHovered && MouseL.down();
 }
 
+bool DebugUI::ItemButton(const RectF& region, const std::u32string& text, bool active)
+{
+    bool hovered = false;
+    if (Intersects(region, Mouse::PosF()))
+    {
+        hovered = true;
+    }
+
+    Shape2D::RoundRect{region}
+        .setColor(ColorF32{0.15} * (hovered ? (MouseL.pressed() ? 1.3f : 1.5f) : 1.0f))
+        .setOutline({active ? 1.0f : 0.0f, ColorPalette::GoldenYellow})
+        .pushAuto();
+
+    Shape2D_Text::MPlus1_16_Bitmap(text)
+        .setPosition(region.stretched(-10).middleLeft(), Alignment9::MiddleLeft)
+        .pushAuto();
+
+    return hovered && MouseL.down();
+}
+
 bool DebugUI::ListSlider(
     int& startIndex, int pageCapacity, int listCount, const RectF& sliderRegion, const RectF& scrollRegion)
 {
