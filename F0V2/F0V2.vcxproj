@@ -154,9 +154,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <ClCompile Include="Combat\DebugEditor.cpp" />
     <ClCompile Include="DebugUI.cpp" />
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
+    <ClCompile Include="Util\Utilities.cpp" />
     <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
     <Content Include="asset\font\0xProto\README.md" />
     <Content Include="asset\font\RocknRoll\OFL.txt" />
@@ -216,6 +218,7 @@
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="ColorPalette.h" />
     <ClInclude Include="Combat\CombatScene.h" />
+    <ClInclude Include="Combat\DebugEditor.h" />
     <ClInclude Include="Combat\DebugPlayground.h" />
     <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
@@ -234,6 +237,7 @@
     <ClInclude Include="TY_Extension\ResourceCache.h" />
     <ClInclude Include="TY_Extension\SerializeTransform.h" />
     <ClInclude Include="TY_Extension\Transform.h" />
+    <ClInclude Include="Util\Utilities.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">
