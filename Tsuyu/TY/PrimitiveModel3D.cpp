@@ -38,6 +38,44 @@ namespace
 
 namespace TY
 {
+    ModelData PrimitiveModel3D::Triangle(const Triangle3D& tri, const ColorF32& color)
+    {
+        ModelData data;
+
+        ModelMaterialParameters params;
+        params.ambient = color.toFloat3() * 0.1f; // Ambient は拡散成分の 10%
+        params.diffuse = color.toFloat3();
+        params.specular = {1.0f, 1.0f, 1.0f};
+        params.shininess = 32.0f;
+
+        data.materials.push_back({"Triangle", params, {}});
+
+        ModelShape shape;
+        shape.materialIndex = 0; // 上で追加したマテリアルを参照
+
+        // 頂点生成
+        Float3 norm = tri.getNormal();
+        shape.vertexBuffer = {
+            {tri.p0, norm, {0, 0}},
+            {tri.p1, norm, {1, 0}},
+            {tri.p2, norm, {0, 1}},
+
+            // 裏面用の頂点（法線とUV反転）
+            {tri.p0, -norm, {0, 0}},
+            {tri.p2, -norm, {0, 1}},
+            {tri.p1, -norm, {1, 0}},
+        };
+
+        // インデックス生成（表 + 裏）
+        shape.indexBuffer = {
+            0, 1, 2, // 表
+            3, 4, 5 // 裏（反時計回り）
+        };
+
+        data.shapes.push_back(std::move(shape));
+        return data;
+    }
+
     ModelData PrimitiveModel3D::Sphere(float radius, const ColorF32& color)
     {
         // 解像度

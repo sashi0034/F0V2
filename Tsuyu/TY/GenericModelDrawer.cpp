@@ -101,6 +101,8 @@ struct GenericModelDrawer::Impl
         };
 
         m_descriptorHeap = DescriptorHeap(descriptorHeap);
+
+        UploadWorldMatrix(Mat4x4::Identity());
     }
 
     void UploadWorldMatrix(const Mat4x4& worldMatrix)
