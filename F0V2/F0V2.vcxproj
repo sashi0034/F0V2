@@ -157,6 +157,7 @@
     <ClCompile Include="Combat\DebugEditor.cpp" />
     <ClCompile Include="Combat\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="DebugUI.cpp" />
+    <ClCompile Include="Demo\Demo_Collision.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHandle.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHierarchy.cpp" />
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
@@ -169,6 +170,7 @@
     <Content Include="asset\font\RocknRoll\README.md" />
     <Content Include="asset\font\RocknRoll\RocknRollOne-Regular.ttf" />
     <Content Include="asset\script\asset_register.py" />
+    <Content Include="asset\script\insert_template.py" />
     <Content Include="asset\shader\blinn_phong.hlsl" />
     <Content Include="asset\shader\phong_shadow.hlsl" />
     <Content Include="asset\shader\skydome.hlsl" />
@@ -183,6 +185,8 @@
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />
     <ClCompile Include="Demo\Demo_ShapeDrawer.cpp" />
     <Content Include="Combat\Toys\Toy_template.h.txt" />
+    <Content Include="Demo\Demo_template.cpp.txt" />
+    <Content Include="Demo\Demo_template.h.txt" />
     <Content Include="engine\shape3d.hlsl" />
     <ClCompile Include="TY_Extension\AwaiterContext.cpp" />
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
@@ -228,6 +232,7 @@
     <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
+    <ClInclude Include="Demo\Demo_Collision.h" />
     <ClInclude Include="Demo\Demo_Font.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="Demo\Demo_Ocean.h" />
