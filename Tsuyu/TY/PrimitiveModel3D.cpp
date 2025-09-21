@@ -144,6 +144,139 @@ namespace TY
         return data;
     }
 
+    ModelData PrimitiveModel3D::Capsule(float radius, float cylinderHeight, const ColorF32& color)
+    {
+        // 解像度（必要に応じて調整）
+        constexpr uint16_t sliceCount = 32; // 経線方向
+        constexpr uint16_t hemiStacks = 8; // 半球の緯線数（片側）
+        constexpr uint16_t cylStacks = 8; // シリンダ緯線数
+
+        const float halfCyl = cylinderHeight * 0.5f;
+        constexpr uint32_t rings = static_cast<uint32_t>(hemiStacks + cylStacks + hemiStacks) + 1; // 垂直リング総数
+
+        ModelData data;
+
+        // マテリアル（スフィアと同様）
+        ModelMaterialParameters params;
+        params.ambient = color.toFloat3() * 0.1f;
+        params.diffuse = color.toFloat3();
+        params.specular = {1.0f, 1.0f, 1.0f};
+        params.shininess = 32.0f;
+
+        data.materials.push_back({"Capsule", params, {}});
+
+        ModelShape shape;
+        shape.materialIndex = 0;
+
+        shape.vertexBuffer.reserve(size_t(rings) * size_t(sliceCount + 1));
+
+        const float totalHeight = cylinderHeight + 2.0f * radius; // UV用
+        const float yTop = halfCyl + radius; // 最高点Y
+        const float yBottom = -halfCyl - radius; // 最低点Y
+
+        auto safe_normalize = [](Float3 v) -> Float3
+        {
+            float len2 = v.x * v.x + v.y * v.y + v.z * v.z;
+            if (len2 > 0.0f)
+            {
+                float inv = 1.0f / std::sqrt(len2);
+                return {v.x * inv, v.y * inv, v.z * inv};
+            }
+            return {0, 1, 0};
+        };
+
+        // 垂直リングごとに頂点生成（上→下）
+        for (uint32_t i = 0; i < rings; ++i)
+        {
+            float y = 0.0f;
+            float ringR = radius; // そのリングの半径（XZ平面）
+            enum class Region { TopHemi, Cylinder, BottomHemi } region;
+
+            if (i <= hemiStacks)
+            {
+                // 上半球: φ ∈ [0, π/2]
+                float t = float(i) / float(hemiStacks);
+                float phi = t * (Math::PiF * 0.5f);
+                y = halfCyl + radius * std::cos(phi);
+                ringR = radius * std::sin(phi);
+                region = Region::TopHemi;
+            }
+            else if (i <= hemiStacks + cylStacks)
+            {
+                // シリンダ: y ∈ [ +halfCyl, -halfCyl ]
+                float t = float(i - hemiStacks) / float(cylStacks);
+                y = (1.0f - t) * (halfCyl) + t * (-halfCyl);
+                ringR = radius;
+                region = Region::Cylinder;
+            }
+            else
+            {
+                // 下半球: φ ∈ [0, π/2]　（赤道→下極）
+                float t = float(i - (hemiStacks + cylStacks)) / float(hemiStacks);
+                float phi = t * (Math::PiF * 0.5f);
+                y = -halfCyl - radius * std::sin(phi);
+                ringR = radius * std::cos(phi);
+                region = Region::BottomHemi;
+            }
+
+            // V（縦UV）: 上端0 → 下端1
+            float v = (yTop - y) / totalHeight;
+
+            for (uint32_t j = 0; j <= sliceCount; ++j)
+            {
+                float u = float(j) / float(sliceCount);
+                float theta = 2.0f * Math::PiF * u;
+
+                float x = ringR * std::cos(theta);
+                float z = ringR * std::sin(theta);
+
+                Float3 pos{x, y, z};
+
+                // 法線：半球は中心（±halfCyl）からの方向、シリンダは水平
+                Float3 n;
+                if (region == Region::TopHemi)
+                {
+                    n = safe_normalize({x, y - halfCyl, z});
+                }
+                else if (region == Region::Cylinder)
+                {
+                    n = safe_normalize({x, 0.0f, z});
+                }
+                else // BottomHemi
+                {
+                    n = safe_normalize({x, y + halfCyl, z});
+                }
+
+                Float2 uv{u, v};
+
+                shape.vertexBuffer.push_back({pos, n, uv});
+            }
+        }
+
+        // インデックス生成（各リング間の四角を三角2枚に）
+        constexpr uint32_t ringStride = sliceCount + 1;
+        for (uint32_t i = 0; i < rings - 1; ++i)
+        {
+            for (uint32_t j = 0; j < sliceCount; ++j)
+            {
+                uint32_t a = i * ringStride + j;
+                uint32_t b = (i + 1) * ringStride + j;
+
+                // CCW
+                shape.indexBuffer.push_back(a);
+                shape.indexBuffer.push_back(b);
+                shape.indexBuffer.push_back(a + 1);
+
+                shape.indexBuffer.push_back(a + 1);
+                shape.indexBuffer.push_back(b);
+                shape.indexBuffer.push_back(b + 1);
+            }
+        }
+
+        data.shapes.push_back(std::move(shape));
+        return data;
+    }
+
     ModelData PrimitiveModel3D::Plane(const Float2& size, const ColorF32& color)
     {
         ModelData data;

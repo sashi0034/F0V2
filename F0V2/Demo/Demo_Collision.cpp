@@ -200,6 +200,34 @@ struct Demo_Collision_impl
         }
     } m_triangleObject{};
 
+    struct CapsuleObject
+    {
+        float m_radius = 1;
+        float m_halfHeight = 2;
+
+        ModelBuffer m_model;
+        ModelDrawer m_drawer;
+
+        void Init(Demo_Collision_impl* self)
+        {
+            m_model = ModelBuffer{PrimitiveModel3D::Capsule(m_radius, m_halfHeight, ColorF32{0.5f, 0.7f, 1.0f})};
+
+            m_drawer = ModelDrawer{
+                ModelDrawerParams{}
+                .setModel(m_model)
+                .setShader(self->m_shaders.phong)
+                .setCbv10AndLater({self->m_cb.phongLight})
+            };
+        }
+
+        void DebugUI(Demo_Collision_impl* self)
+        {
+            ImGui::Begin("Triangle");
+
+            ImGui::End();
+        }
+    } m_capsuleObject{};
+
     Demo_Collision_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
@@ -232,6 +260,8 @@ struct Demo_Collision_impl
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
         m_triangleObject.Init(this);
+
+        m_capsuleObject.Init(this);
     }
 
     void Update()
@@ -270,7 +300,11 @@ struct Demo_Collision_impl
 
         m_triangleObject.m_drawer.draw();
 
+        const auto capsulePos = m_camera.eyePosition() + m_camera.worldMatrix().forward() * 10.0f;
+        m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(capsulePos)).draw();
+
         m_triangleObject.DebugUI(this);
+        m_capsuleObject.DebugUI(this);
 
         {
             ImGui::Begin("Camera");
