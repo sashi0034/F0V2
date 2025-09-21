@@ -65,7 +65,8 @@ def process_header(h_path: Path, base_dir: Path) -> None:
 
     if is_text_empty(h_path):
         content = read_template_replace(h_tpl, stem)
-        h_path.write_text(content, encoding="utf-8", newline="\n")
+        with h_path.open("a", encoding="utf-8", newline="\n") as f:
+            f.write(content)
         print(f"[HEADER] wrote: {h_tpl.relative_to(base_dir)} -> {h_path.relative_to(base_dir)}")
     else:
         return
@@ -76,7 +77,8 @@ def process_header(h_path: Path, base_dir: Path) -> None:
     if cpp_tpl:
         # if (not cpp_path.exists()) or is_text_empty(cpp_path):
         cpp_content = read_template_replace(cpp_tpl, stem)
-        cpp_path.write_text(cpp_content, encoding="utf-8", newline="\n")
+        with cpp_path.open("a", encoding="utf-8", newline="\n") as f:
+            f.write(cpp_content)
         print(f"[SOURCE] wrote: {cpp_tpl.relative_to(base_dir)} -> {cpp_path.relative_to(base_dir)}")
         # else:
         #     print(f"[SOURCE] skip (non-empty): {cpp_path.relative_to(base_dir)}")
