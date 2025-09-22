@@ -21,6 +21,7 @@ namespace TY
 
     // -----------------------------------------------
     // Line3D
+
     bool Intersects(const LineSegment3D& segment, const Triangle3D& tri);
 
     std::optional<Float3> IntersectsAt(const LineSegment3D& segment, const Triangle3D& tri);
@@ -31,11 +32,13 @@ namespace TY
 
     // -----------------------------------------------
     // Triangle3D
+
     bool Intersects(const Triangle3D& tri, const LineSegment3D& segment);
 
     bool Intersects(const Triangle3D& tri, const Capsule& capsule);
 
     // -----------------------------------------------
     // Capsule
+
     bool Intersects(const Capsule& capsule, const Triangle3D& tri);
 }

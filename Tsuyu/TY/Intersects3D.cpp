@@ -61,52 +61,65 @@ float TY::DistanceSq(const Float3& p, const LineSegment3D& segment)
 
 float TY::DistanceSq(const Float3& p, const Triangle3D& tri)
 {
-    const Float3 a = tri.p0, b = tri.p1, c = tri.p2;
-    const Float3 ab = b - a;
-    const Float3 ac = c - a;
-    const Float3 ap = p - a;
+    const Float3 A = tri.p0, B = tri.p1, C = tri.p2;
+    const Float3 AB = B - A;
+    const Float3 AC = C - A;
+    const Float3 AP = p - A;
 
-    float d1 = ab.dot(ap);
-    float d2 = ac.dot(ap);
-    if (d1 <= 0.0f && d2 <= 0.0f) return (p - a).lengthSq(); // A 頂点
-
-    const Float3 bp = p - b;
-    float d3 = ab.dot(bp);
-    float d4 = ac.dot(bp);
-    if (d3 >= 0.0f && d4 <= d3) return (p - b).lengthSq(); // B 頂点
-
-    float vc = d1 * d4 - d3 * d2;
-    if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f)
+    const float ABoAP = AB.dot(AP);
+    const float ACoAP = AC.dot(AP);
+    if (ABoAP <= 0.0f && ACoAP <= 0.0f)
     {
-        float v = d1 / (d1 - d3);
-        Float3 proj = a + ab * v;
+        return (p - A).lengthSq(); // A 頂点
+    }
+
+    const Float3 BP = p - B;
+    const float ABoBP = AB.dot(BP);
+    const float BAoBP = -ABoBP;
+    const float ACoBP = AC.dot(BP);
+    const float BCoBP = ACoBP - ABoBP;
+    if (BAoBP <= 0.0f && BCoBP <= 0.0f)
+    {
+        return (p - B).lengthSq(); // B 頂点
+    }
+
+    const float vc = ABoAP * ACoBP - ABoBP * ACoAP;
+    if (vc <= 0.0f && ABoAP >= 0.0f && ABoBP <= 0.0f)
+    {
+        float v = ABoAP / (ABoAP - ABoBP);
+        Float3 proj = A + AB * v;
         return (p - proj).lengthSq(); // AB 辺上
     }
 
-    const Float3 cp = p - c;
-    float d5 = ab.dot(cp);
-    float d6 = ac.dot(cp);
-    if (d6 >= 0.0f && d5 <= d6) return (p - c).lengthSq(); // C 頂点
-
-    float vb = d5 * d2 - d1 * d6;
-    if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f)
+    const Float3 CP = p - C;
+    const float ACoCP = AC.dot(CP);
+    const float CAoCP = -ACoCP;
+    const float ABoCP = AB.dot(CP);
+    const float CBoCP = ABoCP - ACoCP;
+    if (CAoCP <= 0.0f && CBoCP <= 0.0f)
     {
-        float w = d2 / (d2 - d6);
-        Float3 proj = a + ac * w;
+        return (p - C).lengthSq(); // C 頂点
+    }
+
+    const float vb = ABoCP * ACoAP - ABoAP * ACoCP;
+    if (vb <= 0.0f && ACoAP >= 0.0f && ACoCP <= 0.0f)
+    {
+        float w = ACoAP / (ACoAP - ACoCP);
+        Float3 proj = A + AC * w;
         return (p - proj).lengthSq(); // AC 辺上
     }
 
-    float va = d3 * d6 - d5 * d4;
-    if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f)
+    const float va = ABoBP * ACoCP - ABoCP * ACoBP;
+    if (va <= 0.0f && (ACoBP - ABoBP) >= 0.0f && (ABoCP - ACoCP) >= 0.0f)
     {
-        float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
-        Float3 proj = b + (c - b) * w;
+        float w = (ACoBP - ABoBP) / ((ACoBP - ABoBP) + (ABoCP - ACoCP));
+        Float3 proj = B + (C - B) * w;
         return (p - proj).lengthSq(); // BC 辺上
     }
 
     // 面内部
-    Float3 n = ab.cross(ac);
-    float dist = (p - a).dot(n) / std::sqrt(std::max(1e-30f, n.lengthSq()));
+    Float3 n = AB.cross(AC);
+    float dist = (p - A).dot(n) / std::sqrt(std::max(1e-30f, n.lengthSq()));
     return dist * dist;
 }
 
