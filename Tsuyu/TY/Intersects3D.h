@@ -13,7 +13,11 @@ namespace TY
     // -----------------------------------------------
     // Float3
 
-    Float3 ClosetBetween(const Float3& p, const Line3D& line);
+    Float3 ClosestPoint(const Float3& p, const Line3D& line);
+
+    float DistanceSq(const Float3& p, const Line3D& line);
+
+    float DistanceSq(const Float3& p, const Triangle3D& tri);
 
     // -----------------------------------------------
     // Line3D
@@ -23,7 +27,7 @@ namespace TY
 
     float DistanceSq(const Line3D& lhs, const Line3D& rhs);
 
-    Float3 ClosestPoint(const Float3& p, const Line3D& line);
+    float DistanceSq(const Line3D& line, const Triangle3D& tri);
 
     // -----------------------------------------------
     // Triangle3D

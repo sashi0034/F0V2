@@ -172,26 +172,9 @@ struct Demo_Collision_impl
             ImGui::Begin("Triangle");
 
             bool changed = false;
-            if (ImGui::CollapsingHeader("v0"))
-            {
-                changed |= ImGui::DragFloat("x##v0", &m_tri.p0.x, 0.1f);
-                changed |= ImGui::DragFloat("y##v0", &m_tri.p0.y, 0.1f);
-                changed |= ImGui::DragFloat("z##v0", &m_tri.p0.z, 0.1f);
-            }
-
-            if (ImGui::CollapsingHeader("v1"))
-            {
-                changed |= ImGui::DragFloat("x##v1", &m_tri.p1.x, 0.1f);
-                changed |= ImGui::DragFloat("y##v1", &m_tri.p1.y, 0.1f);
-                changed |= ImGui::DragFloat("z##v1", &m_tri.p1.z, 0.1f);
-            }
-
-            if (ImGui::CollapsingHeader("v2"))
-            {
-                changed |= ImGui::DragFloat("x##v2", &m_tri.p2.x, 0.1f);
-                changed |= ImGui::DragFloat("y##v2", &m_tri.p2.y, 0.1f);
-                changed |= ImGui::DragFloat("z##v2", &m_tri.p2.z, 0.1f);
-            }
+            changed |= ImGui::DragFloat3("v0", &m_tri.p0.x, 0.1f);
+            changed |= ImGui::DragFloat3("v1", &m_tri.p1.x, 0.1f);
+            changed |= ImGui::DragFloat3("v2", &m_tri.p2.x, 0.1f);
 
             if (changed)
             {
@@ -225,7 +208,17 @@ struct Demo_Collision_impl
 
         void DebugUI(Demo_Collision_impl* self)
         {
-            ImGui::Begin("Triangle");
+            ImGui::Begin("Capsule");
+
+            bool changed = false;
+            changed |= ImGui::DragFloat3("Pos", &m_pos.x, 0.05f);
+
+            changed |= ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.1f, 100.0f);
+            changed |= ImGui::DragFloat("Height", &m_height, 0.1f, 0.1f, 100.0f);
+            if (changed)
+            {
+                Init(self);
+            }
 
             ImGui::End();
         }
@@ -303,8 +296,8 @@ struct Demo_Collision_impl
 
         m_triangleObject.m_drawer.draw();
 
-        static bool s_moveCapsule = true;
-        if (s_moveCapsule)
+        static bool s_moveCapsuleWithCamera = true;
+        if (s_moveCapsuleWithCamera)
         {
             m_capsuleObject.m_pos = m_camera.eyePosition() + m_camera.worldMatrix().forward() * 10.0f;
         }
@@ -315,8 +308,8 @@ struct Demo_Collision_impl
         m_capsuleObject.DebugUI(this);
 
         {
-            Capsule tempCapsule = Capsule::AlongY(m_capsuleObject.m_pos, m_capsuleObject.m_height,
-                                                  m_capsuleObject.m_radius);
+            Capsule tempCapsule = Capsule::AlongY(
+                m_capsuleObject.m_pos, m_capsuleObject.m_height, m_capsuleObject.m_radius);
             const bool intersects = Intersects(tempCapsule, m_triangleObject.m_tri);
 
             ImGui::Begin("Intersection Test");
@@ -330,7 +323,7 @@ struct Demo_Collision_impl
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Intersections: False");
             }
 
-            ImGui::Checkbox("Move Capsule", &s_moveCapsule);
+            ImGui::Checkbox("Move Capsule with Camera", &s_moveCapsuleWithCamera);
 
             ImGui::End();
         }
