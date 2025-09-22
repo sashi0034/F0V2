@@ -3,7 +3,7 @@
 
 namespace TY
 {
-    struct Line3D
+    struct LineSegment3D
     {
         Float3 p0;
         Float3 p1;

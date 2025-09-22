@@ -10,9 +10,9 @@ namespace
 
 namespace
 {
-    bool intersectsInternal(const Line3D& line, const Triangle3D& tri, Float3* outIntersection)
+    bool intersectsInternal(const LineSegment3D& segment, const Triangle3D& tri, Float3* outIntersection)
     {
-        const auto& [p0, p1] = line;
+        const auto& [p0, p1] = segment;
         const auto& [v0, v1, v2] = tri;
 
         Float3 dir = p1 - p0;
@@ -44,18 +44,18 @@ namespace
     }
 }
 
-Float3 TY::ClosestPoint(const Float3& p, const Line3D& line)
+Float3 TY::ClosestPoint(const Float3& p, const LineSegment3D& segment)
 {
-    const auto& [a, b] = line;
+    const auto& [a, b] = segment;
     const Float3 ab = b - a;
     float t = (p - a).dot(ab) / ab.lengthSq();
     t = Math::Clamp(t, 0.0f, 1.0f);
     return a + ab * t;
 }
 
-float TY::DistanceSq(const Float3& p, const Line3D& line)
+float TY::DistanceSq(const Float3& p, const LineSegment3D& segment)
 {
-    Float3 closest = ClosestPoint(p, line);
+    Float3 closest = ClosestPoint(p, segment);
     return (p - closest).lengthSq();
 }
 
@@ -110,15 +110,15 @@ float TY::DistanceSq(const Float3& p, const Triangle3D& tri)
     return dist * dist;
 }
 
-bool TY::Intersects(const Line3D& line, const Triangle3D& tri)
+bool TY::Intersects(const LineSegment3D& segment, const Triangle3D& tri)
 {
-    return intersectsInternal(line, tri, nullptr);
+    return intersectsInternal(segment, tri, nullptr);
 }
 
-std::optional<Float3> TY::IntersectsAt(const Line3D& line, const Triangle3D& tri)
+std::optional<Float3> TY::IntersectsAt(const LineSegment3D& segment, const Triangle3D& tri)
 {
     Float3 intersection;
-    if (intersectsInternal(line, tri, &intersection))
+    if (intersectsInternal(segment, tri, &intersection))
     {
         return intersection;
     }
@@ -128,7 +128,7 @@ std::optional<Float3> TY::IntersectsAt(const Line3D& line, const Triangle3D& tri
     }
 }
 
-float TY::DistanceSq(const Line3D& lhs, const Line3D& rhs)
+float TY::DistanceSq(const LineSegment3D& lhs, const LineSegment3D& rhs)
 {
     const auto& [a, b] = lhs;
     const auto& [c, d] = rhs;
@@ -215,37 +215,37 @@ float TY::DistanceSq(const Line3D& lhs, const Line3D& rhs)
     return dP.lengthSq();
 }
 
-float TY::DistanceSq(const Line3D& line, const Triangle3D& tri)
+float TY::DistanceSq(const LineSegment3D& segment, const Triangle3D& tri)
 {
-    if (Intersects(line, tri))
+    if (Intersects(segment, tri))
     {
         return 0.0f;
     }
 
     float best = FLT_MAX;
-    best = Min(best, DistanceSq(line.p0, tri));
-    best = Min(best, DistanceSq(line.p1, tri));
+    best = Min(best, DistanceSq(segment.p0, tri));
+    best = Min(best, DistanceSq(segment.p1, tri));
 
-    Line3D e0{tri.p0, tri.p1};
-    Line3D e1{tri.p1, tri.p2};
-    Line3D e2{tri.p2, tri.p0};
+    LineSegment3D e0{tri.p0, tri.p1};
+    LineSegment3D e1{tri.p1, tri.p2};
+    LineSegment3D e2{tri.p2, tri.p0};
 
-    best = Min(best, DistanceSq(line, e0));
-    best = Min(best, DistanceSq(line, e1));
-    best = Min(best, DistanceSq(line, e2));
+    best = Min(best, DistanceSq(segment, e0));
+    best = Min(best, DistanceSq(segment, e1));
+    best = Min(best, DistanceSq(segment, e2));
 
     return best;
 }
 
-bool TY::Intersects(const Triangle3D& tri, const Line3D& line)
+bool TY::Intersects(const Triangle3D& tri, const LineSegment3D& segment)
 {
-    return Intersects(line, tri);
+    return Intersects(segment, tri);
 }
 
 bool TY::Intersects(const Triangle3D& tri, const Capsule& capsule)
 {
     const float r2 = capsule.radius * capsule.radius;
-    const float dist2 = DistanceSq(Line3D{capsule.p0, capsule.p1}, tri);
+    const float dist2 = DistanceSq(LineSegment3D{capsule.p0, capsule.p1}, tri);
     return dist2 <= r2;
 }
 
