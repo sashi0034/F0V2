@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Intersects.h"
+#include "Intersects2D.h"
 
 namespace TY
 {
