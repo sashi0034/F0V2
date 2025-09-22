@@ -246,6 +246,8 @@ struct Demo_FSR2_impl
         const uint64_t memoryUsageAfter = getMemoryUsageSnapshot(device);
         auto memoryUsageInMegabytes = (memoryUsageAfter - memoryUsageBefore) * 1e-6f;
         LogInfo(std::format("FSR2 memory usage: {:.2} MB\n", memoryUsageInMegabytes));
+
+        createMotionVectors();
     }
 
     void createMotionVectors()
