@@ -264,12 +264,12 @@ namespace TY
 
                 // CCW
                 shape.indexBuffer.push_back(a);
-                shape.indexBuffer.push_back(b);
                 shape.indexBuffer.push_back(a + 1);
+                shape.indexBuffer.push_back(b);
 
                 shape.indexBuffer.push_back(a + 1);
-                shape.indexBuffer.push_back(b);
                 shape.indexBuffer.push_back(b + 1);
+                shape.indexBuffer.push_back(b);
             }
         }
 
