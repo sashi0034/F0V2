@@ -5,7 +5,9 @@ using namespace TY;
 
 namespace
 {
-    constexpr float EPS = 1e-6;
+    constexpr float EPS_PARALLEL = 1e-8f;
+
+    constexpr float EPS_ZERO = 1e-30f;
 }
 
 namespace
@@ -21,7 +23,7 @@ namespace
 
         Float3 h = dir.cross(edge2);
         float a = edge1.dot(h);
-        if (Abs(a) < EPS) return false; // 平行
+        if (Abs(a) < EPS_PARALLEL) return false; // 平行
 
         float f = 1.0f / a;
         Float3 s = p0 - v0;
@@ -119,7 +121,7 @@ float TY::DistanceSq(const Float3& p, const Triangle3D& tri)
 
     // 面内部
     Float3 n = AB.cross(AC);
-    float dist = (p - A).dot(n) / std::sqrt(std::max(1e-30f, n.lengthSq()));
+    float dist = (p - A).dot(n) / std::sqrt(std::max(EPS_ZERO, n.lengthSq()));
     return dist * dist;
 }
 
@@ -160,7 +162,7 @@ float TY::DistanceSq(const LineSegment3D& lhs, const LineSegment3D& rhs)
     float sc, sN, sD = denom;
     float tc, tN, tD = denom;
 
-    if (std::abs(denom) < EPS)
+    if (std::abs(denom) < EPS_PARALLEL)
     {
         sN = 0.0f;
         sD = 1.0f;
@@ -221,8 +223,8 @@ float TY::DistanceSq(const LineSegment3D& lhs, const LineSegment3D& rhs)
         }
     }
 
-    sc = (std::abs(sD) < EPS ? 0.0f : sN / sD);
-    tc = (std::abs(tD) < EPS ? 0.0f : tN / tD);
+    sc = (std::abs(sD) < EPS_PARALLEL ? 0.0f : sN / sD);
+    tc = (std::abs(tD) < EPS_PARALLEL ? 0.0f : tN / tD);
 
     Float3 dP = w + (u * sc) - (v * tc);
     return dP.lengthSq();
