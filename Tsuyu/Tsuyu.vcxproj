@@ -199,9 +199,11 @@
     <ClInclude Include="TY\Integer2D.h" />
     <ClInclude Include="TY\Integer3D.h" />
     <ClInclude Include="TY\Intersects2D.h" />
+    <ClInclude Include="TY\Intersects3D.h" />
     <ClInclude Include="TY\KeyboardMouseInput.h" />
     <ClInclude Include="TY\ModelBuffer.h" />
     <ClInclude Include="TY\Mouse.h" />
+    <ClInclude Include="TY\PrimitiveTypes3D.h" />
     <ClInclude Include="TY\Quaternion.h" />
     <ClInclude Include="TY\Random.h" />
     <ClInclude Include="TY\ScopedDeferStack.h" />
@@ -341,9 +343,11 @@
     <ClCompile Include="TY\Grid.cpp" />
     <ClCompile Include="TY\InlineComponent.cpp" />
     <ClCompile Include="TY\Intersects2D.cpp" />
+    <ClCompile Include="TY\Intersects3D.cpp" />
     <ClCompile Include="TY\KeyboardMouseInput.cpp" />
     <ClCompile Include="TY\ModelBuffer.cpp" />
     <ClCompile Include="TY\Mouse.cpp" />
+    <ClCompile Include="TY\PrimitiveTypes3D.cpp" />
     <ClCompile Include="TY\Quaternion.cpp" />
     <ClCompile Include="TY\Random.cpp" />
     <ClCompile Include="TY\ScopedDeferStack.cpp" />

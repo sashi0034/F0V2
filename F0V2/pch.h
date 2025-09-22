@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#define NOMINMAX
+
 // from bits/stdc++.h
 #include <algorithm>
 #include <bitset>

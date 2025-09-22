@@ -185,7 +185,7 @@ namespace TY
             return {0, 1, 0};
         };
 
-        // 垂直リングごとに頂点生成（上→下）
+        // 垂直リングごとに頂点生成（上 --> 下）
         for (uint32_t i = 0; i < rings; ++i)
         {
             float y = 0.0f;
@@ -211,7 +211,7 @@ namespace TY
             }
             else
             {
-                // 下半球: φ ∈ [0, π/2]　（赤道→下極）
+                // 下半球: φ ∈ [0, π/2]　（赤道 --> 下極）
                 float t = float(i - (hemiStacks + cylStacks)) / float(hemiStacks);
                 float phi = t * (Math::PiF * 0.5f);
                 y = -halfCyl - radius * std::sin(phi);
@@ -219,7 +219,7 @@ namespace TY
                 region = Region::BottomHemi;
             }
 
-            // V（縦UV）: 上端0 → 下端1
+            // V（縦UV）: 上端0 --> 下端1
             float v = (yTop - y) / totalHeight;
 
             for (uint32_t j = 0; j <= sliceCount; ++j)

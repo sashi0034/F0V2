@@ -6,6 +6,7 @@
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
+#include "TY/Intersects3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 
@@ -19,6 +20,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/PrimitiveModel3D.h"
+#include "TY/PrimitiveTypes3D.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -203,14 +205,15 @@ struct Demo_Collision_impl
     struct CapsuleObject
     {
         float m_radius = 1;
-        float m_halfHeight = 2;
+        float m_height = 2;
 
         ModelBuffer m_model;
         ModelDrawer m_drawer;
+        Float3 m_pos{};
 
         void Init(Demo_Collision_impl* self)
         {
-            m_model = ModelBuffer{PrimitiveModel3D::Capsule(m_radius, m_halfHeight, ColorF32{0.5f, 0.7f, 1.0f})};
+            m_model = ModelBuffer{PrimitiveModel3D::Capsule(m_radius, m_height, ColorF32{0.5f, 0.7f, 1.0f})};
 
             m_drawer = ModelDrawer{
                 ModelDrawerParams{}
@@ -300,11 +303,37 @@ struct Demo_Collision_impl
 
         m_triangleObject.m_drawer.draw();
 
-        const auto capsulePos = m_camera.eyePosition() + m_camera.worldMatrix().forward() * 10.0f;
-        m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(capsulePos)).draw();
+        static bool s_moveCapsule = true;
+        if (s_moveCapsule)
+        {
+            m_capsuleObject.m_pos = m_camera.eyePosition() + m_camera.worldMatrix().forward() * 10.0f;
+        }
+
+        m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_capsuleObject.m_pos)).draw();
 
         m_triangleObject.DebugUI(this);
         m_capsuleObject.DebugUI(this);
+
+        {
+            Capsule tempCapsule = Capsule::AlongY(m_capsuleObject.m_pos, m_capsuleObject.m_height,
+                                                  m_capsuleObject.m_radius);
+            const bool intersects = Intersects(tempCapsule, m_triangleObject.m_tri);
+
+            ImGui::Begin("Intersection Test");
+
+            if (intersects)
+            {
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Intersections: True");
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Intersections: False");
+            }
+
+            ImGui::Checkbox("Move Capsule", &s_moveCapsule);
+
+            ImGui::End();
+        }
 
         {
             ImGui::Begin("Camera");
