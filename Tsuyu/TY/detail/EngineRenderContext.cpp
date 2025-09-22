@@ -59,6 +59,7 @@ struct EngineRenderContextImpl
 
     RenderTarget m_backBuffer{};
     ScopedRenderTarget m_scopedBackBuffer{};
+    UINT m_currentBackBufferIndex{};
 
     Mat3x2 m_windowToFrameBuffer{};
 
@@ -199,8 +200,8 @@ struct EngineRenderContextImpl
         m_windowToFrameBuffer = calculateWindowToFrameBuffer();
 
         // バックバッファを設定
-        const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
-        m_scopedBackBuffer = m_backBuffer.scopedBind(backBufferIndex);
+        m_currentBackBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+        m_scopedBackBuffer = m_backBuffer.scopedBind(m_currentBackBufferIndex);
     }
 
     void Render()
@@ -423,6 +424,11 @@ namespace TY::detail
     const RenderTarget& EngineRenderContext::GetBackBuffer()
     {
         return s_renderContext.m_backBuffer;
+    }
+
+    UINT EngineRenderContext::CurrentBackBufferIndex()
+    {
+        return s_renderContext.m_currentBackBufferIndex;
     }
 
     ID3D12Device* EngineRenderContext::GetDevice()

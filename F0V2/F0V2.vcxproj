@@ -121,7 +121,7 @@
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;./;../external/ffx_fsr2_api;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,7 +145,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;./;../external/ffx_fsr2_api;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -240,9 +240,19 @@
     <ClInclude Include="Demo\Demo_Ocean.h" />
     <ClInclude Include="Demo\Demo_ShadowMap.h" />
     <ClInclude Include="Demo\Demo_ShapeDrawer.h" />
+    <ClInclude Include="dx12\ffx_fsr2_dx12.h" />
+    <ClInclude Include="dx12\shaders\ffx_fsr2_shaders_dx12.h" />
+    <ClInclude Include="ffx_assert.h" />
+    <ClInclude Include="ffx_error.h" />
+    <ClInclude Include="ffx_fsr2.h" />
+    <ClInclude Include="ffx_fsr2_interface.h" />
+    <ClInclude Include="ffx_types.h" />
+    <ClInclude Include="ffx_util.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Demo\Demo_RenderTarget.h" />
     <ClInclude Include="ResourcePathWrapper.h" />
+    <ClInclude Include="shaders\ffx_fsr2_common.h" />
+    <ClInclude Include="shaders\ffx_fsr2_resources.h" />
     <ClInclude Include="TY_Extension\AwaiterContext.h" />
     <ClInclude Include="TY_Extension\CoroutineActor.h" />
     <ClInclude Include="TY_Extension\GameObjectBase.h" />

@@ -6,6 +6,7 @@
 #include "Demo/Demo_Basic3D.h"
 #include "Demo/Demo_Collision.h"
 #include "Demo/Demo_Font.h"
+#include "Demo/Demo_FSR2.h"
 #include "Demo/Demo_Gpgpu.h"
 #include "Demo/Demo_Ocean.h"
 #include "Demo/Demo_RenderTarget.h"
@@ -19,7 +20,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_Collision();
+    Demo_FSR2();
 #else
     using namespace TY;
 

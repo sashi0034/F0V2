@@ -320,6 +320,26 @@ namespace TY
         return p_impl->m_rtvAsShaderResource[index];
     }
 
+    ID3D12Resource* RenderTarget::getRtvResource(int index) const
+    {
+        if (not p_impl || index < 0 || index >= p_impl->m_rtvResources.size())
+        {
+            return nullptr;
+        }
+
+        return p_impl->m_rtvResources[index].Get();
+    }
+
+    ID3D12Resource* RenderTarget::getDsvResource() const
+    {
+        if (not p_impl)
+        {
+            return nullptr;
+        }
+
+        return p_impl->m_dsvResource.Get();
+    }
+
     RenderTarget RenderTarget::Current()
     {
         return s_renderTargetStack.empty()

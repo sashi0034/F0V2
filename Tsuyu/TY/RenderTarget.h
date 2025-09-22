@@ -62,6 +62,12 @@ namespace TY
         TextureResource asShaderResource(int index = 0) const;
 
         [[nodiscard]]
+        ID3D12Resource* getRtvResource(int index) const;
+
+        [[nodiscard]]
+        ID3D12Resource* getDsvResource() const;
+
+        [[nodiscard]]
         static RenderTarget Current();
 
     private:

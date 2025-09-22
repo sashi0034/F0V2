@@ -5,6 +5,8 @@
 #include "imgui/imgui.h"
 #include "Demo_FSR2.h"
 
+#include <dxgi1_6.h>
+
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
@@ -23,6 +25,15 @@
 #include "TY/PrimitiveModel3D.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
+
+#include "ffx_fsr2.h"
+#pragma comment(lib, "ffx_fsr2_api_x64.lib")
+#pragma comment(lib, "ffx_fsr2_api_dx12_x64.lib")
+
+#include "dx12/ffx_fsr2_dx12.h"
+#include "TY/DynamicTexture.h"
+#include "TY/Logger.h"
+#include "TY/detail/EngineRenderContext.h"
 
 using namespace TY;
 
@@ -105,6 +116,8 @@ namespace
     constexpr float groundPositionY = -10.0f;
 
     constexpr float fovFarZ = 1000.0f;
+
+    constexpr float fovNearZ = 0.1f;
 }
 
 struct Demo_FSR2_impl
@@ -195,9 +208,175 @@ struct Demo_FSR2_impl
             .setShader(m_shaders.phong)
             .setCbv10AndLater({m_cb.phongLight})
         };
+
+        InitFsr2();
     }
 
-    void Update()
+    // -----------------------------------------------
+
+    FfxFsr2ContextDescription m_initializationParameters = {};
+
+    FfxFsr2Context m_context;
+
+    ComPtr<ID3D12Resource> m_motionVectorTex;
+
+    RenderTarget m_inputRT{{.size = Scene::Size() * 0.5, .clearColor = ColorF32{0.0f, 1.0f}}};
+
+    void InitFsr2()
+    {
+        const size_t scratchBufferSize = ffxFsr2GetScratchMemorySizeDX12();
+        void* scratchBuffer = malloc(scratchBufferSize);
+
+        auto device = detail::EngineRenderContext::GetDevice();
+        const FfxErrorCode errorCode = ffxFsr2GetInterfaceDX12(
+            &m_initializationParameters.callbacks, device, scratchBuffer, scratchBufferSize);
+
+        m_initializationParameters.device = ffxGetDeviceDX12(device);
+        m_initializationParameters.maxRenderSize.width = Scene::Size().x * 0.5;
+        m_initializationParameters.maxRenderSize.height = Scene::Size().y * 0.5;
+        m_initializationParameters.displaySize.width = Scene::Size().x;
+        m_initializationParameters.displaySize.height = Scene::Size().y;
+        m_initializationParameters.flags = {};
+        m_initializationParameters.flags |= FFX_FSR2_ENABLE_AUTO_EXPOSURE;
+        m_initializationParameters.flags |= FFX_FSR2_ENABLE_DEBUG_CHECKING;
+        m_initializationParameters.fpMessage = onFSR2Msg;
+
+        const uint64_t memoryUsageBefore = getMemoryUsageSnapshot(device);
+        ffxFsr2ContextCreate(&m_context, &m_initializationParameters);
+        const uint64_t memoryUsageAfter = getMemoryUsageSnapshot(device);
+        auto memoryUsageInMegabytes = (memoryUsageAfter - memoryUsageBefore) * 1e-6f;
+        LogInfo(std::format("FSR2 memory usage: {:.2} MB\n", memoryUsageInMegabytes));
+    }
+
+    void createMotionVectors()
+    {
+        UINT width = Scene::Size().x * 0.5; // レンダー解像度
+        UINT height = Scene::Size().y * 0.5;
+
+        // リソースディスクリプション
+        D3D12_RESOURCE_DESC texDesc = {};
+        texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        texDesc.Width = width;
+        texDesc.Height = height;
+        texDesc.DepthOrArraySize = 1;
+        texDesc.MipLevels = 1;
+        texDesc.Format = DXGI_FORMAT_R16G16_FLOAT; // float2 motion vectors
+        texDesc.SampleDesc.Count = 1;
+        texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+        texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+        // デフォルトヒープに確保
+        auto device = detail::EngineRenderContext::GetDevice();
+        auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        device->CreateCommittedResource(
+            &props,
+            D3D12_HEAP_FLAG_NONE,
+            &texDesc,
+            D3D12_RESOURCE_STATE_COMMON, // 初期状態
+            nullptr,
+            IID_PPV_ARGS(&m_motionVectorTex));
+
+        // TODO: destoy
+    }
+
+    void DrawFsr2()
+    {
+        FfxFsr2DispatchDescription dispatchParameters = {};
+        dispatchParameters.commandList =
+            ffxGetCommandListDX12(detail::EngineRenderContext::GetCommandList(detail::CommandListType::Draw));
+        dispatchParameters.color =
+            ffxGetResourceDX12(&m_context, m_inputRT.getRtvResource(0), L"FSR2_InputColor");
+        dispatchParameters.depth = ffxGetResourceDX12(&m_context, m_inputRT.getDsvResource(), L"FSR2_InputDepth");
+        dispatchParameters.motionVectors = ffxGetResourceDX12(&m_context, m_motionVectorTex.Get(),
+                                                              L"FSR2_InputMotionVectors");
+        dispatchParameters.exposure = ffxGetResourceDX12(&m_context, nullptr, L"FSR2_InputExposure");
+
+        dispatchParameters.output = ffxGetResourceDX12(
+            &m_context,
+            detail::EngineRenderContext::GetBackBuffer().getRtvResource(
+                detail::EngineRenderContext::CurrentBackBufferIndex()),
+            L"FSR2_OutputUpscaledColor",
+            FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+        dispatchParameters.jitterOffset.x = 0;
+        dispatchParameters.jitterOffset.y = 0;
+        dispatchParameters.motionVectorScale.x = (float)0;
+        dispatchParameters.motionVectorScale.y = (float)0;
+        dispatchParameters.reset = false;
+        dispatchParameters.enableSharpening = false;
+        dispatchParameters.frameTimeDelta = System::DeltaTime();
+        dispatchParameters.preExposure = 1.0f;
+        dispatchParameters.renderSize.width = Scene::Size().x * 0.5;
+        dispatchParameters.renderSize.height = Scene::Size().y * 0.5;
+        dispatchParameters.cameraFar = fovFarZ;
+        dispatchParameters.cameraNear = fovNearZ;
+        dispatchParameters.cameraFovAngleVertical = 0.0f;
+
+        FfxErrorCode errorCode = ffxFsr2ContextDispatch(&m_context, &dispatchParameters);
+        FFX_ASSERT(errorCode == FFX_OK);
+    }
+
+    static void onFSR2Msg(FfxFsr2MsgType type, const wchar_t* message)
+    {
+        if (type == FFX_FSR2_MESSAGE_TYPE_ERROR)
+        {
+            LogInfo(L"FSR2_API_DEBUG_ERROR: ");
+        }
+        else if (type == FFX_FSR2_MESSAGE_TYPE_WARNING)
+        {
+            LogInfo(L"FSR2_API_DEBUG_WARNING: ");
+        }
+
+        LogInfo(message);
+        LogInfo(L"\n");
+    }
+
+    static bool isLuidsEqual(LUID luid1, LUID luid2)
+    {
+        return memcmp(&luid1, &luid2, sizeof(LUID)) == 0;
+    }
+
+    static uint64_t getMemoryUsageSnapshot(ID3D12Device* device)
+    {
+        uint64_t memoryUsage = -1;
+        IDXGIFactory* pFactory = nullptr;
+        if (SUCCEEDED(CreateDXGIFactory2(0, IID_PPV_ARGS(&pFactory))))
+        {
+            IDXGIAdapter* pAdapter = nullptr;
+            UINT i = 0;
+            while (pFactory->EnumAdapters(i++, &pAdapter) != DXGI_ERROR_NOT_FOUND)
+            {
+                DXGI_ADAPTER_DESC desc{};
+                if (SUCCEEDED(pAdapter->GetDesc(&desc)))
+                {
+                    if (isLuidsEqual(desc.AdapterLuid, device->GetAdapterLuid()))
+                    {
+                        IDXGIAdapter4* pAdapter4 = nullptr;
+
+                        if (SUCCEEDED(pAdapter->QueryInterface(IID_PPV_ARGS(&pAdapter4))))
+                        {
+                            DXGI_QUERY_VIDEO_MEMORY_INFO info{};
+                            if (SUCCEEDED(pAdapter4->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info)))
+                            {
+                                memoryUsage = info.CurrentUsage;
+                            }
+
+                            pAdapter4->Release();
+                        }
+                    }
+
+                    pAdapter->Release();
+                }
+            }
+
+            pFactory->Release();
+        }
+
+        return memoryUsage;
+    }
+
+    // -----------------------------------------------
+
+    void draw3D()
     {
         m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
 
@@ -229,7 +408,7 @@ struct Demo_FSR2_impl
             m_projectionMat = Mat4x4::PerspectiveFov(
                 75.0_deg,
                 Scene::Size().horizontalAspectRatio(),
-                0.1f,
+                fovNearZ,
                 fovFarZ
             );
 
@@ -256,6 +435,16 @@ struct Demo_FSR2_impl
         m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
         m_playerDrawer.draw();
+    }
+
+    void Update()
+    {
+        {
+            auto bind = m_inputRT.scopedBind();
+            draw3D();
+        }
+
+        DrawFsr2();
 
         {
             ImGui::Begin("Camera");

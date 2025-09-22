@@ -37,6 +37,8 @@ namespace TY::detail
 
         const RenderTarget& GetBackBuffer();
 
+        UINT CurrentBackBufferIndex();
+
         [[nodiscard]]
         ID3D12Device* GetDevice();
 
