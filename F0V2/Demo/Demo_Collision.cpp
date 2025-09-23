@@ -185,6 +185,48 @@ struct Demo_Collision_impl
         }
     } m_triangleObject{};
 
+    struct QuadObject
+    {
+        Quad3D m_quad{
+            Float3{-10, 1, 5},
+            Float3{10, 1, 5},
+            Float3{-12, 10, 5},
+            Float3{4, 10, 5}
+        };
+
+        ModelBuffer m_model;
+        ModelDrawer m_drawer;
+
+        void Init(Demo_Collision_impl* self)
+        {
+            m_model = ModelBuffer{PrimitiveModel3D::Quad(m_quad, ColorF32{1.0f, 0.7f, 0.5f})};
+
+            m_drawer = ModelDrawer{
+                ModelDrawerParams{}
+                .setModel(m_model)
+                .setShader(self->m_shaders.phong)
+                .setCbv10AndLater({self->m_cb.phongLight})
+            };
+        }
+
+        void DebugUI(Demo_Collision_impl* self)
+        {
+            ImGui::Begin("Triangle");
+
+            bool changed = false;
+            changed |= ImGui::DragFloat3("v0", &m_quad.p0.x, 0.1f);
+            changed |= ImGui::DragFloat3("v1", &m_quad.p1.x, 0.1f);
+            changed |= ImGui::DragFloat3("v2", &m_quad.p2.x, 0.1f);
+
+            if (changed)
+            {
+                Init(self);
+            }
+
+            ImGui::End();
+        }
+    } m_quadObject{};
+
     struct CapsuleObject
     {
         float m_radius = 1;
@@ -257,6 +299,8 @@ struct Demo_Collision_impl
 
         m_triangleObject.Init(this);
 
+        m_quadObject.Init(this);
+
         m_capsuleObject.Init(this);
     }
 
@@ -294,7 +338,23 @@ struct Demo_Collision_impl
 
         m_groundPlaneDrawer.draw();
 
-        m_triangleObject.m_drawer.draw();
+        static int s_triOrQuad = 1;
+
+        Capsule testCapsule = Capsule::AlongY(
+            m_capsuleObject.m_pos, m_capsuleObject.m_height, m_capsuleObject.m_radius);
+        bool intersectionTest = false;
+        if (s_triOrQuad == 0)
+        {
+            m_triangleObject.m_drawer.draw();
+            m_triangleObject.DebugUI(this);
+            intersectionTest = Intersects(testCapsule, m_triangleObject.m_tri);
+        }
+        else
+        {
+            m_quadObject.m_drawer.draw();
+            m_quadObject.DebugUI(this);
+            // intersectionTest = TODO
+        }
 
         static bool s_moveCapsuleWithCamera = true;
         if (s_moveCapsuleWithCamera)
@@ -304,23 +364,18 @@ struct Demo_Collision_impl
 
         m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_capsuleObject.m_pos)).draw();
 
-        m_triangleObject.DebugUI(this);
         m_capsuleObject.DebugUI(this);
 
         {
-            Capsule tempCapsule = Capsule::AlongY(
-                m_capsuleObject.m_pos, m_capsuleObject.m_height, m_capsuleObject.m_radius);
-            const bool intersects = Intersects(tempCapsule, m_triangleObject.m_tri);
-
             ImGui::Begin("Intersection Test");
 
-            if (intersects)
+            if (intersectionTest)
             {
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Intersections: True");
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Intersection: True");
             }
             else
             {
-                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Intersections: False");
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Intersection: False");
             }
 
             ImGui::Checkbox("Move Capsule with Camera", &s_moveCapsuleWithCamera);

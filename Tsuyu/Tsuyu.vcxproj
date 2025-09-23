@@ -265,7 +265,6 @@
     <ClInclude Include="TY\TextureResource.h" />
     <ClInclude Include="TY\PrimitiveModel3D.h" />
     <ClInclude Include="TY\SimpleInput.h" />
-    <ClInclude Include="TY\Triangle3D.h" />
     <ClInclude Include="TY\UnifiedString.h" />
     <ClInclude Include="TY\System.h" />
     <ClInclude Include="TY\TemplateHelper.h" />
@@ -401,7 +400,6 @@
     <ClCompile Include="TY\TextureResource.cpp" />
     <ClCompile Include="TY\PrimitiveModel3D.cpp" />
     <ClCompile Include="TY\SimpleInput.cpp" />
-    <ClCompile Include="TY\Triangle3D.cpp" />
     <ClCompile Include="TY\UnifiedString.cpp" />
     <ClCompile Include="TY\System.cpp" />
     <ClCompile Include="TY\TextureDrawer.cpp" />

@@ -1,12 +1,14 @@
 ﻿#pragma once
 #include "ModelData.h"
-#include "Triangle3D.h"
+#include "PrimitiveTypes3D.h"
 
 namespace TY
 {
     namespace PrimitiveModel3D
     {
         ModelData Triangle(const Triangle3D& tri, const ColorF32& color);
+
+        ModelData Quad(const Quad3D& quad, const ColorF32& color);
 
         ModelData Sphere(float radius, const ColorF32& color);
 

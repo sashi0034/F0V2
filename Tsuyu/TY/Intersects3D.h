@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "PrimitiveTypes3D.h"
-#include "Triangle3D.h"
 
 namespace TY
 {
