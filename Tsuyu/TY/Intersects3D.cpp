@@ -121,7 +121,6 @@ float TY::DistanceSq(const Float3& p, const Triangle3D& tri)
 
     // 面内部
     Float3 N = AB.cross(AC);
-
     const float APoN = AP.dot(N);
     return APoN * APoN / std::max(EPS_ZERO, N.lengthSq());
 
@@ -129,9 +128,30 @@ float TY::DistanceSq(const Float3& p, const Triangle3D& tri)
     // return dist * dist;
 }
 
+float TY::DistanceSq(const Float3& p, const Quad3D& quad)
+{
+    // TODO: 本当に最適化をする
+    // A, B, C, D, AB, BC, CD, DA を順番にチェックするほうが良いと思う
+
+    Triangle3D t1{quad.p0, quad.p1, quad.p2};
+    Triangle3D t2{quad.p0, quad.p2, quad.p3};
+
+    return std::min(DistanceSq(p, t1), DistanceSq(p, t2));
+}
+
 bool TY::Intersects(const LineSegment3D& segment, const Triangle3D& tri)
 {
     return intersectsInternal(segment, tri, nullptr);
+}
+
+bool TY::Intersects(const LineSegment3D& segment, const Quad3D& quad)
+{
+    // TODO: 本当に最適化をする
+
+    Triangle3D t1{quad.p0, quad.p1, quad.p2};
+    Triangle3D t2{quad.p0, quad.p2, quad.p3};
+
+    return Intersects(segment, t1) || Intersects(segment, t2);
 }
 
 std::optional<Float3> TY::IntersectsAt(const LineSegment3D& segment, const Triangle3D& tri)
@@ -256,12 +276,43 @@ float TY::DistanceSq(const LineSegment3D& segment, const Triangle3D& tri)
     return best;
 }
 
+float TY::DistanceSq(const LineSegment3D& segment, const Quad3D& quad)
+{
+    if (Intersects(segment, quad))
+    {
+        return 0.0f;
+    }
+
+    float best = FLT_MAX;
+    best = Min(best, DistanceSq(segment.p0, quad));
+    best = Min(best, DistanceSq(segment.p1, quad));
+
+    LineSegment3D e0{quad.p0, quad.p1};
+    LineSegment3D e1{quad.p1, quad.p2};
+    LineSegment3D e2{quad.p2, quad.p3};
+    LineSegment3D e3{quad.p3, quad.p0};
+
+    best = Min(best, DistanceSq(segment, e0));
+    best = Min(best, DistanceSq(segment, e1));
+    best = Min(best, DistanceSq(segment, e2));
+    best = Min(best, DistanceSq(segment, e3));
+
+    return best;
+}
+
 bool TY::Intersects(const Triangle3D& tri, const LineSegment3D& segment)
 {
     return Intersects(segment, tri);
 }
 
 bool TY::Intersects(const Triangle3D& tri, const Capsule& capsule)
+{
+    const float r2 = capsule.radius * capsule.radius;
+    const float dist2 = DistanceSq(LineSegment3D{capsule.p0, capsule.p1}, tri);
+    return dist2 <= r2;
+}
+
+bool TY::Intersects(const Quad3D& tri, const Capsule& capsule)
 {
     const float r2 = capsule.radius * capsule.radius;
     const float dist2 = DistanceSq(LineSegment3D{capsule.p0, capsule.p1}, tri);
