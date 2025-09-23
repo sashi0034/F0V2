@@ -120,9 +120,13 @@ float TY::DistanceSq(const Float3& p, const Triangle3D& tri)
     }
 
     // 面内部
-    Float3 n = AB.cross(AC);
-    float dist = (p - A).dot(n) / std::sqrt(std::max(EPS_ZERO, n.lengthSq()));
-    return dist * dist;
+    Float3 N = AB.cross(AC);
+
+    const float APoN = AP.dot(N);
+    return APoN * APoN / std::max(EPS_ZERO, N.lengthSq());
+
+    // const float dist = AP.dot(N) / std::sqrt(std::max(EPS_ZERO, N.lengthSq()));
+    // return dist * dist;
 }
 
 bool TY::Intersects(const LineSegment3D& segment, const Triangle3D& tri)

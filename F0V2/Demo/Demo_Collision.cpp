@@ -380,6 +380,8 @@ struct Demo_Collision_impl
 
             ImGui::Checkbox("Move Capsule with Camera", &s_moveCapsuleWithCamera);
 
+            ImGui::InputInt("Triangle / Quad", &s_triOrQuad);
+
             ImGui::End();
         }
 
