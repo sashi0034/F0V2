@@ -353,7 +353,7 @@ struct Demo_Intersection_impl
         {
             m_quadObject.m_drawer.draw();
             m_quadObject.DebugUI(this);
-            // intersectionTest = TODO
+            intersectionTest = Intersects(testCapsule, m_quadObject.m_quad);
         }
 
         static bool s_moveCapsuleWithCamera = true;

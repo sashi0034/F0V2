@@ -312,14 +312,19 @@ bool TY::Intersects(const Triangle3D& tri, const Capsule& capsule)
     return dist2 <= r2;
 }
 
-bool TY::Intersects(const Quad3D& tri, const Capsule& capsule)
+bool TY::Intersects(const Quad3D& quad, const Capsule& capsule)
 {
     const float r2 = capsule.radius * capsule.radius;
-    const float dist2 = DistanceSq(LineSegment3D{capsule.p0, capsule.p1}, tri);
+    const float dist2 = DistanceSq(LineSegment3D{capsule.p0, capsule.p1}, quad);
     return dist2 <= r2;
 }
 
 bool TY::Intersects(const Capsule& capsule, const Triangle3D& tri)
 {
     return Intersects(tri, capsule);
+}
+
+bool TY::Intersects(const Capsule& capsule, const Quad3D& quad)
+{
+    return Intersects(quad, capsule);
 }

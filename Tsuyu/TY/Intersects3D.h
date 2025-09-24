@@ -46,10 +46,12 @@ namespace TY
     // -----------------------------------------------
     // Quad3D
 
-    bool Intersects(const Quad3D& tri, const Capsule& capsule);
+    bool Intersects(const Quad3D& quad, const Capsule& capsule);
 
     // -----------------------------------------------
     // Capsule
 
     bool Intersects(const Capsule& capsule, const Triangle3D& tri);
+
+    bool Intersects(const Capsule& capsule, const Quad3D& quad);
 }
