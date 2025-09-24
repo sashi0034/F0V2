@@ -8,16 +8,50 @@ namespace
 
 namespace TY
 {
-    Float3 Triangle3D::getNormal() const
+    Float3 Triangle3D::getAreaNormal() const
     {
         const Float3 u = p1 - p0;
         const Float3 v = p2 - p0;
         return u.cross(v);
     }
 
+    Float3 Triangle3D::getNormal() const
+    {
+        return getAreaNormal().normalized();
+    }
+
     Float3 Triangle3D::centroid() const
     {
         return (p0 + p1 + p2) / 3.0f;
+    }
+
+    Plane3D Triangle3D::asPlane() const
+    {
+        const Float3 normal = getNormal();
+        const float d = -normal.dot(p0);
+        return Plane3D{normal, d};
+    }
+
+    Plane3Points Triangle3D::asPlane3Points() const
+    {
+        return Plane3Points{p0, p1, p2};
+    }
+
+    float Plane3D::signedDistanceFrom(const Float3& p) const
+    {
+        return normal.dot(p) + d;
+    }
+
+    float Plane3D::distanceFrom(const Float3& p) const
+    {
+        return Abs(signedDistanceFrom(p));
+    }
+
+    Float3 Plane3Points::getNormal() const
+    {
+        const Float3 u = p1 - p0;
+        const Float3 v = p2 - p0;
+        return u.cross(v);
     }
 
     bool Quad3D::isPlanar() const

@@ -3,7 +3,17 @@
 
 namespace TY
 {
-    struct Triangle3D
+    struct Plane3D
+    {
+        Float3 normal;
+        float d;
+
+        float signedDistanceFrom(const Float3& p) const;
+
+        float distanceFrom(const Float3& p) const;
+    };
+
+    struct Plane3Points
     {
         Float3 p0;
         Float3 p1;
@@ -11,9 +21,28 @@ namespace TY
 
         [[nodiscard]]
         Float3 getNormal() const;
+    };
+
+    struct Triangle3D
+    {
+        Float3 p0;
+        Float3 p1;
+        Float3 p2;
+
+        [[nodiscard]]
+        Float3 getAreaNormal() const;
+
+        [[nodiscard]]
+        Float3 getNormal() const;
 
         [[nodiscard]]
         Float3 centroid() const;
+
+        [[nodiscard]]
+        Plane3D asPlane() const;
+
+        [[nodiscard]]
+        Plane3Points asPlane3Points() const;
     };
 
     struct Quad3D

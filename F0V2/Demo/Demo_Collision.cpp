@@ -315,11 +315,33 @@ struct Demo_Collision_impl
         // -----------------------------------------------
 
         static bool s_moveCapsuleWithCamera = true;
-        if (s_moveCapsuleWithCamera)
-        {
-            m_capsuleObject.m_pos = m_camera.eyePosition() + m_camera.worldMatrix().forward() * 10.0f;
-        }
 
+        {
+            const Float3 previousPos = m_capsuleObject.m_pos;
+            Float3 newPos = previousPos;
+
+            if (s_moveCapsuleWithCamera)
+            {
+                newPos = m_camera.eyePosition() + m_camera.worldMatrix().forward() * 10.0f;
+            }
+
+            if (previousPos != newPos)
+            {
+                const auto moveTestCapsule = Capsule{previousPos, newPos, m_capsuleObject.m_radius};
+
+                if (Intersects(moveTestCapsule, m_triangleObject.m_tri))
+                {
+                    const auto plane = m_triangleObject.m_tri.asPlane();
+                    const float distance = m_triangleObject.m_tri.asPlane().signedDistanceFrom(previousPos);
+                    const float moveAmound = distance - ((m_capsuleObject.m_radius + 1e-6) * (distance > 0 ? 1 : -1));
+                    m_capsuleObject.m_pos = previousPos - plane.normal * moveAmound;
+                }
+                else
+                {
+                    m_capsuleObject.m_pos = newPos;
+                }
+            }
+        }
         m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_capsuleObject.m_pos)).draw();
 
         m_capsuleObject.DebugUI();

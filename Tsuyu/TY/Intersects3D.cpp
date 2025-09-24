@@ -61,6 +61,20 @@ float TY::DistanceSq(const Float3& p, const LineSegment3D& segment)
     return (p - closest).lengthSq();
 }
 
+float TY::DistanceSq(const Float3& p, const Plane3Points& plane)
+{
+    const Float3 A = plane.p0;
+    const Float3 B = plane.p1;
+    const Float3 C = plane.p2;
+    const Float3 AB = B - A;
+    const Float3 AC = C - A;
+    const Float3 AP = p - A;
+
+    const Float3 N = AB.cross(AC);
+    const float APoN = AP.dot(N);
+    return APoN * APoN / std::max(EPS_ZERO, N.lengthSq());
+}
+
 float TY::DistanceSq(const Float3& p, const Triangle3D& tri)
 {
     const Float3 A = tri.p0, B = tri.p1, C = tri.p2;

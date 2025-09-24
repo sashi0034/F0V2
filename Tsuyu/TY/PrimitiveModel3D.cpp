@@ -54,7 +54,7 @@ namespace TY
         shape.materialIndex = 0; // 上で追加したマテリアルを参照
 
         // 頂点生成
-        Float3 norm = tri.getNormal();
+        Float3 norm = tri.getAreaNormal();
         shape.vertexBuffer = {
             {tri.p0, norm, {0, 0}},
             {tri.p1, norm, {1, 0}},
