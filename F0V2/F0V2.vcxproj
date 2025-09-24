@@ -157,6 +157,7 @@
     <ClCompile Include="Combat\DebugEditor.cpp" />
     <ClCompile Include="Combat\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="DebugUI.cpp" />
+    <ClCompile Include="Demo\Demo_Collision.cpp" />
     <ClCompile Include="Demo\Demo_Intersection.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHandle.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHierarchy.cpp" />
@@ -233,6 +234,7 @@
     <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
+    <ClInclude Include="Demo\Demo_Collision.h" />
     <ClInclude Include="Demo\Demo_Intersection.h" />
     <ClInclude Include="Demo\Demo_Font.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />

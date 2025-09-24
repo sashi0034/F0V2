@@ -4,6 +4,7 @@
 #include "Combat/CombatScene.h"
 #include "Demo/Demo_AirCombat.h"
 #include "Demo/Demo_Basic3D.h"
+#include "Demo/Demo_Collision.h"
 #include "Demo/Demo_Intersection.h"
 #include "Demo/Demo_Font.h"
 #include "Demo/Demo_Gpgpu.h"
@@ -19,7 +20,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_Basic3D();
+    Demo_Collision();
 #else
     using namespace TY;
 
