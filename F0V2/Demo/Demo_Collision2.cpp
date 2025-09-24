@@ -123,17 +123,27 @@ namespace
             GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
         } shaders;
 
+        struct modelData_t
+        {
+            ModelData toy_terrain{ModelLoader::Load("asset/model/toy_terrain.obj")};
+        };
+
+        modelData_t modelData;
+
         struct models_t
         {
-            ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
-
-            ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
+            ModelBuffer toy_terrain;
         } models;
 
         struct
         {
             ConstantBufferWrapper<PhongLight_b4> phongLight{};
         } cb;
+
+        Resource_Demo_Collision2()
+        {
+            models.toy_terrain = ModelBuffer{modelData.toy_terrain};
+        }
     };
 
     InlineComponent<Resource_Demo_Collision2> s_resource_Demo_Collision2{};
@@ -144,6 +154,42 @@ namespace
     }
 
     // -----------------------------------------------
+
+    struct TerrainObject
+    {
+        Pose m_pose{};
+        ModelDrawer m_drawer;
+
+        Array<Triangle3D> m_polygons{};
+
+        void Init()
+        {
+            m_drawer = ModelDrawer{
+                ModelDrawerParams{}
+                .setModel(getRsc().models.toy_terrain)
+                .setShader(getRsc().shaders.phong)
+                .setCbv10AndLater({getRsc().cb.phongLight})
+            };
+
+            const auto& modelData = getRsc().modelData.toy_terrain;
+            for (int i = 0; i < modelData.shapes.size(); ++i)
+            {
+                const auto& shape = modelData.shapes[i];
+                for (int j = 0; j < shape.indexBuffer.size(); j += 3)
+                {
+                    const auto& v0 = shape.vertexBuffer[shape.indexBuffer[j + 0]].position;
+                    const auto& v1 = shape.vertexBuffer[shape.indexBuffer[j + 1]].position;
+                    const auto& v2 = shape.vertexBuffer[shape.indexBuffer[j + 2]].position;
+                    m_polygons.push_back(Triangle3D{v0, v1, v2});
+                }
+            }
+        }
+
+        void Draw() const
+        {
+            m_drawer.uploadWorldMatrix(m_pose.getMatrix()).draw();
+        }
+    };
 
     struct TriangleObject
     {
@@ -238,6 +284,7 @@ struct Demo_Collision2_impl
 
     ModelDrawer m_groundPlaneDrawer{};
 
+    TerrainObject m_terrain{};
     TriangleObject m_triangleObject{};
     CapsuleObject m_capsuleObject{};
 
@@ -272,6 +319,7 @@ struct Demo_Collision2_impl
             .setShader(getRsc().shaders.model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
+        m_terrain.Init();
         m_triangleObject.Init();
         m_capsuleObject.Init();
     }
@@ -311,6 +359,8 @@ struct Demo_Collision2_impl
         m_groundPlaneDrawer.draw();
 
         // -----------------------------------------------
+
+        m_terrain.Draw();
 
         static bool s_moveCapsuleWithCamera = true;
 
