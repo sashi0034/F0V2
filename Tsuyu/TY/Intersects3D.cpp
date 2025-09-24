@@ -153,6 +153,28 @@ float TY::DistanceSq(const Float3& p, const Quad3D& quad)
     return std::min(DistanceSq(p, t1), DistanceSq(p, t2));
 }
 
+std::optional<Float3> TY::IntersectsAt(const Line3D& line, const Plane3D& plane, float* hitDistance)
+{
+    const Float3& p0 = line.point;
+    const Float3& dir = line.normalizedDir;
+    const Float3& n = plane.normal;
+    const float d = plane.d;
+
+    const float denom = n.dot(dir);
+    if (std::abs(denom) < EPS_PARALLEL)
+    {
+        return std::nullopt; // 平行
+    }
+
+    const float t = -(n.dot(p0) + d) / denom;
+    if (hitDistance)
+    {
+        *hitDistance = t;
+    }
+
+    return p0 + dir * t;
+}
+
 bool TY::Intersects(const LineSegment3D& segment, const Triangle3D& tri)
 {
     return intersectsInternal(segment, tri, nullptr);

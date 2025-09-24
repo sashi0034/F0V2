@@ -8,9 +8,14 @@ namespace TY
         Float3 normal;
         float d;
 
+        [[nodiscard]]
         float signedDistanceFrom(const Float3& p) const;
 
+        [[nodiscard]]
         float distanceFrom(const Float3& p) const;
+
+        [[nodiscard]]
+        Float3 projection(const Float3& p) const;
     };
 
     struct Plane3Points
@@ -68,6 +73,18 @@ namespace TY
 
         [[nodiscard]]
         Float3 arithmeticCenter() const;
+    };
+
+    struct Line3D
+    {
+        Float3 point;
+        Float3 normalizedDir;
+
+        Line3D() = default;
+
+        Line3D(const Float3& point, const Float3& normalizedDir);
+
+        static Line3D FromPoints(const Float3& from, const Float3& to);
     };
 
     struct LineSegment3D

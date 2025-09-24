@@ -47,6 +47,12 @@ namespace TY
         return Abs(signedDistanceFrom(p));
     }
 
+    Float3 Plane3D::projection(const Float3& p) const
+    {
+        const float dist = signedDistanceFrom(p);
+        return p - normal * dist;
+    }
+
     Float3 Plane3Points::getNormal() const
     {
         const Float3 u = p1 - p0;
@@ -102,6 +108,17 @@ namespace TY
     Float3 Quad3D::arithmeticCenter() const
     {
         return (p0 + p1 + p2 + p3) * 0.25f;
+    }
+
+    Line3D::Line3D(const Float3& point, const Float3& normalizedDir)
+        : point(point), normalizedDir(normalizedDir)
+    {
+    }
+
+    Line3D Line3D::FromPoints(const Float3& from, const Float3& to)
+    {
+        const Float3 dir = (to - from).normalized();
+        return Line3D{from, dir};
     }
 
     Capsule Capsule::AlongY(const Float3& center, float height, float radius)

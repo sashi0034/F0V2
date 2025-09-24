@@ -339,11 +339,49 @@ struct Demo_Collision1_impl
                     Intersects(moveTestCapsuleT, m_triangleObject.m_tri) ||
                     Intersects(moveTestCapsuleB, m_triangleObject.m_tri))
                 {
-                    const auto plane = m_triangleObject.m_tri.asPlane();
-                    const float distance = m_triangleObject.m_tri.asPlane().signedDistanceFrom(previousPos);
-                    const float moveAmound = distance + ((m_capsuleObject.m_radius + 1e-2) * (distance > 0 ? -1 : 1));
-                    const Float3 normal = -plane.normal;
-                    m_capsuleObject.m_pos = previousPos + normal * moveAmound;
+                    //            U
+                    //           /|
+                    //          / |
+                    //         /  |
+                    //        /   |
+                    //       /    |
+                    //    T /--r--|
+                    //     /|     |
+                    //    / |     |
+                    //   /  |     |
+                    //  /   |     |
+                    // /----------|
+                    // S          H
+
+                    const auto lineST = Line3D::FromPoints(previousPos, newPos);
+                    auto plane = m_triangleObject.m_tri.asPlane();
+                    if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
+                    {
+                        // TODO: 移動ベクトルと三角形がほぼ並行の場合の対処を考える
+                        plane.normal = lineST.normalizedDir; // FIXME: 仮対処
+                    }
+
+                    const Float3 S = previousPos;
+                    float lengthSU{};
+                    const Float3 U =
+                        IntersectsAt(lineST, plane, &lengthSU).value_or(previousPos);
+
+                    if (U != previousPos)
+                    {
+                        const Float3 SU = U - S;
+
+                        const float distance = plane.signedDistanceFrom(previousPos);
+                        const Float3 H = S - plane.normal * distance;
+                        const float lengthSH = Abs(distance);
+                        const Float3 SH = (H - S);
+
+                        const float r = m_capsuleObject.m_radius + 1e-2f;
+
+                        const float SUoSH = SU.dot(SH);
+                        const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
+
+                        m_capsuleObject.m_pos = S + lineST.normalizedDir * lengthST;
+                    }
                 }
                 else
                 {
