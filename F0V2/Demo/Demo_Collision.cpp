@@ -9,6 +9,7 @@
 #include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
 #include "TY/InlineComponent.h"
+#include "TY/Intersects3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 
@@ -143,6 +144,88 @@ namespace
     {
         return s_resource_Demo_Collision.get();
     }
+
+    // -----------------------------------------------
+
+    struct TriangleObject
+    {
+        Triangle3D m_tri{
+            Float3{-10, 1, 5},
+            Float3{10, 1, 5},
+            Float3{0, 10, 5}
+        };
+
+        ModelBuffer m_model;
+        ModelDrawer m_drawer;
+
+        void Init()
+        {
+            m_model = ModelBuffer{PrimitiveModel3D::Triangle(m_tri, ColorF32{1.0f, 0.7f, 0.5f})};
+
+            m_drawer = ModelDrawer{
+                ModelDrawerParams{}
+                .setModel(m_model)
+                .setShader(getRsc().shaders.phong)
+                .setCbv10AndLater({getRsc().cb.phongLight})
+            };
+        }
+
+        void DebugUI()
+        {
+            ImGui::Begin("Triangle");
+
+            bool changed = false;
+            changed |= ImGui::DragFloat3("v0", &m_tri.p0.x, 0.1f);
+            changed |= ImGui::DragFloat3("v1", &m_tri.p1.x, 0.1f);
+            changed |= ImGui::DragFloat3("v2", &m_tri.p2.x, 0.1f);
+
+            if (changed)
+            {
+                Init();
+            }
+
+            ImGui::End();
+        }
+    };
+
+    struct CapsuleObject
+    {
+        float m_radius = 1;
+        float m_height = 2;
+
+        ModelBuffer m_model;
+        ModelDrawer m_drawer;
+        Float3 m_pos{};
+
+        void Init()
+        {
+            m_model = ModelBuffer{PrimitiveModel3D::Capsule(m_radius, m_height, ColorF32{0.5f, 0.7f, 1.0f})};
+
+            m_drawer = ModelDrawer{
+                ModelDrawerParams{}
+                .setModel(m_model)
+                .setShader(getRsc().shaders.phong)
+                .setCbv10AndLater({getRsc().cb.phongLight})
+            };
+        }
+
+        void DebugUI()
+        {
+            ImGui::Begin("Capsule");
+
+            bool changed = false;
+            changed |= ImGui::DragFloat3("Pos", &m_pos.x, 0.05f);
+
+            changed |= ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.1f, 100.0f);
+            changed |= ImGui::DragFloat("Height", &m_height, 0.1f, 0.1f, 100.0f);
+            if (changed)
+            {
+                Init();
+            }
+
+            ImGui::End();
+        }
+    };
 }
 
 struct Demo_Collision_impl
@@ -157,10 +240,8 @@ struct Demo_Collision_impl
 
     ModelDrawer m_groundPlaneDrawer{};
 
-    ModelDrawer m_playerDrawer{};
-    Pose m_playerPose{};
-
-    ModelDrawer m_mountainDrawer{};
+    TriangleObject m_triangleObject{};
+    CapsuleObject m_capsuleObject{};
 
     Demo_Collision_impl()
     {
@@ -193,48 +274,13 @@ struct Demo_Collision_impl
             .setShader(getRsc().shaders.model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
-        m_playerDrawer = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(getRsc().models.playerModel)
-            .setShader(getRsc().shaders.phong)
-            .setCbv10AndLater({getRsc().cb.phongLight})
-        };
-
-        m_playerPose.position.y = groundPositionY + 15.0f;
-
-        m_mountainDrawer = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(getRsc().models.mountainModel)
-            .setShader(getRsc().shaders.phong)
-            .setCbv10AndLater({getRsc().cb.phongLight})
-        };
+        m_triangleObject.Init();
+        m_capsuleObject.Init();
     }
 
     void Update()
     {
-        m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
-
-        if (not KeyShift.pressed())
-        {
-            m_camera.transformBySimpleInput();
-        }
-        else
-        {
-            const auto matrix = m_playerPose.getMatrix();
-            const auto forward = matrix.forward();
-            const auto right = matrix.right();
-            const auto up = matrix.up();
-
-            const auto moveInput = SimpleInput::GetPlayerMovement3D();
-            constexpr auto speed = 10.0f;
-            m_playerPose.position += forward * moveInput.z * speed * System::DeltaTime();
-            m_playerPose.position += right * moveInput.x * speed * System::DeltaTime();
-            m_playerPose.position += up * moveInput.y * speed * System::DeltaTime();
-
-            const auto rotateInput = SimpleInput::GetCameraRotation();
-            constexpr auto rotationSpeed = 2.0f;
-            m_playerPose.rotation *= Quaternion::RotateY(rotateInput.x * rotationSpeed * System::DeltaTime());
-        }
+        m_camera.transformBySimpleInput();
 
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());
 
@@ -266,9 +312,41 @@ struct Demo_Collision_impl
 
         m_groundPlaneDrawer.draw();
 
-        m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
+        // -----------------------------------------------
 
-        m_playerDrawer.draw();
+        static bool s_moveCapsuleWithCamera = true;
+        if (s_moveCapsuleWithCamera)
+        {
+            m_capsuleObject.m_pos = m_camera.eyePosition() + m_camera.worldMatrix().forward() * 10.0f;
+        }
+
+        m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_capsuleObject.m_pos)).draw();
+
+        m_capsuleObject.DebugUI();
+
+        Capsule testCapsule = Capsule::AlongY(
+            m_capsuleObject.m_pos, m_capsuleObject.m_height, m_capsuleObject.m_radius);
+
+        m_triangleObject.m_drawer.draw();
+        m_triangleObject.DebugUI();
+
+        bool intersectionTest = Intersects(testCapsule, m_triangleObject.m_tri);
+
+        {
+            ImGui::Begin("Intersection Test");
+
+            if (intersectionTest)
+            {
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Intersection: True");
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Intersection: False");
+            }
+
+            ImGui::Checkbox("Move Capsule with Camera", &s_moveCapsuleWithCamera);
+            ImGui::End();
+        }
 
         {
             ImGui::Begin("Camera");
