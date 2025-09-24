@@ -1,7 +1,7 @@
 #include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Demo_Collision.h"
+#include "Demo_Intersection.h"
 
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
@@ -107,7 +107,7 @@ namespace
     constexpr float fovFarZ = 1000.0f;
 }
 
-struct Demo_Collision_impl
+struct Demo_Intersection_impl
 {
     struct
     {
@@ -155,7 +155,7 @@ struct Demo_Collision_impl
         ModelBuffer m_model;
         ModelDrawer m_drawer;
 
-        void Init(Demo_Collision_impl* self)
+        void Init(Demo_Intersection_impl* self)
         {
             m_model = ModelBuffer{PrimitiveModel3D::Triangle(m_tri, ColorF32{1.0f, 0.7f, 0.5f})};
 
@@ -167,7 +167,7 @@ struct Demo_Collision_impl
             };
         }
 
-        void DebugUI(Demo_Collision_impl* self)
+        void DebugUI(Demo_Intersection_impl* self)
         {
             ImGui::Begin("Triangle");
 
@@ -197,7 +197,7 @@ struct Demo_Collision_impl
         ModelBuffer m_model;
         ModelDrawer m_drawer;
 
-        void Init(Demo_Collision_impl* self)
+        void Init(Demo_Intersection_impl* self)
         {
             m_model = ModelBuffer{PrimitiveModel3D::Quad(m_quad, ColorF32{1.0f, 0.7f, 0.5f})};
 
@@ -209,7 +209,7 @@ struct Demo_Collision_impl
             };
         }
 
-        void DebugUI(Demo_Collision_impl* self)
+        void DebugUI(Demo_Intersection_impl* self)
         {
             ImGui::Begin("Triangle");
 
@@ -236,7 +236,7 @@ struct Demo_Collision_impl
         ModelDrawer m_drawer;
         Float3 m_pos{};
 
-        void Init(Demo_Collision_impl* self)
+        void Init(Demo_Intersection_impl* self)
         {
             m_model = ModelBuffer{PrimitiveModel3D::Capsule(m_radius, m_height, ColorF32{0.5f, 0.7f, 1.0f})};
 
@@ -248,7 +248,7 @@ struct Demo_Collision_impl
             };
         }
 
-        void DebugUI(Demo_Collision_impl* self)
+        void DebugUI(Demo_Intersection_impl* self)
         {
             ImGui::Begin("Capsule");
 
@@ -266,7 +266,7 @@ struct Demo_Collision_impl
         }
     } m_capsuleObject{};
 
-    Demo_Collision_impl()
+    Demo_Intersection_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -436,9 +436,9 @@ private:
     }
 };
 
-void Demo_Collision()
+void Demo_Intersection()
 {
-    Demo_Collision_impl impl{};
+    Demo_Intersection_impl impl{};
 
     Scene::RequestResize({1920, 1080});
 

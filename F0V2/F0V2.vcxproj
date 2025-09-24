@@ -157,7 +157,7 @@
     <ClCompile Include="Combat\DebugEditor.cpp" />
     <ClCompile Include="Combat\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="DebugUI.cpp" />
-    <ClCompile Include="Demo\Demo_Collision.cpp" />
+    <ClCompile Include="Demo\Demo_Intersection.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHandle.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHierarchy.cpp" />
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
@@ -171,6 +171,7 @@
     <Content Include="asset\font\RocknRoll\RocknRollOne-Regular.ttf" />
     <Content Include="asset\script\asset_register.py" />
     <Content Include="asset\script\insert_template.py" />
+    <Content Include="asset\script\mass_rename.py" />
     <Content Include="asset\shader\blinn_phong.hlsl" />
     <Content Include="asset\shader\phong_shadow.hlsl" />
     <Content Include="asset\shader\skydome.hlsl" />
@@ -232,7 +233,7 @@
     <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
-    <ClInclude Include="Demo\Demo_Collision.h" />
+    <ClInclude Include="Demo\Demo_Intersection.h" />
     <ClInclude Include="Demo\Demo_Font.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="Demo\Demo_Ocean.h" />
