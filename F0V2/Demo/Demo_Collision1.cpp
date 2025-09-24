@@ -1,9 +1,7 @@
 ﻿#include "pch.h"
-#include "Demo_Collision.h"
-#include "pch.h"
+#include "Demo_Collision1.h"
 
 #include "imgui/imgui.h"
-#include "Demo_Collision.h"
 
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
@@ -110,7 +108,7 @@ namespace
 
     // -----------------------------------------------
 
-    struct Resource_Demo_Collision : IInlineComponent
+    struct Resource_Demo_Collision1 : IInlineComponent
     {
         struct
         {
@@ -138,11 +136,11 @@ namespace
         } cb;
     };
 
-    InlineComponent<Resource_Demo_Collision> s_resource_Demo_Collision{};
+    InlineComponent<Resource_Demo_Collision1> s_resource_Demo_Collision1{};
 
-    Resource_Demo_Collision& getRsc()
+    Resource_Demo_Collision1& getRsc()
     {
-        return s_resource_Demo_Collision.get();
+        return s_resource_Demo_Collision1.get();
     }
 
     // -----------------------------------------------
@@ -228,7 +226,7 @@ namespace
     };
 }
 
-struct Demo_Collision_impl
+struct Demo_Collision1_impl
 {
     SimpleCamera3D m_camera{};
 
@@ -243,7 +241,7 @@ struct Demo_Collision_impl
     TriangleObject m_triangleObject{};
     CapsuleObject m_capsuleObject{};
 
-    Demo_Collision_impl()
+    Demo_Collision1_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -432,9 +430,9 @@ private:
     }
 };
 
-void Demo_Collision()
+void Demo_Collision1()
 {
-    Demo_Collision_impl impl{};
+    Demo_Collision1_impl impl{};
 
     Scene::RequestResize({1920, 1080});
 
