@@ -267,6 +267,11 @@ namespace
                 Init();
             }
 
+            if (ImGui::Button("Pos = (0, 10), 0)"))
+            {
+                m_pos = Float3{0, 10, 0};
+            }
+
             ImGui::End();
         }
     };
@@ -391,6 +396,7 @@ struct Demo_Collision2_impl
                 tryMoveCapsulePosition(previousPos, newPos);
             }
         }
+
         m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_capsuleObject.m_pos)).draw();
 
         m_capsuleObject.DebugUI();
@@ -413,6 +419,15 @@ struct Demo_Collision2_impl
             else
             {
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Intersection: False");
+            }
+
+            if (m_invalidParallel == System::FrameCount())
+            {
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "m_invalidParallel: True");
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "m_invalidParallel: False");
             }
 
             ImGui::Checkbox("Move Enabled", &s_moveEnabled);
@@ -469,6 +484,8 @@ private:
         m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
     }
 
+    size_t m_invalidParallel = 0;
+
     void tryMoveCapsulePosition(const Float3& previousPos, const Float3& newPos)
     {
         if (previousPos == newPos)
@@ -479,7 +496,9 @@ private:
         const auto moveTestCapsule =
             Capsule{previousPos, newPos, m_capsuleObject.m_radius};
 
-        bool hasIntersection = false;
+        Float3 moveVectorSum{};
+        Float3 residualVectorSum{}; // TODO: Remove it! 移動させる前に法線を取りましょう
+        int intersectionCount = 0;
         for (const auto& tri : m_terrain.m_polygons)
         {
             if (Intersects(moveTestCapsule, tri))
@@ -499,11 +518,14 @@ private:
                 // S          H
 
                 const auto lineST = Line3D::FromPoints(previousPos, newPos);
+                const float moveDistance = (newPos - previousPos).length();
+
                 auto plane = tri.asPlane();
                 if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
                 {
                     // 移動ベクトルと三角形がほぼ並行の場合
                     // TODO: 対策考える
+                    m_invalidParallel = System::FrameCount();
                     continue;
                 }
 
@@ -528,15 +550,27 @@ private:
                 const float SUoSH = SU.dot(SH);
                 const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
 
-                m_capsuleObject.m_pos = S + lineST.normalizedDir * lengthST;
-                hasIntersection = true;
-                break;
+                // m_capsuleObject.m_pos = S + lineST.normalizedDir * lengthST;
+                moveVectorSum += lineST.normalizedDir * lengthST;
+
+                // -----------------------------------------------
+
+                const Float3 residualVector = (U - H).normalized();
+                const float residualDistance = moveDistance - lengthST;
+                residualVectorSum += residualVector * residualDistance;
+
+                intersectionCount++;
             }
         }
 
-        if (not hasIntersection)
+        if (intersectionCount == 0)
         {
             m_capsuleObject.m_pos = newPos;
+        }
+        else
+        {
+            m_capsuleObject.m_pos += moveVectorSum / intersectionCount;
+            m_capsuleObject.m_pos += residualVectorSum / intersectionCount;
         }
     }
 };
