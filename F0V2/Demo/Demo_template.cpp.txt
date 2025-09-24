@@ -6,6 +6,7 @@
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
+#include "TY/InlineComponent.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 
@@ -103,35 +104,47 @@ namespace
     constexpr float groundPositionY = -10.0f;
 
     constexpr float fovFarZ = 1000.0f;
+
+    // -----------------------------------------------
+
+    struct Resource_Demo_template : IInlineComponent
+    {
+        struct
+        {
+            GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
+
+            GraphicsShader model{GraphicsShader::VS_PS("asset/shader/model.hlsl")};
+
+            // GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
+
+            GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
+
+            GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
+        } shaders;
+
+        struct models_t
+        {
+            ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
+
+            ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
+        } models;
+
+        struct
+        {
+            ConstantBufferWrapper<PhongLight_b4> phongLight{};
+        } cb;
+    };
+
+    InlineComponent<Resource_Demo_template> s_resource_Demo_template{};
+
+    Resource_Demo_template& getRsc()
+    {
+        return s_resource_Demo_template.get();
+    }
 }
 
 struct Demo_template_impl
 {
-    struct
-    {
-        GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
-
-        GraphicsShader model{GraphicsShader::VS_PS("asset/shader/model.hlsl")};
-
-        // GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
-
-        GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
-
-        GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
-    } m_shaders;
-
-    struct
-    {
-        ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
-
-        ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
-    } m_models;
-
-    struct
-    {
-        ConstantBufferWrapper<PhongLight_b4> phongLight{};
-    } m_cb;
-
     SimpleCamera3D m_camera{};
 
     ModelDrawer m_skydomeModel{};
@@ -162,7 +175,7 @@ struct Demo_template_impl
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShader(m_shaders.skydome)
+            .setShader(getRsc().shaders.skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
@@ -175,23 +188,23 @@ struct Demo_template_impl
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
-            .setShader(m_shaders.model)
+            .setShader(getRsc().shaders.model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
         m_playerDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(m_models.playerModel)
-            .setShader(m_shaders.phong)
-            .setCbv10AndLater({m_cb.phongLight})
+            .setModel(getRsc().models.playerModel)
+            .setShader(getRsc().shaders.phong)
+            .setCbv10AndLater({getRsc().cb.phongLight})
         };
 
         m_playerPose.position.y = groundPositionY + 15.0f;
 
         m_mountainDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(m_models.mountainModel)
-            .setShader(m_shaders.phong)
-            .setCbv10AndLater({m_cb.phongLight})
+            .setModel(getRsc().models.mountainModel)
+            .setShader(getRsc().shaders.phong)
+            .setCbv10AndLater({getRsc().cb.phongLight})
         };
     }
 
@@ -234,12 +247,12 @@ struct Demo_template_impl
             Graphics3D::SetProjectionMatrix(m_projectionMat);
         }
 
-        m_cb.phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
-        m_cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-        m_cb.phongLight->eyePosition = m_camera.eyePosition();
-        m_cb.phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
+        getRsc().cb.phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
+        getRsc().cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
+        getRsc().cb.phongLight->eyePosition = m_camera.eyePosition();
+        getRsc().cb.phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
 
-        m_cb.phongLight.upload();
+        getRsc().cb.phongLight.upload();
 
         m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
         m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
@@ -270,9 +283,9 @@ struct Demo_template_impl
                         targetPosition.z);
 
             ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
-                        m_cb.phongLight->lightDirection.x,
-                        m_cb.phongLight->lightDirection.y,
-                        m_cb.phongLight->lightDirection.z);
+                        getRsc().cb.phongLight->lightDirection.x,
+                        getRsc().cb.phongLight->lightDirection.y,
+                        getRsc().cb.phongLight->lightDirection.z);
 
             ImGui::Separator();
 

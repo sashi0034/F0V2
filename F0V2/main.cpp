@@ -19,7 +19,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_Intersection();
+    Demo_Basic3D();
 #else
     using namespace TY;
 
