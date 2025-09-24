@@ -327,14 +327,25 @@ struct Demo_Collision_impl
 
             if (previousPos != newPos)
             {
-                const auto moveTestCapsule = Capsule{previousPos, newPos, m_capsuleObject.m_radius};
+                const Float3 bottomOffset = Float3{0, -m_capsuleObject.m_height * 0.5f, 0};
+                const Float3 topOffset = -bottomOffset;
 
-                if (Intersects(moveTestCapsule, m_triangleObject.m_tri))
+                const auto moveTestCapsuleT =
+                    Capsule{previousPos + bottomOffset, newPos + bottomOffset, m_capsuleObject.m_radius};
+                const auto moveTestCapsule =
+                    Capsule{previousPos, newPos, m_capsuleObject.m_radius};
+                const auto moveTestCapsuleB =
+                    Capsule{previousPos + topOffset, newPos + topOffset, m_capsuleObject.m_radius};
+
+                if (Intersects(moveTestCapsule, m_triangleObject.m_tri) ||
+                    Intersects(moveTestCapsuleT, m_triangleObject.m_tri) ||
+                    Intersects(moveTestCapsuleB, m_triangleObject.m_tri))
                 {
                     const auto plane = m_triangleObject.m_tri.asPlane();
                     const float distance = m_triangleObject.m_tri.asPlane().signedDistanceFrom(previousPos);
-                    const float moveAmound = distance - ((m_capsuleObject.m_radius + 1e-6) * (distance > 0 ? 1 : -1));
-                    m_capsuleObject.m_pos = previousPos - plane.normal * moveAmound;
+                    const float moveAmound = distance + ((m_capsuleObject.m_radius + 1e-2) * (distance > 0 ? -1 : 1));
+                    const Float3 normal = -plane.normal;
+                    m_capsuleObject.m_pos = previousPos + normal * moveAmound;
                 }
                 else
                 {
