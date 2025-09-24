@@ -326,7 +326,20 @@ struct Demo_Collision2_impl
 
     void Update()
     {
-        m_camera.transformBySimpleInput();
+        Float3 moveVector{};
+        if (KeyShift.pressed())
+        {
+            m_camera.transformBySimpleInput();
+        }
+        else
+        {
+            const auto input = SimpleInput::GetPlayerMovement3D();
+            const auto cameraMat = m_camera.worldMatrix();
+            moveVector += cameraMat.right() * input.x;
+            moveVector += cameraMat.forward() * input.z;
+            moveVector.y -= 0.5 * (KeySpace.pressed() ? -1 : 1);
+            moveVector *= 10.0f * System::DeltaTime();
+        }
 
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());
 
@@ -362,43 +375,20 @@ struct Demo_Collision2_impl
 
         m_terrain.Draw();
 
-        static bool s_moveCapsuleWithCamera = true;
+        static bool s_moveEnabled = true;
 
         {
             const Float3 previousPos = m_capsuleObject.m_pos;
             Float3 newPos = previousPos;
 
-            if (s_moveCapsuleWithCamera)
+            if (s_moveEnabled)
             {
-                newPos = m_camera.eyePosition() + m_camera.worldMatrix().forward() * 10.0f;
+                newPos = previousPos + moveVector;
             }
 
             if (previousPos != newPos)
             {
-                const Float3 bottomOffset = Float3{0, -m_capsuleObject.m_height * 0.5f, 0};
-                const Float3 topOffset = -bottomOffset;
-
-                const auto moveTestCapsuleT =
-                    Capsule{previousPos + bottomOffset, newPos + bottomOffset, m_capsuleObject.m_radius};
-                const auto moveTestCapsule =
-                    Capsule{previousPos, newPos, m_capsuleObject.m_radius};
-                const auto moveTestCapsuleB =
-                    Capsule{previousPos + topOffset, newPos + topOffset, m_capsuleObject.m_radius};
-
-                if (Intersects(moveTestCapsule, m_triangleObject.m_tri) ||
-                    Intersects(moveTestCapsuleT, m_triangleObject.m_tri) ||
-                    Intersects(moveTestCapsuleB, m_triangleObject.m_tri))
-                {
-                    const auto plane = m_triangleObject.m_tri.asPlane();
-                    const float distance = m_triangleObject.m_tri.asPlane().signedDistanceFrom(previousPos);
-                    const float moveAmound = distance + ((m_capsuleObject.m_radius + 1e-2) * (distance > 0 ? -1 : 1));
-                    const Float3 normal = -plane.normal;
-                    m_capsuleObject.m_pos = previousPos + normal * moveAmound;
-                }
-                else
-                {
-                    m_capsuleObject.m_pos = newPos;
-                }
+                tryMoveCapsulePosition(previousPos, newPos);
             }
         }
         m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_capsuleObject.m_pos)).draw();
@@ -425,7 +415,7 @@ struct Demo_Collision2_impl
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Intersection: False");
             }
 
-            ImGui::Checkbox("Move Capsule with Camera", &s_moveCapsuleWithCamera);
+            ImGui::Checkbox("Move Enabled", &s_moveEnabled);
             ImGui::End();
         }
 
@@ -477,6 +467,77 @@ private:
     void resetCamera()
     {
         m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
+    }
+
+    void tryMoveCapsulePosition(const Float3& previousPos, const Float3& newPos)
+    {
+        if (previousPos == newPos)
+        {
+            return;
+        }
+
+        const auto moveTestCapsule =
+            Capsule{previousPos, newPos, m_capsuleObject.m_radius};
+
+        bool hasIntersection = false;
+        for (const auto& tri : m_terrain.m_polygons)
+        {
+            if (Intersects(moveTestCapsule, tri))
+            {
+                //            U
+                //           /|
+                //          / |
+                //         /  |
+                //        /   |
+                //       /    |
+                //    T /--r--|
+                //     /|     |
+                //    / |     |
+                //   /  |     |
+                //  /   |     |
+                // /----------|
+                // S          H
+
+                const auto lineST = Line3D::FromPoints(previousPos, newPos);
+                auto plane = tri.asPlane();
+                if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
+                {
+                    // 移動ベクトルと三角形がほぼ並行の場合
+                    // TODO: 対策考える
+                    continue;
+                }
+
+                const Float3 S = previousPos;
+                float lengthSU{};
+                const auto tryU = IntersectsAt(lineST, plane, &lengthSU);
+                if (not tryU)
+                {
+                    continue;
+                }
+
+                const Float3 U = *tryU;
+                const Float3 SU = U - S;
+
+                const float distance = plane.signedDistanceFrom(previousPos);
+                const Float3 H = S - plane.normal * distance;
+                const float lengthSH = Abs(distance);
+                const Float3 SH = (H - S);
+
+                const float r = m_capsuleObject.m_radius + 1e-2f;
+
+                const float SUoSH = SU.dot(SH);
+                const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
+
+                m_capsuleObject.m_pos = S + lineST.normalizedDir * lengthST;
+                hasIntersection = true;
+                break;
+            }
+        }
+
+        if (not hasIntersection)
+        {
+            m_capsuleObject.m_pos = newPos;
+        }
     }
 };
 
