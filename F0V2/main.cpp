@@ -5,6 +5,7 @@
 #include "Demo/Demo_AirCombat.h"
 #include "Demo/Demo_Basic3D.h"
 #include "Demo/Demo_Collision1.h"
+#include "Demo/Demo_Collision2.h"
 #include "Demo/Demo_Intersection.h"
 #include "Demo/Demo_Font.h"
 #include "Demo/Demo_Gpgpu.h"
@@ -20,7 +21,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_Collision1();
+    Demo_Collision2();
 #else
     using namespace TY;
 
