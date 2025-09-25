@@ -405,6 +405,7 @@ struct Demo_Collision2_impl
                 }.setColor(ColorF32{1.0f, 0.0f, 0.0f})
                  .pushAuto();
 
+            Float3 actualMoveVector = moveVector;
             if (s_moveEnabled)
             {
                 Shape3D::Line{
@@ -413,7 +414,7 @@ struct Demo_Collision2_impl
                     }.setColor(ColorF32{0.5f})
                      .pushAuto();
 
-                if (m_capsuleObject.m_onGround)
+                // if (m_capsuleObject.m_onGround)
                 {
                     const Float3& normalOnGround = m_capsuleObject.m_normalOnGround;
                     moveVector = moveVector - normalOnGround * moveVector.dot(normalOnGround);
@@ -448,34 +449,34 @@ struct Demo_Collision2_impl
 
                     // 法線の採用ルール: 接触した面の法線のうち、現在の法線にもっとも近いものを選択する
                     const auto previousNormalOnGround = m_capsuleObject.m_normalOnGround;
-                    float tmp{-1};
-                    for (const auto& tri : hitTris)
                     {
-                        const auto d = tri.plane.normal.dot(previousNormalOnGround);
-                        if (d > tmp)
+                        float tmp{-1000.0f};
+                        for (const auto& tri : hitTris)
                         {
-                            tmp = d;
-                            m_capsuleObject.m_normalOnGround = tri.plane.normal;
+                            const auto d = tri.plane.normal.dot(previousNormalOnGround);
+                            if (d > tmp)
+                            {
+                                tmp = d;
+                                m_capsuleObject.m_normalOnGround = tri.plane.normal;
+                            }
                         }
                     }
 
-                    m_capsuleObject.m_normalOnGround = m_capsuleObject.m_normalOnGround.normalized();
-                    if (m_capsuleObject.m_normalOnGround.isZero())
-                    {
-                        m_capsuleObject.m_normalOnGround = Float3{0, 1, 0};
-                    }
-
+                    // m_capsuleObject.m_normalOnGround = m_capsuleObject.m_normalOnGround.normalized();
+                    // if (m_capsuleObject.m_normalOnGround.isZero())
+                    // {
+                    //     m_capsuleObject.m_normalOnGround = Float3{0, 1, 0};
+                    // }
+                    //
                     // const float expectedMoveAmount = (newPos - previousPos).length();
                     // const float actualMoveAmount = (m_capsuleObject.m_pos - previousPos).length();
                     //
-                    // Float3 residual{};
+                    // const auto dir = actualMoveVector.normalized();
+                    // Float3 moveVector2 = dir * (expectedMoveAmount - actualMoveAmount);
+                    // const Float3 normalOnGround2 = m_capsuleObject.m_normalOnGround;
+                    // moveVector2 = moveVector2 - normalOnGround2 * moveVector2.dot(normalOnGround2);
                     //
-                    // for (const auto& tri : hitTris)
-                    // {
-                    //     residual += (tri.intersection - tri.foot).normalized();
-                    //     residual += tri.plane.normal;
-                    //     // break; // FIXME
-                    // }
+                    // tryMoveCapsulePosition(previousPos, previousPos + moveVector2);
                 }
             }
         }
