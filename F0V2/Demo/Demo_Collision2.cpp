@@ -274,6 +274,11 @@ namespace
                 m_pos = Float3{0, 10, 0};
             }
 
+            if (ImGui::Button("Y = 30"))
+            {
+                m_pos.y = 30.0f;
+            }
+
             ImGui::End();
         }
     };
@@ -334,6 +339,7 @@ struct Demo_Collision2_impl
     void Update()
     {
         static float s_moveSpeed = 1.0f;
+        static float s_gravity = 1.0f;
         Float3 moveVector{};
         if (KeyShift.pressed())
         {
@@ -345,11 +351,7 @@ struct Demo_Collision2_impl
             const auto cameraMat = m_camera.worldMatrix();
             moveVector += cameraMat.right().withY(0).normalized() * input.x * s_moveSpeed;
             moveVector += cameraMat.forward().withY(0).normalized() * input.z * s_moveSpeed;
-
-            // if (moveVector.isZero())
-            {
-                moveVector.y -= (KeySpace.pressed() ? -1 : 1);
-            }
+            moveVector.y -= s_gravity * (KeySpace.pressed() ? -1.0f : 1.0f);
 
             moveVector *= 10.0f * System::DeltaTime();
         }
@@ -458,6 +460,8 @@ struct Demo_Collision2_impl
 
             ImGui::DragFloat("Move Speed", &s_moveSpeed, 0.1f, 0.1f, 10.0f);
 
+            ImGui::DragFloat("Gravity", &s_gravity, 0.1f, 0.0f, 10.0f);
+
             ImGui::End();
         }
 
@@ -530,31 +534,17 @@ private:
             return;
         }
 
-        if (not hitTris.empty())
+        if (hitTris.has_value())
         {
-            for (const auto& tri : hitTris)
-            {
-                const auto triCenter = tri.tri.centroid();
-                ShapeDrawer::Global().push(Shape3D::Line{
-                    triCenter,
-                    triCenter + tri.plane.normal * 10
-                }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));
-            }
+            const auto& tri = *hitTris;
+            const auto triCenter = tri.tri.centroid();
+            ShapeDrawer::Global().push(Shape3D::Line{
+                triCenter,
+                triCenter + tri.plane.normal * 10
+            }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));
 
-            // 法線の採用ルール: 接触した面の法線のうち、現在の法線にもっとも近いものを選択する
-            const auto previousNormalOnGround = m_capsuleObject.m_normalOnGround;
-            {
-                float tmp{-1000.0f};
-                for (const auto& tri : hitTris)
-                {
-                    const auto d = tri.plane.normal.dot(previousNormalOnGround);
-                    if (d > tmp)
-                    {
-                        tmp = d;
-                        m_capsuleObject.m_normalOnGround = tri.plane.normal;
-                    }
-                }
-            }
+            // 面の法線を採用
+            m_capsuleObject.m_normalOnGround = tri.plane.normal;
 
             const auto n = m_capsuleObject.m_normalOnGround;
             const Float3 r = toPos - m_capsuleObject.m_pos;
@@ -568,6 +558,7 @@ private:
 
     struct HitTri
     {
+        float planeDistance;
         Triangle3D tri;
         Plane3D plane;
         Float3 intersection;
@@ -577,21 +568,21 @@ private:
     struct MoveResult
     {
         Float3 newPos;
-        Array<HitTri> hitTris;
+        std::optional<HitTri> tri{};
     };
 
     MoveResult tryMoveCapsulePosition(const Float3& fromPos, const Float3& toPos)
     {
         if (fromPos == toPos)
         {
-            return {toPos, Array<HitTri>{}};
+            return {toPos, {}};
         }
 
         const auto moveTestCapsule = Capsule{fromPos, toPos, m_capsuleObject.m_radius};
 
-        Array<HitTri> hitTris{};
-        Float3 moveVectorSum{};
-        int intersectionCount = 0;
+        HitTri hitTri{};
+        hitTri.planeDistance = FLT_MAX;
+        Float3 newPos = toPos;
         for (const auto& tri : m_terrain.m_polygons)
         {
             if (Intersects(moveTestCapsule, tri))
@@ -611,7 +602,6 @@ private:
                 // S          H
 
                 const auto lineST = Line3D::FromPoints(fromPos, toPos);
-                const float moveDistance = (toPos - fromPos).length();
 
                 auto plane = tri.asPlane();
                 if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
@@ -636,6 +626,7 @@ private:
                 const float distance = plane.signedDistanceFrom(fromPos);
                 const Float3 H = S - plane.normal * distance;
                 const float lengthSH = Abs(distance);
+
                 const Float3 SH = (H - S);
 
                 const float r = m_capsuleObject.m_radius + 1e-2f;
@@ -643,27 +634,21 @@ private:
                 const float SUoSH = SU.dot(SH);
                 const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
 
-                // m_capsuleObject.m_pos = S + lineST.normalizedDir * lengthST;
-                moveVectorSum += lineST.normalizedDir * lengthST;
+                if (hitTri.planeDistance < lengthSH)
+                {
+                    continue;
+                }
 
-                hitTris.push_back(HitTri{tri, plane, U, H});
-                intersectionCount++;
+                hitTri.planeDistance = lengthSH;
+                hitTri.tri = tri;
+                hitTri.plane = plane;
+                hitTri.intersection = U;
+                hitTri.foot = H;
+                newPos = S + lineST.normalizedDir * lengthST;
             }
         }
 
-        MoveResult result;
-        if (intersectionCount == 0)
-        {
-            result.newPos = toPos;
-        }
-        else
-        {
-            result.newPos = fromPos + moveVectorSum / intersectionCount;
-        }
-
-        result.hitTris = std::move(hitTris);
-
-        return result;
+        return {newPos, hitTri};
     }
 };
 
