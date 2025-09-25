@@ -343,8 +343,8 @@ struct Demo_Collision2_impl
         {
             const auto input = SimpleInput::GetPlayerMovement3D();
             const auto cameraMat = m_camera.worldMatrix();
-            moveVector += cameraMat.right() * input.x * s_moveSpeed;
-            moveVector += cameraMat.forward() * input.z * s_moveSpeed;
+            moveVector += cameraMat.right().withY(0).normalized() * input.x * s_moveSpeed;
+            moveVector += cameraMat.forward().withY(0).normalized() * input.z * s_moveSpeed;
 
             // if (moveVector.isZero())
             {
