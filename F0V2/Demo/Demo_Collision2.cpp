@@ -241,7 +241,6 @@ namespace
         ModelBuffer m_model;
         ModelDrawer m_drawer;
         Float3 m_pos{};
-        bool m_onGround{};
         Float3 m_normalOnGround{0, 1, 0};
 
         void Init()
@@ -334,6 +333,7 @@ struct Demo_Collision2_impl
 
     void Update()
     {
+        static float s_moveSpeed = 1.0f;
         Float3 moveVector{};
         if (KeyShift.pressed())
         {
@@ -343,12 +343,12 @@ struct Demo_Collision2_impl
         {
             const auto input = SimpleInput::GetPlayerMovement3D();
             const auto cameraMat = m_camera.worldMatrix();
-            moveVector += cameraMat.right() * input.x;
-            moveVector += cameraMat.forward() * input.z;
+            moveVector += cameraMat.right() * input.x * s_moveSpeed;
+            moveVector += cameraMat.forward() * input.z * s_moveSpeed;
 
             // if (moveVector.isZero())
             {
-                moveVector.y -= 0.5 * (KeySpace.pressed() ? -1 : 1);
+                moveVector.y -= (KeySpace.pressed() ? -1 : 1);
             }
 
             moveVector *= 10.0f * System::DeltaTime();
@@ -405,7 +405,6 @@ struct Demo_Collision2_impl
                 }.setColor(ColorF32{1.0f, 0.0f, 0.0f})
                  .pushAuto();
 
-            Float3 actualMoveVector = moveVector;
             if (s_moveEnabled)
             {
                 Shape3D::Line{
@@ -414,70 +413,9 @@ struct Demo_Collision2_impl
                     }.setColor(ColorF32{0.5f})
                      .pushAuto();
 
-                // if (m_capsuleObject.m_onGround)
-                {
-                    const Float3& normalOnGround = m_capsuleObject.m_normalOnGround;
-                    moveVector = moveVector - normalOnGround * moveVector.dot(normalOnGround);
-                }
-
                 newPos = previousPos + moveVector;
 
-                Shape3D::Line{
-                        previousPos,
-                        previousPos + moveVector * 10
-                    }.setColor(ColorF32{1.0f})
-                     .pushAuto();
-            }
-
-            if (previousPos != newPos)
-            {
-                m_capsuleObject.m_onGround = false;
-
-                const auto hitTris = tryMoveCapsulePosition(previousPos, newPos);
-                if (not hitTris.empty())
-                {
-                    for (const auto& tri : hitTris)
-                    {
-                        const auto triCenter = tri.tri.centroid();
-                        ShapeDrawer::Global().push(Shape3D::Line{
-                            triCenter,
-                            triCenter + tri.plane.normal * 10
-                        }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));
-                    }
-
-                    m_capsuleObject.m_onGround = true;
-
-                    // 法線の採用ルール: 接触した面の法線のうち、現在の法線にもっとも近いものを選択する
-                    const auto previousNormalOnGround = m_capsuleObject.m_normalOnGround;
-                    {
-                        float tmp{-1000.0f};
-                        for (const auto& tri : hitTris)
-                        {
-                            const auto d = tri.plane.normal.dot(previousNormalOnGround);
-                            if (d > tmp)
-                            {
-                                tmp = d;
-                                m_capsuleObject.m_normalOnGround = tri.plane.normal;
-                            }
-                        }
-                    }
-
-                    // m_capsuleObject.m_normalOnGround = m_capsuleObject.m_normalOnGround.normalized();
-                    // if (m_capsuleObject.m_normalOnGround.isZero())
-                    // {
-                    //     m_capsuleObject.m_normalOnGround = Float3{0, 1, 0};
-                    // }
-                    //
-                    // const float expectedMoveAmount = (newPos - previousPos).length();
-                    // const float actualMoveAmount = (m_capsuleObject.m_pos - previousPos).length();
-                    //
-                    // const auto dir = actualMoveVector.normalized();
-                    // Float3 moveVector2 = dir * (expectedMoveAmount - actualMoveAmount);
-                    // const Float3 normalOnGround2 = m_capsuleObject.m_normalOnGround;
-                    // moveVector2 = moveVector2 - normalOnGround2 * moveVector2.dot(normalOnGround2);
-                    //
-                    // tryMoveCapsulePosition(previousPos, previousPos + moveVector2);
-                }
+                updateCapsulePosition(previousPos, newPos - previousPos);
             }
         }
 
@@ -517,6 +455,9 @@ struct Demo_Collision2_impl
             }
 
             ImGui::Checkbox("Move Enabled", &s_moveEnabled);
+
+            ImGui::DragFloat("Move Speed", &s_moveSpeed, 0.1f, 0.1f, 10.0f);
+
             ImGui::End();
         }
 
@@ -572,6 +513,59 @@ private:
 
     size_t m_invalidParallel = 0;
 
+    void updateCapsulePosition(const Float3& fromPos, const Float3& moveVector, int nest = 0)
+    {
+        if (moveVector.lengthSq() < 1e-6f)
+        {
+            return;
+        }
+
+        const auto toPos = fromPos + moveVector;
+        const auto [newPos, hitTris] = tryMoveCapsulePosition(fromPos, toPos);
+
+        m_capsuleObject.m_pos = newPos;
+
+        if ((toPos - newPos).lengthSq() < 1e-6f)
+        {
+            return;
+        }
+
+        if (not hitTris.empty())
+        {
+            for (const auto& tri : hitTris)
+            {
+                const auto triCenter = tri.tri.centroid();
+                ShapeDrawer::Global().push(Shape3D::Line{
+                    triCenter,
+                    triCenter + tri.plane.normal * 10
+                }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));
+            }
+
+            // 法線の採用ルール: 接触した面の法線のうち、現在の法線にもっとも近いものを選択する
+            const auto previousNormalOnGround = m_capsuleObject.m_normalOnGround;
+            {
+                float tmp{-1000.0f};
+                for (const auto& tri : hitTris)
+                {
+                    const auto d = tri.plane.normal.dot(previousNormalOnGround);
+                    if (d > tmp)
+                    {
+                        tmp = d;
+                        m_capsuleObject.m_normalOnGround = tri.plane.normal;
+                    }
+                }
+            }
+
+            const auto n = m_capsuleObject.m_normalOnGround;
+            const Float3 r = toPos - m_capsuleObject.m_pos;
+            const auto newMoveVector = r - n * r.dot(n);
+            if (nest < 3)
+            {
+                updateCapsulePosition(m_capsuleObject.m_pos, newMoveVector, nest + 1);
+            }
+        }
+    }
+
     struct HitTri
     {
         Triangle3D tri;
@@ -580,15 +574,20 @@ private:
         Float3 foot;
     };
 
-    Array<HitTri> tryMoveCapsulePosition(const Float3& previousPos, const Float3& newPos)
+    struct MoveResult
     {
-        if (previousPos == newPos)
+        Float3 newPos;
+        Array<HitTri> hitTris;
+    };
+
+    MoveResult tryMoveCapsulePosition(const Float3& fromPos, const Float3& toPos)
+    {
+        if (fromPos == toPos)
         {
-            return {};
+            return {toPos, Array<HitTri>{}};
         }
 
-        const auto moveTestCapsule =
-            Capsule{previousPos, newPos, m_capsuleObject.m_radius};
+        const auto moveTestCapsule = Capsule{fromPos, toPos, m_capsuleObject.m_radius};
 
         Array<HitTri> hitTris{};
         Float3 moveVectorSum{};
@@ -611,8 +610,8 @@ private:
                 // /----------|
                 // S          H
 
-                const auto lineST = Line3D::FromPoints(previousPos, newPos);
-                const float moveDistance = (newPos - previousPos).length();
+                const auto lineST = Line3D::FromPoints(fromPos, toPos);
+                const float moveDistance = (toPos - fromPos).length();
 
                 auto plane = tri.asPlane();
                 if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
@@ -623,7 +622,7 @@ private:
                     continue;
                 }
 
-                const Float3 S = previousPos;
+                const Float3 S = fromPos;
                 float lengthSU{};
                 const auto tryU = IntersectsAt(lineST, plane, &lengthSU);
                 if (not tryU)
@@ -634,7 +633,7 @@ private:
                 const Float3 U = *tryU;
                 const Float3 SU = U - S;
 
-                const float distance = plane.signedDistanceFrom(previousPos);
+                const float distance = plane.signedDistanceFrom(fromPos);
                 const Float3 H = S - plane.normal * distance;
                 const float lengthSH = Abs(distance);
                 const Float3 SH = (H - S);
@@ -652,16 +651,19 @@ private:
             }
         }
 
+        MoveResult result;
         if (intersectionCount == 0)
         {
-            m_capsuleObject.m_pos = newPos;
+            result.newPos = toPos;
         }
         else
         {
-            m_capsuleObject.m_pos += moveVectorSum / intersectionCount;
+            result.newPos = fromPos + moveVectorSum / intersectionCount;
         }
 
-        return hitTris;
+        result.hitTris = std::move(hitTris);
+
+        return result;
     }
 };
 
