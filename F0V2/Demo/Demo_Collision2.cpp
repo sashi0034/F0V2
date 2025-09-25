@@ -351,7 +351,7 @@ struct Demo_Collision2_impl
             const auto cameraMat = m_camera.worldMatrix();
             moveVector += cameraMat.right().withY(0).normalized() * input.x * s_moveSpeed;
             moveVector += cameraMat.forward().withY(0).normalized() * input.z * s_moveSpeed;
-            moveVector.y -= s_gravity * (KeySpace.pressed() ? -1.0f : 1.0f);
+            moveVector.y -= (KeySpace.pressed() ? -1.0f : s_gravity);
 
             moveVector *= 10.0f * System::DeltaTime();
         }
@@ -558,7 +558,7 @@ private:
 
     struct HitTri
     {
-        float planeDistance;
+        float moveDistance;
         Triangle3D tri;
         Plane3D plane;
         Float3 intersection;
@@ -581,7 +581,7 @@ private:
         const auto moveTestCapsule = Capsule{fromPos, toPos, m_capsuleObject.m_radius};
 
         HitTri hitTri{};
-        hitTri.planeDistance = FLT_MAX;
+        hitTri.moveDistance = FLT_MAX;
         Float3 newPos = toPos;
         for (const auto& tri : m_terrain.m_polygons)
         {
@@ -634,12 +634,12 @@ private:
                 const float SUoSH = SU.dot(SH);
                 const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
 
-                if (hitTri.planeDistance < lengthSH)
+                if (hitTri.moveDistance < lengthST)
                 {
                     continue;
                 }
 
-                hitTri.planeDistance = lengthSH;
+                hitTri.moveDistance = lengthST;
                 hitTri.tri = tri;
                 hitTri.plane = plane;
                 hitTri.intersection = U;
