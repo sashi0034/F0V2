@@ -20,6 +20,8 @@ namespace TY
             Line& setColor(const ColorF32& color);
 
             Line& setColor(const ColorF32& c0, const ColorF32& c1);
+
+            void pushAuto();
         };
 
         // -----------------------------------------------

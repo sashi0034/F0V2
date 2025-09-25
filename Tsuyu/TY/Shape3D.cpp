@@ -1,6 +1,18 @@
 ﻿#include "pch.h"
 #include "Shape3D.h"
 
+#include "ShapeDrawer.h"
+
+using namespace TY;
+
+namespace
+{
+    ShapeDrawer& activeShapeDrawer()
+    {
+        return ShapeDrawer::Global();
+    }
+}
+
 namespace TY
 {
     Shape3D::Line::Line(const Float3& start_, const Float3& end_)
@@ -20,5 +32,10 @@ namespace TY
         colors[0] = c0;
         colors[1] = c1;
         return *this;
+    }
+
+    void Shape3D::Line::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
     }
 }
