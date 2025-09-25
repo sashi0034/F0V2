@@ -241,6 +241,7 @@ namespace
         ModelBuffer m_model;
         ModelDrawer m_drawer;
         Float3 m_pos{};
+        bool m_onGround{};
         Float3 m_normalOnGround{0, 1, 0};
 
         void Init()
@@ -345,7 +346,7 @@ struct Demo_Collision2_impl
             moveVector += cameraMat.right() * input.x;
             moveVector += cameraMat.forward() * input.z;
 
-            if (moveVector.isZero())
+            // if (moveVector.isZero())
             {
                 moveVector.y -= 0.5 * (KeySpace.pressed() ? -1 : 1);
             }
@@ -406,25 +407,31 @@ struct Demo_Collision2_impl
 
             if (s_moveEnabled)
             {
-                newPos = previousPos + moveVector;
-
-                const Quaternion q = Quaternion::FromVectors(Float3{0, 1, 0}, m_capsuleObject.m_normalOnGround);
-                const Float3 moveVectorRotated = q.rotate(moveVector);
-
                 Shape3D::Line{
                         previousPos,
                         previousPos + moveVector * 10
                     }.setColor(ColorF32{0.5f})
                      .pushAuto();
+
+                if (m_capsuleObject.m_onGround)
+                {
+                    const Float3& normalOnGround = m_capsuleObject.m_normalOnGround;
+                    moveVector = moveVector - normalOnGround * moveVector.dot(normalOnGround);
+                }
+
+                newPos = previousPos + moveVector;
+
                 Shape3D::Line{
                         previousPos,
-                        previousPos + moveVectorRotated * 10
+                        previousPos + moveVector * 10
                     }.setColor(ColorF32{1.0f})
                      .pushAuto();
             }
 
             if (previousPos != newPos)
             {
+                m_capsuleObject.m_onGround = false;
+
                 const auto hitTris = tryMoveCapsulePosition(previousPos, newPos);
                 if (not hitTris.empty())
                 {
@@ -437,10 +444,19 @@ struct Demo_Collision2_impl
                         }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));
                     }
 
-                    m_capsuleObject.m_normalOnGround = {};
+                    m_capsuleObject.m_onGround = true;
+
+                    // 法線の採用ルール: 接触した面の法線のうち、現在の法線にもっとも近いものを選択する
+                    const auto previousNormalOnGround = m_capsuleObject.m_normalOnGround;
+                    float tmp{-1};
                     for (const auto& tri : hitTris)
                     {
-                        m_capsuleObject.m_normalOnGround += tri.plane.normal;
+                        const auto d = tri.plane.normal.dot(previousNormalOnGround);
+                        if (d > tmp)
+                        {
+                            tmp = d;
+                            m_capsuleObject.m_normalOnGround = tri.plane.normal;
+                        }
                     }
 
                     m_capsuleObject.m_normalOnGround = m_capsuleObject.m_normalOnGround.normalized();
@@ -454,29 +470,11 @@ struct Demo_Collision2_impl
                     //
                     // Float3 residual{};
                     //
-                    //
                     // for (const auto& tri : hitTris)
                     // {
                     //     residual += (tri.intersection - tri.foot).normalized();
                     //     residual += tri.plane.normal;
                     //     // break; // FIXME
-                    // }
-                    //
-                    // residual = residual.normalized();
-                    // const float residualAmount = expectedMoveAmount - actualMoveAmount;
-                    //
-                    // if (residualAmount > 0 && not residual.isZero())
-                    // {
-                    //     ShapeDrawer::Global().push(Shape3D::Line{
-                    //         m_capsuleObject.m_pos,
-                    //         m_capsuleObject.m_pos + residual * 10
-                    //     }.setColor(ColorF32{0.0f, 1.0f, 0.0f}, ColorF32{0.0f, 0, 1.0f}));
-                    //
-                    //     residual = residual * residualAmount;
-                    //
-                    //     const Float3 residualDestination = m_capsuleObject.m_pos + residual;
-                    //
-                    //     tryMoveCapsulePosition(m_capsuleObject.m_pos, residualDestination);
                     // }
                 }
             }
