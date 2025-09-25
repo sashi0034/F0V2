@@ -18,6 +18,8 @@ namespace TY
             Line(const Float3& start_, const Float3& end_);
 
             Line& setColor(const ColorF32& color);
+
+            Line& setColor(const ColorF32& c0, const ColorF32& c1);
         };
 
         // -----------------------------------------------

@@ -21,6 +21,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/PrimitiveModel3D.h"
+#include "TY/ShapeDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -393,7 +394,47 @@ struct Demo_Collision2_impl
 
             if (previousPos != newPos)
             {
-                tryMoveCapsulePosition(previousPos, newPos);
+                const auto hitTris = tryMoveCapsulePosition(previousPos, newPos);
+                if (not hitTris.empty())
+                {
+                    const float expectedMoveAmount = (newPos - previousPos).length();
+                    const float actualMoveAmount = (m_capsuleObject.m_pos - previousPos).length();
+
+                    Float3 residual{};
+
+                    for (const auto& tri : hitTris)
+                    {
+                        const auto triCenter = tri.tri.centroid();
+                        ShapeDrawer::Global().push(Shape3D::Line{
+                            triCenter,
+                            triCenter + tri.plane.normal * 10
+                        }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));
+                    }
+
+                    for (const auto& tri : hitTris)
+                    {
+                        residual += (tri.intersection - tri.foot).normalized();
+                        residual += tri.plane.normal;
+                        // break; // FIXME
+                    }
+
+                    residual = residual.normalized();
+                    const float residualAmount = expectedMoveAmount - actualMoveAmount;
+
+                    if (residualAmount > 0 && not residual.isZero())
+                    {
+                        ShapeDrawer::Global().push(Shape3D::Line{
+                            m_capsuleObject.m_pos,
+                            m_capsuleObject.m_pos + residual * 10
+                        }.setColor(ColorF32{0.0f, 1.0f, 0.0f}, ColorF32{0.0f, 0, 1.0f}));
+
+                        residual = residual * residualAmount;
+
+                        const Float3 residualDestination = m_capsuleObject.m_pos + residual;
+
+                        tryMoveCapsulePosition(m_capsuleObject.m_pos, residualDestination);
+                    }
+                }
             }
         }
 
@@ -406,6 +447,8 @@ struct Demo_Collision2_impl
 
         m_triangleObject.m_drawer.draw();
         m_triangleObject.DebugUI();
+
+        ShapeDrawer::Global().draw(); // <-- flush
 
         bool intersectionTest = Intersects(testCapsule, m_triangleObject.m_tri);
 
@@ -486,18 +529,26 @@ private:
 
     size_t m_invalidParallel = 0;
 
-    void tryMoveCapsulePosition(const Float3& previousPos, const Float3& newPos)
+    struct HitTri
+    {
+        Triangle3D tri;
+        Plane3D plane;
+        Float3 intersection;
+        Float3 foot;
+    };
+
+    Array<HitTri> tryMoveCapsulePosition(const Float3& previousPos, const Float3& newPos)
     {
         if (previousPos == newPos)
         {
-            return;
+            return {};
         }
 
         const auto moveTestCapsule =
             Capsule{previousPos, newPos, m_capsuleObject.m_radius};
 
+        Array<HitTri> hitTris{};
         Float3 moveVectorSum{};
-        Float3 residualVectorSum{}; // TODO: Remove it! 移動させる前に法線を取りましょう
         int intersectionCount = 0;
         for (const auto& tri : m_terrain.m_polygons)
         {
@@ -553,12 +604,7 @@ private:
                 // m_capsuleObject.m_pos = S + lineST.normalizedDir * lengthST;
                 moveVectorSum += lineST.normalizedDir * lengthST;
 
-                // -----------------------------------------------
-
-                const Float3 residualVector = (U - H).normalized();
-                const float residualDistance = moveDistance - lengthST;
-                residualVectorSum += residualVector * residualDistance;
-
+                hitTris.push_back(HitTri{tri, plane, U, H});
                 intersectionCount++;
             }
         }
@@ -570,8 +616,9 @@ private:
         else
         {
             m_capsuleObject.m_pos += moveVectorSum / intersectionCount;
-            m_capsuleObject.m_pos += residualVectorSum / intersectionCount;
         }
+
+        return hitTris;
     }
 };
 

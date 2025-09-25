@@ -14,4 +14,11 @@ namespace TY
         colors[1] = color;
         return *this;
     }
+
+    Shape3D::Line& Shape3D::Line::setColor(const ColorF32& c0, const ColorF32& c1)
+    {
+        colors[0] = c0;
+        colors[1] = c1;
+        return *this;
+    }
 }
