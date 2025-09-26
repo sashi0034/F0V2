@@ -6,6 +6,7 @@
 #include "Demo/Demo_Basic3D.h"
 #include "Demo/Demo_Collision1.h"
 #include "Demo/Demo_Collision2.h"
+#include "Demo/Demo_Collision3.h"
 #include "Demo/Demo_Intersection.h"
 #include "Demo/Demo_Font.h"
 #include "Demo/Demo_Gpgpu.h"
@@ -21,7 +22,7 @@ void Main()
     InitLivePPAddon();
 
 #if 1
-    Demo_Collision2();
+    Demo_Collision3();
 #else
     using namespace TY;
 
