@@ -274,6 +274,11 @@ namespace
                 m_pos = Float3{0, 10, 0};
             }
 
+            if (ImGui::Button("Pos = (-100, 30, -100)"))
+            {
+                m_pos = Float3{-100, 30, -100};
+            }
+
             if (ImGui::Button("Y = 30"))
             {
                 m_pos.y = 30.0f;
