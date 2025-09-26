@@ -292,6 +292,26 @@ namespace
             ImGui::End();
         }
     };
+
+    void drawBvh(
+        const TriangleBvh::Node* node, Shape3D::LineSet& lineSet, std::pair<int, int> targetRange, int nest = 0)
+    {
+        if (not node)
+        {
+            return;
+        }
+
+        if (targetRange.first <= nest && nest <= targetRange.second)
+        {
+            lineSet.appendAabb(node->aabb());
+        }
+
+        if (const auto* branch = node->asBranch())
+        {
+            drawBvh(branch->left.get(), lineSet, targetRange, nest + 1);
+            drawBvh(branch->right.get(), lineSet, targetRange, nest + 1);
+        }
+    }
 }
 
 struct Demo_Collision3_impl
@@ -400,6 +420,11 @@ struct Demo_Collision3_impl
 
         m_terrain.Draw();
 
+        static std::pair s_visivleBvhRange{0, 16};
+        Shape3D::LineSet lineSet{};
+        drawBvh(m_terrain.m_bvh.root().get(), lineSet, s_visivleBvhRange);
+        lineSet.setColor(ColorF32{0.3f, 1, 0.3f}).pushAuto();
+
         static bool s_moveEnabled = true;
 
         {
@@ -467,6 +492,12 @@ struct Demo_Collision3_impl
             }
 
             ImGui::Checkbox("Use BVH", &s_useBvh);
+
+            ImGui::DragInt2("Visible BVH Range", &s_visivleBvhRange.first, 1, 0, 16);
+            if (ImGui::Button("Expand Visible BVH Range"))
+            {
+                s_visivleBvhRange.second++;
+            }
 
             ImGui::Text("Triangle Test Count: %d", s_triTestCount);
             s_triTestCount = 0;

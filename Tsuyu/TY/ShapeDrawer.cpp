@@ -167,6 +167,12 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
             applyNextState();
             ShapeBuilder3D::BuildLine(m_bufferCreator3D, shape.get<Shape3D::Line>());
         }
+        else if (shape.isHolds<Shape3D::LineSet>())
+        {
+            m_stateManager.RequestPixelShader(component->m_ps3d.shape);
+            applyNextState();
+            ShapeBuilder3D::BuildLineSet(m_bufferCreator3D, shape.get<Shape3D::LineSet>());
+        }
         else
         {
             assert(false);

@@ -62,7 +62,7 @@ public:
 
     static void QueryHits(const Node& node, const Aabb3D& aabb, Array<Node>& hits)
     {
-        if (const auto leaf = node.tryGet<Leaf>())
+        if (const auto leaf = node.asLeaf())
         {
             if (Intersects(aabb, leaf->aabb))
             {
@@ -72,7 +72,7 @@ public:
             return;
         }
 
-        const auto branch = node.tryGet<Branch>();
+        const auto branch = node.asBranch();
         assert(branch && branch->left && branch->right);
 
         if (not Intersects(aabb, branch->aabb))
@@ -102,6 +102,21 @@ namespace TY
     {
     }
 
+    const TriangleBvh::Leaf* TriangleBvh::Node::asLeaf() const
+    {
+        return std::get_if<Leaf>(this);
+    }
+
+    const TriangleBvh::Branch* TriangleBvh::Node::asBranch() const
+    {
+        return std::get_if<Branch>(this);
+    }
+
+    Aabb3D TriangleBvh::Node::aabb() const
+    {
+        return std::visit([](const auto& node) { return node.aabb; }, *this);
+    }
+
     void TriangleBvh::Node::forEachTriangle(const std::function<void(const Triangle3D&)>& func) const
     {
         if (const auto leaf = this->tryGet<Leaf>())
@@ -114,7 +129,7 @@ namespace TY
             return;
         }
 
-        const auto branch = this->tryGet<Branch>();
+        const auto branch = this->asBranch();
         assert(branch && branch->left && branch->right);
 
         branch->left->forEachTriangle(func);
@@ -127,6 +142,11 @@ namespace TY
         {
             node.forEachTriangle(func);
         }
+    }
+
+    const std::unique_ptr<TriangleBvh::Node>& TriangleBvh::root() const
+    {
+        return m_root;
     }
 
     TriangleBvh::NodeList TriangleBvh::queryHits(const Aabb3D& aabb) const

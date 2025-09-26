@@ -24,5 +24,7 @@ namespace TY
         // -----------------------------------------------
 
         index_type BuildLine(BufferCreator& bufferCreator, const Shape3D::Line& line);
+
+        index_type BuildLineSet(BufferCreator& bufferCreator, const Shape3D::LineSet& lineSet);
     }
 }

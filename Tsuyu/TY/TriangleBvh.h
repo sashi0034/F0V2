@@ -35,6 +35,12 @@ namespace TY
         {
             using Variant::Variant;
 
+            const Leaf* asLeaf() const;
+
+            const Branch* asBranch() const;
+
+            Aabb3D aabb() const;
+
             void forEachTriangle(const std::function<void(const Triangle3D&)>& func) const;
         };
 
@@ -44,6 +50,8 @@ namespace TY
 
             void forEachTriangle(const std::function<void(const Triangle3D&)>& func) const;
         };
+
+        const std::unique_ptr<Node>& root() const;
 
         NodeList queryHits(const Aabb3D& aabb) const;
 

@@ -38,4 +38,39 @@ namespace TY
     {
         (void)activeShapeDrawer().push(*this);
     }
+
+    Shape3D::LineSet& Shape3D::LineSet::setColor(const ColorF32& color)
+    {
+        colors[0] = color;
+        colors[1] = color;
+        return *this;
+    }
+
+    Shape3D::LineSet& Shape3D::LineSet::appendAabb(const Aabb3D& aabb)
+    {
+        const Float3& min = aabb.min;
+        const Float3& max = aabb.max;
+
+        lines.emplace_back(Float3{min.x, min.y, min.z}, Float3{max.x, min.y, min.z});
+        lines.emplace_back(Float3{max.x, min.y, min.z}, Float3{max.x, max.y, min.z});
+        lines.emplace_back(Float3{max.x, max.y, min.z}, Float3{min.x, max.y, min.z});
+        lines.emplace_back(Float3{min.x, max.y, min.z}, Float3{min.x, min.y, min.z});
+
+        lines.emplace_back(Float3{min.x, min.y, max.z}, Float3{max.x, min.y, max.z});
+        lines.emplace_back(Float3{max.x, min.y, max.z}, Float3{max.x, max.y, max.z});
+        lines.emplace_back(Float3{max.x, max.y, max.z}, Float3{min.x, max.y, max.z});
+        lines.emplace_back(Float3{min.x, max.y, max.z}, Float3{min.x, min.y, max.z});
+
+        lines.emplace_back(Float3{min.x, min.y, min.z}, Float3{min.x, min.y, max.z});
+        lines.emplace_back(Float3{max.x, min.y, min.z}, Float3{max.x, min.y, max.z});
+        lines.emplace_back(Float3{max.x, max.y, min.z}, Float3{max.x, max.y, max.z});
+        lines.emplace_back(Float3{min.x, max.y, min.z}, Float3{min.x, max.y, max.z});
+
+        return *this;
+    }
+
+    void Shape3D::LineSet::pushAuto()
+    {
+        (void)activeShapeDrawer().push(*this);
+    }
 }

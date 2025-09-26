@@ -1,5 +1,7 @@
 ﻿#pragma once
+#include "Array.h"
 #include "Color.h"
+#include "PrimitiveTypes3D.h"
 #include "Variant.h"
 #include "Vector3D.h"
 
@@ -24,8 +26,20 @@ namespace TY
             void pushAuto();
         };
 
+        struct LineSet
+        {
+            Array<std::pair<Float3, Float3>> lines;
+            std::array<ColorF32, 2> colors = {ColorF32{1.0}, ColorF32{1.0}};
+
+            LineSet& setColor(const ColorF32& color);
+
+            LineSet& appendAabb(const Aabb3D& aabb);
+
+            void pushAuto();
+        };
+
         // -----------------------------------------------
 
-        using shape_type = Variant<Line>;
+        using shape_type = Variant<Line, LineSet>;
     };
 }
