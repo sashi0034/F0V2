@@ -5,6 +5,7 @@ namespace TY
 {
     // Priority:
     // - Float3
+    // - Aabb3D
     // - Line3D
     // - LineSegment3D
     // - Plane3Points
@@ -24,6 +25,10 @@ namespace TY
     float DistanceSq(const Float3& p, const Triangle3D& tri);
 
     float DistanceSq(const Float3& p, const Quad3D& quad);
+
+    // -----------------------------------------------
+
+    bool Intersects(const Aabb3D& lhs, const Aabb3D& rhs);
 
     // -----------------------------------------------
     // Line3D

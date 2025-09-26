@@ -24,6 +24,7 @@
 #include "TY/ShapeDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
+#include "TY/TriangleBvh.h"
 
 using namespace TY;
 
@@ -163,6 +164,8 @@ namespace
 
         Array<Triangle3D> m_polygons{};
 
+        TriangleBvh m_bvh{};
+
         void Init()
         {
             m_drawer = ModelDrawer{
@@ -184,6 +187,8 @@ namespace
                     m_polygons.push_back(Triangle3D{v0, v1, v2});
                 }
             }
+
+            m_bvh = TriangleBvh{m_polygons};
         }
 
         void Draw() const
@@ -461,6 +466,11 @@ struct Demo_Collision3_impl
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "m_invalidParallel: False");
             }
 
+            ImGui::Checkbox("Use BVH", &s_useBvh);
+
+            ImGui::Text("Triangle Test Count: %d", s_triTestCount);
+            s_triTestCount = 0;
+
             ImGui::Checkbox("Move Enabled", &s_moveEnabled);
 
             ImGui::DragFloat("Move Speed", &s_moveSpeed, 0.1f, 0.1f, 10.0f);
@@ -576,6 +586,9 @@ private:
         std::optional<HitTri> tri{};
     };
 
+    inline static bool s_useBvh{true};
+    inline static int s_triTestCount{0};
+
     MoveResult tryMoveCapsulePosition(const Float3& fromPos, const Float3& toPos)
     {
         if (fromPos == toPos)
@@ -588,72 +601,96 @@ private:
         HitTri hitTri{};
         hitTri.moveDistance = FLT_MAX;
         Float3 newPos = toPos;
-        for (const auto& tri : m_terrain.m_polygons)
+
+        if (s_useBvh)
         {
-            if (Intersects(moveTestCapsule, tri))
+            const auto hits = m_terrain.m_bvh.queryHits(moveTestCapsule.aabb());
+            hits.forEachTriangle([&](const Triangle3D& tri)
             {
-                //            U
-                //           /|
-                //          / |
-                //         /  |
-                //        /   |
-                //       /    |
-                //    T /--r--|
-                //     /|     |
-                //    / |     |
-                //   /  |     |
-                //  /   |     |
-                // /----------|
-                // S          H
-
-                const auto lineST = Line3D::FromPoints(fromPos, toPos);
-
-                auto plane = tri.asPlane();
-                if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
-                {
-                    // 移動ベクトルと三角形がほぼ並行の場合
-                    // TODO: 対策考える
-                    m_invalidParallel = System::FrameCount();
-                    continue;
-                }
-
-                const Float3 S = fromPos;
-                float lengthSU{};
-                const auto tryU = IntersectsAt(lineST, plane, &lengthSU);
-                if (not tryU)
-                {
-                    continue;
-                }
-
-                const Float3 U = *tryU;
-                const Float3 SU = U - S;
-
-                const float distance = plane.signedDistanceFrom(fromPos);
-                const Float3 H = S - plane.normal * distance;
-                const float lengthSH = Abs(distance);
-
-                const Float3 SH = (H - S);
-
-                const float r = m_capsuleObject.m_radius + 1e-2f;
-
-                const float SUoSH = SU.dot(SH);
-                const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
-
-                if (hitTri.moveDistance < lengthST)
-                {
-                    continue;
-                }
-
-                hitTri.moveDistance = lengthST;
-                hitTri.tri = tri;
-                hitTri.plane = plane;
-                hitTri.intersection = U;
-                hitTri.foot = H;
-                newPos = S + lineST.normalizedDir * lengthST;
+                tryMoveCapsulePosition_internal(tri, moveTestCapsule, fromPos, toPos, hitTri, newPos);
+            });
+        }
+        else
+        {
+            for (const auto& tri : m_terrain.m_polygons)
+            {
+                tryMoveCapsulePosition_internal(tri, moveTestCapsule, fromPos, toPos, hitTri, newPos);
             }
         }
 
         return {newPos, hitTri};
+    }
+
+    void tryMoveCapsulePosition_internal(
+        const Triangle3D& testTri,
+        const Capsule& moveTestCapsule,
+        const Float3& fromPos,
+        const Float3& toPos,
+        HitTri& hitTri,
+        Float3& newPos)
+    {
+        s_triTestCount++;
+        if (Intersects(moveTestCapsule, testTri))
+        {
+            //            U
+            //           /|
+            //          / |
+            //         /  |
+            //        /   |
+            //       /    |
+            //    T /--r--|
+            //     /|     |
+            //    / |     |
+            //   /  |     |
+            //  /   |     |
+            // /----------|
+            // S          H
+
+            const auto lineST = Line3D::FromPoints(fromPos, toPos);
+
+            auto plane = testTri.asPlane();
+            if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
+            {
+                // 移動ベクトルと三角形がほぼ並行の場合
+                // TODO: 対策考える
+                m_invalidParallel = System::FrameCount();
+                return;
+            }
+
+            const Float3 S = fromPos;
+            float lengthSU{};
+            const auto tryU = IntersectsAt(lineST, plane, &lengthSU);
+            if (not tryU)
+            {
+                return;
+            }
+
+            const Float3 U = *tryU;
+            const Float3 SU = U - S;
+
+            const float distance = plane.signedDistanceFrom(fromPos);
+            const Float3 H = S - plane.normal * distance;
+            const float lengthSH = Abs(distance);
+
+            const Float3 SH = (H - S);
+
+            const float r = m_capsuleObject.m_radius + 1e-2f;
+
+            const float SUoSH = SU.dot(SH);
+            const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
+
+            if (hitTri.moveDistance < lengthST)
+            {
+                return;
+            }
+
+            hitTri.moveDistance = lengthST;
+            hitTri.tri = testTri;
+            hitTri.plane = plane;
+            hitTri.intersection = U;
+            hitTri.foot = H;
+            newPos = S + lineST.normalizedDir * lengthST;
+        }
     }
 };
 

@@ -167,6 +167,7 @@
     <ClInclude Include="TY\ArrayPool.h" />
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\BitmapFont.h" />
+    <ClInclude Include="TY\TriangleBvh.h" />
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\CbvSrvUav.h" />
     <ClInclude Include="TY\Color.h" />
@@ -322,6 +323,7 @@
     <ClCompile Include="TY\ArrayPool.cpp" />
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\BitmapFont.cpp" />
+    <ClCompile Include="TY\TriangleBvh.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\detail\EngineComponent.cpp" />

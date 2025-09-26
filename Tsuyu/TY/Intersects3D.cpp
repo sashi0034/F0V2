@@ -153,6 +153,14 @@ float TY::DistanceSq(const Float3& p, const Quad3D& quad)
     return std::min(DistanceSq(p, t1), DistanceSq(p, t2));
 }
 
+bool TY::Intersects(const Aabb3D& lhs, const Aabb3D& rhs)
+{
+    if (lhs.max.x < rhs.min.x || lhs.min.x > rhs.max.x) return false;
+    if (lhs.max.y < rhs.min.y || lhs.min.y > rhs.max.y) return false;
+    if (lhs.max.z < rhs.min.z || lhs.min.z > rhs.max.z) return false;
+    return true;
+}
+
 std::optional<Float3> TY::IntersectsAt(const Line3D& line, const Plane3D& plane, float* hitDistance)
 {
     const Float3& p0 = line.point;

@@ -18,6 +18,14 @@ namespace TY
         Float3 projection(const Float3& p) const;
     };
 
+    struct Aabb3D
+    {
+        Float3 min;
+        Float3 max;
+
+        Aabb3D stretched(float length) const;
+    };
+
     struct Plane3Points
     {
         Float3 p0;
@@ -91,6 +99,8 @@ namespace TY
     {
         Float3 p0;
         Float3 p1;
+
+        Aabb3D aabb() const;
     };
 
     struct Capsule
@@ -98,6 +108,8 @@ namespace TY
         Float3 p0;
         Float3 p1;
         float radius;
+
+        Aabb3D aabb() const;
 
         [[nodiscard]]
         static Capsule AlongY(const Float3& center, float height, float radius);

@@ -124,6 +124,15 @@ namespace TY
             return *this;
         }
 
+        [[nodiscard]]
+        constexpr value_type elem(size_t index) const
+        {
+            if (index == 0) return x;
+            if (index == 1) return y;
+            if (index == 2) return z;
+            return 0;
+        }
+
         [[nodiscard]] constexpr Vector3D withX(value_type newX) const
         {
             return Vector3D(newX, y, z);

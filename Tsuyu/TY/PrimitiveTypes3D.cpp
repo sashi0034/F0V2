@@ -53,6 +53,12 @@ namespace TY
         return p - normal * dist;
     }
 
+    Aabb3D Aabb3D::stretched(float length) const
+    {
+        const Float3 v{length, length, length};
+        return Aabb3D{min - v, max + v};
+    }
+
     Float3 Plane3Points::getNormal() const
     {
         const Float3 u = p1 - p0;
@@ -119,6 +125,50 @@ namespace TY
     {
         const Float3 dir = (to - from).normalized();
         return Line3D{from, dir};
+    }
+
+    Aabb3D LineSegment3D::aabb() const
+    {
+        Float3 min, max;
+        if (p0.x < p1.x)
+        {
+            min.x = p0.x;
+            max.x = p1.x;
+        }
+        else
+        {
+            min.x = p1.x;
+            max.x = p0.x;
+        }
+
+        if (p0.y < p1.y)
+        {
+            min.y = p0.y;
+            max.y = p1.y;
+        }
+        else
+        {
+            min.y = p1.y;
+            max.y = p0.y;
+        }
+
+        if (p0.z < p1.z)
+        {
+            min.z = p0.z;
+            max.z = p1.z;
+        }
+        else
+        {
+            min.z = p1.z;
+            max.z = p0.z;
+        }
+
+        return Aabb3D{min, max};
+    }
+
+    Aabb3D Capsule::aabb() const
+    {
+        return LineSegment3D{p0, p1}.aabb().stretched(radius);
     }
 
     Capsule Capsule::AlongY(const Float3& center, float height, float radius)
