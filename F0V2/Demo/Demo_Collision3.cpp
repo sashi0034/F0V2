@@ -313,6 +313,40 @@ namespace
         }
     }
 
+    void drawLeafAabb(
+        const TriangleBvh::Node* node, Shape3D::LineSet& lineSet, int targetIndex, int* currentIndex = nullptr)
+    {
+        if (not node)
+        {
+            return;
+        }
+
+        std::unique_ptr<int> currentIndexPtr{};
+        if (not currentIndex)
+        {
+            currentIndexPtr = std::make_unique<int>(0);
+            currentIndex = currentIndexPtr.get();
+        }
+
+        if (const auto* leaf = node->asLeaf())
+        {
+            if (*currentIndex == targetIndex)
+            {
+                lineSet.appendAabb(node->aabb());
+            }
+
+            ++(*currentIndex);
+
+            return;
+        }
+
+        if (const auto* branch = node->asBranch())
+        {
+            drawLeafAabb(branch->left.get(), lineSet, targetIndex, currentIndex);
+            drawLeafAabb(branch->right.get(), lineSet, targetIndex, currentIndex);
+        }
+    }
+
     void printBvhLeaf(const TriangleBvh::Node* node, int nest = 0)
     {
         if (nest == 0)
@@ -451,10 +485,20 @@ struct Demo_Collision3_impl
 
         m_terrain.Draw();
 
-        static std::pair s_visivleBvhRange{0, 16};
+        static std::pair s_visibleBvhRange{0, 16};
+        static int s_visibleBvhLeaf = -1;
         Shape3D::LineSet lineSet{};
-        drawBvh(m_terrain.m_bvh.root().get(), lineSet, s_visivleBvhRange);
-        lineSet.setColor(ColorF32{0.3f, 1, 0.3f}).pushAuto();
+
+        if (s_visibleBvhLeaf < 0)
+        {
+            drawBvh(m_terrain.m_bvh.root().get(), lineSet, s_visibleBvhRange);
+            lineSet.setColor(ColorF32{0.3f, 1, 0.3f}).pushAuto();
+        }
+        else
+        {
+            drawLeafAabb(m_terrain.m_bvh.root().get(), lineSet, s_visibleBvhLeaf);
+            lineSet.setColor(ColorF32{1.0f, 0.00f, 1.0f}).pushAuto();
+        }
 
         static bool s_moveEnabled = true;
 
@@ -524,10 +568,16 @@ struct Demo_Collision3_impl
 
             ImGui::Checkbox("Use BVH", &s_useBvh);
 
-            ImGui::DragInt2("Visible BVH Range", &s_visivleBvhRange.first, 1, 0, 16);
+            ImGui::DragInt2("Visible BVH Range", &s_visibleBvhRange.first, 1, 0, 16);
             if (ImGui::Button("Expand Visible BVH Range"))
             {
-                s_visivleBvhRange.second++;
+                s_visibleBvhRange.second++;
+            }
+
+            ImGui::DragInt("Visible BVH Leaf (-1: off)", &s_visibleBvhLeaf, 1, -1, m_terrain.m_polygons.size());
+            if (ImGui::Button("Next Visible BVH Leaf"))
+            {
+                s_visibleBvhLeaf++;
             }
 
             if (ImGui::Button("Print BVH Leaf Info to Console"))
