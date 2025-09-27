@@ -24,6 +24,8 @@ namespace TY
         Float3 max;
 
         Aabb3D stretched(float length) const;
+
+        float volume() const;
     };
 
     struct Plane3Points

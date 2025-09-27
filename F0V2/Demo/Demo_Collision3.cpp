@@ -312,6 +312,37 @@ namespace
             drawBvh(branch->right.get(), lineSet, targetRange, nest + 1);
         }
     }
+
+    void printBvhLeaf(const TriangleBvh::Node* node, int nest = 0)
+    {
+        if (nest == 0)
+        {
+            std::cout << "----------------------------------------------- BVH Leaf Information\n";
+        }
+
+        if (not node)
+        {
+            return;
+        }
+
+        if (const auto* leaf = node->asLeaf())
+        {
+            std::cout << std::format("[{}] tris: {}, aabb-volume: {}\n", nest, leaf->tris.size(), leaf->aabb.volume());
+
+            return;
+        }
+
+        if (const auto* branch = node->asBranch())
+        {
+            printBvhLeaf(branch->left.get(), nest + 1);
+            printBvhLeaf(branch->right.get(), nest + 1);
+        }
+
+        if (nest == 0)
+        {
+            std::cout << "----------------------------------------------- End BVH Leaf Information\n";
+        }
+    }
 }
 
 struct Demo_Collision3_impl
@@ -497,6 +528,11 @@ struct Demo_Collision3_impl
             if (ImGui::Button("Expand Visible BVH Range"))
             {
                 s_visivleBvhRange.second++;
+            }
+
+            if (ImGui::Button("Print BVH Leaf Info to Console"))
+            {
+                printBvhLeaf(m_terrain.m_bvh.root().get());
             }
 
             ImGui::Text("Triangle Test Count: %d", s_triTestCount);

@@ -59,6 +59,12 @@ namespace TY
         return Aabb3D{min - v, max + v};
     }
 
+    float Aabb3D::volume() const
+    {
+        const Float3 extent = max - min;
+        return extent.x * extent.y * extent.z;
+    }
+
     Float3 Plane3Points::getNormal() const
     {
         const Float3 u = p1 - p0;
