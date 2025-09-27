@@ -17,7 +17,7 @@ public:
     {
         // AABBを計算
         Float3 min{FLT_MAX, FLT_MAX, FLT_MAX};
-        Float3 max{FLT_MIN, FLT_MIN, FLT_MIN};
+        Float3 max{-FLT_MAX, -FLT_MAX, -FLT_MAX};
         for (const auto& tri : tris)
         {
             min = MinVector3(min, tri.p0);
