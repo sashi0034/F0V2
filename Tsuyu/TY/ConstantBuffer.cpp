@@ -13,16 +13,9 @@ namespace
     class FrameResource
     {
     public:
-        void StepTimestamp(size_t timestamp)
-        {
-            if (m_lastTimestamp != timestamp)
-            {
-                m_lastTimestamp = timestamp;
-                m_indexInFrame = 0;
-            }
-        }
+        FrameResource() = default;
 
-        void Create(uint64_t unitSize, int maxCapacity)
+        FrameResource(uint64_t unitSize, int maxCapacity)
         {
             m_unitSize = unitSize;
             m_maxCapacity = maxCapacity;
@@ -47,21 +40,6 @@ namespace
             m_uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
         }
 
-        int IndexInFrame() const
-        {
-            return m_indexInFrame;
-        }
-
-        int Capacity() const
-        {
-            return m_maxCapacity;
-        }
-
-        ID3D12Resource* UploadBuffer() const
-        {
-            return m_uploadBuffer.Get();
-        }
-
         uint8_t* FetchMappedPointer()
         {
             if (not m_mappedPointer)
@@ -83,10 +61,34 @@ namespace
             return m_unitSize * m_indexInFrame;
         }
 
+        void StepTimestamp(size_t timestamp)
+        {
+            if (m_timestamp != timestamp)
+            {
+                m_timestamp = timestamp;
+                m_indexInFrame = 0;
+            }
+        }
+
         void StepIndexInFrame()
         {
-            assert(m_indexInFrame < m_maxCapacity);
+            assert(HasCapacity());
             ++m_indexInFrame;
+        }
+
+        ID3D12Resource* UploadBuffer() const
+        {
+            return m_uploadBuffer.Get();
+        }
+
+        int MaxCapacity() const
+        {
+            return m_maxCapacity;
+        }
+
+        bool HasCapacity() const
+        {
+            return m_indexInFrame < m_maxCapacity;
         }
 
         void Unmap()
@@ -109,9 +111,9 @@ namespace
         ComPtr<ID3D12Resource> m_uploadBuffer{};
         uint8_t* m_mappedPointer{};
         uint64_t m_unitSize{};
+        size_t m_timestamp{};
         int m_indexInFrame{};
         int m_maxCapacity{};
-        size_t m_lastTimestamp{};
     };
 }
 
@@ -181,12 +183,11 @@ struct ConstantBufferCore::Impl
 
         frameResource.StepTimestamp(m_uploadTimestamp);
 
-        if (frameResource.IndexInFrame() >= frameResource.Capacity())
+        if (not frameResource.HasCapacity())
         {
+            const int nextCapacity = Max(1, frameResource.MaxCapacity() * 2);
             frameResource.Dispose();
-            const int nextCapacity = Max(1, frameResource.Capacity() * 2);
-            frameResource = FrameResource{};
-            frameResource.Create(m_alignedSize * m_materialCount, nextCapacity);
+            frameResource = FrameResource{m_alignedSize * m_materialCount, nextCapacity};
         }
 
         uint8_t* dest = frameResource.FetchMappedPointer();

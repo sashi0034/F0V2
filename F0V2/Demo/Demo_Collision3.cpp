@@ -544,7 +544,11 @@ struct Demo_Collision3_impl
         Capsule testCapsule = Capsule::AlongY(
             m_capsuleObject.m_pos, m_capsuleObject.m_height, m_capsuleObject.m_radius);
 
-        m_triangleObject.m_drawer.draw();
+        for (int i = -5; i <= 5; ++i)
+        {
+            m_triangleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(Float3{0, 0, static_cast<float>(i)})).draw();
+        }
+
         m_triangleObject.DebugUI();
 
         ShapeDrawer::Global().draw(); // <-- flush
