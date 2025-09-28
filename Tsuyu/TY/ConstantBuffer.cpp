@@ -22,11 +22,6 @@ namespace
             }
         }
 
-        bool HasCapacity() const
-        {
-            return m_indexInFrame < m_maxCapacity;
-        }
-
         void Create(uint64_t unitSize, int maxCapacity)
         {
             m_unitSize = unitSize;
@@ -52,6 +47,11 @@ namespace
             m_uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
         }
 
+        int IndexInFrame() const
+        {
+            return m_indexInFrame;
+        }
+
         int Capacity() const
         {
             return m_maxCapacity;
@@ -62,13 +62,11 @@ namespace
             return m_uploadBuffer.Get();
         }
 
-        uint8_t* TakeDest()
+        uint8_t* FetchMappedPointer()
         {
-            assert(HasCapacity());
-
-            if (not m_dest)
+            if (not m_mappedPointer)
             {
-                if (const HRESULT hr = m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&m_dest));
+                if (const HRESULT hr = m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&m_mappedPointer));
                     FAILED(hr))
                 {
                     LogError.writeln(std::format("ConstantBuffer: Failed to map resource for 0x{:016x}",
@@ -77,17 +75,26 @@ namespace
                 }
             }
 
-            uint8_t* dest = m_dest + m_unitSize * m_indexInFrame;
+            return m_mappedPointer;
+        }
+
+        size_t MappedPointerOffset() const
+        {
+            return m_unitSize * m_indexInFrame;
+        }
+
+        void StepIndexInFrame()
+        {
+            assert(m_indexInFrame < m_maxCapacity);
             ++m_indexInFrame;
-            return dest;
         }
 
         void Unmap()
         {
-            if (m_uploadBuffer && m_dest)
+            if (m_uploadBuffer && m_mappedPointer)
             {
                 m_uploadBuffer->Unmap(0, nullptr);
-                m_dest = nullptr;
+                m_mappedPointer = nullptr;
             }
         }
 
@@ -100,7 +107,7 @@ namespace
 
     private:
         ComPtr<ID3D12Resource> m_uploadBuffer{};
-        uint8_t* m_dest{};
+        uint8_t* m_mappedPointer{};
         uint64_t m_unitSize{};
         int m_indexInFrame{};
         int m_maxCapacity{};
@@ -174,7 +181,7 @@ struct ConstantBufferCore::Impl
 
         frameResource.StepTimestamp(m_uploadTimestamp);
 
-        if (not frameResource.HasCapacity())
+        if (frameResource.IndexInFrame() >= frameResource.Capacity())
         {
             frameResource.Dispose();
             const int nextCapacity = Max(1, frameResource.Capacity() * 2);
@@ -182,11 +189,16 @@ struct ConstantBufferCore::Impl
             frameResource.Create(m_alignedSize * m_materialCount, nextCapacity);
         }
 
-        uint8_t* dest = frameResource.TakeDest();
+        uint8_t* dest = frameResource.FetchMappedPointer();
         if (not dest)
         {
             return;
         }
+
+        const size_t uploadOffset = frameResource.MappedPointerOffset();
+        dest += uploadOffset;
+
+        frameResource.StepIndexInFrame();
 
         uint32_t srcOffset{};
         for (int i = 0; i < count; ++i)
@@ -204,7 +216,7 @@ struct ConstantBufferCore::Impl
             m_finalBuffer.Get(),
             0,
             frameResource.UploadBuffer(),
-            0,
+            uploadOffset,
             m_alignedSize * count);
 
         if (commandListType == CommandListType::Draw)
