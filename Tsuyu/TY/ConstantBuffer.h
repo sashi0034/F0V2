@@ -19,6 +19,8 @@ namespace TY
 
         void upload(const void* data, uint32_t materialCount = 1) const;
 
+        void uploadToDraw(const void* data, uint32_t materialCount = 1) const;
+
         uint32_t materialCount() const;
 
         size_t sizeInBytes() const;
@@ -69,6 +71,21 @@ namespace TY
         void upload(std::span<const T> data) const
         {
             ConstantBufferCore::upload(data.data(), static_cast<uint32_t>(data.size()));
+        }
+
+        void uploadToDraw(const T& data) const
+        {
+            ConstantBufferCore::uploadToDraw(&data, 1);
+        }
+
+        void uploadToDraw(const Array<T>& data) const
+        {
+            ConstantBufferCore::uploadToDraw(data.data(), data.size());
+        }
+
+        void uploadToDraw(std::span<const T> data) const
+        {
+            ConstantBufferCore::uploadToDraw(data.data(), static_cast<uint32_t>(data.size()));
         }
     };
 }
