@@ -24,6 +24,7 @@
 #include "TY/ShapeDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
+#include "TY/Transformer3D.h"
 #include "TY/TriangleBvh.h"
 
 using namespace TY;
@@ -529,6 +530,11 @@ struct Demo_Collision3_impl
 
                 updateCapsulePosition(previousPos, newPos - previousPos);
             }
+        }
+
+        {
+            // 原点
+            m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Identity()).draw();
         }
 
         m_capsuleObject.m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_capsuleObject.m_pos)).draw();

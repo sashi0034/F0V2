@@ -105,11 +105,11 @@ struct GenericModelDrawer::Impl
         UploadWorldMatrix(Mat4x4::Identity());
     }
 
-    void UploadWorldMatrix(const Mat4x4& worldMatrix)
+    void UploadWorldMatrix(const Mat4x4& worldMatrix) const
     {
         ModelState_b1 b{};
         b.worldMatrix = worldMatrix;
-        m_cb1.upload(b);
+        m_cb1.uploadToDraw(b);
     }
 
     void Draw(int materialIndexOfCbv10AndLater) const
