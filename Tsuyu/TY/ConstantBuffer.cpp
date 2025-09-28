@@ -2,6 +2,7 @@
 #include "ConstantBuffer.h"
 
 #include "Logger.h"
+#include "Uncopyable.h"
 #include "Utils.h"
 #include "detail/EngineRenderContext.h"
 
@@ -10,110 +11,122 @@ using namespace TY::detail;
 
 namespace
 {
-    class FrameResource
+    class FrameResource : Uncopyable
     {
     public:
         FrameResource() = default;
 
-        FrameResource(uint64_t unitSize, int maxCapacity)
+        void Rebuild(uint64_t unitSize, int maxCapacity)
         {
-            m_unitSize = unitSize;
-            m_maxCapacity = maxCapacity;
+            dispose();
+
+            m = {};
+
+            m.unitSize = unitSize;
+            m.maxCapacity = maxCapacity;
 
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(unitSize * maxCapacity);
 
-            assert(not m_uploadBuffer);
+            assert(not m.uploadBuffer);
             if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
                     &heapProperties,
                     D3D12_HEAP_FLAG_NONE,
                     &resourceDesc,
                     D3D12_RESOURCE_STATE_GENERIC_READ,
                     nullptr,
-                    IID_PPV_ARGS(&m_uploadBuffer));
+                    IID_PPV_ARGS(m.uploadBuffer.ReleaseAndGetAddressOf()));
                 FAILED(hr))
             {
                 LogError.writeln("ConstantBuffer: Failed to create uploadBuffer.");
                 return;
             }
 
-            m_uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
+            m.uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
         }
 
         uint8_t* FetchMappedPointer()
         {
-            if (not m_mappedPointer)
+            if (not m.mappedPointer)
             {
-                if (const HRESULT hr = m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&m_mappedPointer));
+                if (const HRESULT hr = m.uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&m.mappedPointer));
                     FAILED(hr))
                 {
                     LogError.writeln(std::format("ConstantBuffer: Failed to map resource for 0x{:016x}",
-                                                 reinterpret_cast<uint64_t>(m_uploadBuffer.Get())));
+                                                 reinterpret_cast<uint64_t>(m.uploadBuffer.Get())));
                     return nullptr;
                 }
             }
 
-            return m_mappedPointer;
+            return m.mappedPointer;
         }
 
         size_t MappedPointerOffset() const
         {
-            return m_unitSize * m_indexInFrame;
+            return m.unitSize * m.indexInFrame;
         }
 
         void StepTimestamp(size_t timestamp)
         {
-            if (m_timestamp != timestamp)
+            if (m.timestamp != timestamp)
             {
-                m_timestamp = timestamp;
-                m_indexInFrame = 0;
+                m.timestamp = timestamp;
+                m.indexInFrame = 0;
             }
         }
 
         void StepIndexInFrame()
         {
             assert(HasCapacity());
-            ++m_indexInFrame;
+            ++m.indexInFrame;
         }
 
         ID3D12Resource* UploadBuffer() const
         {
-            return m_uploadBuffer.Get();
+            return m.uploadBuffer.Get();
         }
 
         int MaxCapacity() const
         {
-            return m_maxCapacity;
+            return m.maxCapacity;
         }
 
         bool HasCapacity() const
         {
-            return m_indexInFrame < m_maxCapacity;
+            return m.indexInFrame < m.maxCapacity;
         }
 
         void Unmap()
         {
-            if (m_uploadBuffer && m_mappedPointer)
+            if (m.uploadBuffer && m.mappedPointer)
             {
-                m_uploadBuffer->Unmap(0, nullptr);
-                m_mappedPointer = nullptr;
+                m.uploadBuffer->Unmap(0, nullptr);
+                m.mappedPointer = nullptr;
             }
         }
 
-        void Dispose()
+        ~FrameResource()
         {
-            Unmap();
-
-            EngineRenderContext::SafeDisposeRenderResource(m_uploadBuffer);
+            dispose();
         }
 
     private:
-        ComPtr<ID3D12Resource> m_uploadBuffer{};
-        uint8_t* m_mappedPointer{};
-        uint64_t m_unitSize{};
-        size_t m_timestamp{};
-        int m_indexInFrame{};
-        int m_maxCapacity{};
+        struct member_t
+        {
+            ComPtr<ID3D12Resource> uploadBuffer{};
+            uint8_t* mappedPointer{};
+            uint64_t unitSize{};
+            size_t timestamp{};
+            int indexInFrame{};
+            int maxCapacity{};
+        } m{};
+
+        void dispose()
+        {
+            Unmap();
+
+            EngineRenderContext::SafeDisposeRenderResource(m.uploadBuffer);
+        }
     };
 }
 
@@ -164,11 +177,6 @@ struct ConstantBufferCore::Impl
 
     ~Impl()
     {
-        for (auto& frameResource : m_frameResources)
-        {
-            frameResource.Dispose();
-        }
-
         EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
@@ -186,8 +194,7 @@ struct ConstantBufferCore::Impl
         if (not frameResource.HasCapacity())
         {
             const int nextCapacity = Max(1, frameResource.MaxCapacity() * 2);
-            frameResource.Dispose();
-            frameResource = FrameResource{m_alignedSize * m_materialCount, nextCapacity};
+            frameResource.Rebuild(m_alignedSize * m_materialCount, nextCapacity);
         }
 
         uint8_t* dest = frameResource.FetchMappedPointer();

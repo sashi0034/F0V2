@@ -2,6 +2,7 @@
 #include "DescriptorTable.h"
 #include "ShaderRegisterStart.h"
 #include "TY/GraphicsOptions.h"
+#include "TY/Uncopyable.h"
 
 namespace TY::detail
 {
@@ -12,12 +13,12 @@ namespace TY::detail
         Array<ShaderRegisterStart> explicitRegisterStarts;
     };
 
-    class RootSignature
+    class RootSignature : Uncopyable
     {
     public:
         RootSignature() = default;
 
-        RootSignature(const RootSignatureParams& params);
+        void build(const RootSignatureParams& params);
 
         const ComPtr<ID3D12RootSignature>& get() const
         {

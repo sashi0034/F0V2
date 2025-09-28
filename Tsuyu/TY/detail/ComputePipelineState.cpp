@@ -46,7 +46,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
     {
         m_timestamp = System::FrameCount();
 
-        m_rootSignature = RootSignature(RootSignatureParams{
+        m_rootSignature.build(RootSignatureParams{
             .samplers = {
                 GraphicsSamplerOptions{}
             },
