@@ -7,6 +7,7 @@
 #include "CommandList.h"
 #include "EngineStateContext.h"
 #include "EngineWindow.h"
+#include "GpuMemoryUsage.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
 
@@ -50,6 +51,8 @@ struct EngineRenderContextImpl
     ComPtr<IDXGIFactory6> m_dxgiFactory;
     ComPtr<IDXGIAdapter> m_adapter;
     D3D_FEATURE_LEVEL m_featureLevel{};
+
+    GpuMemoryUsage m_gpuMemoryUsage{};
 
     CommandList m_drawCommandList{};
     CommandList m_copyCommandList{};
@@ -137,6 +140,8 @@ struct EngineRenderContextImpl
         }
 
         LogInfo.writeln(std::format("Direct3D feature level: {:08x}", static_cast<int>(m_featureLevel)));
+
+        m_gpuMemoryUsage = GpuMemoryUsage{m_dxgiFactory.Get(), m_device->GetAdapterLuid()};
 
         // コマンドリストの作成
         m_drawCommandList = CommandList{CommandListType::Draw};
@@ -486,5 +491,10 @@ namespace TY::detail
     size_t EngineRenderContext::GetFlushTimestamp()
     {
         return s_renderContext.m_flushTimestamp;
+    }
+
+    IGpuMemoryUsage& EngineRenderContext::GpuMemoryUsage()
+    {
+        return s_renderContext.m_gpuMemoryUsage;
     }
 }

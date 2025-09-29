@@ -125,5 +125,13 @@ void Demo_RenderTarget()
 
         constexpr Point someMargin = Point{64, 64};
         renderTargetTexture.as2D().draw(someMargin);
+
+        {
+            ImGui::Begin("System Settings");
+
+            ImGui::Text("VRAM Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
+
+            ImGui::End();
+        }
     }
 }

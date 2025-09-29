@@ -167,6 +167,8 @@
     <ClInclude Include="TY\ArrayPool.h" />
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\BitmapFont.h" />
+    <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
+    <ClInclude Include="TY\IGpuMemoryUsage.h" />
     <ClInclude Include="TY\TriangleBvh.h" />
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\CbvSrvUav.h" />
@@ -323,6 +325,7 @@
     <ClCompile Include="TY\ArrayPool.cpp" />
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\BitmapFont.cpp" />
+    <ClCompile Include="TY\detail\GpuMemoryUsage.cpp" />
     <ClCompile Include="TY\TriangleBvh.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />

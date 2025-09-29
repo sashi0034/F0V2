@@ -647,6 +647,8 @@ struct Demo_Collision3_impl
                 System::Sleep(500);
             }
 
+            ImGui::Text("VRAM Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
+
             ImGui::End();
         }
     }
