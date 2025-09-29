@@ -206,6 +206,7 @@ private:
     void resetDrawState()
     {
         m_bufferCreator2D.clear();
+        m_bufferCreator3D.clear();
         m_bufferUnitList.logical_resize(0);
         m_descriptorManager.Reset();
         m_stateManager.Reset(m_descriptorManager.CurrentHeap().table);
