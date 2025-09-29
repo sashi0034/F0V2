@@ -82,7 +82,7 @@ namespace
 
 namespace TY::detail
 {
-    void RootSignature::build(const RootSignatureParams& params)
+    RootSignature::RootSignature(const RootSignatureParams& params)
     {
         const auto& descriptorTable = params.descriptorTable;
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
