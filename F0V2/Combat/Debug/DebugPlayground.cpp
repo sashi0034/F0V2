@@ -93,7 +93,7 @@ namespace
         return TextureResource{image};
     }
 
-    constexpr float groundPositionY = -10.0f;
+    constexpr float groundPositionY = -50.0f;
 
     constexpr float fovFarZ = 1000.0f;
 }

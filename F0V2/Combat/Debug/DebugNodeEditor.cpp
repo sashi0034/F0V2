@@ -5,6 +5,7 @@
 #include "DebugEditorState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ModelDrawer.h"
+#include "TY/Periodic.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/Shape2D.h"
 #include "TY/Shape3D.h"
@@ -49,7 +50,7 @@ private:
             const auto& pos = nodeList[i].pos;
             const auto& nextPos = nodeList[(i + 1) % nodeList.size()].pos;
             Shape3D::Line{pos, nextPos}
-                .setColor(ColorF32{0.5f, 0.7f, 1.0f})
+                .setColor(ColorF32{0.5f, 0.7f, 1.0f}.lerp(ColorF32{0.0f, 1.0f, 0.5f}, Periodic::Sine0_1(1.0s)))
                 .pushAuto();
         }
 

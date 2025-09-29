@@ -5,6 +5,16 @@
 
 namespace TY
 {
+    ColorF32 ColorF32::lerp(const ColorF32& other, float rate) const
+    {
+        return ColorF32{
+            Math::Clamp(r + (other.r - r) * rate, 0.0f, 1.0f),
+            Math::Clamp(g + (other.g - g) * rate, 0.0f, 1.0f),
+            Math::Clamp(b + (other.b - b) * rate, 0.0f, 1.0f),
+            Math::Clamp(a + (other.a - a) * rate, 0.0f, 1.0f)
+        };
+    }
+
     ColorF32 ColorF32::operator*(float factor) const
     {
         return ColorF32{

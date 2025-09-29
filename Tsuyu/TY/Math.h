@@ -77,9 +77,25 @@ namespace TY
         /// @brief π
         inline constexpr float PiF = Pi_v<float>;
 
+        inline constexpr double TwoPi = Pi_v<double> * 2.0;
+
+        inline constexpr float TwoPiF = Pi_v<float> * 2.0f;
+
         inline constexpr double HalfPi = Pi_v<double> / 2.0;
 
         inline constexpr float HalfPiF = Pi_v<float> / 2.0f;
+
+        inline constexpr double InvHalfPi = 2.0 / Pi_v<double>;
+
+        inline constexpr float InvHalfPiF = 2.0f / Pi_v<float>;
+
+        inline constexpr double InvPi = 1.0 / Pi_v<double>;
+
+        inline constexpr float InvPiF = 1.0f / Pi_v<float>;
+
+        inline constexpr double InvTwoPi = 1.0 / (Pi_v<double> * 2.0);
+
+        inline constexpr float InvTwoPiF = 1.0f / (Pi_v<float> * 2.0f);
 
         constexpr auto ToDegrees(Arithmetic auto rad) noexcept -> decltype(rad)
         {
