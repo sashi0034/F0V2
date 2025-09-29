@@ -38,15 +38,15 @@ namespace TY::ShapeDrawer_detail
 
     void SD_DescriptorManager::RequestTransform(const Mat3x2& transform)
     {
-        bool isDifferent;
-        if (m_currentPointer.cb1_index == -1)
+        bool hasChanged;
+        if (m_currentCursor.cb1_index == -1)
         {
-            isDifferent = true;
+            hasChanged = true;
         }
         else
         {
-            const auto& current_cbv1 = currentHeap().cbv1_value[m_currentPointer.cb1_index];
-            isDifferent =
+            const auto& current_cbv1 = currentHeap().cbv1_value[m_currentCursor.cb1_index];
+            hasChanged =
                 current_cbv1.g_transform[0].x != transform._11 ||
                 current_cbv1.g_transform[0].y != transform._12 ||
                 current_cbv1.g_transform[1].x != transform._21 ||
@@ -55,21 +55,21 @@ namespace TY::ShapeDrawer_detail
                 current_cbv1.g_transform[0].w != transform._32;
         }
 
-        if (isDifferent)
+        if (hasChanged)
         {
             {
                 auto& heap = currentHeap();
                 if (heap.next_cbv1 >= heap.cbv1.materialCount())
                 {
-                    m_currentPointer = pushBackNewHeap(heap.keyResource, heap.next_cbv1 * 2);
+                    m_currentCursor = pushBackNewHeap(heap.keyResource, heap.next_cbv1 * 2);
                 }
 
                 heap.next_cbv1++;
             }
 
             auto& heap = currentHeap();
-            m_currentPointer.cb1_index = heap.next_cbv1;
-            heap.cbv1_value[m_currentPointer.cb1_index] = {
+            m_currentCursor.cb1_index = heap.next_cbv1;
+            heap.cbv1_value[m_currentCursor.cb1_index] = {
                 .g_transform = {
                     {transform._11, transform._12, transform._31, transform._32},
                     {transform._21, transform._22, 0.0f, 1.0f}
@@ -93,7 +93,7 @@ namespace TY::ShapeDrawer_detail
 
         auto newKey = currentHeap().keyResource;
         newKey.srv0 = srv;
-        m_currentPointer = fetchHeap(newKey);
+        m_currentCursor = fetchHeap(newKey);
     }
 
     void SD_DescriptorManager::Upload() const
@@ -110,7 +110,7 @@ namespace TY::ShapeDrawer_detail
 
     void SD_DescriptorManager::Reset()
     {
-        m_currentPointer = element_pointer{.heapIndex = 0, .cb1_index = -1};
+        m_currentCursor = element_cursor{.heapIndex = 0, .cb1_index = -1};
 
         for (int i = 0; i < m_heapList.size(); ++i)
         {
@@ -118,7 +118,7 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
-    void SD_DescriptorManager::CommandSet(const element_pointer& element) const
+    void SD_DescriptorManager::CommandSet(const element_cursor& element) const
     {
         auto& heap = m_heapList[element.heapIndex];
         heap.descriptorHeap.commandSet(PipelineType::Graphics);
@@ -126,7 +126,7 @@ namespace TY::ShapeDrawer_detail
         heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 1, element.cb1_index);
     }
 
-    SD_DescriptorManager::element_pointer SD_DescriptorManager::fetchHeap(const heap_type::key_type& keyResource)
+    SD_DescriptorManager::element_cursor SD_DescriptorManager::fetchHeap(const heap_type::key_type& keyResource)
     {
         int next_cbv1_capacity = heap_type::DefaultCapacity;
         for (int i = 0; i < m_heapList.size(); ++i)
@@ -135,7 +135,7 @@ namespace TY::ShapeDrawer_detail
             {
                 if (not m_heapList[i].isFull())
                 {
-                    return element_pointer{i, m_heapList[i].next_cbv1};
+                    return element_cursor{i, m_heapList[i].next_cbv1};
                 }
                 else
                 {
@@ -147,12 +147,12 @@ namespace TY::ShapeDrawer_detail
         return pushBackNewHeap(keyResource, next_cbv1_capacity);
     }
 
-    SD_DescriptorManager::element_pointer SD_DescriptorManager::pushBackNewHeap(
+    SD_DescriptorManager::element_cursor SD_DescriptorManager::pushBackNewHeap(
         const heap_type::key_type& keyResource,
         int cbv1_capacity)
     {
         m_heapList.push_back(heap_type::Create(keyResource, cbv1_capacity));
         m_heapList.back().keyResource = keyResource;
-        return element_pointer{static_cast<int>(m_heapList.size()) - 1, -1};
+        return element_cursor{static_cast<int>(m_heapList.size()) - 1, -1};
     }
 }

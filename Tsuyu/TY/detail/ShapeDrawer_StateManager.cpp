@@ -67,7 +67,7 @@ namespace TY::ShapeDrawer_detail
     }
 
     void SD_StateManager::RequestDescriptor(
-        const SD_DescriptorManager::element_pointer& descriptor,
+        const SD_DescriptorManager::element_cursor& descriptor,
         const DescriptorTable& descriptorTable)
     {
         assert(descriptor.isValid());
@@ -105,7 +105,7 @@ namespace TY::ShapeDrawer_detail
         }
     }
 
-    std::optional<SD_StateManager::state_type> SD_StateManager::ApplyNext()
+    std::optional<SD_StateManager::state_type> SD_StateManager::CommitPendingState()
     {
         if (m_next.has_value())
         {

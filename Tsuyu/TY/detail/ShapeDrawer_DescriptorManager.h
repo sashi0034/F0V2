@@ -7,6 +7,15 @@ namespace TY::ShapeDrawer_detail
     class SD_DescriptorManager
     {
     public:
+        //                    --- heap_type [] ---
+        //                    |                  |
+        //                    |   ------------   |
+        // element_cursor --> |   | key_type |   |
+        //                    |   ------------   |
+        //                    |                  |
+        //                    --------------------
+
+        /// @brief 実際のリソースが格納されたヒープ
         struct heap_type
         {
             DescriptorHeap descriptorHeap{};
@@ -16,6 +25,7 @@ namespace TY::ShapeDrawer_detail
             Array<ShapeDrawer_b1> cbv1_value{};
             int next_cbv1{};
 
+            /// @brief テクスチャといったリソースはそれぞれ別々のヒープごとを割り当てる。このような特殊リソースはこのクラスにまとめる
             struct key_type
             {
                 TextureResource srv0{};
@@ -43,7 +53,8 @@ namespace TY::ShapeDrawer_detail
             static heap_type Create(const key_type& key, int cbv1_capacity = DefaultCapacity);
         };
 
-        struct element_pointer
+        /// @brief heap_type 配列中の要素を識別するためのクラス。SD_StateManager の状態変化の検知処理で使用する
+        struct element_cursor
         {
             int heapIndex{-1};
             int cb1_index{-1};
@@ -53,12 +64,12 @@ namespace TY::ShapeDrawer_detail
                 return heapIndex >= 0;
             }
 
-            bool operator ==(const element_pointer& other) const
+            bool operator ==(const element_cursor& other) const
             {
-                return std::memcmp(this, &other, sizeof(element_pointer)) == 0;
+                return std::memcmp(this, &other, sizeof(element_cursor)) == 0;
             }
 
-            bool operator !=(const element_pointer& other) const { return not(*this == other); }
+            bool operator !=(const element_cursor& other) const { return not(*this == other); }
         };
 
         SD_DescriptorManager()
@@ -76,29 +87,29 @@ namespace TY::ShapeDrawer_detail
 
         void Reset();
 
-        const element_pointer& CurrentPointer() const
+        const element_cursor& CurrentCursor() const
         {
-            return m_currentPointer;
+            return m_currentCursor;
         }
 
         const heap_type& CurrentHeap() const
         {
-            return m_heapList[m_currentPointer.heapIndex];
+            return m_heapList[m_currentCursor.heapIndex];
         }
 
-        void CommandSet(const element_pointer& element) const;
+        void CommandSet(const element_cursor& element) const;
 
     private:
         Array<heap_type> m_heapList{};
-        element_pointer m_currentPointer{};
+        element_cursor m_currentCursor{};
 
         heap_type& currentHeap()
         {
-            return m_heapList[m_currentPointer.heapIndex];
+            return m_heapList[m_currentCursor.heapIndex];
         }
 
-        element_pointer fetchHeap(const heap_type::key_type& keyResource);
+        element_cursor fetchHeap(const heap_type::key_type& keyResource);
 
-        element_pointer pushBackNewHeap(const heap_type::key_type& keyResource, int cbv1_capacity);
+        element_cursor pushBackNewHeap(const heap_type::key_type& keyResource, int cbv1_capacity);
     };
 }

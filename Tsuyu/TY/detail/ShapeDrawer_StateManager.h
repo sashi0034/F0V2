@@ -10,7 +10,7 @@ namespace TY::ShapeDrawer_detail
         struct state_type
         {
             GraphicsPipelineStateParams psoParams{};
-            SD_DescriptorManager::element_pointer descriptor{};
+            SD_DescriptorManager::element_cursor descriptor{};
             bool is3D{}; // 2D if false
 
             static state_type Default(bool is3D, const DescriptorTable& descriptorTable);
@@ -19,7 +19,7 @@ namespace TY::ShapeDrawer_detail
         void Reset(const DescriptorTable& descriptorTable);
 
         void RequestDescriptor(
-            const SD_DescriptorManager::element_pointer& descriptor,
+            const SD_DescriptorManager::element_cursor& descriptor,
             const DescriptorTable& descriptorTable);
 
         void RequestPixelShader(const PixelShader& ps);
@@ -33,7 +33,7 @@ namespace TY::ShapeDrawer_detail
             return m_current;
         }
 
-        std::optional<state_type> ApplyNext();
+        std::optional<state_type> CommitPendingState();
 
     private:
         state_type m_current{};

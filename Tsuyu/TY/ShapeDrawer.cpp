@@ -25,7 +25,7 @@ namespace
     struct BufferUnit
     {
         GraphicsPipelineState pso{};
-        SD_DescriptorManager::element_pointer descriptor{};
+        SD_DescriptorManager::element_cursor descriptor{};
         IndexBuffer indexBuffer{Empty};
         VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer2D{Empty};
         VertexBuffer<ShapeBuilder3D::Vertex3D> vertexBuffer3D{Empty};
@@ -75,6 +75,9 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
         resetDrawState();
     }
 
+    // TODO: 複雑になってきたのでリファクタリングしたい
+    // 最近 ConstantBuffer のフレーム内における複数 upload に対応したのでそれを利用する
+
     void Push(const Shape2D::shape_type& shape)
     {
         constexpr double maxScaling = 1.0f; // TODO: Transformer の Matrix から取得
@@ -88,43 +91,43 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
         m_descriptorManager.RequestTransform(transformMatrix);
 
         m_stateManager.request2D();
-        m_stateManager.RequestDescriptor(m_descriptorManager.CurrentPointer(), m_descriptorManager.CurrentHeap().table);
+        m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
 
         auto&& component = ShapeDrawerComponent::Instance;
         if (shape.isHolds<Shape2D::Rect>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
-            applyNextState();
+            commitPendingState();
             ShapeBuilder2D::BuildRect(m_bufferCreator2D, shape.get<Shape2D::Rect>());
         }
         else if (shape.isHolds<Shape2D::RoundRect>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
-            applyNextState();
+            commitPendingState();
             ShapeBuilder2D::BuildRoundRect(m_bufferCreator2D, shape.get<Shape2D::RoundRect>());
         }
         else if (shape.isHolds<Shape2D::Line>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
-            applyNextState();
+            commitPendingState();
             ShapeBuilder2D::BuildLine(m_bufferCreator2D, shape.get<Shape2D::Line>());
         }
         else if (shape.isHolds<Shape2D::SquareDotLine>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.squareDot);
-            applyNextState();
+            commitPendingState();
             ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator2D, shape.get<Shape2D::SquareDotLine>(), maxScaling);
         }
         else if (shape.isHolds<Shape2D::Path>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
-            applyNextState();
+            commitPendingState();
             ShapeBuilder2D::BuildPath(m_bufferCreator2D, shape.get<Shape2D::Path>());
         }
         else if (shape.isHolds<Shape2D::CyclePath>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
-            applyNextState();
+            commitPendingState();
             ShapeBuilder2D::BuildCyclePath(m_bufferCreator2D, shape.get<Shape2D::CyclePath>());
         }
         else if (shape.isHolds<Shape2D::Text>())
@@ -143,7 +146,7 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
                 assert(false);
             }
 
-            applyNextState();
+            commitPendingState();
             ShapeBuilder2D::BuildText(m_bufferCreator2D, shape.get<Shape2D::Text>());
         }
         else
@@ -158,19 +161,19 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
         m_descriptorManager.RequestTransform(transformMatrix);
 
         m_stateManager.request3D();
-        m_stateManager.RequestDescriptor(m_descriptorManager.CurrentPointer(), m_descriptorManager.CurrentHeap().table);
+        m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
 
         auto&& component = ShapeDrawerComponent::Instance;
         if (shape.isHolds<Shape3D::Line>())
         {
             m_stateManager.RequestPixelShader(component->m_ps3d.shape);
-            applyNextState();
+            commitPendingState();
             ShapeBuilder3D::BuildLine(m_bufferCreator3D, shape.get<Shape3D::Line>());
         }
         else if (shape.isHolds<Shape3D::LineSet>())
         {
             m_stateManager.RequestPixelShader(component->m_ps3d.shape);
-            applyNextState();
+            commitPendingState();
             ShapeBuilder3D::BuildLineSet(m_bufferCreator3D, shape.get<Shape3D::LineSet>());
         }
         else
@@ -213,9 +216,9 @@ private:
         m_drawUnitIndex = 0;
     }
 
-    void applyNextState()
+    void commitPendingState()
     {
-        if (auto&& previous = m_stateManager.ApplyNext())
+        if (auto&& previous = m_stateManager.CommitPendingState())
         {
             flushCurrentBuffer(*previous);
         }
