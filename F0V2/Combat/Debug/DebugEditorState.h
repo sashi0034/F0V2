@@ -2,6 +2,7 @@
 #include "TY/Array.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Vector3D.h"
+#include "TY/InlineComponent.h"
 
 namespace Combat
 {
@@ -13,14 +14,19 @@ namespace Combat
 
     struct CourseNode
     {
-        Float3 position;
+        Float3 pos;
+    };
+
+    struct CourseData
+    {
+        Array<CourseNode> nodes{};
     };
 
     struct DebugEditorState : IInlineComponent
     {
-        ConstantBufferWrapper<Lambert_b10> lambert;
+        ConstantBufferWrapper<Lambert_b10> lambert{};
 
-        Array<Float3> nodeList{};
+        CourseData course{};
     };
 
     inline InlineComponent<DebugEditorState> g_debugEditorState{};
