@@ -35,14 +35,6 @@ namespace
         alignas(16) Float3 lightColor{};
     };
 
-    struct PhongLight_b4
-    {
-        alignas(16) Float3 lightDirection;
-        alignas(16) Float3 lightColor{};
-        alignas(16) Float3 eyePosition{};
-        alignas(16) Float3 ambientColor{};
-    };
-
     struct Skydome_b4
     {
         alignas(16) ColorF32 topColor;
@@ -145,14 +137,6 @@ struct DebugPlayground::Impl : ActorBase
             )
             .setCbv10AndLater({skydome_b4})
         };
-
-        ConstantBufferWrapper<PhongLight_b4> phongLight{};
-
-        phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
-        phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-        phongLight->eyePosition = m_camera.eyePosition();
-        phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
-        phongLight.upload();
 
         const auto groundPlaneTexture = makeGroundPlane(
             Size{1000, 1000}, 100, ColorF32{0.5}, ColorF32{0.25});

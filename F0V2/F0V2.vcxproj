@@ -155,6 +155,7 @@
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
     <ClCompile Include="Combat\Debug\DebugEditor.cpp" />
+    <ClCompile Include="Combat\Debug\DebugNodeEditor.cpp" />
     <ClCompile Include="Combat\Debug\DebugPlayground.cpp" />
     <ClCompile Include="Combat\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="DebugUI.cpp" />
@@ -189,6 +190,8 @@
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />
     <ClCompile Include="Demo\Demo_ShapeDrawer.cpp" />
     <Content Include="Combat\.gitignore" />
+    <Content Include="Combat\Debug\Debug_template.cpp.txt" />
+    <Content Include="Combat\Debug\Debug_template.h.txt" />
     <Content Include="Combat\Toys\Toy_template.h.txt" />
     <Content Include="Demo\Demo_template.cpp.txt" />
     <Content Include="Demo\Demo_template.h.txt" />
@@ -232,7 +235,9 @@
     <ClInclude Include="ColorPalette.h" />
     <ClInclude Include="Combat\CombatScene.h" />
     <ClInclude Include="Combat\Debug\DebugEditor.h" />
+    <ClInclude Include="Combat\Debug\DebugNodeEditor.h" />
     <ClInclude Include="Combat\Debug\DebugPlayground.h" />
+    <ClInclude Include="Combat\Debug\DebugEditorState.h" />
     <ClInclude Include="Combat\Toys\ToyCinnamon.h" />
     <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />

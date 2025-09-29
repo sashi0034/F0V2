@@ -1,0 +1,61 @@
+
+#include "Asset.generated.h"
+#include "TY/ActorContainer.h"
+#include "TY/ModelDrawer.h"
+#include "TY_Extension/GameObjectBase.h"
+
+using namespace Combat;
+
+namespace
+{
+}
+
+struct Debug_template::Impl : GameObjectBase
+{
+    ActorContainer m_children{};
+
+    ModelDrawer m_drawer{};
+
+    void Init()
+    {
+        m_drawer =
+            ModelDrawerParams{}
+            .setModel(Asset_model::cinnamon)
+            .setShader(Asset_shader::model);
+    }
+
+private:
+    void update() override
+    {
+        m_drawer.uploadWorldMatrix(Mat4x4::Identity()).draw();
+    }
+
+    void killed() override
+    {
+        m_children.killEach();
+    }
+
+    std::u32string name() const override
+    {
+        return U"Debug_template";
+    }
+};
+
+namespace Combat
+{
+    Debug_template::Debug_template() :
+        p_impl(std::make_shared<Impl>())
+    {
+    }
+
+    void Debug_template::init()
+    {
+        p_impl->Init();
+        GameObjectHandle::init();
+    }
+
+    std::shared_ptr<GameObjectBase> Debug_template::asGameObject() const
+    {
+        return p_impl;
+    }
+}
