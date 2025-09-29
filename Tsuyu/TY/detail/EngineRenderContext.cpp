@@ -64,6 +64,7 @@ struct EngineRenderContextImpl
     ScopedRenderTarget m_scopedBackBuffer{};
 
     Mat3x2 m_windowToFrameBuffer{};
+    Mat3x2 m_frameBufferToWindow{};
 
     bool m_previousFullscreen{};
 
@@ -202,6 +203,7 @@ struct EngineRenderContextImpl
         m_backBuffer.setViewport(calculateViewportRect());
 
         m_windowToFrameBuffer = calculateWindowToFrameBuffer();
+        m_frameBufferToWindow = m_windowToFrameBuffer.inverse();
 
         // バックバッファを設定
         const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -473,6 +475,11 @@ namespace TY::detail
     Mat3x2 EngineRenderContext::WindowToFrameBuffer()
     {
         return s_renderContext.m_windowToFrameBuffer;
+    }
+
+    Mat3x2 EngineRenderContext::FrameBufferToWindow()
+    {
+        return s_renderContext.m_frameBufferToWindow;
     }
 
     ConstantBuffer<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()

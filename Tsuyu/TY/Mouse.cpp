@@ -29,6 +29,11 @@ namespace TY
         return EngineKeyboardMouse::MousePos();
     }
 
+    void Mouse::SetPosF(const Float2& pos)
+    {
+        EngineKeyboardMouse::SetMousePos(pos);
+    }
+
     float Mouse::Wheel()
     {
         return EngineWindow::GetWheelDelta();

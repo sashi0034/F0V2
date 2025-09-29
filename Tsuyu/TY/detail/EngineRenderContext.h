@@ -58,6 +58,9 @@ namespace TY::detail
         Mat3x2 WindowToFrameBuffer();
 
         [[nodiscard]]
+        Mat3x2 FrameBufferToWindow();
+
+        [[nodiscard]]
         ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
 
         void SafeDisposeRenderResource(const RenderResource& renderResource);

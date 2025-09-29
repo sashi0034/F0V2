@@ -26,6 +26,8 @@ namespace TY
 
         Float2 PosF();
 
+        void SetPosF(const Float2& pos);
+
         float Wheel();
     }
 }

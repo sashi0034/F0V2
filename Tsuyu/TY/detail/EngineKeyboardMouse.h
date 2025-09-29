@@ -19,5 +19,7 @@ namespace TY::detail
         Float2 MousePos();
 
         Float2 PreviousMousePos();
+
+        void SetMousePos(const Float2& pos);
     }
 }
