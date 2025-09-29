@@ -21,7 +21,7 @@ void Main()
 {
     InitLivePPAddon();
 
-#if 1
+#if 0
     Demo_Collision3();
 #else
     using namespace TY;

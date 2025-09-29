@@ -1,8 +1,8 @@
 ﻿#include "pch.h"
 #include "CombatScene.h"
 
-#include "DebugEditor.h"
-#include "DebugPlayground.h"
+#include "Debug/DebugEditor.h"
+#include "Debug/DebugPlayground.h"
 #include "Toys/ToyCinnamon.h"
 #include "TY/ActorContainer.h"
 #include "TY/Logger.h"

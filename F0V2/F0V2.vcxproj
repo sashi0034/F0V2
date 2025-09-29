@@ -154,7 +154,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
-    <ClCompile Include="Combat\DebugEditor.cpp" />
+    <ClCompile Include="Combat\Debug\DebugEditor.cpp" />
+    <ClCompile Include="Combat\Debug\DebugPlayground.cpp" />
     <ClCompile Include="Combat\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="DebugUI.cpp" />
     <ClCompile Include="Demo\Demo_Collision1.cpp" />
@@ -181,13 +182,13 @@
     <Content Include="asset\shader\shadow_caster.hlsl" />
     <Content Include="asset\shader\r32_float_visualizer.hlsl" />
     <Content Include="asset\shader\dynamic_ocean.hlsl" />
-    <ClCompile Include="Combat\DebugPlayground.cpp" />
     <ClCompile Include="Demo\Demo_AirCombat.cpp" />
     <ClCompile Include="Demo\Demo_Basic3D.cpp" />
     <ClCompile Include="Demo\Demo_Font.cpp" />
     <ClCompile Include="Demo\Demo_Ocean.cpp" />
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />
     <ClCompile Include="Demo\Demo_ShapeDrawer.cpp" />
+    <Content Include="Combat\.gitignore" />
     <Content Include="Combat\Toys\Toy_template.h.txt" />
     <Content Include="Demo\Demo_template.cpp.txt" />
     <Content Include="Demo\Demo_template.h.txt" />
@@ -230,8 +231,8 @@
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="ColorPalette.h" />
     <ClInclude Include="Combat\CombatScene.h" />
-    <ClInclude Include="Combat\DebugEditor.h" />
-    <ClInclude Include="Combat\DebugPlayground.h" />
+    <ClInclude Include="Combat\Debug\DebugEditor.h" />
+    <ClInclude Include="Combat\Debug\DebugPlayground.h" />
     <ClInclude Include="Combat\Toys\ToyCinnamon.h" />
     <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
