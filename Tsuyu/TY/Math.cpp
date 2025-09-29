@@ -12,4 +12,14 @@ namespace TY
     {
         return (x - std::floor(x));
     }
+
+    float Math::Mod(float a, float b)
+    {
+        return std::fmod(std::fmod(a, b) + b, b);
+    }
+
+    double Math::Mod(double a, double b)
+    {
+        return std::fmod(std::fmod(a, b) + b, b);
+    }
 }

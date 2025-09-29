@@ -15,21 +15,17 @@ struct CombatScene::Impl : ActorBase
 {
     ActorContainer m_children{};
 
-    DebugPlayground m_debugPlayground{};
     DebugEditor m_debugEditor{};
 
     CoroutineActor m_coro{};
 
     void Init()
     {
-        m_debugPlayground = m_children.birth(DebugPlayground());
-        m_debugPlayground.init();
-
         m_debugEditor = m_children.birth(DebugEditor());
         m_debugEditor.init();
 
-        auto cinnamon = m_children.birth(ToyCinnamon());
-        cinnamon.init();
+        // auto cinnamon = m_children.birth(ToyCinnamon());
+        // cinnamon.init();
 
         m_coro = StartCoroutine(m_children, [this](AwaiterContext& await)
         {

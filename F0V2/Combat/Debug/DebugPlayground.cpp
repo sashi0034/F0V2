@@ -8,9 +8,11 @@
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Graphics3D.h"
+#include "TY/Intersects2D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 #include "TY/ModelDrawer.h"
+#include "TY/Mouse.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/Scene.h"
 #include "TY/ShapeDrawer.h"
@@ -70,6 +72,9 @@ namespace
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
+
+        const ColorU8 lineColor2 = lineColor.toColorU8().multiplied(2.0f);
+
         const ColorU8 backColor2 = backColor.toColorU8().multiplied(0.9f);
 
         for (int x = 0; x < size.x; x += 2)
@@ -86,7 +91,7 @@ namespace
         {
             for (int y = 0; y < size.y; y++)
             {
-                image[Point{x, y}] = lineColor;
+                image[Point{x, y}] = x == padding.x ? lineColor2 : lineColor.toColorU8();
             }
         }
 
@@ -94,7 +99,7 @@ namespace
         {
             for (int x = 0; x < size.x; x++)
             {
-                image[Point{x, y}] = lineColor;
+                image[Point{x, y}] = y == padding.y ? lineColor2 : lineColor.toColorU8();
             }
         }
 
@@ -111,10 +116,6 @@ struct DebugPlayground::Impl : ActorBase
     ActorContainer m_children{};
 
     ModelDrawer m_skydomeDrawer{};
-
-    ModelDrawer m_playerDrawer{};
-
-    Pose m_playerPose{};
 
     SimpleCamera3D m_camera{};
 
@@ -153,28 +154,26 @@ struct DebugPlayground::Impl : ActorBase
         phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
         phongLight.upload();
 
-        m_playerDrawer = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(Asset_model::tie_fighter)
-            .setShader(Asset_shader::phong)
-            .setCbv10AndLater({phongLight})
-        };
-
         const auto groundPlaneTexture = makeGroundPlane(
-            Size{1024, 1024}, 32, ColorF32{0.9}, ColorF32{0.3});
+            Size{1000, 1000}, 100, ColorF32{0.5}, ColorF32{0.25});
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
+            .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{100.0f, 100.0f}))
             .setShader(Asset_shader::model)
-        }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
+        };
     }
 
     void update() override
     {
         m_children.updateEach();
 
-        // ウィンドウ内でドック可能にする
-        // ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+        if (not ImGui::IsAnyItemActive())
+        {
+            const Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);
+
+            const Float2 rotateVector = Mouse::Drag(MouseM) * Float2{1, -1} * 5.0f;
+            m_camera.transform(System::DeltaTime(), moveVector, rotateVector);
+        }
 
         // -----------------------------------------------
 
@@ -192,7 +191,7 @@ struct DebugPlayground::Impl : ActorBase
         }
 
         {
-            ImGui::Begin("System Settings");
+            ImGui::Begin("System Window");
 
             static bool s_sleep{};;
             ImGui::Checkbox("Sleep", &s_sleep);
@@ -202,45 +201,24 @@ struct DebugPlayground::Impl : ActorBase
                 System::Sleep(500);
             }
 
+            ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
+
             ImGui::End();
-        }
-
-        // -----------------------------------------------
-
-        m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
-
-        if (not ImGui::IsAnyItemActive())
-        {
-            if (not KeyShift.pressed())
-            {
-                m_camera.transformBySimpleInput();
-            }
-            else
-            {
-                const auto matrix = m_playerPose.getMatrix();
-                const auto forward = matrix.forward();
-                const auto right = matrix.right();
-                const auto up = matrix.up();
-
-                const auto moveInput = SimpleInput::GetPlayerMovement3D();
-                constexpr auto speed = 10.0f;
-                m_playerPose.position += forward * moveInput.z * speed * System::DeltaTime();
-                m_playerPose.position += right * moveInput.x * speed * System::DeltaTime();
-                m_playerPose.position += up * moveInput.y * speed * System::DeltaTime();
-
-                const auto rotateInput = SimpleInput::GetCameraRotation();
-                constexpr auto rotationSpeed = 2.0f;
-                m_playerPose.rotation *= Quaternion::RotateY(rotateInput.x * rotationSpeed * System::DeltaTime());
-            }
         }
 
         // -----------------------------------------------
 
         m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(m_camera.eyePosition())).draw();
 
-        m_playerDrawer.draw();
-
-        m_groundPlaneDrawer.draw();
+        for (int x = -1; x <= 1; ++x)
+        {
+            for (int z = -1; z <= 1; ++z)
+            {
+                m_groundPlaneDrawer
+                    .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, groundPositionY, z * 100.0f}))
+                    .draw();
+            }
+        }
     }
 
     void draw() const override

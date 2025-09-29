@@ -143,6 +143,10 @@ namespace TY
                 return 0;
             }
         }
+
+        float Mod(float a, float b);
+
+        double Mod(double a, double b);
     }
 
     inline namespace Literals

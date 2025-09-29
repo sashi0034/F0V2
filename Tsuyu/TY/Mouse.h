@@ -29,5 +29,7 @@ namespace TY
         void SetPosF(const Float2& pos);
 
         float Wheel();
+
+        Float2 Drag(MouseInput button);
     }
 }

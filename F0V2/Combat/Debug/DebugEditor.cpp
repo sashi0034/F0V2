@@ -3,6 +3,7 @@
 
 #include "Asset0.h"
 #include "ColorPalette.h"
+#include "DebugPlayground.h"
 #include "DebugUI.h"
 #include "TY/ActorContainer.h"
 #include "TY/KeyboardInput.h"
@@ -17,7 +18,7 @@ using namespace Combat;
 
 namespace
 {
-    void gameObjectEditor(const GameObjectHierarchy::list_type& gameObjectList)
+    void hierarchWindow(const GameObjectHierarchy::list_type& gameObjectList)
     {
         const auto backgroundRegion = RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 800}};
 
@@ -41,10 +42,6 @@ namespace
             contentRegion.stretched(-5).stretched(5, Direction4::Up).separate(lineLength, Direction4::Down);
 
         const auto [sliderRegion, listRegion] = contentRegion2.separate(10, Direction4::Left);
-
-        // Shape2D::RoundRect{sliderRegion.stretched(0, -1)}
-        //     .setColor(ColorF32{"#4F4F4F"})
-        //     .pushAuto();
 
         const auto listRects = Util::SliceRectByLength(listRegion.stretched(-5), lineLength, Direction2::Vertical);
 
@@ -73,21 +70,6 @@ namespace
         const auto operationRects =
             Util::SliceRectByLength(operationRegion, operationRegion.w / 4, Direction2::Horizontal);
 
-        // if (DebugUI::Button(operationRects[0].stretched(-1), U"Add"))
-        // {
-        //     gameObjectList.push_back(SerializeTransform{
-        //         "Empty",
-        //         {0, 0, 0},
-        //         {0, 0, 0},
-        //         {1, 1, 1}
-        //     });
-        // }
-
-        // Shape2D_Text::MPlus1_24_Bitmap(U"デバッグ機能 ABC abc 012")
-        //     .setPosition(Float2{10, 100})
-        //     .setSize(100)
-        //     .pushAuto();
-
         ShapeDrawer::Global().draw();
     }
 
@@ -98,15 +80,19 @@ struct DebugEditor::Impl : ActorBase
 {
     ActorContainer m_children{};
 
+    DebugPlayground m_debugPlayground{};
+
     void init()
     {
+        m_debugPlayground = m_children.birth(DebugPlayground());
+        m_debugPlayground.init();
     }
 
     void update() override
     {
         m_children.updateEach();
 
-        gameObjectEditor(GlobalGameObjectHierarchy().list());
+        // hierarchWindow(GlobalGameObjectHierarchy().list());
     }
 
     void draw() const override
