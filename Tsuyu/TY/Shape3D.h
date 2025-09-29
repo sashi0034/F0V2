@@ -33,6 +33,8 @@ namespace TY
 
             LineSet& setColor(const ColorF32& color);
 
+            LineSet& appendLine(const Float3& start, const Float3& end);
+
             LineSet& appendAabb(const Aabb3D& aabb);
 
             void pushAuto();
