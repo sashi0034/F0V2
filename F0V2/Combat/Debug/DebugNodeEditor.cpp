@@ -2,8 +2,10 @@
 #include "DebugNodeEditor.h"
 
 #include "Asset.generated.h"
+#include "DebugEditorState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ModelDrawer.h"
+#include "TY/PrimitiveModel3D.h"
 #include "TY_Extension/GameObjectBase.h"
 
 using namespace Combat;
@@ -20,10 +22,13 @@ struct DebugNodeEditor::Impl : GameObjectBase
 
     void Init()
     {
+        const auto model = PrimitiveModel3D::Torus(1.0f, 0.5f, ColorF32{1.0f, 0.5f, 0.1f});
+
         m_drawer =
             ModelDrawerParams{}
-            .setModel(Asset_model::cinnamon)
-            .setShader(Asset_shader::model);
+            .setModel(model)
+            .setShader(Asset_shader::lambert)
+            .setCbv10AndLater({g_debugEditorState->lambert});
     }
 
 private:

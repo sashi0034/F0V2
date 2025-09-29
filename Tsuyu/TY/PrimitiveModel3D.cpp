@@ -184,6 +184,80 @@ namespace TY
         return data;
     }
 
+    ModelData PrimitiveModel3D::Torus(float outerRadius, float innerRadius, const ColorF32& color)
+    {
+        constexpr uint16_t sliceCount = 32; // 外周の分割数
+        constexpr uint16_t stackCount = 16; // チューブ断面の分割数
+
+        ModelData data;
+
+        ModelMaterialParameters params;
+        params.ambient = color.toFloat3() * 0.1f;
+        params.diffuse = color.toFloat3();
+        params.specular = {1.0f, 1.0f, 1.0f};
+        params.shininess = 32.0f;
+
+        data.materials.push_back({"Torus", params, {}});
+
+        ModelShape shape;
+        shape.materialIndex = 0;
+
+        // 頂点生成
+        for (unsigned int i = 0; i <= stackCount; ++i)
+        {
+            float phi = 2.0f * Math::PiF * float(i) / float(stackCount);
+            float cosPhi = std::cos(phi);
+            float sinPhi = std::sin(phi);
+
+            for (unsigned int j = 0; j <= sliceCount; ++j)
+            {
+                float theta = 2.0f * Math::PiF * float(j) / float(sliceCount);
+                float cosTheta = std::cos(theta);
+                float sinTheta = std::sin(theta);
+
+                // 位置
+                float x = (outerRadius + innerRadius * cosPhi) * cosTheta;
+                float y = innerRadius * sinPhi;
+                float z = (outerRadius + innerRadius * cosPhi) * sinTheta;
+
+                Float3 pos = {x, y, z};
+
+                // 法線（内半径の方向を使う）
+                Float3 norm = {cosPhi * cosTheta, sinPhi, cosPhi * sinTheta};
+                norm = norm.normalized();
+
+                // UV（外周と断面をそれぞれ U, V に対応させる）
+                Float2 uv = {float(j) / float(sliceCount), float(i) / float(stackCount)};
+
+                shape.vertexBuffer.push_back({pos, norm, uv});
+            }
+        }
+
+        // インデックス生成（スフィアと同じく四角形を 2 つの三角形に分割）
+        const unsigned int ringVertexCount = sliceCount + 1;
+        for (unsigned int i = 0; i < stackCount; ++i)
+        {
+            for (unsigned int j = 0; j < sliceCount; ++j)
+            {
+                uint16_t i0 = uint16_t(i * ringVertexCount + j);
+                uint16_t i1 = uint16_t(i * ringVertexCount + j + 1);
+                uint16_t i2 = uint16_t((i + 1) * ringVertexCount + j);
+                uint16_t i3 = uint16_t((i + 1) * ringVertexCount + j + 1);
+
+                shape.indexBuffer.push_back(i0);
+                shape.indexBuffer.push_back(i2);
+                shape.indexBuffer.push_back(i1);
+
+                shape.indexBuffer.push_back(i1);
+                shape.indexBuffer.push_back(i2);
+                shape.indexBuffer.push_back(i3);
+            }
+        }
+
+        data.shapes.push_back(std::move(shape));
+        return data;
+    }
+
     ModelData PrimitiveModel3D::Capsule(float radius, float cylinderHeight, const ColorF32& color)
     {
         // 解像度（必要に応じて調整）

@@ -3,6 +3,7 @@
 
 #include "Asset0.h"
 #include "ColorPalette.h"
+#include "DebugNodeEditor.h"
 #include "DebugPlayground.h"
 #include "DebugUI.h"
 #include "TY/ActorContainer.h"
@@ -80,10 +81,15 @@ struct DebugEditor::Impl : ActorBase
 {
     ActorContainer m_children{};
 
+    DebugNodeEditor m_debugNodeEditor{};
+
     DebugPlayground m_debugPlayground{};
 
     void init()
     {
+        m_debugNodeEditor = m_children.birth(DebugNodeEditor());
+        m_debugNodeEditor.init();
+
         m_debugPlayground = m_children.birth(DebugPlayground());
         m_debugPlayground.init();
     }

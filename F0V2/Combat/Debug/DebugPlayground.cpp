@@ -4,6 +4,7 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "ColorPalette.h"
+#include "DebugEditorState.h"
 #include "DebugUI.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
@@ -29,12 +30,6 @@ using namespace TY;
 
 namespace
 {
-    struct LambertLight_b4
-    {
-        alignas(16) Float3 lightDirection;
-        alignas(16) Float3 lightColor{};
-    };
-
     struct Skydome_b4
     {
         alignas(16) ColorF32 topColor;
@@ -160,6 +155,10 @@ struct DebugPlayground::Impl : ActorBase
         }
 
         // -----------------------------------------------
+
+        g_debugEditorState->lambert->lightDirection = m_camera.worldMatrix().forward();
+        g_debugEditorState->lambert->lightColor = Float3{1.0f, 1.0f, 1.0f};
+        g_debugEditorState->lambert.upload();
 
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());
 
