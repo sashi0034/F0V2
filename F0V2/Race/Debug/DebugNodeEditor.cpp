@@ -47,12 +47,25 @@ namespace
         return result;
     }
 
+    struct CourseStrip
+    {
+        Float3 center;
+        Float3 leftmost;
+        Float3 rightmost;
+
+        Float3 toNext; // 次点へのベクトル
+        Float3 normal;
+    };
+
     struct CourseSegment
     {
         Float3 p1{};
         Float3 p2{};
 
-        Array<Float3> interpolatedPoints{};
+        Array<Float3> midwayPositions{};
+        Array<CourseStrip> midwayStrips{};
+
+        ModelDrawer drawer{};
     };
 }
 
@@ -88,13 +101,19 @@ private:
             m_drawer.uploadWorldMatrix(Mat4x4::Translate(pos)).draw();
         }
 
+        for (int i = 0; i < m_segments.size(); ++i)
+        {
+            m_segments[i].drawer.draw();
+        }
+
         Shape3D::LineSet lineSet{};
         for (int i = 0; i < m_segments.size(); ++i)
         {
             const auto& segment = m_segments[i];
-            for (int j = 0; j < segment.interpolatedPoints.size() - 1; ++j)
+            for (int j = 0; j < segment.midwayPositions.size() - 1; ++j)
             {
-                lineSet.appendLine(segment.interpolatedPoints[j], segment.interpolatedPoints[j + 1]);
+                constexpr Float3 d{0, 0.1, 0};
+                lineSet.appendLine(segment.midwayPositions[j] + d, segment.midwayPositions[j + 1] + d);
             }
         }
 
@@ -107,6 +126,7 @@ private:
     void buildSegmentsIfNeeded()
     {
         auto& nodeList = g_debugEditorState->course.nodes;
+        Array<int> rebuildIndex{};
         for (int i = 0; i < nodeList.size(); ++i)
         {
             auto& p0 = nodeList[(i - 1 + nodeList.size()) % nodeList.size()].pos;
@@ -123,13 +143,83 @@ private:
                 auto& segment = m_segments[i];
                 segment.p1 = p1;
                 segment.p2 = p2;
-                segment.interpolatedPoints = generateCatmullRomPoints(p0, p1, p2, p3, 10);
+                segment.midwayPositions = generateCatmullRomPoints(p0, p1, p2, p3, 10);
+                rebuildIndex.push_back(i);
             }
         }
 
         while (m_segments.size() > nodeList.size())
         {
             m_segments.pop_back();
+        }
+
+        // -----------------------------------------------
+
+        // 変更があった CourseSegment の線分に対して面を構築する
+        for (const auto i : rebuildIndex)
+        {
+            auto& segment = m_segments[i];
+            segment.midwayStrips.clear();
+            for (int m = 0; m < segment.midwayPositions.size(); ++m)
+            {
+                CourseStrip strip{};
+                strip.center = segment.midwayPositions[m];
+                strip.normal = Float3(0, 1, 0); // TODO
+
+                auto nextPosition = (m + 1 < segment.midwayPositions.size())
+                                        ? segment.midwayPositions[m + 1]
+                                        : m_segments[(i + 1) % m_segments.size()].p1;
+                strip.toNext = nextPosition - strip.center;
+
+                auto right = strip.toNext.cross(strip.normal).normalized();
+                float width = 7.5f; // TODO
+                strip.leftmost = strip.center - right * width;
+                strip.rightmost = strip.center + right * width;
+
+                segment.midwayStrips.push_back(strip);
+            }
+
+            assert(m_segments.size() > 0);
+            Array<ModelVertex> vertices((segment.midwayPositions.size() - 1) * 4);
+            Array<uint16_t> indices((segment.midwayPositions.size() - 1) * 6);
+            int v_offset{};
+            int i_offset{};
+            for (int m = 0; m < segment.midwayPositions.size() - 1; ++m)
+            {
+                auto& s0 = segment.midwayStrips[m];
+                auto& s1 = segment.midwayStrips[m + 1];
+
+                vertices[v_offset] = ModelVertex{s1.leftmost, s1.normal, Float2{}};
+                vertices[v_offset + 1] = ModelVertex{s1.rightmost, s1.normal, Float2{1, 0}};
+                vertices[v_offset + 2] = ModelVertex{s0.leftmost, s0.normal, Float2{0, 1}};
+                vertices[v_offset + 3] = ModelVertex{s0.rightmost, s0.normal, Float2{1, 1}};
+
+                indices[i_offset] = v_offset;
+                indices[i_offset + 1] = v_offset + 2;
+                indices[i_offset + 2] = v_offset + 1;
+                indices[i_offset + 3] = v_offset + 1;
+                indices[i_offset + 4] = v_offset + 2;
+                indices[i_offset + 5] = v_offset + 3;
+
+                v_offset += 4;
+                i_offset += 6;
+            }
+
+            ModelMaterial material{};
+            material.name = "plain";
+            material.parameters.diffuse = Float3::One() * 0.5f;
+
+            ModelShapeBuffer shapeBuffer{
+                {ModelShape{std::move(vertices), std::move(indices), 0}}
+            };
+            ModelBuffer modelBuffer{
+                shapeBuffer, {material}
+            };
+            segment.drawer =
+                ModelDrawerParams{}
+                .setModel(modelBuffer)
+                .setShader(Asset_shader::lambert)
+                .setCbv10AndLater({g_debugEditorState->lambert});
         }
     }
 

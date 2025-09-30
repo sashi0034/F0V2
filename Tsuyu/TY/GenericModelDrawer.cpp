@@ -37,6 +37,12 @@ struct GenericModelDrawer::Impl
     Impl(const GenericModelDrawerParams& params)
         : m_modelBuffer(params.model)
     {
+        if (not m_modelBuffer)
+        {
+            LogError("GenericModelDrawer: Input model is empty.");
+            return;
+        }
+
         auto materialSrv = m_modelBuffer->materialSrv();
 
         auto descriptorHeap = DescriptorHeapParams{

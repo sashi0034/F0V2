@@ -134,7 +134,7 @@ struct DebugPlayground::Impl : ActorBase
         };
 
         const auto groundPlaneTexture = makeGroundPlane(
-            Size{1000, 1000}, 100, ColorF32{0.5}, ColorF32{0.25});
+            Size{1000, 1000}, 100, ColorF32{0.5}, ColorF32{0.15});
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{100.0f, 100.0f}))
