@@ -28,8 +28,8 @@ void Main()
 
     ActorContainer actors{};
 
-    auto combat = actors.birth(Race::RaceScene());
-    combat.init();
+    auto race = actors.birth(Race::RaceScene());
+    race.init();
 
     while (System::Update())
     {
