@@ -175,15 +175,13 @@ private:
         {
             auto& segment = m_segments[i];
             segment.midwayStrips.clear();
-            for (int m = 0; m < segment.midwayPositions.size(); ++m)
+            for (int m = 0; m < segment.midwayPositions.size() - 1 /* 終端は除外 */; ++m)
             {
                 CourseStrip strip{};
                 strip.center = segment.midwayPositions[m];
                 strip.normal = Float3(0, 1, 0); // TODO
 
-                auto nextPosition = (m + 1 < segment.midwayPositions.size())
-                                        ? segment.midwayPositions[m + 1]
-                                        : m_segments[(i + 1) % m_segments.size()].p1;
+                auto nextPosition = m_segments[(i + 1) % m_segments.size()].p1;
                 strip.toNext = nextPosition - strip.center;
 
                 auto right = strip.toNext.cross(strip.normal).normalized();
@@ -194,9 +192,23 @@ private:
                 segment.midwayStrips.push_back(strip);
             }
 
+            // 終端部分は次のセクションで行う
+        }
+
+        for (const auto i : rebuildIndex)
+        {
+            auto& segment = m_segments[i];
+
+            // 終端部分の追加
+            {
+                // TODO: バグ修正
+                auto& segment1 = m_segments[(i + 1) % m_segments.size()];
+                segment.midwayStrips.push_back(segment1.midwayStrips[0]);
+            }
+
             assert(m_segments.size() > 0);
-            Array<ModelVertex> vertices((segment.midwayPositions.size() - 1) * 4);
-            Array<uint16_t> indices((segment.midwayPositions.size() - 1) * 6);
+            Array<ModelVertex> vertices((segment.midwayPositions.size() - 1) * 8);
+            Array<uint16_t> indices((segment.midwayPositions.size() - 1) * 12);
             int v_offset{};
             int i_offset{};
             for (int m = 0; m < segment.midwayPositions.size() - 1; ++m)
@@ -204,6 +216,7 @@ private:
                 auto& s0 = segment.midwayStrips[m];
                 auto& s1 = segment.midwayStrips[m + 1];
 
+                // 表面
                 vertices[v_offset] = ModelVertex{s1.leftmost, s1.normal, Float2{}};
                 vertices[v_offset + 1] = ModelVertex{s1.rightmost, s1.normal, Float2{1, 0}};
                 vertices[v_offset + 2] = ModelVertex{s0.leftmost, s0.normal, Float2{0, 1}};
@@ -215,6 +228,22 @@ private:
                 indices[i_offset + 3] = v_offset + 1;
                 indices[i_offset + 4] = v_offset + 2;
                 indices[i_offset + 5] = v_offset + 3;
+
+                v_offset += 4;
+                i_offset += 6;
+
+                // 裏面
+                vertices[v_offset] = ModelVertex{s1.leftmost, -s1.normal, Float2{}};
+                vertices[v_offset + 1] = ModelVertex{s1.rightmost, -s1.normal, Float2{1, 0}};
+                vertices[v_offset + 2] = ModelVertex{s0.leftmost, -s0.normal, Float2{0, 1}};
+                vertices[v_offset + 3] = ModelVertex{s0.rightmost, -s0.normal, Float2{1, 1}};
+
+                indices[i_offset] = v_offset; // s1.left
+                indices[i_offset + 1] = v_offset + 1; // s0.left
+                indices[i_offset + 2] = v_offset + 2; // s1.right
+                indices[i_offset + 3] = v_offset + 1;
+                indices[i_offset + 4] = v_offset + 3;
+                indices[i_offset + 5] = v_offset + 2;
 
                 v_offset += 4;
                 i_offset += 6;
