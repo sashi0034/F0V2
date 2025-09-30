@@ -28,4 +28,5 @@ namespace Asset_model
     static const inline ModelPathWrapper moji_tou{"asset/model/moji_tou.obj"};
     static const inline ModelPathWrapper robot_head{"asset/model/robot_head.obj"};
     static const inline ModelPathWrapper tie_fighter{"asset/model/tie_fighter.obj"};
+    static const inline ModelPathWrapper toy_terrain{"asset/model/toy_terrain.obj"};
 }

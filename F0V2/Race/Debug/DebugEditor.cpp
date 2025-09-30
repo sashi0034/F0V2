@@ -7,6 +7,7 @@
 #include "DebugNodeEditor.h"
 #include "DebugPlayground.h"
 #include "DebugUI.h"
+#include "GM/DebugService.h"
 #include "TY/ActorContainer.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Scene.h"
@@ -164,6 +165,16 @@ struct DebugEditor::Impl : ActorBase
         m_children.updateEach();
 
         // hierarchWindow(GlobalGameObjectHierarchy().list());
+
+        // -----------------------------------------------
+
+        {
+            ImGui::Begin("Editor");
+
+            ImGui::Checkbox("Editor Enabled", &GM::g_debugService.editorEnabled);
+
+            ImGui::End();
+        }
     }
 
     void draw() const override
