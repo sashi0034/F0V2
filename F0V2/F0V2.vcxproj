@@ -154,6 +154,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <ClCompile Include="GM\DebugService.cpp" />
     <ClCompile Include="Race\Debug\DebugEditor.cpp" />
     <ClCompile Include="Race\Debug\DebugNodeEditor.cpp" />
     <ClCompile Include="Race\Debug\DebugPlayground.cpp" />
@@ -233,6 +234,7 @@
     <ClInclude Include="Asset.generated.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="ColorPalette.h" />
+    <ClInclude Include="GM\DebugService.h" />
     <ClInclude Include="Race\RaceScene.h" />
     <ClInclude Include="Race\Debug\DebugEditor.h" />
     <ClInclude Include="Race\Debug\DebugNodeEditor.h" />
