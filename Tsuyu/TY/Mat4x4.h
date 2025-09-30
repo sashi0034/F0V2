@@ -73,7 +73,13 @@ namespace TY
         [[nodiscard]] Mat4x4 __vectorcall rotated(Quaternion quaternion) const;
 
         [[nodiscard]]
-        Mat4x4 transposed() const;
+        Mat4x4 __vectorcall transposed() const;
+
+        [[nodiscard]]
+        Mat4x4 __vectorcall inverse() const;
+
+        [[nodiscard]]
+        float determinant() const;
 
         [[nodiscard]] Float3 translation() const
         {
@@ -120,6 +126,12 @@ namespace TY
                 mat.r[2].m128_f32[2]
             };
         }
+
+        [[nodiscard]]
+        float& at1(int row, int col);
+
+        [[nodiscard]]
+        float at1(int row, int col) const;
 
         [[nodiscard]] Mat4x4 operator*(const Mat4x4& rhs) const
         {

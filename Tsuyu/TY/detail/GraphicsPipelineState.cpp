@@ -194,7 +194,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.RasterizerState.FillMode = getFillMode(params.options.rasterizer.fill);
         pipelineDesc.RasterizerState.DepthClipEnable = true;
 
-        pipelineDesc.RasterizerState.FrontCounterClockwise = false;
+        pipelineDesc.RasterizerState.FrontCounterClockwise = false; // 時計回り (CW) が表
         pipelineDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
         pipelineDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
         pipelineDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;

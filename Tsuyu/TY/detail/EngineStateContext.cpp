@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "TY/Array.h"
+#include "TY/Scene.h"
 
 using namespace TY;
 
@@ -80,6 +81,26 @@ namespace TY::detail
     [[nodiscard]] Mat4x4 EngineStateContext::GetProjectionMatrix()
     {
         return s_stateContext.m_projectionMat;
+    }
+
+    Mat4x4 EngineStateContext::WorldToProjection()
+    {
+        // TODO: キャッシュ
+        return GetWorldMatrix() * s_stateContext.m_viewMat * s_stateContext.m_projectionMat;
+    }
+
+    Mat4x4 EngineStateContext::WorldToScreen()
+    {
+        Mat4x4 m{};
+        const float width = static_cast<float>(Scene::Size().x);
+        const float height = static_cast<float>(Scene::Size().y);
+        m.at1(1, 1) = width / 2.0f;
+        m.at1(2, 2) = -height / 2.0f;
+        m.at1(3, 3) = 1.0f;
+        m.at1(4, 4) = 1.0f;
+        m.at1(4, 1) = width / 2.0f;
+        m.at1(4, 2) = height / 2.0f;
+        return GetWorldMatrix() * s_stateContext.m_viewMat * s_stateContext.m_projectionMat * m;
     }
 
     IInlineComponent& EngineStateContext::FetchInlineComponent(

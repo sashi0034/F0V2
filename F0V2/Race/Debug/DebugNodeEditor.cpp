@@ -2,14 +2,16 @@
 #include "DebugNodeEditor.h"
 
 #include "Asset.generated.h"
+#include "Asset0.h"
 #include "DebugEditorState.h"
 #include "TY/ActorContainer.h"
+#include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
-#include "TY/Periodic.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/Shape2D.h"
 #include "TY/Shape3D.h"
 #include "TY/ShapeDrawer.h"
+#include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 
 using namespace Race;
@@ -95,17 +97,20 @@ private:
 
         buildSegmentsIfNeeded();
 
+        // コースの節点部分をトーラスで描画
         for (int i = 0; i < m_segments.size(); ++i)
         {
             const auto& pos = m_segments[i].p1;
             m_drawer.uploadWorldMatrix(Mat4x4::Translate(pos)).draw();
         }
 
+        // 面描画
         for (int i = 0; i < m_segments.size(); ++i)
         {
             m_segments[i].drawer.draw();
         }
 
+        // コース中心を線分で描画
         Shape3D::LineSet lineSet{};
         for (int i = 0; i < m_segments.size(); ++i)
         {
@@ -119,6 +124,16 @@ private:
 
         lineSet.setColor(ColorF32{1.0f, 0.5f, 0.1f})
                .pushAuto();
+
+        // インデックスをテキスト描画
+        const auto worldToScreen = Graphics3D::WorldToScreen();
+        for (int i = 0; i < m_segments.size(); ++i)
+        {
+            const auto& segment = m_segments[i];
+            Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
+                .setPosition(worldToScreen.transformPoint(segment.p1).xy())
+                .pushAuto();
+        }
 
         ShapeDrawer::Global().draw();
     }
@@ -194,9 +209,9 @@ private:
                 vertices[v_offset + 2] = ModelVertex{s0.leftmost, s0.normal, Float2{0, 1}};
                 vertices[v_offset + 3] = ModelVertex{s0.rightmost, s0.normal, Float2{1, 1}};
 
-                indices[i_offset] = v_offset;
-                indices[i_offset + 1] = v_offset + 2;
-                indices[i_offset + 2] = v_offset + 1;
+                indices[i_offset] = v_offset; // s1.left
+                indices[i_offset + 1] = v_offset + 2; // s0.left
+                indices[i_offset + 2] = v_offset + 1; // s1.right
                 indices[i_offset + 3] = v_offset + 1;
                 indices[i_offset + 4] = v_offset + 2;
                 indices[i_offset + 5] = v_offset + 3;

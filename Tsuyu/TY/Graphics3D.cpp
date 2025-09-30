@@ -50,6 +50,16 @@ namespace TY
         EngineStateContext::SetProjectionMatrix(projectionMatrix);
     }
 
+    Mat4x4 Graphics3D::WorldToProjection()
+    {
+        return EngineStateContext::WorldToProjection();
+    }
+
+    Mat4x4 Graphics3D::WorldToScreen()
+    {
+        return EngineStateContext::WorldToScreen();
+    }
+
     void Graphics3D::DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer)
     {
         DrawTriangles(vertexBuffer, indexBuffer, indexBuffer.count());

@@ -20,6 +20,10 @@ namespace TY::detail
         void SetProjectionMatrix(const Mat4x4& projectionMatrix);
         [[nodiscard]] Mat4x4 GetProjectionMatrix();
 
+        [[nodiscard]] Mat4x4 WorldToProjection();
+
+        [[nodiscard]] Mat4x4 WorldToScreen();
+
         IInlineComponent& FetchInlineComponent(
             InlineComponentId id,
             const std::function<std::unique_ptr<IInlineComponent>()>& initializer);
