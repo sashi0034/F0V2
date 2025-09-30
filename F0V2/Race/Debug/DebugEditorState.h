@@ -4,7 +4,7 @@
 #include "TY/Vector3D.h"
 #include "TY/InlineComponent.h"
 
-namespace Combat
+namespace Race
 {
     struct Lambert_b10
     {

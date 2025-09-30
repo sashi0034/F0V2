@@ -4,7 +4,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY_Extension/GameObjectBase.h"
 
-using namespace Combat;
+using namespace Race;
 
 namespace
 {
@@ -41,7 +41,7 @@ private:
     }
 };
 
-namespace Combat
+namespace Race
 {
     Debug_template::Debug_template() :
         p_impl(std::make_shared<Impl>())

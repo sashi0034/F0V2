@@ -24,7 +24,7 @@
 #include "TY/Utils.h"
 #include "TY_Extension/SerializeTransform.h"
 
-using namespace Combat;
+using namespace Race;
 
 using namespace TY;
 
@@ -215,7 +215,7 @@ struct DebugPlayground::Impl : ActorBase
     }
 };
 
-namespace Combat
+namespace Race
 {
     DebugPlayground::DebugPlayground()
         : p_impl(std::make_shared<Impl>())

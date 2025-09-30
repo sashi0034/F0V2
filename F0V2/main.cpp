@@ -1,8 +1,8 @@
 #include "pch.h"
 
 #include "TY_Extension/LivePPAddon.h"
-#include "Combat/CombatScene.h"
-#include "Demo/Demo_AirCombat.h"
+#include "Race/RaceScene.h"
+#include "Demo/Demo_AirRace.h"
 #include "Demo/Demo_Basic3D.h"
 #include "Demo/Demo_Collision1.h"
 #include "Demo/Demo_Collision2.h"
@@ -28,7 +28,7 @@ void Main()
 
     ActorContainer actors{};
 
-    auto combat = actors.birth(Combat::CombatScene());
+    auto combat = actors.birth(Race::RaceScene());
     combat.init();
 
     while (System::Update())

@@ -154,10 +154,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
-    <ClCompile Include="Combat\Debug\DebugEditor.cpp" />
-    <ClCompile Include="Combat\Debug\DebugNodeEditor.cpp" />
-    <ClCompile Include="Combat\Debug\DebugPlayground.cpp" />
-    <ClCompile Include="Combat\Toys\ToyCinnamon.cpp" />
+    <ClCompile Include="Race\Debug\DebugEditor.cpp" />
+    <ClCompile Include="Race\Debug\DebugNodeEditor.cpp" />
+    <ClCompile Include="Race\Debug\DebugPlayground.cpp" />
+    <ClCompile Include="Race\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="DebugUI.cpp" />
     <ClCompile Include="Demo\Demo_Collision1.cpp" />
     <ClCompile Include="Demo\Demo_Collision2.cpp" />
@@ -183,16 +183,16 @@
     <Content Include="asset\shader\shadow_caster.hlsl" />
     <Content Include="asset\shader\r32_float_visualizer.hlsl" />
     <Content Include="asset\shader\dynamic_ocean.hlsl" />
-    <ClCompile Include="Demo\Demo_AirCombat.cpp" />
+    <ClCompile Include="Demo\Demo_AirRace.cpp" />
     <ClCompile Include="Demo\Demo_Basic3D.cpp" />
     <ClCompile Include="Demo\Demo_Font.cpp" />
     <ClCompile Include="Demo\Demo_Ocean.cpp" />
     <ClCompile Include="Demo\Demo_ShadowMap.cpp" />
     <ClCompile Include="Demo\Demo_ShapeDrawer.cpp" />
-    <Content Include="Combat\.gitignore" />
-    <Content Include="Combat\Debug\Debug_template.cpp.txt" />
-    <Content Include="Combat\Debug\Debug_template.h.txt" />
-    <Content Include="Combat\Toys\Toy_template.h.txt" />
+    <Content Include="Race\.gitignore" />
+    <Content Include="Race\Debug\Debug_template.cpp.txt" />
+    <Content Include="Race\Debug\Debug_template.h.txt" />
+    <Content Include="Race\Toys\Toy_template.h.txt" />
     <Content Include="Demo\Demo_template.cpp.txt" />
     <Content Include="Demo\Demo_template.h.txt" />
     <Content Include="engine\shape3d.hlsl" />
@@ -200,7 +200,7 @@
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
     <ClCompile Include="TY_Extension\LivePPAddon.cpp" />
     <Content Include="asset\shader\simple_compute.hlsl" />
-    <ClCompile Include="Combat\CombatScene.cpp" />
+    <ClCompile Include="Race\RaceScene.cpp" />
     <ClCompile Include="Demo\Demo_Gpgpu.cpp" />
     <Content Include=".gitignore" />
     <Content Include="asset\gamepad.toml" />
@@ -233,14 +233,14 @@
     <ClInclude Include="Asset.generated.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="ColorPalette.h" />
-    <ClInclude Include="Combat\CombatScene.h" />
-    <ClInclude Include="Combat\Debug\DebugEditor.h" />
-    <ClInclude Include="Combat\Debug\DebugNodeEditor.h" />
-    <ClInclude Include="Combat\Debug\DebugPlayground.h" />
-    <ClInclude Include="Combat\Debug\DebugEditorState.h" />
-    <ClInclude Include="Combat\Toys\ToyCinnamon.h" />
+    <ClInclude Include="Race\RaceScene.h" />
+    <ClInclude Include="Race\Debug\DebugEditor.h" />
+    <ClInclude Include="Race\Debug\DebugNodeEditor.h" />
+    <ClInclude Include="Race\Debug\DebugPlayground.h" />
+    <ClInclude Include="Race\Debug\DebugEditorState.h" />
+    <ClInclude Include="Race\Toys\ToyCinnamon.h" />
     <ClInclude Include="DebugUI.h" />
-    <ClInclude Include="Demo\Demo_AirCombat.h" />
+    <ClInclude Include="Demo\Demo_AirRace.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
     <ClInclude Include="Demo\Demo_Collision1.h" />
     <ClInclude Include="Demo\Demo_Collision2.h" />
@@ -275,7 +275,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="asset\edit\" />
-    <Folder Include="Combat\Player\" />
+    <Folder Include="Race\Player\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

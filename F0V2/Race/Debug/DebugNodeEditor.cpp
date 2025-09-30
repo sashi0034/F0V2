@@ -12,7 +12,7 @@
 #include "TY/ShapeDrawer.h"
 #include "TY_Extension/GameObjectBase.h"
 
-using namespace Combat;
+using namespace Race;
 
 namespace
 {
@@ -184,7 +184,7 @@ private:
     }
 };
 
-namespace Combat
+namespace Race
 {
     DebugNodeEditor::DebugNodeEditor() :
         p_impl(std::make_shared<Impl>())

@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "CombatScene.h"
+#include "RaceScene.h"
 
 #include "Debug/DebugEditor.h"
 #include "Debug/DebugPlayground.h"
@@ -9,9 +9,9 @@
 #include "TY_Extension/AwaiterContext.h"
 #include "TY_Extension/CoroutineActor.h"
 
-using namespace Combat;
+using namespace Race;
 
-struct CombatScene::Impl : ActorBase
+struct RaceScene::Impl : ActorBase
 {
     ActorContainer m_children{};
 
@@ -43,7 +43,7 @@ struct CombatScene::Impl : ActorBase
     {
         m_children.updateEach();
 
-        ImGui::Begin("Combat Scene");
+        ImGui::Begin("Race Scene");
 
         ImGui::Text("This is a combat scene.");
 
@@ -56,19 +56,19 @@ struct CombatScene::Impl : ActorBase
     }
 };
 
-namespace Combat
+namespace Race
 {
-    CombatScene::CombatScene() :
+    RaceScene::RaceScene() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void CombatScene::init()
+    void RaceScene::init()
     {
         p_impl->Init();
     }
 
-    std::shared_ptr<ActorBase> CombatScene::asActor() const
+    std::shared_ptr<ActorBase> RaceScene::asActor() const
     {
         return p_impl;
     }

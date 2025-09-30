@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 #include "TY_Extension/GameObjectHandle.h"
 
-namespace Combat
+namespace Race
 {
-    class DebugNodeEditor : public GameObjectHandle
+    class Debug_template : public GameObjectHandle
     {
     public:
-        DebugNodeEditor();
+        Debug_template();
 
         void init() override;
 

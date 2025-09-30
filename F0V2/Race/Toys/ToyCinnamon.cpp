@@ -7,7 +7,7 @@
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/SerializeTransform.h"
 
-using namespace Combat;
+using namespace Race;
 
 namespace
 {
@@ -165,7 +165,7 @@ private:
     }
 };
 
-namespace Combat
+namespace Race
 {
     ToyCinnamon::ToyCinnamon() :
         p_impl(std::make_shared<Impl>())

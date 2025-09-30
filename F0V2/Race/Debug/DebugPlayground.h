@@ -1,14 +1,12 @@
 ﻿#pragma once
 #include "TY/ActorHandle.h"
 
-namespace Combat
+namespace Race
 {
-    using namespace TY;
-
-    class CombatScene : public ActorHandle
+    class DebugPlayground : public ActorHandle
     {
     public:
-        CombatScene();
+        DebugPlayground();
 
         void init();
 

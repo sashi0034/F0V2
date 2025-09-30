@@ -16,7 +16,7 @@
 #include "TY_Extension/SerializeTransform.h"
 #include "Util/Utilities.h"
 
-using namespace Combat;
+using namespace Race;
 
 namespace
 {
@@ -179,7 +179,7 @@ struct DebugEditor::Impl : ActorBase
     }
 };
 
-namespace Combat
+namespace Race
 {
     DebugEditor::DebugEditor()
         : p_impl(std::make_shared<Impl>())
