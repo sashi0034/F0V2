@@ -177,13 +177,6 @@ struct EditorScene::Impl : ActorBase
 
             ImGui::End();
         }
-
-#ifdef _DEBUG
-        if (not GM::g_debugService.editorEnabled)
-        {
-            kill();
-        }
-#endif
     }
 
     void draw() const override

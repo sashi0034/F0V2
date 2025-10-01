@@ -8,7 +8,7 @@ namespace Race
     class RaceScene : public ActorHandle
     {
     public:
-        RaceScene();
+        RaceScene(bool context = false);
 
         void init();
 

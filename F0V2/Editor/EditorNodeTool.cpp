@@ -6,7 +6,7 @@
 #include "EditorState.h"
 #include "Race/Common/CourseHelper.h"
 #include "Race/Common/CourseData.h"
-#include "Race/Common/RaceCachedState.h"
+#include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
@@ -240,7 +240,7 @@ private:
     {
         m_children.killEach();
 
-        g_cachedState->courseSegments = std::move(m_segments);
+        g_sharedState->courseSegments = std::move(m_segments);
     }
 
     std::u32string name() const override

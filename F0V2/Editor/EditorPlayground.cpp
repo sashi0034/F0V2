@@ -5,6 +5,7 @@
 #include "ColorPalette.h"
 #include "EditorState.h"
 #include "DebugUI.h"
+#include "CB/Skydome.h"
 #include "GM/DebugService.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
@@ -27,13 +28,6 @@ using namespace TY;
 
 namespace
 {
-    struct Skydome_b4
-    {
-        alignas(16) ColorF32 topColor;
-        alignas(16) ColorF32 bottomColor;
-        float sphereRadius{};
-    };
-
     struct Pose
     {
         Float3 position{};
@@ -113,7 +107,7 @@ struct EditorPlayground::Impl : ActorBase
     {
         ResetCamera();
 
-        auto skydome_b4 = ConstantBufferWrapper<Skydome_b4>{};
+        auto skydome_b4 = ConstantBufferWrapper<Skydome_b10>{};
         skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
         skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
         skydome_b4->sphereRadius = fovFarZ;

@@ -30,7 +30,19 @@ namespace
             auto editor = parent.birth(Editor::EditorScene());
             editor.init();
 
-            await.waitForTrue([this, &editor]() { return not editor.isAlive(); });
+            await.waitForTrue([this, &editor]()
+            {
+#ifdef _DEBUG
+                if (not GM::g_debugService.editorEnabled)
+                {
+                    return true;
+                }
+#endif
+
+                return not editor.isAlive();
+            });
+
+            editor.kill();
 
             return CreateRaceFlowchart();
         }
@@ -40,9 +52,22 @@ namespace
     {
         std::unique_ptr<IFlowchart> Process(AwaiterContext& await, ActorContainer& parent) override
         {
-            auto race = parent.birth(Race::RaceScene());
+            auto race = parent.birth(Race::RaceScene(true));
+            race.init();
 
-            await.waitForTrue([this, &race]() { return not race.isAlive(); });
+            await.waitForTrue([this, &race]()
+            {
+#ifdef _DEBUG
+                if (GM::g_debugService.editorEnabled)
+                {
+                    return true;
+                }
+#endif
+
+                return not race.isAlive();
+            });
+
+            race.kill();
 
             return std::make_unique<EditorFlowchart>();
         }
