@@ -23,8 +23,13 @@ namespace Race
         Array<CourseStrip> midwayStrips{};
     };
 
+    struct CourseNode
+    {
+        Float3 pos;
+    };
+
     struct CourseData
     {
-        Array<CourseSegment> segments{};
+        Array<CourseNode> nodes{};
     };
 }

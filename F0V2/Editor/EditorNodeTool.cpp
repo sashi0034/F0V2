@@ -4,8 +4,9 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "EditorState.h"
-#include "Race/Common/CourseBuilder.h"
+#include "Race/Common/CourseHelper.h"
 #include "Race/Common/CourseData.h"
+#include "Race/Common/RaceCachedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
@@ -94,32 +95,7 @@ private:
             m_courseDrawers[i].draw();
         }
 
-        // コース中心を線分で描画
-        Shape3D::LineSet lineSet{};
-        for (int i = 0; i < m_segments.size(); ++i)
-        {
-            const auto& segment = m_segments[i];
-            for (int j = 0; j < segment.midwayPositions.size() - 1; ++j)
-            {
-                constexpr Float3 d{0, 0.1, 0};
-                lineSet.appendLine(segment.midwayPositions[j] + d, segment.midwayPositions[j + 1] + d);
-            }
-        }
-
-        lineSet.setColor(ColorF32{1.0f, 0.5f, 0.1f})
-               .pushAuto();
-
-        // インデックスをテキスト描画
-        const auto worldToScreen = Graphics3D::WorldToScreen();
-        for (int i = 0; i < m_segments.size(); ++i)
-        {
-            const auto& segment = m_segments[i];
-            Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
-                .setPosition(worldToScreen.transformPoint(segment.p1).xy())
-                .pushAuto();
-        }
-
-        ShapeDrawer::Global().draw();
+        DebugDrawCourse(m_segments);
     }
 
     void buildSegmentsIfNeeded()
@@ -263,6 +239,8 @@ private:
     void killed() override
     {
         m_children.killEach();
+
+        g_cachedState->courseSegments = std::move(m_segments);
     }
 
     std::u32string name() const override

@@ -8,6 +8,7 @@
 #include "DebugUI.h"
 #include "EditorNodeTool.h"
 #include "GM/DebugService.h"
+#include "Race/Common/CourseData.h"
 #include "TY/ActorContainer.h"
 #include "TY/Scene.h"
 #include "TY/ShapeDrawer.h"
@@ -15,6 +16,7 @@
 #include "Util/Utilities.h"
 
 using namespace Editor;
+using namespace Race;
 
 namespace
 {
