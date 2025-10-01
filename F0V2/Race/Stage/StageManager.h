@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TY/TriangleBvh.h"
 #include "TY_Extension/GameObjectHandle.h"
 
 namespace Race
@@ -9,6 +10,9 @@ namespace Race
         StageManager();
 
         void init() override;
+
+        TriangleBvh& staticBvh();
+        const TriangleBvh& staticBvh() const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 

@@ -4,6 +4,7 @@
 #include "IRaceContext.h"
 #include "RaceContextState.h"
 #include "Common/RaceSharedState.h"
+#include "Player/Player.h"
 #include "Stage/StageManager.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
@@ -27,6 +28,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     StageManager m_stageManager{};
 
+    Player m_player{};
+
     Impl(bool context)
     {
         if (context)
@@ -47,6 +50,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     {
         m_stageManager = m_children.birth(StageManager());
         m_stageManager.init();
+
+        m_player = m_children.birth(Player());
+        m_player.init();
     }
 
     void update() override
@@ -90,6 +96,16 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     const RaceContextState& state() const override
     {
         return m_state;
+    }
+
+    StageManager& stageManager() override
+    {
+        return m_stageManager;
+    }
+
+    const StageManager& stageManager() const override
+    {
+        return m_stageManager;
     }
 };
 

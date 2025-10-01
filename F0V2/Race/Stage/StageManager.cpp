@@ -66,6 +66,8 @@ struct StageManager::Impl : GameObjectBase
 
     Array<ModelDrawer> m_courseDrawers{};
 
+    TriangleBvh m_staticBvh{};
+
     void Init()
     {
         auto skydome_b4 = ConstantBufferWrapper<Skydome_b10>{};
@@ -105,6 +107,23 @@ struct StageManager::Impl : GameObjectBase
                 .setShader(Asset_shader::lambert)
                 .setCbv10AndLater({GetRaceContextState().cb.lambert}));
         }
+
+        // -----------------------------------------------
+
+        Array<Triangle3D> triangles{};
+        for (const auto& segment : g_sharedState->courseSegments)
+        {
+            for (int i = 0; i < segment.midwayStrips.size() - 1; ++i)
+            {
+                const auto& s0 = segment.midwayStrips[i];
+                const auto& s1 = segment.midwayStrips[i + 1];
+
+                triangles.push_back(Triangle3D{s1.leftmost, s0.leftmost, s1.rightmost});
+                triangles.push_back(Triangle3D{s1.rightmost, s0.leftmost, s0.rightmost});
+            }
+        }
+
+        m_staticBvh = TriangleBvh{triangles};
     }
 
 private:
@@ -152,6 +171,16 @@ namespace Race
     {
         p_impl->Init();
         GameObjectHandle::init();
+    }
+
+    TriangleBvh& StageManager::staticBvh()
+    {
+        return p_impl->m_staticBvh;
+    }
+
+    const TriangleBvh& StageManager::staticBvh() const
+    {
+        return p_impl->m_staticBvh;
     }
 
     std::shared_ptr<GameObjectBase> StageManager::asGameObject() const
