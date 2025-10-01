@@ -64,7 +64,7 @@ private:
         GetRaceContextPayload().camera.setEyeAndTarget(
             m_pose.position + Float3{0, 5, -10}, m_pose.position + Float3{0, 2, 0});
 
-        m_pose.position.y += System::DeltaTime() * 5.0f;
+        m_pose.position.y += -System::DeltaTime() * 5.0f;
     }
 
     void killed() override
