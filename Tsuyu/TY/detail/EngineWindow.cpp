@@ -44,6 +44,7 @@ struct EngineWindowImpl
     HWND m_handle{};
 
     Point m_windowSize{};
+    int m_titleBarHeight{};
     float m_wheelDelta{};
 
     int m_frameCount{};
@@ -72,6 +73,8 @@ struct EngineWindowImpl
 
         RECT windowRect{0, 0, m_windowSize.x, m_windowSize.y};
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
+
+        RefreshTitleBar();
 
         MakeFullTitle();
 
@@ -139,6 +142,8 @@ struct EngineWindowImpl
         RECT rect{0, 0, m_windowSize.x, m_windowSize.y};
         AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
 
+        RefreshTitleBar();
+
         // FIXME: Remove it?
         SetWindowPos(
             m_handle,
@@ -149,6 +154,18 @@ struct EngineWindowImpl
             rect.bottom - rect.top,
             SWP_NOMOVE | SWP_NOZORDER
         );
+    }
+
+    void RefreshTitleBar()
+    {
+        RECT windowRect{}, clientRect{};
+        GetWindowRect(m_handle, &windowRect); // ウィンドウ全体
+        GetClientRect(m_handle, &clientRect); // クライアント領域
+
+        POINT clientTopLeft{0, 0};
+        ClientToScreen(m_handle, &clientTopLeft);
+
+        m_titleBarHeight = clientTopLeft.y - windowRect.top;
     }
 
     void Shutdown()
@@ -171,6 +188,7 @@ namespace
         }
         case WM_SIZE: {
             s_engineWindow.m_windowSize = {LOWORD(lParam), HIWORD(lParam)};
+            s_engineWindow.RefreshTitleBar();
             break;
         }
         case WM_MOUSEWHEEL: {
@@ -230,7 +248,12 @@ namespace TY::detail
         return s_engineWindow.m_windowSize;
     }
 
-    float EngineWindow::GetWheelDelta()
+    int EngineWindow::TitleBarHeight()
+    {
+        return s_engineWindow.m_titleBarHeight;
+    }
+
+    float EngineWindow::WheelDelta()
     {
         return s_engineWindow.m_wheelDelta;
     }

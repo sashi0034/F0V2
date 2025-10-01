@@ -38,7 +38,7 @@ namespace TY
 
     float Mouse::Wheel()
     {
-        return EngineWindow::GetWheelDelta();
+        return EngineWindow::WheelDelta();
     }
 
     Float2 Mouse::Drag(MouseInput button)

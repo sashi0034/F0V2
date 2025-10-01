@@ -314,11 +314,11 @@ private:
 
     Mat3x2 calculateWindowToFrameBuffer() const
     {
-        const Float2 windowSize = EngineWindow::GetSize();
-        const float fameBufferScaling = (Float2(m_frameBufferSize) / windowSize).maxComponent();
-        const Float2 windowSizeInScene = windowSize * fameBufferScaling;
+        const Float2 windowSize = EngineWindow::GetSize().cast<Float2>();
+        const float frameBufferScaling = (Float2(m_frameBufferSize) / windowSize).maxComponent();
+        const Float2 windowSizeInScene = windowSize * frameBufferScaling;
         return Mat3x2::Identity()
-               .scaled(Float2{fameBufferScaling, fameBufferScaling})
+               .scaled(Float2{frameBufferScaling, frameBufferScaling})
                .translated((m_frameBufferSize.cast<Float2>() - windowSizeInScene) * 0.5f);
     }
 
