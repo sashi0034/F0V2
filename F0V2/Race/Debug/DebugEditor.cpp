@@ -173,6 +173,11 @@ struct DebugEditor::Impl : ActorBase
 
             ImGui::Checkbox("Editor Enabled", &GM::g_debugService.editorEnabled);
 
+            if (ImGui::Button("Reset Camera"))
+            {
+                m_debugPlayground.resetCamera();
+            }
+
             ImGui::End();
         }
     }

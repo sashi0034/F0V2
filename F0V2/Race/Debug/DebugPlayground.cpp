@@ -114,7 +114,7 @@ struct DebugPlayground::Impl : ActorBase
 
     void init()
     {
-        m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
+        ResetCamera();
 
         auto skydome_b4 = ConstantBufferWrapper<Skydome_b4>{};
         skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
@@ -140,6 +140,11 @@ struct DebugPlayground::Impl : ActorBase
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{100.0f, 100.0f}))
             .setShader(Asset_shader::model)
         };
+    }
+
+    void ResetCamera()
+    {
+        m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
     }
 
     void update() override
@@ -186,6 +191,8 @@ struct DebugPlayground::Impl : ActorBase
 
             ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
 
+            ImGui::Text("Mouse Position: (%.2f, %.2f)", Mouse::PosF().x, Mouse::PosF().y);
+
             ImGui::End();
         }
 
@@ -225,6 +232,11 @@ namespace Race
     void DebugPlayground::init()
     {
         p_impl->init();
+    }
+
+    void DebugPlayground::resetCamera()
+    {
+        p_impl->ResetCamera();
     }
 
     std::shared_ptr<ActorBase> DebugPlayground::asActor() const

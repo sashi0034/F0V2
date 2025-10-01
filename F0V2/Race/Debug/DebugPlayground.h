@@ -10,6 +10,8 @@ namespace Race
 
         void init();
 
+        void resetCamera();
+
         std::shared_ptr<ActorBase> asActor() const override;
 
     private:

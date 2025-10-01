@@ -304,6 +304,15 @@ private:
             nodeList.push_back(lastElement);
         }
 
+        if (ImGui::CollapsingHeader("Critical Operations"))
+        {
+            if (ImGui::Button("Rebuild Segments"))
+            {
+                m_segments.clear();
+                buildSegmentsIfNeeded();
+            }
+        }
+
         ImGui::End();
     }
 
