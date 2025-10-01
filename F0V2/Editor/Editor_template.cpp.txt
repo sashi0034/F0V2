@@ -10,7 +10,7 @@ namespace
 {
 }
 
-struct Debug_template::Impl : GameObjectBase
+struct Editor_template::Impl : GameObjectBase
 {
     ActorContainer m_children{};
 
@@ -37,24 +37,24 @@ private:
 
     std::u32string name() const override
     {
-        return U"Debug_template";
+        return U"Editor_template";
     }
 };
 
 namespace Race
 {
-    Debug_template::Debug_template() :
+    Editor_template::Editor_template() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void Debug_template::init()
+    void Editor_template::init()
     {
         p_impl->Init();
         GameObjectHandle::init();
     }
 
-    std::shared_ptr<GameObjectBase> Debug_template::asGameObject() const
+    std::shared_ptr<GameObjectBase> Editor_template::asGameObject() const
     {
         return p_impl;
     }

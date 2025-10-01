@@ -14,6 +14,7 @@
 #include "Demo/Demo_RenderTarget.h"
 #include "Demo/Demo_ShadowMap.h"
 #include "Demo/Demo_ShapeDrawer.h"
+#include "Editor/EditorScene.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 
@@ -28,8 +29,11 @@ void Main()
 
     ActorContainer actors{};
 
-    auto race = actors.birth(Race::RaceScene());
-    race.init();
+    auto editor = actors.birth(Editor::EditorScene());
+    editor.init();
+
+    // auto race = actors.birth(Race::RaceScene());
+    // race.init();
 
     while (System::Update())
     {

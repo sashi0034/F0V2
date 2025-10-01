@@ -1,30 +1,26 @@
 ﻿#include "pch.h"
-#include "DebugPlayground.h"
+#include "EditorPlayground.h"
 
 #include "Asset.generated.h"
-#include "Asset0.h"
 #include "ColorPalette.h"
-#include "DebugEditorState.h"
+#include "EditorState.h"
 #include "DebugUI.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Graphics3D.h"
-#include "TY/Intersects2D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/Scene.h"
-#include "TY/ShapeDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 #include "TY/System.h"
 #include "TY/TextureResource.h"
-#include "TY/Utils.h"
 #include "TY_Extension/SerializeTransform.h"
 
-using namespace Race;
+using namespace Editor;
 
 using namespace TY;
 
@@ -98,7 +94,7 @@ namespace
     constexpr float fovFarZ = 1000.0f;
 }
 
-struct DebugPlayground::Impl : ActorBase
+struct EditorPlayground::Impl : ActorBase
 {
     ActorContainer m_children{};
 
@@ -161,9 +157,9 @@ struct DebugPlayground::Impl : ActorBase
 
         // -----------------------------------------------
 
-        g_debugEditorState->lambert->lightDirection = m_camera.worldMatrix().forward();
-        g_debugEditorState->lambert->lightColor = Float3{1.0f, 1.0f, 1.0f};
-        g_debugEditorState->lambert.upload();
+        g_editorState->lambert->lightDirection = m_camera.worldMatrix().forward();
+        g_editorState->lambert->lightColor = Float3{1.0f, 1.0f, 1.0f};
+        g_editorState->lambert.upload();
 
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());
 
@@ -222,24 +218,24 @@ struct DebugPlayground::Impl : ActorBase
     }
 };
 
-namespace Race
+namespace Editor
 {
-    DebugPlayground::DebugPlayground()
+    EditorPlayground::EditorPlayground()
         : p_impl(std::make_shared<Impl>())
     {
     }
 
-    void DebugPlayground::init()
+    void EditorPlayground::init()
     {
         p_impl->init();
     }
 
-    void DebugPlayground::resetCamera()
+    void EditorPlayground::resetCamera()
     {
         p_impl->ResetCamera();
     }
 
-    std::shared_ptr<ActorBase> DebugPlayground::asActor() const
+    std::shared_ptr<ActorBase> EditorPlayground::asActor() const
     {
         return p_impl;
     }

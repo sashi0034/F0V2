@@ -4,7 +4,7 @@
 #include "TY/Vector3D.h"
 #include "TY/InlineComponent.h"
 
-namespace Race
+namespace Editor
 {
     struct Lambert_b10
     {
@@ -29,5 +29,5 @@ namespace Race
         CourseData course{};
     };
 
-    inline InlineComponent<DebugEditorState> g_debugEditorState{};
+    inline InlineComponent<DebugEditorState> g_editorState{};
 }

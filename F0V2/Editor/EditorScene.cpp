@@ -1,23 +1,20 @@
 ﻿#include "pch.h"
-#include "DebugEditor.h"
+#include "EditorScene.h"
 
 #include "Asset0.h"
 #include "ColorPalette.h"
-#include "DebugEditorState.h"
-#include "DebugNodeEditor.h"
-#include "DebugPlayground.h"
+#include "EditorState.h"
+#include "EditorPlayground.h"
 #include "DebugUI.h"
+#include "EditorNodeTool.h"
 #include "GM/DebugService.h"
 #include "TY/ActorContainer.h"
-#include "TY/KeyboardInput.h"
 #include "TY/Scene.h"
 #include "TY/ShapeDrawer.h"
-#include "TY/Utils.h"
 #include "TY_Extension/GameObjectHierarchy.h"
-#include "TY_Extension/SerializeTransform.h"
 #include "Util/Utilities.h"
 
-using namespace Race;
+using namespace Editor;
 
 namespace
 {
@@ -141,22 +138,22 @@ namespace
     }
 }
 
-struct DebugEditor::Impl : ActorBase
+struct EditorScene::Impl : ActorBase
 {
     ActorContainer m_children{};
 
-    DebugNodeEditor m_debugNodeEditor{};
+    EditorNodeTool m_debugNodeEditor{};
 
-    DebugPlayground m_debugPlayground{};
+    EditorPlayground m_debugPlayground{};
 
     void init()
     {
-        g_debugEditorState->course = loadCourse();
+        g_editorState->course = loadCourse();
 
-        m_debugNodeEditor = m_children.birth(DebugNodeEditor());
+        m_debugNodeEditor = m_children.birth(EditorNodeTool());
         m_debugNodeEditor.init();
 
-        m_debugPlayground = m_children.birth(DebugPlayground());
+        m_debugPlayground = m_children.birth(EditorPlayground());
         m_debugPlayground.init();
     }
 
@@ -191,23 +188,23 @@ struct DebugEditor::Impl : ActorBase
     {
         m_children.killEach();
 
-        saveCourse(g_debugEditorState->course);
+        saveCourse(g_editorState->course);
     }
 };
 
-namespace Race
+namespace Editor
 {
-    DebugEditor::DebugEditor()
+    EditorScene::EditorScene()
         : p_impl(std::make_shared<Impl>())
     {
     }
 
-    void DebugEditor::init()
+    void EditorScene::init()
     {
         p_impl->init();
     }
 
-    std::shared_ptr<ActorBase> DebugEditor::asActor() const
+    std::shared_ptr<ActorBase> EditorScene::asActor() const
     {
         return p_impl;
     }

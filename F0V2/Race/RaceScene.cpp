@@ -1,8 +1,6 @@
 ﻿#include "pch.h"
 #include "RaceScene.h"
 
-#include "Debug/DebugEditor.h"
-#include "Debug/DebugPlayground.h"
 #include "Toys/ToyCinnamon.h"
 #include "TY/ActorContainer.h"
 #include "TY/Logger.h"
@@ -15,15 +13,10 @@ struct RaceScene::Impl : ActorBase
 {
     ActorContainer m_children{};
 
-    DebugEditor m_debugEditor{};
-
     CoroutineActor m_coro{};
 
     void Init()
     {
-        m_debugEditor = m_children.birth(DebugEditor());
-        m_debugEditor.init();
-
         // auto cinnamon = m_children.birth(ToyCinnamon());
         // cinnamon.init();
 

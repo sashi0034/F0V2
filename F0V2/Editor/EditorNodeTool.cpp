@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
-#include "DebugNodeEditor.h"
+#include "EditorNodeTool.h"
 
 #include "Asset.generated.h"
 #include "Asset0.h"
-#include "DebugEditorState.h"
+#include "EditorState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
@@ -14,7 +14,7 @@
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 
-using namespace Race;
+using namespace Editor;
 
 namespace
 {
@@ -71,7 +71,7 @@ namespace
     };
 }
 
-struct DebugNodeEditor::Impl : GameObjectBase
+struct EditorNodeTool::Impl : GameObjectBase
 {
     ActorContainer m_children{};
 
@@ -87,13 +87,13 @@ struct DebugNodeEditor::Impl : GameObjectBase
             ModelDrawerParams{}
             .setModel(model)
             .setShader(Asset_shader::lambert)
-            .setCbv10AndLater({g_debugEditorState->lambert});
+            .setCbv10AndLater({g_editorState->lambert});
     }
 
 private:
     void update() override
     {
-        nodeEditor();
+        nodeTool();
 
         buildSegmentsIfNeeded();
 
@@ -140,7 +140,7 @@ private:
 
     void buildSegmentsIfNeeded()
     {
-        auto& nodeList = g_debugEditorState->course.nodes;
+        auto& nodeList = g_editorState->course.nodes;
         Array<int> rebuildIndex{};
         for (int i = 0; i < nodeList.size(); ++i)
         {
@@ -270,16 +270,16 @@ private:
                 ModelDrawerParams{}
                 .setModel(modelBuffer)
                 .setShader(Asset_shader::lambert)
-                .setCbv10AndLater({g_debugEditorState->lambert});
+                .setCbv10AndLater({g_editorState->lambert});
         }
     }
 
-    void nodeEditor()
+    void nodeTool()
     {
-        ImGui::Begin("Node Editor");
+        ImGui::Begin("Node Tool");
 
         Array<int> removeIndex{};
-        auto& nodeList = g_debugEditorState->course.nodes;
+        auto& nodeList = g_editorState->course.nodes;
         for (size_t i = 0; i < nodeList.size(); i++)
         {
             ImGui::Text(std::format("--- [{}] ---", i).c_str());
@@ -330,24 +330,24 @@ private:
 
     std::u32string name() const override
     {
-        return U"DebugNodeEditor";
+        return U"EditorNodeTool";
     }
 };
 
-namespace Race
+namespace Editor
 {
-    DebugNodeEditor::DebugNodeEditor() :
+    EditorNodeTool::EditorNodeTool() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void DebugNodeEditor::init()
+    void EditorNodeTool::init()
     {
         p_impl->Init();
         GameObjectHandle::init();
     }
 
-    std::shared_ptr<GameObjectBase> DebugNodeEditor::asGameObject() const
+    std::shared_ptr<GameObjectBase> EditorNodeTool::asGameObject() const
     {
         return p_impl;
     }
