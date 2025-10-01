@@ -2,7 +2,7 @@
 
 namespace Race
 {
-    struct RaceContextState;
+    struct RaceContextPayload;
 
     class StageManager;
 
@@ -11,8 +11,8 @@ namespace Race
     public:
         virtual ~IRaceContext() = default;
 
-        virtual RaceContextState& state() = 0;
-        virtual const RaceContextState& state() const = 0;
+        virtual RaceContextPayload& state() = 0;
+        virtual const RaceContextPayload& state() const = 0;
 
         virtual StageManager& stageManager() = 0;
         virtual const StageManager& stageManager() const = 0;
@@ -20,5 +20,5 @@ namespace Race
 
     IRaceContext& GetRaceContext();
 
-    RaceContextState& GetRaceContextState();
+    RaceContextPayload& GetRaceContextPayload();
 }

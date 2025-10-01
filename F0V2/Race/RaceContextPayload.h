@@ -5,7 +5,7 @@
 
 namespace Race
 {
-    struct RaceContextState
+    struct RaceContextPayload
     {
         SimpleCamera3D camera{};
 

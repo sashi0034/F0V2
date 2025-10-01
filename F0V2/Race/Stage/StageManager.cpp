@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "CB/Skydome.h"
 #include "Race/IRaceContext.h"
-#include "Race/RaceContextState.h"
+#include "Race/RaceContextPayload.h"
 #include "Race/Common/CourseHelper.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
@@ -105,7 +105,7 @@ struct StageManager::Impl : GameObjectBase
                 ModelDrawerParams{}
                 .setModel(BuildCourseModel(segment))
                 .setShader(Asset_shader::lambert)
-                .setCbv10AndLater({GetRaceContextState().cb.lambert}));
+                .setCbv10AndLater({GetRaceContextPayload().cb.lambert}));
         }
 
         // -----------------------------------------------
@@ -129,7 +129,7 @@ struct StageManager::Impl : GameObjectBase
 private:
     void update() override
     {
-        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextState().camera.eyePosition())).draw();
+        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextPayload().camera.eyePosition())).draw();
 
         for (int x = -1; x <= 1; ++x)
         {

@@ -3,7 +3,7 @@
 
 #include "Asset.generated.h"
 #include "Race/IRaceContext.h"
-#include "Race/RaceContextState.h"
+#include "Race/RaceContextPayload.h"
 #include "TY/ActorContainer.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
@@ -51,7 +51,7 @@ struct Player::Impl : GameObjectBase
             ModelDrawerParams{}
             .setModel(model)
             .setShader(Asset_shader::lambert)
-            .setCbv10AndLater({GetRaceContextState().cb.lambert});
+            .setCbv10AndLater({GetRaceContextPayload().cb.lambert});
 
         m_pose.position = Float3{0, 50.0f, 0};
     }
@@ -61,7 +61,7 @@ private:
     {
         m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_pose.position)).draw();
 
-        GetRaceContextState().camera.setEyeAndTarget(
+        GetRaceContextPayload().camera.setEyeAndTarget(
             m_pose.position + Float3{0, 5, -10}, m_pose.position + Float3{0, 2, 0});
 
         m_pose.position.y += System::DeltaTime() * 5.0f;
