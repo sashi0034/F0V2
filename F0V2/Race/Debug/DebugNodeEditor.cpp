@@ -181,7 +181,7 @@ private:
                 strip.center = segment.midwayPositions[m];
                 strip.normal = Float3(0, 1, 0); // TODO
 
-                auto nextPosition = m_segments[(i + 1) % m_segments.size()].p1;
+                auto nextPosition = segment.midwayPositions[m + 1];
                 strip.toNext = nextPosition - strip.center;
 
                 auto right = strip.toNext.cross(strip.normal).normalized();
