@@ -2,6 +2,7 @@
 #include "RaceScene.h"
 
 #include "IRaceContext.h"
+#include "RaceContextState.h"
 #include "Common/RaceSharedState.h"
 #include "Stage/StageManager.h"
 #include "TY/ActorContainer.h"
@@ -22,7 +23,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     CoroutineActor m_coro{};
 
-    SimpleCamera3D m_camera{};
+    RaceContextState m_state{};
 
     StageManager m_stageManager{};
 
@@ -52,7 +53,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     {
         m_children.updateEach();
 
-        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
+        Graphics3D::SetViewMatrix(m_state.camera.viewMatrix());
 
         {
             auto projectionMat = Mat4x4::PerspectiveFov(
@@ -64,6 +65,10 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
             Graphics3D::SetProjectionMatrix(projectionMat);
         }
+
+        m_state.cb.lambert->lightDirection = m_state.camera.worldMatrix().forward();
+        m_state.cb.lambert->lightColor = Float3{1.0f, 1.0f, 1.0f};
+        m_state.cb.lambert.upload();
 
         ImGui::Begin("Race Scene");
 
@@ -77,14 +82,14 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_children.killEach();
     }
 
-    SimpleCamera3D& camera() override
+    RaceContextState& state() override
     {
-        return m_camera;
+        return m_state;
     }
 
-    const SimpleCamera3D& camera() const override
+    const RaceContextState& state() const override
     {
-        return m_camera;
+        return m_state;
     }
 };
 
@@ -109,5 +114,11 @@ namespace Race
     {
         assert(s_raceContext != nullptr);
         return *s_raceContext;
+    }
+
+    RaceContextState& GetRaceContextState()
+    {
+        assert(s_raceContext != nullptr);
+        return s_raceContext->state();
     }
 }

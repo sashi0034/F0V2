@@ -58,7 +58,7 @@ struct EditorNodeTool::Impl : GameObjectBase
 {
     ActorContainer m_children{};
 
-    ModelDrawer m_drawer{};
+    ModelDrawer m_torusDrawer{};
 
     Array<CourseSegment> m_segments{};
 
@@ -68,7 +68,7 @@ struct EditorNodeTool::Impl : GameObjectBase
     {
         const auto model = PrimitiveModel3D::Torus(1.0f, 0.5f, ColorF32{1.0f, 0.5f, 0.1f});
 
-        m_drawer =
+        m_torusDrawer =
             ModelDrawerParams{}
             .setModel(model)
             .setShader(Asset_shader::lambert)
@@ -86,7 +86,7 @@ private:
         for (int i = 0; i < m_segments.size(); ++i)
         {
             const auto& pos = m_segments[i].p1;
-            m_drawer.uploadWorldMatrix(Mat4x4::Translate(pos)).draw();
+            m_torusDrawer.uploadWorldMatrix(Mat4x4::Translate(pos)).draw();
         }
 
         // 面描画

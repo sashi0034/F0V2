@@ -1,16 +1,20 @@
 ﻿#pragma once
-#include "TY/SimpleCamera3D.h"
 
 namespace Race
 {
+    struct RaceContextState;
+
     class IRaceContext
     {
     public:
         virtual ~IRaceContext() = default;
 
-        virtual SimpleCamera3D& camera() = 0;
-        virtual const SimpleCamera3D& camera() const = 0;
+        virtual RaceContextState& state() = 0;
+        virtual const RaceContextState& state() const = 0;
     };
 
     IRaceContext& GetRaceContext();
+
+    // TODO: g_contextState にするかも
+    RaceContextState& GetRaceContextState();
 }

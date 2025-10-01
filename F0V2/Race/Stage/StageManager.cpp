@@ -4,6 +4,8 @@
 #include "Asset.generated.h"
 #include "CB/Skydome.h"
 #include "Race/IRaceContext.h"
+#include "Race/RaceContextState.h"
+#include "Race/Common/CourseHelper.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
@@ -62,6 +64,8 @@ struct StageManager::Impl : GameObjectBase
 
     ModelDrawer m_groundPlaneDrawer{};
 
+    Array<ModelDrawer> m_courseDrawers{};
+
     void Init()
     {
         auto skydome_b4 = ConstantBufferWrapper<Skydome_b10>{};
@@ -81,6 +85,8 @@ struct StageManager::Impl : GameObjectBase
             .setCbv10AndLater({skydome_b4})
         };
 
+        // -----------------------------------------------
+
         const auto groundPlaneTexture = makeGroundPlane(
             Size{1000, 1000}, 100, ColorF32{0.5}, ColorF32{0.15});
         m_groundPlaneDrawer = ModelDrawer{
@@ -88,12 +94,23 @@ struct StageManager::Impl : GameObjectBase
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{100.0f, 100.0f}))
             .setShader(Asset_shader::model)
         };
+
+        // -----------------------------------------------
+
+        for (const auto& segment : g_sharedState->courseSegments)
+        {
+            m_courseDrawers.push_back(
+                ModelDrawerParams{}
+                .setModel(BuildCourseModel(segment))
+                .setShader(Asset_shader::lambert)
+                .setCbv10AndLater({GetRaceContextState().cb.lambert}));
+        }
     }
 
 private:
     void update() override
     {
-        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContext().camera().eyePosition())).draw();
+        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextState().camera.eyePosition())).draw();
 
         for (int x = -1; x <= 1; ++x)
         {
@@ -104,6 +121,13 @@ private:
                     .draw();
             }
         }
+
+        for (int i = 0; i < m_courseDrawers.size(); ++i)
+        {
+            m_courseDrawers[i].draw();
+        }
+
+        DebugDrawCourse(g_sharedState->courseSegments);
     }
 
     void killed() override

@@ -1,4 +1,5 @@
 #pragma once
+#include "CB/Lambert.h"
 #include "Race/Common/CourseData.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Vector3D.h"
@@ -6,12 +7,6 @@
 
 namespace Editor
 {
-    struct Lambert_b10
-    {
-        alignas(16) Float3 lightDirection;
-        alignas(16) Float3 lightColor{};
-    };
-
     struct DebugEditorState : IInlineComponent
     {
         ConstantBufferWrapper<Lambert_b10> lambert{};
