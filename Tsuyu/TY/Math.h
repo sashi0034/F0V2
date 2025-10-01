@@ -160,11 +160,11 @@ namespace TY
             }
         }
 
-        template <Integral Integral>
-        constexpr int Mod(Integral a, Integral b) noexcept
-        {
-            return ((a % b) + b) % b;
-        }
+        // template <Integral Integral>
+        // constexpr Integral Mod(Integral a, Integral b) noexcept
+        // {
+        //     return ((a % b) + b) % b;
+        // }
 
         float Mod(float a, float b);
 

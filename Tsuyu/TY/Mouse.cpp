@@ -55,9 +55,23 @@ namespace TY
                 const bool currentInScreen = Intersects(Scene::RectF(), Mouse::PosF());
                 if (not currentInScreen)
                 {
-                    Float2 newMousePos = Mouse::PosF();
+                    Float2 currentMousePos = Mouse::PosF();
+                    Float2 newMousePos = currentMousePos;
+
                     newMousePos.x = Math::Mod(newMousePos.x, Scene::Size().x);
                     newMousePos.y = Math::Mod(newMousePos.y, Scene::Size().y);
+
+                    // 境界ギリギリの場合をクランプする
+                    if (Abs(newMousePos.x) < 1.0f || Abs(newMousePos.x - Scene::Size().x) < 1.0f)
+                    {
+                        newMousePos.x = currentMousePos.x <= 0 ? Scene::Size().x - 1.0f : 1.0f;
+                    }
+
+                    if (Abs(newMousePos.y) < 1.0f || Abs(newMousePos.y - Scene::Size().y) < 1.0f)
+                    {
+                        newMousePos.y = currentMousePos.y <= 0 ? Scene::Size().y - 1.0f : 1.0f;
+                    }
+
                     Mouse::SetPosF(newMousePos);
                 }
             }
