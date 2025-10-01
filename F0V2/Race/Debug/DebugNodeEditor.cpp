@@ -148,7 +148,9 @@ private:
             auto& p1 = nodeList[i].pos;
             auto& p2 = nodeList[(i + 1) % nodeList.size()].pos;
             auto& p3 = nodeList[(i + 2) % nodeList.size()].pos;
-            if (i >= m_segments.size() || (m_segments[i].p1 != p1 || m_segments[i].p2 != p2))
+            if (i >= m_segments.size() ||
+                m_segments[i].p1 != p1 ||
+                m_segments[i].p2 != p2)
             {
                 if (i >= m_segments.size())
                 {
@@ -159,6 +161,7 @@ private:
                 segment.p1 = p1;
                 segment.p2 = p2;
                 segment.midwayPositions = generateCatmullRomPoints(p0, p1, p2, p3, 10);
+
                 rebuildIndex.push_back(i);
             }
         }
@@ -179,10 +182,14 @@ private:
             {
                 CourseStrip strip{};
                 strip.center = segment.midwayPositions[m];
-                strip.normal = Float3(0, 1, 0); // TODO
 
                 auto nextPosition = segment.midwayPositions[m + 1];
                 strip.toNext = nextPosition - strip.center;
+
+                {
+                    const Float3 n = strip.toNext.cross(Float3(0, 1, 0));
+                    strip.normal = n.cross(strip.toNext); // 鉛直上ベクトルと進行方向に垂直なベクトル
+                }
 
                 auto right = strip.toNext.cross(strip.normal).normalized();
                 float width = 7.5f; // TODO
