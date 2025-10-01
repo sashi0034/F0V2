@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "GameFlowchart.h"
 #include "TY_Extension/LivePPAddon.h"
 #include "Race/RaceScene.h"
 #include "Demo/Demo_AirRace.h"
@@ -14,7 +15,6 @@
 #include "Demo/Demo_RenderTarget.h"
 #include "Demo/Demo_ShadowMap.h"
 #include "Demo/Demo_ShapeDrawer.h"
-#include "Editor/EditorScene.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 
@@ -29,11 +29,7 @@ void Main()
 
     ActorContainer actors{};
 
-    auto editor = actors.birth(Editor::EditorScene());
-    editor.init();
-
-    // auto race = actors.birth(Race::RaceScene());
-    // race.init();
+    actors.birth(F0V2::GameFlowchart());
 
     while (System::Update())
     {

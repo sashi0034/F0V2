@@ -1,12 +1,12 @@
-#pragma once
+﻿#pragma once
 #include "TY_Extension/GameObjectHandle.h"
 
-namespace Editor
+namespace F0V2
 {
-    class Editor_template : public GameObjectHandle
+    class GameFlowchart : public GameObjectHandle
     {
     public:
-        Editor_template();
+        GameFlowchart();
 
         void init() override;
 
