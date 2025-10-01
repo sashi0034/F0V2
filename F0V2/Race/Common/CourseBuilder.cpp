@@ -1,0 +1,64 @@
+﻿#include "pch.h"
+#include "CourseBuilder.h"
+
+namespace Race
+{
+    ModelBuffer BuildCourseModel(const CourseSegment& segment)
+    {
+        assert(segment.midwayPositions.size() > 0);
+        Array<ModelVertex> vertices((segment.midwayPositions.size() - 1) * 8);
+        Array<uint16_t> indices((segment.midwayPositions.size() - 1) * 12);
+        int v_offset{};
+        int i_offset{};
+        for (int m = 0; m < segment.midwayPositions.size() - 1; ++m)
+        {
+            auto& s0 = segment.midwayStrips[m];
+            auto& s1 = segment.midwayStrips[m + 1];
+
+            // 表面
+            vertices[v_offset] = ModelVertex{s1.leftmost, s1.normal, Float2{}};
+            vertices[v_offset + 1] = ModelVertex{s1.rightmost, s1.normal, Float2{1, 0}};
+            vertices[v_offset + 2] = ModelVertex{s0.leftmost, s0.normal, Float2{0, 1}};
+            vertices[v_offset + 3] = ModelVertex{s0.rightmost, s0.normal, Float2{1, 1}};
+
+            indices[i_offset] = v_offset; // s1.left
+            indices[i_offset + 1] = v_offset + 2; // s0.left
+            indices[i_offset + 2] = v_offset + 1; // s1.right
+            indices[i_offset + 3] = v_offset + 1;
+            indices[i_offset + 4] = v_offset + 2;
+            indices[i_offset + 5] = v_offset + 3;
+
+            v_offset += 4;
+            i_offset += 6;
+
+            // 裏面
+            vertices[v_offset] = ModelVertex{s1.leftmost, -s1.normal, Float2{}};
+            vertices[v_offset + 1] = ModelVertex{s1.rightmost, -s1.normal, Float2{1, 0}};
+            vertices[v_offset + 2] = ModelVertex{s0.leftmost, -s0.normal, Float2{0, 1}};
+            vertices[v_offset + 3] = ModelVertex{s0.rightmost, -s0.normal, Float2{1, 1}};
+
+            indices[i_offset] = v_offset; // s1.left
+            indices[i_offset + 1] = v_offset + 1; // s0.left
+            indices[i_offset + 2] = v_offset + 2; // s1.right
+            indices[i_offset + 3] = v_offset + 1;
+            indices[i_offset + 4] = v_offset + 3;
+            indices[i_offset + 5] = v_offset + 2;
+
+            v_offset += 4;
+            i_offset += 6;
+        }
+
+        ModelMaterial material{};
+        material.name = "plain";
+        material.parameters.diffuse = Float3::One() * 0.5f;
+
+        ModelShapeBuffer shapeBuffer{
+            {ModelShape{std::move(vertices), std::move(indices), 0}}
+        };
+        ModelBuffer modelBuffer{
+            shapeBuffer, {material}
+        };
+
+        return modelBuffer;
+    }
+}

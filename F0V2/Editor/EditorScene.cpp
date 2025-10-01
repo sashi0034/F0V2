@@ -168,8 +168,6 @@ struct EditorScene::Impl : ActorBase
         {
             ImGui::Begin("Editor");
 
-            ImGui::Checkbox("Editor Enabled", &GM::g_debugService.editorEnabled);
-
             if (ImGui::Button("Reset Camera"))
             {
                 m_debugPlayground.resetCamera();
@@ -177,6 +175,13 @@ struct EditorScene::Impl : ActorBase
 
             ImGui::End();
         }
+
+#ifdef _DEBUG
+        if (not GM::g_debugService.editorEnabled)
+        {
+            kill();
+        }
+#endif
     }
 
     void draw() const override

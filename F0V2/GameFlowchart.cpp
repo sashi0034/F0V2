@@ -3,9 +3,12 @@
 
 #include "Asset.generated.h"
 #include "Editor/EditorScene.h"
+#include "GM/DebugService.h"
 #include "Race/RaceScene.h"
 #include "TY/ActorContainer.h"
 #include "TY/ModelDrawer.h"
+#include "TY/Mouse.h"
+#include "TY/System.h"
 #include "TY_Extension/AwaiterContext.h"
 #include "TY_Extension/GameObjectBase.h"
 
@@ -70,6 +73,8 @@ private:
             restartFlowchart();
         }
 
+        debugUI();
+
         m_children.updateEach();
     }
 
@@ -102,6 +107,27 @@ private:
 
             await.waitForFrames(1);
         }
+    }
+
+    void debugUI()
+    {
+        ImGui::Begin("System Window");
+
+        static bool s_sleep{};;
+        ImGui::Checkbox("Sleep", &s_sleep);
+
+        ImGui::Checkbox("Editor Enabled", &GM::g_debugService.editorEnabled);
+
+        if (s_sleep)
+        {
+            System::Sleep(500);
+        }
+
+        ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
+
+        ImGui::Text("Mouse Position: (%.2f, %.2f)", Mouse::PosF().x, Mouse::PosF().y);
+
+        ImGui::End();
     }
 
     void killed() override

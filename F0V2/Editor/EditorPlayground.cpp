@@ -5,6 +5,7 @@
 #include "ColorPalette.h"
 #include "EditorState.h"
 #include "DebugUI.h"
+#include "GM/DebugService.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Graphics3D.h"
@@ -172,24 +173,6 @@ struct EditorPlayground::Impl : ActorBase
             );
 
             Graphics3D::SetProjectionMatrix(m_projectionMat);
-        }
-
-        {
-            ImGui::Begin("System Window");
-
-            static bool s_sleep{};;
-            ImGui::Checkbox("Sleep", &s_sleep);
-
-            if (s_sleep)
-            {
-                System::Sleep(500);
-            }
-
-            ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
-
-            ImGui::Text("Mouse Position: (%.2f, %.2f)", Mouse::PosF().x, Mouse::PosF().y);
-
-            ImGui::End();
         }
 
         // -----------------------------------------------

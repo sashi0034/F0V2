@@ -4,6 +4,8 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "EditorState.h"
+#include "Race/Common/CourseBuilder.h"
+#include "Race/Common/CourseData.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
@@ -15,6 +17,7 @@
 #include "TY_Extension/GameObjectBase.h"
 
 using namespace Editor;
+using namespace Race;
 
 namespace
 {
@@ -48,27 +51,6 @@ namespace
 
         return result;
     }
-
-    struct CourseStrip
-    {
-        Float3 center;
-        Float3 leftmost;
-        Float3 rightmost;
-
-        Float3 toNext; // 次点へのベクトル
-        Float3 normal;
-    };
-
-    struct CourseSegment
-    {
-        Float3 p1{};
-        Float3 p2{};
-
-        Array<Float3> midwayPositions{};
-        Array<CourseStrip> midwayStrips{};
-
-        ModelDrawer drawer{};
-    };
 }
 
 struct EditorNodeTool::Impl : GameObjectBase
@@ -78,6 +60,8 @@ struct EditorNodeTool::Impl : GameObjectBase
     ModelDrawer m_drawer{};
 
     Array<CourseSegment> m_segments{};
+
+    Array<ModelDrawer> m_courseDrawers{};
 
     void Init()
     {
@@ -105,9 +89,9 @@ private:
         }
 
         // 面描画
-        for (int i = 0; i < m_segments.size(); ++i)
+        for (int i = 0; i < m_courseDrawers.size(); ++i)
         {
-            m_segments[i].drawer.draw();
+            m_courseDrawers[i].draw();
         }
 
         // コース中心を線分で描画
@@ -202,6 +186,11 @@ private:
             // 終端部分は次のセクションで行う
         }
 
+        if (m_courseDrawers.size() != m_segments.size())
+        {
+            m_courseDrawers.resize(m_segments.size());
+        }
+
         for (const auto i : rebuildIndex)
         {
             auto& segment = m_segments[i];
@@ -213,60 +202,8 @@ private:
                 segment.midwayStrips.push_back(segment1.midwayStrips[0]);
             }
 
-            assert(m_segments.size() > 0);
-            Array<ModelVertex> vertices((segment.midwayPositions.size() - 1) * 8);
-            Array<uint16_t> indices((segment.midwayPositions.size() - 1) * 12);
-            int v_offset{};
-            int i_offset{};
-            for (int m = 0; m < segment.midwayPositions.size() - 1; ++m)
-            {
-                auto& s0 = segment.midwayStrips[m];
-                auto& s1 = segment.midwayStrips[m + 1];
-
-                // 表面
-                vertices[v_offset] = ModelVertex{s1.leftmost, s1.normal, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{s1.rightmost, s1.normal, Float2{1, 0}};
-                vertices[v_offset + 2] = ModelVertex{s0.leftmost, s0.normal, Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{s0.rightmost, s0.normal, Float2{1, 1}};
-
-                indices[i_offset] = v_offset; // s1.left
-                indices[i_offset + 1] = v_offset + 2; // s0.left
-                indices[i_offset + 2] = v_offset + 1; // s1.right
-                indices[i_offset + 3] = v_offset + 1;
-                indices[i_offset + 4] = v_offset + 2;
-                indices[i_offset + 5] = v_offset + 3;
-
-                v_offset += 4;
-                i_offset += 6;
-
-                // 裏面
-                vertices[v_offset] = ModelVertex{s1.leftmost, -s1.normal, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{s1.rightmost, -s1.normal, Float2{1, 0}};
-                vertices[v_offset + 2] = ModelVertex{s0.leftmost, -s0.normal, Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{s0.rightmost, -s0.normal, Float2{1, 1}};
-
-                indices[i_offset] = v_offset; // s1.left
-                indices[i_offset + 1] = v_offset + 1; // s0.left
-                indices[i_offset + 2] = v_offset + 2; // s1.right
-                indices[i_offset + 3] = v_offset + 1;
-                indices[i_offset + 4] = v_offset + 3;
-                indices[i_offset + 5] = v_offset + 2;
-
-                v_offset += 4;
-                i_offset += 6;
-            }
-
-            ModelMaterial material{};
-            material.name = "plain";
-            material.parameters.diffuse = Float3::One() * 0.5f;
-
-            ModelShapeBuffer shapeBuffer{
-                {ModelShape{std::move(vertices), std::move(indices), 0}}
-            };
-            ModelBuffer modelBuffer{
-                shapeBuffer, {material}
-            };
-            segment.drawer =
+            const auto modelBuffer = BuildCourseModel(segment);
+            m_courseDrawers[i] =
                 ModelDrawerParams{}
                 .setModel(modelBuffer)
                 .setShader(Asset_shader::lambert)

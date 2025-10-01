@@ -159,6 +159,8 @@
     <ClCompile Include="Editor\EditorPlayground.cpp" />
     <ClCompile Include="GameFlowchart.cpp" />
     <ClCompile Include="GM\DebugService.cpp" />
+    <ClCompile Include="Race\Common\CourseBuilder.cpp" />
+    <ClCompile Include="Race\Common\CourseData.cpp" />
     <ClCompile Include="Race\Player\Player.cpp" />
     <ClCompile Include="Race\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="DebugUI.cpp" />
@@ -244,6 +246,8 @@
     <ClInclude Include="Editor\EditorPlayground.h" />
     <ClInclude Include="GameFlowchart.h" />
     <ClInclude Include="GM\DebugService.h" />
+    <ClInclude Include="Race\Common\CourseBuilder.h" />
+    <ClInclude Include="Race\Common\CourseData.h" />
     <ClInclude Include="Race\Player\Player.h" />
     <ClInclude Include="Race\RaceScene.h" />
     <ClInclude Include="Race\Toys\ToyCinnamon.h" />
