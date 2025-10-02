@@ -228,9 +228,18 @@ namespace Race
 
         state.m_surfaceNormal = state.m_surfaceNormal.slerp(state.m_actualSurfaceNormal, 5.0f * InGameDeltaTime());
 
-        const Quaternion targetRotation =
-            Quaternion(Float3{0, 1, 0}, state.m_yaw) *
-            Quaternion::FromUnitVectors(Float3{0, 1, 0}, state.m_surfaceNormal);
+        constexpr Float3 upVector{0, 1, 0};
+        Quaternion targetRotation;
+        if (upVector.dot(state.m_surfaceNormal) > -0.999f)
+        {
+            targetRotation = Quaternion(upVector, state.m_yaw);
+            targetRotation *= Quaternion::FromUnitVectors(upVector, state.m_surfaceNormal);
+        }
+        else
+        {
+            // 例外処理
+            targetRotation = Quaternion(-upVector, state.m_yaw);
+        }
 
         // 滑らかに回転
         state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 5.0f * InGameDeltaTime());
