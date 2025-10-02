@@ -236,6 +236,11 @@ private:
         ImGui::End();
     }
 
+    float orderPriority() const override
+    {
+        return -100.0f;
+    }
+
     void killed() override
     {
         m_children.killEach();

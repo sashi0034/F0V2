@@ -30,7 +30,7 @@ namespace TY
             if (needSort) continue;
 
             // 優先度が入れ替わっている部分があれば後からソートする
-            if (i > 0 && previousPriority > m_actorList[i]->orderPriority())
+            if (i > 0 && previousPriority < m_actorList[i]->orderPriority())
             {
                 needSort = true;
                 continue;
@@ -54,7 +54,7 @@ namespace TY
                 m_actorList,
                 [](const std::shared_ptr<ActorBase>& left, const std::shared_ptr<ActorBase>& right)
                 {
-                    return left->orderPriority() < right->orderPriority();
+                    return left->orderPriority() > right->orderPriority();
                 });
         }
     }
