@@ -5,8 +5,10 @@
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
 #include "TY/ActorContainer.h"
+#include "TY/KeyboardInput.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
+#include "TY/detail/EngineKeyboardMouse.h"
 #include "TY_Extension/GameObjectBase.h"
 
 using namespace Race;
@@ -43,6 +45,8 @@ struct Player::Impl : GameObjectBase
 
     Pose m_pose{};
 
+    Float3 m_surfaceNormal{0, 1, 0};
+
     void Init()
     {
         ModelBuffer model = ModelBuffer{PrimitiveModel3D::Capsule(m_radius, m_height, ColorF32{0.5f, 0.7f, 1.0f})};
@@ -61,8 +65,16 @@ private:
     {
         m_drawer.uploadWorldMatrix(Mat4x4::Translate(m_pose.position)).draw();
 
+        float rotateInput = (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
+        if (rotateInput != 0.0f)
+        {
+            m_pose.rotation *= Quaternion(m_surfaceNormal, rotateInput * Math::ToRadians(90.0f) * System::DeltaTime());
+        }
+
+        const Float3 eyeVector = m_pose.rotation.rotate(Float3{0, 0, 1});
+
         GetRaceContextPayload().camera.setEyeAndTarget(
-            m_pose.position + Float3{0, 5, -10}, m_pose.position + Float3{0, 2, 0});
+            m_pose.position - eyeVector * 10.0f, m_pose.position);
 
         m_pose.position.y += -System::DeltaTime() * 5.0f;
     }
