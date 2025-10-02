@@ -52,6 +52,14 @@ namespace TY
         return *this;
     }
 
+    Shape3D::LineSet& Shape3D::LineSet::appendTriangle(const Triangle3D& tri)
+    {
+        lines.emplace_back(tri.p0, tri.p1);
+        lines.emplace_back(tri.p1, tri.p2);
+        lines.emplace_back(tri.p2, tri.p0);
+        return *this;
+    }
+
     Shape3D::LineSet& Shape3D::LineSet::appendAabb(const Aabb3D& aabb)
     {
         const Float3& min = aabb.min;

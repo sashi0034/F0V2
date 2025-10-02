@@ -35,6 +35,8 @@ namespace TY
 
             LineSet& appendLine(const Float3& start, const Float3& end);
 
+            LineSet& appendTriangle(const Triangle3D& tri);
+
             LineSet& appendAabb(const Aabb3D& aabb);
 
             void pushAuto();

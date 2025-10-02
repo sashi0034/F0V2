@@ -45,6 +45,9 @@ namespace TY
         Float3 p2;
 
         [[nodiscard]]
+        Triangle3D movedBy(const Float3& v) const;
+
+        [[nodiscard]]
         Float3 getAreaNormal() const;
 
         [[nodiscard]]

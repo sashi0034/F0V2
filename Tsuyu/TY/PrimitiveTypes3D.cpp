@@ -8,6 +8,11 @@ namespace
 
 namespace TY
 {
+    Triangle3D Triangle3D::movedBy(const Float3& v) const
+    {
+        return Triangle3D{p0 + v, p1 + v, p2 + v};
+    }
+
     Float3 Triangle3D::getAreaNormal() const
     {
         const Float3 u = p1 - p0;

@@ -11,6 +11,7 @@
 #include "TY/KeyboardInput.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
+#include "TY/ShapeDrawer.h"
 #include "TY/detail/EngineKeyboardMouse.h"
 #include "TY_Extension/GameObjectBase.h"
 
@@ -77,19 +78,21 @@ private:
         const Float3 forwardVector = m_pose.rotation.rotate(Float3{0, 0, 1});
 
         GetRaceContextContent().camera.setEyeAndTarget(
-            m_pose.position - forwardVector * 10.0f, m_pose.position);
+            m_pose.position - forwardVector.withY(0.0f).normalized() * 10.0f + Float3{0, 5.0f, 0}, m_pose.position);
 
         // -----------------------------------------------
 
         Float3 moveVector{};
         moveVector.y += -InGameDeltaTime() * 5.0f;
 
-        if (KeySpace.pressed())
+        if (KeyUp.pressed())
         {
             moveVector += forwardVector * InGameDeltaTime() * 10.0f;
         }
 
         updateCapsulePosition(m_pose.position, moveVector);
+
+        ShapeDrawer::Global().draw();
 
         // -----------------------------------------------
 
@@ -135,10 +138,15 @@ private:
         {
             const auto& tri = *hitTris;
             const auto triCenter = tri.tri.centroid();
-            // ShapeDrawer::Global().push(Shape3D::Line{
-            //     triCenter,
-            //     triCenter + tri.plane.normal * 10
-            // }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));
+            Shape3D::Line{
+                    triCenter,
+                    triCenter + tri.plane.normal * 10
+                }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f})
+                 .pushAuto();
+            Shape3D::LineSet{}
+                .appendTriangle(tri.tri.movedBy(tri.plane.normal * 0.1f))
+                .setColor(ColorF32{1.0f, 1.0f, 0.5f})
+                .pushAuto();
 
             // 面の法線を採用
             m_surfaceNormal = tri.plane.normal;
