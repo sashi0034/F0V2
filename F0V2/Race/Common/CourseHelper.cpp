@@ -90,8 +90,14 @@ namespace Race
         for (int i = 0; i < segments.size(); ++i)
         {
             const auto& segment = segments[i];
+            auto p1InScreen = worldToScreen.transformPoint(segment.p1);
+            if (not InRange(p1InScreen.z, 0.0f, 1.0f))
+            {
+                continue;
+            }
+
             Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
-                .setPosition(worldToScreen.transformPoint(segment.p1).xy())
+                .setPosition(p1InScreen.xy())
                 .pushAuto();
         }
 
