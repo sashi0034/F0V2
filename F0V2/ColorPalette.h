@@ -10,4 +10,6 @@ namespace ColorPalette
     constexpr ColorF32 DarkOrange{"#b33000"};
 
     constexpr ColorF32 GoldenYellow{"#f7ac07"};
+
+    constexpr ColorF32 GamingGreen{"#08e30d"};
 }

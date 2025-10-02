@@ -3,14 +3,19 @@
 
 #include "Asset.generated.h"
 #include "Asset0.h"
+#include "ColorPalette.h"
+#include "DebugUI.h"
 #include "EditorState.h"
 #include "Race/Common/CourseHelper.h"
 #include "Race/Common/CourseData.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
+#include "TY/Intersects2D.h"
 #include "TY/ModelDrawer.h"
+#include "TY/Mouse.h"
 #include "TY/PrimitiveModel3D.h"
+#include "TY/Scene.h"
 #include "TY/Shape2D.h"
 #include "TY/Shape3D.h"
 #include "TY/ShapeDrawer.h"
@@ -64,6 +69,8 @@ struct EditorNodeTool::Impl : GameObjectBase
 
     Array<ModelDrawer> m_courseDrawers{};
 
+    int m_activeNodeIndex{};
+
     void Init()
     {
         const auto model = PrimitiveModel3D::Torus(1.0f, 0.5f, ColorF32{1.0f, 0.5f, 0.1f});
@@ -95,7 +102,77 @@ private:
             m_courseDrawers[i].draw();
         }
 
-        DebugDrawCourse(m_segments);
+        courseDebugUI(m_segments);
+    }
+
+    void courseDebugUI(const Array<CourseSegment>& segments)
+    {
+        // コース中心を線分で描画
+        Shape3D::LineSet lineSet{};
+        for (int i = 0; i < segments.size(); ++i)
+        {
+            const auto& segment = segments[i];
+            for (int j = 0; j < segment.midwayPositions.size() - 1; ++j)
+            {
+                constexpr Float3 d{0, 0.1, 0};
+                lineSet.appendLine(segment.midwayPositions[j] + d, segment.midwayPositions[j + 1] + d);
+            }
+        }
+
+        lineSet.setColor(ColorF32{1.0f, 0.5f, 0.1f})
+               .pushAuto();
+
+        // -----------------------------------------------
+
+        // インデックスをテキスト描画
+        const auto worldToScreen = Graphics3D::WorldToScreen();
+        for (int i = 0; i < segments.size(); ++i)
+        {
+            const auto& segment = segments[i];
+            auto p1InScreen = worldToScreen.transformPoint(segment.p1);
+            if (not InRange(p1InScreen.z, 0.0f, 1.0f))
+            {
+                continue;
+            }
+
+            const auto buttonRect =
+                RectF{p1InScreen.xy(), Float2{}}.stretched(16);
+
+            if (MouseL.down() && Intersects(Mouse::PosF(), buttonRect))
+            {
+                m_activeNodeIndex = i;
+            }
+
+            if (i == m_activeNodeIndex)
+            {
+                Shape2D::RoundRect{buttonRect}.setColor(ColorPalette::GamingGreen).pushAuto();
+            }
+
+            Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
+                .setPosition(p1InScreen.xy(), Alignment9::MiddleCenter)
+                .setColor(i == m_activeNodeIndex ? ColorF32{0.0f} : ColorF32{1.0f})
+                .pushAuto();
+        }
+
+        // -----------------------------------------------
+
+        if (InRange(m_activeNodeIndex, 0, static_cast<int>(segments.size() - 1)))
+        {
+            auto text =
+                std::format("[{}] {:.2f}, {:.2f}, {:.2f}",
+                            m_activeNodeIndex,
+                            segments[m_activeNodeIndex].p1.x,
+                            segments[m_activeNodeIndex].p1.y,
+                            segments[m_activeNodeIndex].p1.z);
+
+            if (DebugUI::Button(RectF{Scene::Center(), Float2{240, 24}}, ToUtf32(text)))
+            {
+            }
+        }
+
+        // -----------------------------------------------
+
+        ShapeDrawer::Global().draw();
     }
 
     void buildSegmentsIfNeeded()
@@ -193,9 +270,26 @@ private:
 
         Array<int> removeIndex{};
         auto& nodeList = g_editorState->course.nodes;
-        for (size_t i = 0; i < nodeList.size(); i++)
+        for (int i = 0; i < nodeList.size(); i++)
         {
+            if (m_activeNodeIndex == i)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ColorPalette::GamingGreen.toFloat4().cast<ImVec4>());
+            }
+
             ImGui::Text(std::format("--- [{}] ---", i).c_str());
+
+            if (m_activeNodeIndex == i)
+            {
+                ImGui::PopStyleColor();
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button(std::format("*##{}", i).c_str()))
+            {
+                m_activeNodeIndex = i;
+            }
 
             ImGui::SameLine();
 

@@ -2,6 +2,7 @@
 #include "StageManager.h"
 
 #include "Asset.generated.h"
+#include "Asset0.h"
 #include "CB/Skydome.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
@@ -9,8 +10,11 @@
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
+#include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
+#include "TY/ShapeDrawer.h"
+#include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 
 using namespace Race;
@@ -146,7 +150,39 @@ private:
             m_courseDrawers[i].draw();
         }
 
-        DebugDrawCourse(g_sharedState->courseSegments);
+        // コース中心を線分で描画
+        Shape3D::LineSet lineSet{};
+        auto& segments = g_sharedState->courseSegments;
+        for (int i = 0; i < segments.size(); ++i)
+        {
+            const auto& segment = segments[i];
+            for (int j = 0; j < segment.midwayPositions.size() - 1; ++j)
+            {
+                constexpr Float3 d{0, 0.1, 0};
+                lineSet.appendLine(segment.midwayPositions[j] + d, segment.midwayPositions[j + 1] + d);
+            }
+        }
+
+        lineSet.setColor(ColorF32{1.0f, 0.5f, 0.1f})
+               .pushAuto();
+
+        // インデックスをテキスト描画
+        const auto worldToScreen = Graphics3D::WorldToScreen();
+        for (int i = 0; i < segments.size(); ++i)
+        {
+            const auto& segment = segments[i];
+            auto p1InScreen = worldToScreen.transformPoint(segment.p1);
+            if (not InRange(p1InScreen.z, 0.0f, 1.0f))
+            {
+                continue;
+            }
+
+            Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
+                .setPosition(p1InScreen.xy())
+                .pushAuto();
+        }
+
+        ShapeDrawer::Global().draw();
     }
 
     void killed() override
