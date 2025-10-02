@@ -167,10 +167,24 @@ private:
 
             if (DebugUI::DragButton(RectF{Scene::Center(), Float2{240, 24}}, ToUtf32(text)))
             {
-                Float2 dragAmount = Mouse::Drag(MouseL);
+                const auto screenToWorld = worldToScreen.inverse();
+
+                const Float2 p0 = screenToWorld.transformPoint(Float3{}).xz();
+                const Float2 px = screenToWorld.transformPoint(Float3{10, 0, 0}).xz();
+                const Float2 pz = screenToWorld.transformPoint(Float3{0, 10, 0}).xz();
+                const Float2 axisX = (px - p0).normalized();
+                const Float2 axisZ = (pz - p0).normalized();
+
+                const Float2 dragAmount = Mouse::Drag(MouseL);
                 auto& node = g_editorState->course.nodes[m_activeNodeIndex];
-                node.pos.x += dragAmount.x * 0.1f;
-                node.pos.z += -dragAmount.y * 0.1f;
+                const Float2 dx = axisX * dragAmount.x * 0.1f;
+                const Float2 dz = axisZ * dragAmount.y * 0.1f;
+
+                node.pos.x += dx.x + dz.x;
+                node.pos.z += dx.y + dz.y;
+
+                const float wheel = Mouse::Wheel();
+                node.pos.y += wheel * 5.0f;
             }
         }
 

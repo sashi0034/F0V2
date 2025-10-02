@@ -57,6 +57,31 @@ namespace TY
             return Vector2D<value_type>(x, y);
         }
 
+        [[nodiscard]] constexpr Vector2D<value_type> yz() const
+        {
+            return Vector2D<value_type>(y, z);
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> xz() const
+        {
+            return Vector2D<value_type>(x, z);
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> yx() const
+        {
+            return Vector2D<value_type>(y, x);
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> zy() const
+        {
+            return Vector2D<value_type>(z, y);
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> zx() const
+        {
+            return Vector2D<value_type>(z, x);
+        }
+
         [[nodiscard]] constexpr Vector3D operator+() const
         {
             return *this;
