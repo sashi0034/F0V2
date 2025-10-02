@@ -2,7 +2,7 @@
 #include "RaceScene.h"
 
 #include "IRaceContext.h"
-#include "RaceContextPayload.h"
+#include "RaceContextContent.h"
 #include "Common/RaceSharedState.h"
 #include "Player/Player.h"
 #include "Stage/StageManager.h"
@@ -24,7 +24,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     CoroutineActor m_coro{};
 
-    RaceContextPayload m_state{};
+    RaceContextContent m_state{};
 
     StageManager m_stageManager{};
 
@@ -88,12 +88,12 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_children.killEach();
     }
 
-    RaceContextPayload& state() override
+    RaceContextContent& state() override
     {
         return m_state;
     }
 
-    const RaceContextPayload& state() const override
+    const RaceContextContent& state() const override
     {
         return m_state;
     }
@@ -132,7 +132,7 @@ namespace Race
         return *s_raceContext;
     }
 
-    RaceContextPayload& GetRaceContextPayload()
+    RaceContextContent& GetRaceContextPayload()
     {
         assert(s_raceContext != nullptr);
         return s_raceContext->state();

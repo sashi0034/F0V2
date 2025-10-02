@@ -3,7 +3,7 @@
 
 #include "Asset.generated.h"
 #include "Race/IRaceContext.h"
-#include "Race/RaceContextPayload.h"
+#include "Race/RaceContextContent.h"
 #include "TY/ActorContainer.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
