@@ -55,6 +55,11 @@ Float3 TY::ClosestPoint(const Float3& p, const LineSegment3D& segment)
     return a + ab * t;
 }
 
+float TY::DistanceSq(const Float3& lhs, const Float3& rhs)
+{
+    return (lhs - rhs).lengthSq();
+}
+
 float TY::DistanceSq(const Float3& p, const LineSegment3D& segment)
 {
     Float3 closest = ClosestPoint(p, segment);

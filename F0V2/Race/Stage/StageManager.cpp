@@ -131,9 +131,9 @@ private:
     {
         m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextContent().camera.eyePosition())).draw();
 
-        for (int x = -1; x <= 1; ++x)
+        for (int x = -5; x <= 5; ++x)
         {
-            for (int z = -1; z <= 1; ++z)
+            for (int z = -5; z <= 5; ++z)
             {
                 m_groundPlaneDrawer
                     .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, g_sharedState->groundPositionY, z * 100.0f}))
@@ -181,6 +181,16 @@ namespace Race
     const TriangleBvh& StageManager::staticBvh() const
     {
         return p_impl->m_staticBvh;
+    }
+
+    Array<CourseSegment>& StageManager::courseSegments()
+    {
+        return g_sharedState->courseSegments;
+    }
+
+    const Array<CourseSegment>& StageManager::courseSegments() const
+    {
+        return g_sharedState->courseSegments;
     }
 
     std::shared_ptr<GameObjectBase> StageManager::asGameObject() const

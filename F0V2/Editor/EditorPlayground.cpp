@@ -173,9 +173,9 @@ struct EditorPlayground::Impl : ActorBase
 
         m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(m_camera.eyePosition())).draw();
 
-        for (int x = -1; x <= 1; ++x)
+        for (int x = -5; x <= 5; ++x)
         {
-            for (int z = -1; z <= 1; ++z)
+            for (int z = -5; z <= 5; ++z)
             {
                 m_groundPlaneDrawer
                     .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, groundPositionY, z * 100.0f}))

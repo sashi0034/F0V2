@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Race/Common/CourseData.h"
 #include "TY/TriangleBvh.h"
 #include "TY_Extension/GameObjectHandle.h"
 
@@ -13,6 +14,9 @@ namespace Race
 
         TriangleBvh& staticBvh();
         const TriangleBvh& staticBvh() const;
+
+        Array<CourseSegment>& courseSegments();
+        const Array<CourseSegment>& courseSegments() const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 

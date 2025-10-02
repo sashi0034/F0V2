@@ -179,18 +179,58 @@ namespace
             }
         }
     }
+
+    // -----------------------------------------------
+
+    const CourseSegment& findNearestSegment(const Float3& position)
+    {
+        const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
+        std::pair<const CourseSegment*, float> bestSegment{nullptr, FLT_MAX};
+        for (const auto& seg : courseSegments)
+        {
+            const float dist = DistanceSq(position, LineSegment3D{seg.p1, seg.p2});
+            if (dist < bestSegment.second)
+            {
+                bestSegment = {&seg, dist};
+            }
+        }
+
+        assert(bestSegment.first != nullptr);
+        return *bestSegment.first;
+    }
+
+    const CourseStrip& findNearestStrip(const CourseSegment& segment, const Float3& position)
+    {
+        const auto& strips = segment.midwayStrips;
+        std::pair<const CourseStrip*, float> bestStrip{nullptr, FLT_MAX};
+        for (const auto& strip : strips)
+        {
+            const float dist = DistanceSq(position, strip.center);
+            if (dist < bestStrip.second)
+            {
+                bestStrip = {&strip, dist};
+            }
+        }
+
+        assert(bestStrip.first != nullptr);
+        return *bestStrip.first;
+    }
 }
 
 namespace Race
 {
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
-        Float3 gravity = Float3{0.0f, -1.0f, 0.0f};
+        const auto& nearestSegment = findNearestSegment(state.m_pose.position);
+        const auto& nearestStrip = findNearestStrip(nearestSegment, state.m_pose.position);
+
+        Float3 gravity = -nearestStrip.normal;
 
         state.m_surfaceNormal = state.m_surfaceNormal.slerp(state.m_actualSurfaceNormal, 5.0f * InGameDeltaTime());
 
         const Quaternion targetRotation =
-            Quaternion(-gravity, state.m_yaw) * Quaternion::FromUnitVectors(-gravity, state.m_surfaceNormal);
+            Quaternion(Float3{0, 1, 0}, state.m_yaw) *
+            Quaternion::FromUnitVectors(Float3{0, 1, 0}, state.m_surfaceNormal);
 
         // 滑らかに回転
         state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 5.0f * InGameDeltaTime());
@@ -208,11 +248,16 @@ namespace Race
             state.m_velocity += forwardVector * 1.5f * InGameDeltaTime();
         }
 
+        if (state.m_velocity.lengthSq() > Math::Square(5.0f))
+        {
+            state.m_velocity = state.m_velocity.normalized() * 5.0f;
+        }
+
         Float3 moveVector = state.m_velocity;
 
         updateCapsulePosition(state, props, state.m_pose.position, moveVector);
 
-        constexpr float mu = 0.5f; // TODO
+        constexpr float mu = 0.75f; // TODO
         if (state.m_velocity.lengthSq() > Math::Square(mu * InGameDeltaTime()))
         {
             state.m_velocity -= state.m_velocity.normalized() * mu * InGameDeltaTime();

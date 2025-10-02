@@ -148,7 +148,7 @@ private:
 
                 {
                     const Float3 n = strip.toNext.cross(Float3(0, 1, 0));
-                    strip.normal = n.cross(strip.toNext); // 鉛直上ベクトルと進行方向に垂直なベクトル
+                    strip.normal = n.cross(strip.toNext).normalized(); // 鉛直上ベクトルと進行方向に垂直なベクトル
                 }
 
                 auto right = strip.toNext.cross(strip.normal).normalized();

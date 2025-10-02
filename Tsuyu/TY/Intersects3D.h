@@ -18,6 +18,8 @@ namespace TY
 
     Float3 ClosestPoint(const Float3& p, const LineSegment3D& segment);
 
+    float DistanceSq(const Float3& lhs, const Float3& rhs);
+
     float DistanceSq(const Float3& p, const LineSegment3D& segment);
 
     float DistanceSq(const Float3& p, const Plane3Points& plane);
