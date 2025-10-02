@@ -139,6 +139,11 @@ namespace TY
         // return Float3(r.x(), r.y(), r.z());
     }
 
+    Quaternion Quaternion::slerp(const Quaternion& q, float t) const
+    {
+        return DirectX::XMQuaternionSlerp(value, q.value, t);
+    }
+
     Quaternion Quaternion::RotateX(float angle) noexcept
     {
         using namespace DirectX;

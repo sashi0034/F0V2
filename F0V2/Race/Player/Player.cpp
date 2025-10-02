@@ -61,7 +61,8 @@ private:
         const Float3 forwardVector = m_physicsState.m_pose.rotation.rotate(Float3{0, 0, 1});
 
         GetRaceContextContent().camera.setEyeAndTarget(
-            m_physicsState.m_pose.position - forwardVector.normalized() * 10.0f + m_physicsState.m_surfaceNormal * 5.0f,
+            m_physicsState.m_pose.position - forwardVector.normalized() * 10.0f + m_physicsState.m_actualSurfaceNormal *
+            5.0f,
             m_physicsState.m_pose.position);
 
         m_physicsProps.hasAccelInput = KeyUp.pressed();
@@ -85,9 +86,6 @@ private:
         m_physicsState = {};
 
         m_physicsState.m_pose.position = Float3{0, 50.0f, 0};
-        m_physicsState.m_pose.rotation = Quaternion::Identity();
-
-        m_physicsState.m_surfaceNormal = Float3{0, 1, 0};
     }
 
     void debugUI()
@@ -101,7 +99,7 @@ private:
 
         ImGui::Checkbox("Stop Move", &s_stopMove);
 
-        const auto& surfaceNormal = m_physicsState.m_surfaceNormal;
+        const auto& surfaceNormal = m_physicsState.m_actualSurfaceNormal;
         ImGui::Text("Normal: (%.2f, %.2f, %.2f)", surfaceNormal.x, surfaceNormal.y, surfaceNormal.z);
 
         ImGui::End();

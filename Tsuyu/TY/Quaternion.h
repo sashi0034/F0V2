@@ -54,6 +54,9 @@ namespace TY
         Float3 rotate(const Float3& v) const;
 
         [[nodiscard]]
+        Quaternion slerp(const Quaternion& q, float t) const;
+
+        [[nodiscard]]
         static Quaternion __vectorcall RotateX(float angle) noexcept;
 
         [[nodiscard]]

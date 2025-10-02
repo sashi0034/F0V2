@@ -162,9 +162,9 @@ namespace
             }
 
             // 面の法線を採用
-            state.m_surfaceNormal = tri.plane.normal;
+            state.m_actualSurfaceNormal = tri.plane.normal;
 
-            const Float3 n = state.m_surfaceNormal;
+            const Float3 n = state.m_actualSurfaceNormal;
 
             // 法線方向速度の除去
             state.m_velocity = state.m_velocity - n * state.m_velocity.dot(n);
@@ -185,12 +185,22 @@ namespace Race
 {
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
-        state.m_pose.rotation = Quaternion(
-            Float3{0, 1, 0,}, state.m_yaw) * Quaternion::FromUnitVectors(Float3{0, 1, 0}, state.m_surfaceNormal);
+        Float3 gravity = Float3{0.0f, -1.0f, 0.0f};
+
+        state.m_surfaceNormal = state.m_surfaceNormal.slerp(state.m_actualSurfaceNormal, 5.0f * InGameDeltaTime());
+
+        const Quaternion targetRotation =
+            Quaternion(-gravity, state.m_yaw) * Quaternion::FromUnitVectors(-gravity, state.m_surfaceNormal);
+
+        // 滑らかに回転
+        state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 5.0f * InGameDeltaTime());
+
+        // 空中にいるとき、滑らかに重力方向に向いていくようにする
+        // TODO: 空中判定
+        // state.m_actualSurfaceNormal = state.m_actualSurfaceNormal.slerp(-gravity, 1.0f * InGameDeltaTime());
 
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
 
-        Float3 gravity = Float3{0.0f, -1.0f, 0.0f};
         state.m_velocity += gravity * InGameDeltaTime();
 
         if (props.hasAccelInput)

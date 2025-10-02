@@ -176,6 +176,15 @@ namespace TY
                 this->x * rhs.y - this->y * rhs.x);
         }
 
+        [[nodiscard]] Vector3D slerp(const Vector3D& target, value_type t) const
+        {
+            float dot = this->dot(target);
+            dot = std::clamp(dot, -1.0f, 1.0f);
+            float theta = std::acos(dot) * t;
+            Vector3D relative = (target - (*this) * dot).normalized();
+            return (*this) * std::cos(theta) + relative * std::sin(theta);
+        }
+
         [[nodiscard]] value_type lengthSq() const
         {
             return this->dot(*this);
