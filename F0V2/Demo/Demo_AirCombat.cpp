@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Demo_AirRace.h"
+#include "Demo_AirCombat.h"
 
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
@@ -437,7 +437,7 @@ private:
     Mat4x4 m_worldMatrix{};
 };
 
-struct Demo_AirRace_impl
+struct Demo_AirCombat_impl
 {
     Internal::Camera m_camera{};
 
@@ -460,7 +460,7 @@ struct Demo_AirRace_impl
 
     Array<Internal::Missile> m_missiles{};
 
-    Demo_AirRace_impl()
+    Demo_AirCombat_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -640,9 +640,9 @@ struct Demo_AirRace_impl
     }
 };
 
-void Demo_AirRace()
+void Demo_AirCombat()
 {
-    Demo_AirRace_impl impl{};
+    Demo_AirCombat_impl impl{};
 
     Scene::RequestResize({1920, 1080});
 

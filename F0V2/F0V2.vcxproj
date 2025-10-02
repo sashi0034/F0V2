@@ -190,7 +190,7 @@
     <Content Include="asset\shader\shadow_caster.hlsl" />
     <Content Include="asset\shader\r32_float_visualizer.hlsl" />
     <Content Include="asset\shader\dynamic_ocean.hlsl" />
-    <ClCompile Include="Demo\Demo_AirRace.cpp" />
+    <ClCompile Include="Demo\Demo_AirCombat.cpp" />
     <ClCompile Include="Demo\Demo_Basic3D.cpp" />
     <ClCompile Include="Demo\Demo_Font.cpp" />
     <ClCompile Include="Demo\Demo_Ocean.cpp" />
@@ -262,7 +262,7 @@
     <ClInclude Include="Race\Stage\StageManager.h" />
     <ClInclude Include="Race\Toys\ToyCinnamon.h" />
     <ClInclude Include="DebugUI.h" />
-    <ClInclude Include="Demo\Demo_AirRace.h" />
+    <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
     <ClInclude Include="Demo\Demo_Collision1.h" />
     <ClInclude Include="Demo\Demo_Collision2.h" />

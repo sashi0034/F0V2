@@ -3,7 +3,7 @@
 #include "GameFlowchart.h"
 #include "TY_Extension/LivePPAddon.h"
 #include "Race/RaceScene.h"
-#include "Demo/Demo_AirRace.h"
+#include "Demo/Demo_AirCombat.h"
 #include "Demo/Demo_Basic3D.h"
 #include "Demo/Demo_Collision1.h"
 #include "Demo/Demo_Collision2.h"
