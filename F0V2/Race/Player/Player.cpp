@@ -36,6 +36,8 @@ namespace
             return rotation.eulerAngles();
         }
     };
+
+    bool s_stopMove{};
 }
 
 struct Player::Impl : GameObjectBase
@@ -73,24 +75,30 @@ private:
         float rotateInput = (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
 
         m_yaw += rotateInput * Math::ToRadians(90.0f) * InGameDeltaTime();
-        m_pose.rotation = Quaternion(m_surfaceNormal, m_yaw); // FIXME
+        m_pose.rotation = Quaternion(
+            Float3{0, 1, 0,}, m_yaw) * Quaternion::FromUnitVectors(Float3{0, 1, 0}, m_surfaceNormal);
 
         const Float3 forwardVector = m_pose.rotation.rotate(Float3{0, 0, 1});
 
         GetRaceContextContent().camera.setEyeAndTarget(
-            m_pose.position - forwardVector.withY(0.0f).normalized() * 10.0f + Float3{0, 5.0f, 0}, m_pose.position);
+            m_pose.position - forwardVector.normalized() * 10.0f + m_surfaceNormal * 5.0f,
+            m_pose.position);
 
         // -----------------------------------------------
 
         Float3 moveVector{};
-        moveVector.y += -InGameDeltaTime() * 5.0f;
+        Float3 gravity = Float3{0.0f, -10.0f, 0.0f};
+        moveVector += gravity * InGameDeltaTime();
 
         if (KeyUp.pressed())
         {
-            moveVector += forwardVector * InGameDeltaTime() * 10.0f;
+            moveVector += forwardVector * 50.0f * InGameDeltaTime();
         }
 
-        updateCapsulePosition(m_pose.position, moveVector);
+        if (not s_stopMove)
+        {
+            updateCapsulePosition(m_pose.position, moveVector);
+        }
 
         ShapeDrawer::Global().draw();
 
@@ -109,6 +117,8 @@ private:
             m_surfaceNormal = Float3{0, 1, 0};
             m_pose.rotation = Quaternion::Identity();
         }
+
+        ImGui::Checkbox("Stop Move", &s_stopMove);
 
         ImGui::Text("Normal: (%.2f, %.2f, %.2f)", m_surfaceNormal.x, m_surfaceNormal.y, m_surfaceNormal.z);
 

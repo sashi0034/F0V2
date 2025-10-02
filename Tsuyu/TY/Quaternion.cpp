@@ -47,7 +47,7 @@ namespace TY
         return XMQuaternionRotationRollPitchYaw(euler.y, euler.x, euler.z);
     }
 
-    Quaternion Quaternion::FromVectors(const Float3& from, const Float3& to)
+    Quaternion Quaternion::FromUnitVectors(const Float3& from, const Float3& to)
     {
         using namespace DirectX;
 

@@ -37,7 +37,7 @@ namespace TY
         static Quaternion FromEuler(const Float3& euler);
 
         [[nodiscard]]
-        static Quaternion FromVectors(const Float3& from, const Float3& to);
+        static Quaternion FromUnitVectors(const Float3& from, const Float3& to);
 
         [[nodiscard]]
         Quaternion operator*(const Quaternion& q) const;
