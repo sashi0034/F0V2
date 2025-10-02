@@ -18,12 +18,15 @@ namespace
 
         void Rebuild(uint64_t unitSize, int maxCapacity)
         {
+            const auto timestamp = m.timestamp;
+
             dispose();
 
             m = {};
 
             m.unitSize = unitSize;
             m.maxCapacity = maxCapacity;
+            m.timestamp = timestamp; // 直前のタイムスタンプを引き継ぎ
 
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(unitSize * maxCapacity);
@@ -182,6 +185,8 @@ struct ConstantBufferCore::Impl
 
     void Upload(const uint8_t* data, uint32_t count, CommandListType commandListType)
     {
+        assert(count <= m_materialCount);
+
         const size_t previousUploadTimestamp = m_uploadTimestamp;
         m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
 
@@ -232,11 +237,11 @@ struct ConstantBufferCore::Impl
             changeFinalBufferState(commandList, D3D12_RESOURCE_STATE_GENERIC_READ);
         }
 
-        if (previousUploadTimestamp == 0)
-        {
-            // 初回実行時は即アンマップする
-            frameResource.Unmap();
-        }
+        // if (previousUploadTimestamp == 0)
+        // {
+        //     // 初回実行時は即アンマップする
+        //     frameResource.Unmap();
+        // }
     }
 
 private:
