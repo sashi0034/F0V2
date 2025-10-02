@@ -85,7 +85,7 @@ private:
     {
         m_physicsState = {};
 
-        m_physicsState.m_pose.position = Float3{0, 50.0f, 0};
+        m_physicsState.m_pose.position = GetRaceContext().stageManager().courseSegments()[0].p1 + Float3{0, 5, 0};
     }
 
     void debugUI()

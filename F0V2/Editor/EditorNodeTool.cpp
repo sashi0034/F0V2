@@ -247,7 +247,7 @@ private:
                 }
 
                 auto right = strip.toNext.cross(strip.normal).normalized();
-                float width = 7.5f; // TODO
+                float width = 12.5f; // TODO
                 strip.leftmost = strip.center - right * width;
                 strip.rightmost = strip.center + right * width;
 
@@ -332,8 +332,21 @@ private:
         if (ImGui::Button("Add Node"))
         {
             auto lastElement = nodeList.empty() ? CourseNode{} : nodeList.back();
-            lastElement.pos.z += 10.0f;
+            lastElement.pos.z += 1.0f;
             nodeList.push_back(lastElement);
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Insert Node After Active"))
+        {
+            if (InRange(m_activeNodeIndex, 0, static_cast<int>(nodeList.size() - 1)))
+            {
+                auto element = nodeList[m_activeNodeIndex];
+                element.pos.z += 1.0f;
+                nodeList.insert(nodeList.begin() + m_activeNodeIndex + 1, element);
+                m_activeNodeIndex += 1;
+            }
         }
 
         if (ImGui::CollapsingHeader("Critical Operations"))
