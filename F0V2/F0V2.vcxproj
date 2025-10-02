@@ -162,6 +162,7 @@
     <ClCompile Include="Race\Common\CourseHelper.cpp" />
     <ClCompile Include="Race\Common\CourseData.cpp" />
     <ClCompile Include="Race\Common\RaceSharedState.cpp" />
+    <ClCompile Include="Race\Machine\MachinePhysics.cpp" />
     <ClCompile Include="Race\Player\Player.cpp" />
     <ClCompile Include="Race\Stage\StageManager.cpp" />
     <ClCompile Include="Race\Toys\ToyCinnamon.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="Demo\Demo_Intersection.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHandle.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHierarchy.cpp" />
+    <ClCompile Include="TY_Extension\Pose.cpp" />
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
     <ClCompile Include="Util\Utilities.cpp" />
@@ -256,6 +258,7 @@
     <ClInclude Include="Race\Common\CourseData.h" />
     <ClInclude Include="Race\Common\RaceSharedState.h" />
     <ClInclude Include="Race\IRaceContext.h" />
+    <ClInclude Include="Race\Machine\MachinePhysics.h" />
     <ClInclude Include="Race\Player\Player.h" />
     <ClInclude Include="Race\RaceContextContent.h" />
     <ClInclude Include="Race\RaceScene.h" />
@@ -282,6 +285,7 @@
     <ClInclude Include="TY_Extension\GameObjectHandle.h" />
     <ClInclude Include="TY_Extension\GameObjectHierarchy.h" />
     <ClInclude Include="TY_Extension\LivePPAddon.h" />
+    <ClInclude Include="TY_Extension\Pose.h" />
     <ClInclude Include="TY_Extension\ResourceCache.h" />
     <ClInclude Include="TY_Extension\SerializeTransform.h" />
     <ClInclude Include="TY_Extension\Transform.h" />

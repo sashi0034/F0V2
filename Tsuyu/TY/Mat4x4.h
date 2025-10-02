@@ -169,6 +169,8 @@ namespace TY
 
         [[nodiscard] ] static Mat4x4 Scale(const Float3& v) noexcept;
 
+        [[nodiscard]] static Mat4x4 Rotate(Quaternion quaternion) noexcept;
+
         [[nodiscard]] static Mat4x4 RollPitchYaw(Float3 angles);
 
         [[nodiscard]] static Mat4x4 RollPitchYaw(float roll, float pitch, float yaw);

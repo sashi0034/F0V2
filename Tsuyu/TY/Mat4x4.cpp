@@ -98,6 +98,11 @@ namespace TY
         return DirectX::XMMatrixScaling(v.x, v.y, v.z);
     }
 
+    Mat4x4 Mat4x4::Rotate(Quaternion quaternion) noexcept
+    {
+        return DirectX::XMMatrixRotationQuaternion(quaternion.value);
+    }
+
     Mat4x4 Mat4x4::RollPitchYaw(Float3 angles)
     {
         return DirectX::XMMatrixRotationRollPitchYaw(angles.x, angles.y, angles.z);
