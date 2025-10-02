@@ -20,5 +20,5 @@ namespace Race
 
     IRaceContext& GetRaceContext();
 
-    RaceContextContent& GetRaceContextPayload();
+    RaceContextContent& GetRaceContextContent();
 }

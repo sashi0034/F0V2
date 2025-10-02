@@ -105,7 +105,7 @@ struct StageManager::Impl : GameObjectBase
                 ModelDrawerParams{}
                 .setModel(BuildCourseModel(segment))
                 .setShader(Asset_shader::lambert)
-                .setCbv10AndLater({GetRaceContextPayload().cb.lambert}));
+                .setCbv10AndLater({GetRaceContextContent().cb.lambert}));
         }
 
         // -----------------------------------------------
@@ -129,7 +129,7 @@ struct StageManager::Impl : GameObjectBase
 private:
     void update() override
     {
-        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextPayload().camera.eyePosition())).draw();
+        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextContent().camera.eyePosition())).draw();
 
         for (int x = -1; x <= 1; ++x)
         {

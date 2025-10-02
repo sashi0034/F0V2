@@ -132,7 +132,7 @@ namespace Race
         return *s_raceContext;
     }
 
-    RaceContextContent& GetRaceContextPayload()
+    RaceContextContent& GetRaceContextContent()
     {
         assert(s_raceContext != nullptr);
         return s_raceContext->state();
