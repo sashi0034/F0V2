@@ -46,6 +46,48 @@ bool DebugUI::Button(const RectF& region, const std::u32string& text)
     return isHovered && MouseL.down();
 }
 
+bool DebugUI::DragButton(const RectF& region, const std::u32string& text)
+{
+    const bool isHovered = Intersects(region, Mouse::PosF());
+
+    struct state_type
+    {
+        size_t dragTimestamp;
+    };
+
+    static std::unordered_map<size_t, state_type> s_states{};
+
+    auto& state = s_states[hashRect(region)];
+
+    const bool dragged = state.dragTimestamp == System::FrameCount() - 1;
+    bool dragging{};
+    if (not dragged)
+    {
+        if (isHovered && MouseL.down())
+        {
+            state.dragTimestamp = System::FrameCount();
+            dragging = true;
+        }
+    }
+    else // dragging
+    {
+        if (MouseL.pressed())
+        {
+            state.dragTimestamp = System::FrameCount();
+            dragging = true;
+        }
+    }
+
+    Shape2D::RoundRect{region}
+        .setColor(ColorPalette::DarkOrange * (dragging ? 1.5f : (isHovered ? 1.3f : 1.0f)))
+        .pushAuto();
+    Shape2D_Text::MPlus1_16_Bitmap(text)
+        .setPosition(region.middleCenter(), Alignment9::MiddleCenter)
+        .pushAuto();
+
+    return dragging;
+}
+
 bool DebugUI::ItemButton(const RectF& region, const std::u32string& text, bool active)
 {
     bool hovered = false;

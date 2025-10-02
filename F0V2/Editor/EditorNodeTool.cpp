@@ -165,8 +165,12 @@ private:
                             segments[m_activeNodeIndex].p1.y,
                             segments[m_activeNodeIndex].p1.z);
 
-            if (DebugUI::Button(RectF{Scene::Center(), Float2{240, 24}}, ToUtf32(text)))
+            if (DebugUI::DragButton(RectF{Scene::Center(), Float2{240, 24}}, ToUtf32(text)))
             {
+                Float2 dragAmount = Mouse::Drag(MouseL);
+                auto& node = g_editorState->course.nodes[m_activeNodeIndex];
+                node.pos.x += dragAmount.x * 0.1f;
+                node.pos.z += -dragAmount.y * 0.1f;
             }
         }
 
