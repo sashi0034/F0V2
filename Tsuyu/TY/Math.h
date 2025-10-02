@@ -160,6 +160,12 @@ namespace TY
             }
         }
 
+        template <Arithmetic Arithmetic>
+        inline constexpr int Square(const Arithmetic x) noexcept
+        {
+            return x * x;
+        }
+
         // template <Integral Integral>
         // constexpr Integral Mod(Integral a, Integral b) noexcept
         // {

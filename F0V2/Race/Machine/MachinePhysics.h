@@ -6,9 +6,15 @@ namespace Race
     struct MachinePhysicsState
     {
         float m_radius = 1;
+
         float m_height = 2;
+
         Pose m_pose{};
+
         float m_yaw{};
+
+        Float3 m_velocity{};
+
         Float3 m_surfaceNormal{0, 1, 0};
     };
 

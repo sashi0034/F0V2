@@ -3,6 +3,7 @@
 
 #include "Race/IRaceContext.h"
 #include "Race/Stage/StageManager.h"
+#include "TY/GameStep.h"
 #include "TY/GameTime.h"
 #include "TY/Intersects3D.h"
 #include "TY/Shape3D.h"
@@ -163,9 +164,15 @@ namespace
             // 面の法線を採用
             state.m_surfaceNormal = tri.plane.normal;
 
-            const auto n = state.m_surfaceNormal;
+            const Float3 n = state.m_surfaceNormal;
+
+            // 法線方向速度の除去
+            state.m_velocity = state.m_velocity - n * state.m_velocity.dot(n);
+
+            // 法線方向移動ベクトルの除去
             const Float3 r = toPos - state.m_pose.position;
             const auto newMoveVector = r - n * r.dot(n);
+
             if (nest < 3)
             {
                 updateCapsulePosition(state, props, state.m_pose.position, newMoveVector, nest + 1);
@@ -183,15 +190,26 @@ namespace Race
 
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
 
-        Float3 moveVector{};
-        Float3 gravity = Float3{0.0f, -10.0f, 0.0f};
-        moveVector += gravity * InGameDeltaTime();
+        Float3 gravity = Float3{0.0f, -1.0f, 0.0f};
+        state.m_velocity += gravity * InGameDeltaTime();
 
         if (props.hasAccelInput)
         {
-            moveVector += forwardVector * 50.0f * InGameDeltaTime();
+            state.m_velocity += forwardVector * 1.5f * InGameDeltaTime();
         }
 
+        Float3 moveVector = state.m_velocity;
+
         updateCapsulePosition(state, props, state.m_pose.position, moveVector);
+
+        constexpr float mu = 0.5f; // TODO
+        if (state.m_velocity.lengthSq() > Math::Square(mu * InGameDeltaTime()))
+        {
+            state.m_velocity -= state.m_velocity.normalized() * mu * InGameDeltaTime();
+        }
+        else
+        {
+            state.m_velocity = {};
+        }
     }
 }

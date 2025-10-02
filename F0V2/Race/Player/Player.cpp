@@ -45,7 +45,7 @@ struct Player::Impl : GameObjectBase
             .setShader(Asset_shader::lambert)
             .setCbv10AndLater({GetRaceContextContent().cb.lambert});
 
-        m_physicsState.m_pose.position = Float3{0, 50.0f, 0};
+        resetPhysicsState();
     }
 
 private:
@@ -80,15 +80,23 @@ private:
         debugUI();
     }
 
+    void resetPhysicsState()
+    {
+        m_physicsState = {};
+
+        m_physicsState.m_pose.position = Float3{0, 50.0f, 0};
+        m_physicsState.m_pose.rotation = Quaternion::Identity();
+
+        m_physicsState.m_surfaceNormal = Float3{0, 1, 0};
+    }
+
     void debugUI()
     {
         ImGui::Begin("Player");
 
-        if (ImGui::Button("Reset Position"))
+        if (ImGui::Button("Reset Physics State"))
         {
-            m_physicsState.m_pose.position = Float3{0, 50.0f, 0};
-            m_physicsState.m_surfaceNormal = Float3{0, 1, 0};
-            m_physicsState.m_pose.rotation = Quaternion::Identity();
+            resetPhysicsState();
         }
 
         ImGui::Checkbox("Stop Move", &s_stopMove);
