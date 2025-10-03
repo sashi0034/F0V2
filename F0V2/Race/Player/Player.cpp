@@ -23,6 +23,8 @@ using namespace Race;
 namespace
 {
     bool s_stopMove{};
+
+    bool s_fixedCameraUp{};
 }
 
 struct Player::Impl : GameObjectBase
@@ -65,12 +67,16 @@ private:
 
         Float3 eyePos = m_physicsState.m_pose.position;
         eyePos += -forwardVector.normalized() * 10.0f;
-        eyePos += m_physicsState.m_actualSurfaceNormal * 5.0f;
+        eyePos += m_cameraUp * 5.0f;
 
         for (const float dt : StandardStep_60Hz())
         {
             m_cameraUp = m_cameraUp.slerp(-m_physicsState.m_gravity, dt);
         }
+
+#ifdef _DEBUG
+        if (s_fixedCameraUp) m_cameraUp = Float3{0, 1, 0};
+#endif
 
         GetRaceContextContent().camera.set(eyePos, m_physicsState.m_pose.position, m_cameraUp);
 
@@ -105,6 +111,8 @@ private:
 
         ImGui::DragFloat3("Position", &m_physicsState.m_pose.position.x, 0.1f);
 
+        // -----------------------------------------------
+
         static std::deque<Pose> s_poseHistory{};
         static int s_rewindFrames{};
 
@@ -125,6 +133,15 @@ private:
             s_stopMove = true;
             m_physicsState.m_pose = s_poseHistory[s_poseHistory.size() - 1 - s_rewindFrames];
         }
+
+        if (ImGui::IsItemDeactivatedAfterEdit())
+        {
+            s_stopMove = false;
+        }
+
+        // -----------------------------------------------
+
+        ImGui::Checkbox("Fix Camera Up", &s_fixedCameraUp);
 
         const auto& surfaceNormal = m_physicsState.m_actualSurfaceNormal;
         ImGui::Text("Normal: (%.2f, %.2f, %.2f)", surfaceNormal.x, surfaceNormal.y, surfaceNormal.z);
