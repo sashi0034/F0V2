@@ -92,12 +92,30 @@ private:
     {
         ImGui::Begin("Player");
 
-        if (ImGui::Button("Reset Physics State"))
+        ImGui::Checkbox("Stop Move", &s_stopMove);
+
+        ImGui::DragFloat3("Position", &m_physicsState.m_pose.position.x, 0.1f);
+
+        static std::deque<Pose> s_poseHistory{};
+        static int s_rewindFrames{};
+
+        if (not s_stopMove)
         {
-            resetPhysicsState();
+            s_poseHistory.push_back(m_physicsState.m_pose);
+            s_rewindFrames = 0;
         }
 
-        ImGui::Checkbox("Stop Move", &s_stopMove);
+        while (s_poseHistory.size() > 300)
+        {
+            s_poseHistory.pop_front();
+        }
+
+        if (ImGui::SliderInt("Rewind Frames", &s_rewindFrames, static_cast<int>(s_poseHistory.size()) - 1, 0))
+        {
+            s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_poseHistory.size()) - 1);
+            s_stopMove = true;
+            m_physicsState.m_pose = s_poseHistory[s_poseHistory.size() - 1 - s_rewindFrames];
+        }
 
         const auto& surfaceNormal = m_physicsState.m_actualSurfaceNormal;
         ImGui::Text("Normal: (%.2f, %.2f, %.2f)", surfaceNormal.x, surfaceNormal.y, surfaceNormal.z);
