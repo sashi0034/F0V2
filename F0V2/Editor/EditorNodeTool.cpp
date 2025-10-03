@@ -197,21 +197,21 @@ private:
     void buildSegmentsIfNeeded()
     {
         auto& nodeList = g_editorState->course.nodes;
-        Array<int> rebuildIndex{};
+        Array<int> rebuildIndexes{};
         for (int i = 0; i < nodeList.size(); ++i)
         {
-            const auto& node0 = nodeList[Modulo<int>(i - 1, nodeList.size())];
-            const auto& node1 = nodeList[i];
-            const auto& node2 = nodeList[Modulo<int>(i + 1, nodeList.size())];
-            const auto& node3 = nodeList[Modulo<int>(i + 2, nodeList.size())];
+            int i0 = Modulo<int>(i - 1, nodeList.size());
+            int i1 = i;
+            int i2 = Modulo<int>(i + 1, nodeList.size());
+            int i3 = Modulo<int>(i + 2, nodeList.size());
 
-            const Float3& p0 = node0.pos;
-            const Float3& p1 = node1.pos;
-            const Float3& p2 = node2.pos;
-            const Float3& p3 = node3.pos;
+            const Float3& p0 = nodeList[i0].pos;
+            const Float3& p1 = nodeList[i1].pos;
+            const Float3& p2 = nodeList[i2].pos;
+            const Float3& p3 = nodeList[i3].pos;
 
-            const float p1_roll = node1.rollRadians();
-            const float p2_roll = node2.rollRadians();
+            const float p1_roll = nodeList[i1].rollRadians();
+            const float p2_roll = nodeList[i2].rollRadians();
 
             if (i >= m_segments.size() ||
                 m_segments[i].p1 != p1 ||
@@ -233,8 +233,19 @@ private:
 
                 segment.midwayPositions = generateCatmullRomPoints(p0, p1, p2, p3, 10);
 
-                rebuildIndex.push_back(i);
+                rebuildIndexes.push_back(i0);
+                rebuildIndexes.push_back(i1);
+                rebuildIndexes.push_back(i2);
+                rebuildIndexes.push_back(i3);
             }
+        }
+
+        std::ranges::sort(rebuildIndexes);
+
+        // 重複を除去
+        {
+            auto last = std::ranges::unique(rebuildIndexes);
+            rebuildIndexes.erase(last.begin(), last.end());
         }
 
         while (m_segments.size() > nodeList.size())
@@ -245,7 +256,7 @@ private:
         // -----------------------------------------------
 
         // 変更があった CourseSegment の線分に対して面を構築する
-        for (const auto i : rebuildIndex)
+        for (const auto i : rebuildIndexes)
         {
             auto& segment = m_segments[i];
             segment.midwayStrips.clear();
@@ -287,7 +298,7 @@ private:
             m_courseDrawers.resize(m_segments.size());
         }
 
-        for (const auto i : rebuildIndex)
+        for (const auto i : rebuildIndexes)
         {
             auto& segment = m_segments[i];
 
