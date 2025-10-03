@@ -1,13 +1,13 @@
 #pragma once
 #include "CB/Lambert.h"
+#include "TY/BasicCamera3D.h"
 #include "TY/ConstantBufferWrapper.h"
-#include "TY/SimpleCamera3D.h"
 
 namespace Race
 {
     struct RaceContextContent
     {
-        SimpleCamera3D camera{};
+        BasicCamera3D camera{};
 
         struct
         {

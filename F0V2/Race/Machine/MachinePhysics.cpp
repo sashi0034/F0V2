@@ -224,7 +224,7 @@ namespace Race
         const auto& nearestSegment = findNearestSegment(state.m_pose.position);
         const auto& nearestStrip = findNearestStrip(nearestSegment, state.m_pose.position);
 
-        Float3 gravity = -nearestStrip.normal;
+        state.m_gravity = -nearestStrip.normal;
 
         state.m_surfaceNormal = state.m_surfaceNormal.slerp(state.m_actualSurfaceNormal, 5.0f * InGameDeltaTime());
 
@@ -250,7 +250,7 @@ namespace Race
 
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
 
-        state.m_velocity += gravity * InGameDeltaTime();
+        state.m_velocity += state.m_gravity * InGameDeltaTime();
 
         if (props.hasAccelInput)
         {

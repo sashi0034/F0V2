@@ -15,6 +15,8 @@ namespace Race
 
         Float3 m_velocity{};
 
+        Float3 m_gravity{0, 1, 0};
+
         Float3 m_actualSurfaceNormal{0, 1, 0};
 
         Float3 m_surfaceNormal{0, 1, 0};

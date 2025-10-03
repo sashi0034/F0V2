@@ -7,6 +7,7 @@
 #include "Race/Machine/MachinePhysics.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
+#include "TY/GameStep.h"
 #include "TY/GameTime.h"
 #include "TY/Intersects3D.h"
 #include "TY/KeyboardInput.h"
@@ -33,6 +34,8 @@ struct Player::Impl : GameObjectBase
     MachinePhysicsState m_physicsState{};
     MachinePhysicsProps m_physicsProps{};
 
+    Float3 m_cameraUp{0, 1, 0};
+
     void Init()
     {
         ModelBuffer model = ModelBuffer{
@@ -58,12 +61,18 @@ private:
         // TODO: 修正
         m_physicsState.m_yaw += rotateInput * Math::ToRadians(90.0f) * InGameDeltaTime();
 
-        const Float3 forwardVector = m_physicsState.m_pose.rotation.rotate(Float3{0, 0, 1});
+        const Float3 forwardVector = Mat4x4{m_physicsState.m_pose.rotation}.forward();
 
-        GetRaceContextContent().camera.setEyeAndTarget(
-            m_physicsState.m_pose.position - forwardVector.normalized() * 10.0f + m_physicsState.m_actualSurfaceNormal *
-            5.0f,
-            m_physicsState.m_pose.position);
+        Float3 eyePos = m_physicsState.m_pose.position;
+        eyePos += -forwardVector.normalized() * 10.0f;
+        eyePos += m_physicsState.m_actualSurfaceNormal * 5.0f;
+
+        for (const float dt : StandardStep_60Hz())
+        {
+            m_cameraUp = m_cameraUp.slerp(-m_physicsState.m_gravity, dt);
+        }
+
+        GetRaceContextContent().camera.set(eyePos, m_physicsState.m_pose.position, m_cameraUp);
 
         m_physicsProps.hasAccelInput = KeyUp.pressed();
 
@@ -119,6 +128,13 @@ private:
 
         const auto& surfaceNormal = m_physicsState.m_actualSurfaceNormal;
         ImGui::Text("Normal: (%.2f, %.2f, %.2f)", surfaceNormal.x, surfaceNormal.y, surfaceNormal.z);
+
+        ImGui::Separator();
+
+        if (ImGui::Button("Reset Physics State"))
+        {
+            resetPhysicsState();
+        }
 
         ImGui::End();
     }
