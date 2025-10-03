@@ -177,6 +177,15 @@ namespace TY
         return Aabb3D{min, max};
     }
 
+    float LineSegment3D::projectionParameter(const Float3& p) const
+    {
+        const auto& [a, b] = *this;
+        const Float3 ab = b - a;
+        float t = (p - a).dot(ab) / ab.lengthSq();
+        t = Math::Clamp(t, 0.0f, 1.0f);
+        return t;
+    }
+
     Aabb3D Capsule::aabb() const
     {
         return LineSegment3D{p0, p1}.aabb().stretched(radius);

@@ -182,38 +182,51 @@ namespace
 
     // -----------------------------------------------
 
-    const CourseSegment& findNearestSegment(const Float3& position)
+    int findNearestSegmentIndex(const Array<CourseSegment>& courseSegments, const Float3& position)
     {
-        const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
-        std::pair<const CourseSegment*, float> bestSegment{nullptr, FLT_MAX};
-        for (const auto& seg : courseSegments)
+        std::pair<int, float> bestSegment{-1, FLT_MAX};
+        for (int i = 0; i < courseSegments.size(); ++i)
         {
+            const auto& seg = courseSegments[i];
             const float dist = DistanceSq(position, LineSegment3D{seg.p1, seg.p2});
             if (dist < bestSegment.second)
             {
-                bestSegment = {&seg, dist};
+                bestSegment = {i, dist};
             }
         }
 
-        assert(bestSegment.first != nullptr);
-        return *bestSegment.first;
+        return bestSegment.first;
     }
 
-    const CourseStrip& findNearestStrip(const CourseSegment& segment, const Float3& position)
+    int findNearestStripIndex(const CourseSegment& segment, const Float3& position)
     {
         const auto& strips = segment.midwayStrips;
-        std::pair<const CourseStrip*, float> bestStrip{nullptr, FLT_MAX};
-        for (const auto& strip : strips)
+        std::pair<int, float> bestStrip{-1, FLT_MAX};
+        for (int i = 0; i < strips.size(); ++i)
         {
+            const auto& strip = strips[i];
             const float dist = DistanceSq(position, strip.center);
             if (dist < bestStrip.second)
             {
-                bestStrip = {&strip, dist};
+                bestStrip = {i, dist};
             }
         }
 
-        assert(bestStrip.first != nullptr);
-        return *bestStrip.first;
+        return bestStrip.first;
+    }
+
+    const CourseStrip& getNextStrip(const Array<CourseSegment>& courseSegments, int segmentId, int stripId)
+    {
+        const auto& segment = courseSegments[segmentId];
+        if (stripId + 1 < segment.midwayStrips.size())
+        {
+            return segment.midwayStrips[stripId + 1];
+        }
+        else
+        {
+            const auto& nextSegment = courseSegments[(segmentId + 1) % courseSegments.size()];
+            return nextSegment.midwayStrips[1]; // [0] は segment.midwayStrips[^1] と同じなので [1] を返す
+        }
     }
 }
 
@@ -221,10 +234,38 @@ namespace Race
 {
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
-        const auto& nearestSegment = findNearestSegment(state.m_pose.position);
-        const auto& nearestStrip = findNearestStrip(nearestSegment, state.m_pose.position);
+        // 現在位置における重力方向を計算
+        {
+            const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
+            const int nearestSegmentId = findNearestSegmentIndex(courseSegments, state.m_pose.position);
 
-        state.m_gravity = -nearestStrip.normal;
+            const auto& nearestSegment = courseSegments[nearestSegmentId];
+            const int nearestStripId = findNearestStripIndex(nearestSegment, state.m_pose.position);
+
+            const auto& nearestStrip = nearestSegment.midwayStrips[nearestStripId];
+            const auto& nextStrip = getNextStrip(courseSegments, nearestSegmentId, nearestStripId);
+
+            const float t = LineSegment3D{nearestStrip.center, nextStrip.center}
+                .projectionParameter(state.m_pose.position);
+
+            const Float3 n0 = -nearestStrip.normal;
+            const Float3 n1 = -nextStrip.normal;
+
+            state.m_gravity = n0.slerp(n1, t);
+            if (state.m_gravity.isZero())
+            {
+                state.m_gravity = n0;
+            }
+
+            if (props.debug.drawHitTris)
+            {
+                Shape3D::Line{
+                        state.m_pose.position,
+                        state.m_pose.position - state.m_gravity * 10
+                    }.setColor(ColorF32{1.0f, 0.0f, 0.5f}, ColorF32{0.5f, 0, 0.5f})
+                     .pushAuto();
+            }
+        }
 
         constexpr Float3 v010{0, 1, 0};
         Quaternion targetRotation;

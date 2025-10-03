@@ -106,6 +106,8 @@ namespace TY
         Float3 p1;
 
         Aabb3D aabb() const;
+
+        float projectionParameter(const Float3& p) const;
     };
 
     struct Capsule
