@@ -143,7 +143,7 @@ private:
 
         ImGui::Checkbox("Fix Camera Up", &s_fixedCameraUp);
 
-        const auto& surfaceNormal = m_physicsState.m_actualSurfaceNormal;
+        const auto& surfaceNormal = m_physicsState.m_surfaceNormal;
         ImGui::Text("Normal: (%.2f, %.2f, %.2f)", surfaceNormal.x, surfaceNormal.y, surfaceNormal.z);
 
         ImGui::Separator();

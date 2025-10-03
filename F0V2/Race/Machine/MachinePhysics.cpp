@@ -162,9 +162,9 @@ namespace
             }
 
             // 面の法線を採用
-            state.m_actualSurfaceNormal = tri.plane.normal;
+            state.m_surfaceNormal = tri.plane.normal;
 
-            const Float3 n = state.m_actualSurfaceNormal;
+            const Float3 n = state.m_surfaceNormal;
 
             // 法線方向速度の除去
             state.m_velocity = state.m_velocity - n * state.m_velocity.dot(n);
@@ -226,27 +226,31 @@ namespace Race
 
         state.m_gravity = -nearestStrip.normal;
 
-        state.m_surfaceNormal = state.m_surfaceNormal.slerp(state.m_actualSurfaceNormal, 5.0f * InGameDeltaTime());
-
-        constexpr Float3 upVector{0, 1, 0};
+        constexpr Float3 v010{0, 1, 0};
         Quaternion targetRotation;
-        if (upVector.dot(state.m_surfaceNormal) > -0.999f)
+        if (v010.dot(state.m_interpolatedUpVector) > -0.999f)
         {
-            targetRotation = Quaternion(upVector, state.m_yaw);
-            targetRotation *= Quaternion::FromUnitVectors(upVector, state.m_surfaceNormal);
+            targetRotation = Quaternion(v010, state.m_yaw);
+            targetRotation *= Quaternion::FromUnitVectors(v010, state.m_interpolatedUpVector);
         }
         else
         {
             // 例外処理
-            targetRotation = Quaternion(-upVector, state.m_yaw);
+            targetRotation = Quaternion(-v010, state.m_yaw);
         }
 
-        // 滑らかに回転
-        state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 5.0f * InGameDeltaTime());
+        // 滑らかに補完
+        for (const auto dt : StandardStep_60Hz())
+        {
+            state.m_interpolatedUpVector =
+                state.m_interpolatedUpVector.slerp(-state.m_gravity, 10.0f * dt);
 
-        // 空中にいるとき、滑らかに重力方向に向いていくようにする
-        // TODO: 空中判定
-        // state.m_actualSurfaceNormal = state.m_actualSurfaceNormal.slerp(-gravity, 1.0f * InGameDeltaTime());
+            state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 10.0f * dt);
+
+            // 空中にいるとき、滑らかに重力方向に向いていくようにする
+            // TODO: 空中判定
+            // state.m_actualSurfaceNormal = state.m_actualSurfaceNormal.slerp(-gravity, 1.0f * InGameDeltaTime());
+        }
 
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
 
