@@ -200,13 +200,24 @@ private:
         Array<int> rebuildIndex{};
         for (int i = 0; i < nodeList.size(); ++i)
         {
-            auto& p0 = nodeList[(i - 1 + nodeList.size()) % nodeList.size()].pos;
-            auto& p1 = nodeList[i].pos;
-            auto& p2 = nodeList[(i + 1) % nodeList.size()].pos;
-            auto& p3 = nodeList[(i + 2) % nodeList.size()].pos;
+            const auto& node0 = nodeList[Modulo<int>(i - 1, nodeList.size())];
+            const auto& node1 = nodeList[i];
+            const auto& node2 = nodeList[Modulo<int>(i + 1, nodeList.size())];
+            const auto& node3 = nodeList[Modulo<int>(i + 2, nodeList.size())];
+
+            const Float3& p0 = node0.pos;
+            const Float3& p1 = node1.pos;
+            const Float3& p2 = node2.pos;
+            const Float3& p3 = node3.pos;
+
+            const float p1_roll = node1.rollRadians();
+            const float p2_roll = node2.rollRadians();
+
             if (i >= m_segments.size() ||
                 m_segments[i].p1 != p1 ||
-                m_segments[i].p2 != p2)
+                m_segments[i].p2 != p2 ||
+                m_segments[i].p1_roll != p1_roll ||
+                m_segments[i].p2_roll != p2_roll)
             {
                 if (i >= m_segments.size())
                 {
@@ -216,6 +227,10 @@ private:
                 auto& segment = m_segments[i];
                 segment.p1 = p1;
                 segment.p2 = p2;
+
+                segment.p1_roll = p1_roll;
+                segment.p2_roll = p2_roll;
+
                 segment.midwayPositions = generateCatmullRomPoints(p0, p1, p2, p3, 10);
 
                 rebuildIndex.push_back(i);
@@ -239,12 +254,21 @@ private:
                 CourseStrip strip{};
                 strip.center = segment.midwayPositions[m];
 
+                const float roll =
+                    Math::LerpAngle(
+                        segment.p1_roll,
+                        segment.p2_roll,
+                        static_cast<float>(m) / (segment.midwayPositions.size() - 1));
+
                 auto nextPosition = segment.midwayPositions[m + 1];
                 strip.toNext = nextPosition - strip.center;
 
                 {
                     const Float3 n = strip.toNext.cross(Float3(0, 1, 0));
-                    strip.normal = n.cross(strip.toNext).normalized(); // 鉛直上ベクトルと進行方向に垂直なベクトル
+                    strip.normal = n.cross(strip.toNext); // 鉛直上ベクトルと進行方向に垂直なベクトル
+
+                    const auto q = Quaternion(strip.toNext.normalized(), roll);
+                    strip.normal = q.rotate(strip.normal).normalized();
                 }
 
                 auto right = strip.toNext.cross(strip.normal).normalized();
@@ -318,6 +342,11 @@ private:
             }
 
             ImGui::DragFloat3(std::format("Position##{}", i).c_str(), &nodeList[i].pos.x, 0.1f);
+
+            if (ImGui::InputInt(std::format("Roll##{}", i).c_str(), &nodeList[i].roll, 5, 15))
+            {
+                nodeList[i].roll = std::clamp(nodeList[i].roll, -180, 180);
+            }
         }
 
         for (auto it = removeIndex.rbegin(); it != removeIndex.rend(); ++it)

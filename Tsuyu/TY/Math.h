@@ -77,6 +77,9 @@ namespace TY
         template <FloatingPoint Float>
         inline constexpr Float Pi_v = Float(3.141592653589793238462643383279502884L);
 
+        template <FloatingPoint Float>
+        inline constexpr Float TwoPi_v = 2 * Pi_v<Float>;
+
         /// @brief π
         inline constexpr double Pi = Pi_v<double>;
 
@@ -143,6 +146,13 @@ namespace TY
         constexpr float Lerp(float v1, float v2, float f) noexcept
         {
             return (v1 + (v2 - v1) * f);
+        }
+
+        template <class T, class U, class V>
+        inline auto LerpAngle(const T from, const U to, const V t) noexcept
+        {
+            const auto diff = std::fmod(to - from, Math::TwoPi_v<V>);
+            return (from + (std::fmod(2 * diff, Math::TwoPi_v<V>) - diff) * t);
         }
 
         float Fraction(float x) noexcept;

@@ -19,6 +19,9 @@ namespace Race
         Float3 p1{};
         Float3 p2{};
 
+        float p1_roll; // radians
+        float p2_roll; // radians
+
         Array<Float3> midwayPositions{};
         Array<CourseStrip> midwayStrips{};
     };
