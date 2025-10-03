@@ -23,12 +23,6 @@ namespace TY
     }
 
     template <typename T>
-    constexpr bool InRange(T value, T min, T max) noexcept
-    {
-        return min <= value && value <= max;
-    }
-
-    template <typename T>
     constexpr T MinVector2(T a, T b) noexcept
     {
         T result;
@@ -64,6 +58,18 @@ namespace TY
         result.y = Max(a.y, b.y);
         result.z = Max(a.z, b.z);
         return result;
+    }
+
+    template <typename T>
+    constexpr bool InRange(T value, T min, T max) noexcept
+    {
+        return min <= value && value <= max;
+    }
+
+    template <Integral Integral>
+    constexpr Integral Modulo(Integral a, Integral b) noexcept
+    {
+        return ((a % b) + b) % b;
     }
 
     namespace Math

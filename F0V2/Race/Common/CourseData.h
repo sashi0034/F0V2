@@ -25,11 +25,18 @@ namespace Race
 
     struct CourseNode
     {
-        Float3 pos;
+        Float3 pos{};
+        int roll{}; // degrees
+
+        float rollRadians() const;
     };
 
     struct CourseData
     {
         Array<CourseNode> nodes{};
     };
+
+    CourseData LoadCourseData(const std::string& filepath);
+
+    void SaveCourseData(const CourseData& course, const std::string& filepath);
 }
