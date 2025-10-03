@@ -205,7 +205,7 @@ namespace
         for (int i = 0; i < strips.size(); ++i)
         {
             const auto& strip = strips[i];
-            const float dist = DistanceSq(position, strip.center);
+            const float dist = DistanceSq(position, strip.center + strip.toNext * 0.5f);
             if (dist < bestStrip.second)
             {
                 bestStrip = {i, dist};
