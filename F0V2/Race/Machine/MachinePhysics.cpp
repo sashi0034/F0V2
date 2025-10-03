@@ -267,12 +267,20 @@ namespace Race
             }
         }
 
+        state.m_upVector = -state.m_gravity;
+
+        // for (const auto dt : StandardStep_60Hz())
+        // {
+        //     state.m_upVector =
+        //         state.m_upVector.slerp(-state.m_gravity, 10.0f * dt);
+        // }
+
         constexpr Float3 v010{0, 1, 0};
         Quaternion targetRotation;
-        if (v010.dot(state.m_interpolatedUpVector) > -0.999f)
+        if (v010.dot(state.m_upVector) > -0.999f)
         {
             targetRotation = Quaternion(v010, state.m_yaw);
-            targetRotation *= Quaternion::FromUnitVectors(v010, state.m_interpolatedUpVector);
+            targetRotation *= Quaternion::FromUnitVectors(v010, state.m_upVector);
         }
         else
         {
@@ -280,12 +288,9 @@ namespace Race
             targetRotation = Quaternion(-v010, state.m_yaw);
         }
 
-        // 滑らかに補完
+        // 滑らかに回転
         for (const auto dt : StandardStep_60Hz())
         {
-            state.m_interpolatedUpVector =
-                state.m_interpolatedUpVector.slerp(-state.m_gravity, 10.0f * dt);
-
             state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 10.0f * dt);
 
             // 空中にいるとき、滑らかに重力方向に向いていくようにする
@@ -295,7 +300,7 @@ namespace Race
 
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
 
-        state.m_velocity += state.m_gravity * InGameDeltaTime();
+        state.m_velocity += state.m_gravity * 1.5f * InGameDeltaTime();
 
         if (props.hasAccelInput)
         {

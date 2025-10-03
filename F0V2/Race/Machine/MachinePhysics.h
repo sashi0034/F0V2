@@ -19,7 +19,7 @@ namespace Race
 
         Float3 m_surfaceNormal{0, 1, 0};
 
-        Float3 m_interpolatedUpVector{0, 1, 0};
+        Float3 m_upVector{0, 1, 0};
     };
 
     struct MachinePhysicsProps
