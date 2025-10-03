@@ -112,10 +112,11 @@ private:
         for (int i = 0; i < segments.size(); ++i)
         {
             const auto& segment = segments[i];
-            for (int j = 0; j < segment.midwayPositions.size() - 1; ++j)
+            for (int j = 0; j < segment.midwayStrips.size() - 1; ++j)
             {
-                constexpr Float3 d{0, 0.1, 0};
-                lineSet.appendLine(segment.midwayPositions[j] + d, segment.midwayPositions[j + 1] + d);
+                const Float3 d0 = segment.midwayStrips[j].normal;
+                const Float3 d1 = segment.midwayStrips[j + 1].normal;
+                lineSet.appendLine(segment.midwayStrips[j].center + d0, segment.midwayStrips[j + 1].center + d1);
             }
         }
 
