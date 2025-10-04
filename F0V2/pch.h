@@ -75,6 +75,8 @@
 
 #include "toml.h"
 
+#include "nameof.hpp"
+
 // external libraries used in game
 #include <boost/coroutine2/coroutine.hpp>
 
