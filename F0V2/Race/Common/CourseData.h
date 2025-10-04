@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "CourseConstants.h"
 #include "TY/Array.h"
 #include "TY/Vector3D.h"
 
@@ -6,12 +7,17 @@ namespace Race
 {
     struct CourseStrip
     {
-        Float3 center;
-        Float3 leftmost;
-        Float3 rightmost;
+        Float3 center{};
+        Float3 leftmost{};
+        Float3 rightmost{};
 
-        Float3 toNext; // 次点へのベクトル
-        Float3 normal;
+        Float3 toNext{}; // 次点へのベクトル
+        Float3 normal{};
+
+        struct
+        {
+            std::array<Float3, TunnelSubdivision> ringVectors{}; // リング上の頂点方向へのベクトル
+        } tunnel;
     };
 
     enum class CourseSegmentStyle : uint8_t

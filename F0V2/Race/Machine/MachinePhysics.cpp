@@ -230,6 +230,46 @@ namespace
             return nextSegment.midwayStrips[1]; // [0] は segment.midwayStrips[^1] と同じなので [1] を返す
         }
     }
+
+    Float3 calculateGravity(const Float3& position)
+    {
+        const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
+
+        const int nearestSegmentId = findNearestSegmentIndex(courseSegments, position);
+        const auto& nearestSegment = courseSegments[nearestSegmentId];
+
+        const int nearestStripId = findNearestStripIndex(nearestSegment, position);
+        const auto& nearestStrip = nearestSegment.midwayStrips[nearestStripId];
+
+        if (nearestSegment.style == CourseSegmentStyle::Tunnel &&
+            not nearestStrip.tunnel.ringVectors[0].isZero()) // FIXME
+        {
+            // トンネル内の重力
+            const auto& ringVectors = nearestStrip.tunnel.ringVectors;
+            std::array<Float3, TunnelSubdivision> ringPoints{}; // リング上の仮点
+            for (int i = 0; i < TunnelSubdivision; ++i)
+            {
+                const Float3 dir = ringVectors[i] + ringVectors[(i + 1) % TunnelSubdivision];
+                ringPoints[i] = nearestStrip.center + dir;
+            }
+
+            float minDistSq = FLT_MAX;
+            int minIndex{};
+            for (int i = 0; i < TunnelSubdivision; ++i)
+            {
+                const float distSq = DistanceSq(position, ringPoints[i]);
+                if (distSq < minDistSq)
+                {
+                    minDistSq = distSq;
+                    minIndex = i;
+                }
+            }
+
+            return (ringPoints[minIndex] - nearestStrip.center).normalized();
+        }
+
+        return -nearestStrip.normal;
+    }
 }
 
 namespace Race
@@ -238,15 +278,7 @@ namespace Race
     {
         // 現在位置における重力方向を計算
         {
-            const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
-
-            const int nearestSegmentId = findNearestSegmentIndex(courseSegments, state.m_pose.position);
-            const auto& nearestSegment = courseSegments[nearestSegmentId];
-
-            const int nearestStripId = findNearestStripIndex(nearestSegment, state.m_pose.position);
-            const auto& nearestStrip = nearestSegment.midwayStrips[nearestStripId];
-
-            const Float3 n0 = -nearestStrip.normal;
+            const Float3 n0 = calculateGravity(state.m_pose.position);
 
             state.m_gravity = n0;
 

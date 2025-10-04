@@ -191,6 +191,10 @@ namespace TY
         float Mod(float a, float b);
 
         double Mod(double a, double b);
+
+        float NormalizeAngle(float radian, float center);
+
+        inline double NormalizeAngle(double radian, double center);
     }
 
     inline namespace Literals

@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "CourseBuilder.h"
 
+#include "CourseConstants.h"
 #include "TY/Quaternion.h"
 #include "TY/Shape3D.h"
 
@@ -74,45 +75,33 @@ namespace
 
     ModelBuffer buildTunnelModel(const CourseSegment& segment, Array<Triangle3D>* outCollider)
     {
-        const int subdivisions = 6;
-        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * (subdivisions * 4 * 2));
-        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * (subdivisions * 6 * 2));
+        constexpr int subdivision = TunnelSubdivision;
+        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * (subdivision * 4 * 2));
+        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * (subdivision * 6 * 2));
         int v_offset{};
         int i_offset{};
-        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
+        for (int m = 0; m < segment.midwayStrips.size() - 2 /* TODO: 終端部分の調整 */ ; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];
 
             constexpr float r = 10.0f; // TODO
 
-            std::array<Float3, subdivisions> n0s;
-            std::array<Float3, subdivisions> n1s;
-
-            // 円周上の頂点を計算
-            for (int s = 0; s < subdivisions; ++s)
-            {
-                Float3 n0 =
-                    Quaternion{s0.toNext.normalized(), -Math::TwoPi_v<float> * s / subdivisions}.rotate(s0.normal);
-                n0s[s] = n0.normalized();
-
-                Float3 n1 =
-                    Quaternion{s1.toNext.normalized(), -Math::TwoPi_v<float> * s / subdivisions}.rotate(s1.normal);
-                n1s[s] = n1;
-            }
+            std::array<Float3, subdivision> n0s = s0.tunnel.ringVectors;
+            std::array<Float3, subdivision> n1s = s1.tunnel.ringVectors;
 
             // 表面
-            for (int s = 0; s < subdivisions; ++s)
+            for (int s = 0; s < subdivision; ++s)
             {
                 const Float3 l0 = s0.center + n0s[s] * r;
-                const Float3 r0 = s0.center + n0s[(s + 1) % subdivisions] * r;
+                const Float3 r0 = s0.center + n0s[(s + 1) % subdivision] * r;
                 const Float3 l1 = s1.center + n1s[s] * r;
-                const Float3 r1 = s1.center + n1s[(s + 1) % subdivisions] * r;
+                const Float3 r1 = s1.center + n1s[(s + 1) % subdivision] * r;
 
                 vertices[v_offset] = ModelVertex{l1, -n1s[s] * r, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, -n1s[(s + 1) % subdivisions] * r, Float2{1, 0}};
+                vertices[v_offset + 1] = ModelVertex{r1, -n1s[(s + 1) % subdivision] * r, Float2{1, 0}};
                 vertices[v_offset + 2] = ModelVertex{l0, -n0s[s], Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, -n1s[(s + 1) % subdivisions], Float2{1, 1}};
+                vertices[v_offset + 3] = ModelVertex{r0, -n1s[(s + 1) % subdivision], Float2{1, 1}};
 
                 indices[i_offset] = v_offset;
                 indices[i_offset + 1] = v_offset + 2;
@@ -132,17 +121,17 @@ namespace
             }
 
             // 裏面
-            for (int s = 0; s < subdivisions; ++s)
+            for (int s = 0; s < subdivision; ++s)
             {
                 const Float3 l0 = s0.center + n0s[s] * r;
-                const Float3 r0 = s0.center + n0s[(s + 1) % subdivisions] * r;
+                const Float3 r0 = s0.center + n0s[(s + 1) % subdivision] * r;
                 const Float3 l1 = s1.center + n1s[s] * r;
-                const Float3 r1 = s1.center + n1s[(s + 1) % subdivisions] * r;
+                const Float3 r1 = s1.center + n1s[(s + 1) % subdivision] * r;
 
                 vertices[v_offset] = ModelVertex{l1, n1s[s] * r, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, n1s[(s + 1) % subdivisions], Float2{1, 0}};
+                vertices[v_offset + 1] = ModelVertex{r1, n1s[(s + 1) % subdivision], Float2{1, 0}};
                 vertices[v_offset + 2] = ModelVertex{l0, n0s[s], Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, n0s[(s + 1) % subdivisions], Float2{1, 1}};
+                vertices[v_offset + 3] = ModelVertex{r0, n0s[(s + 1) % subdivision], Float2{1, 1}};
 
                 indices[i_offset] = v_offset;
                 indices[i_offset + 1] = v_offset + 1;

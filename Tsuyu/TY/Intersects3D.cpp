@@ -46,6 +46,13 @@ namespace
     }
 }
 
+Float3 TY::ClosestPoint(const Float3& p, const Line3D& line)
+{
+    const auto& [a, dir] = line;
+    float t = (p - a).dot(dir) / dir.lengthSq();
+    return a + dir * t;
+}
+
 Float3 TY::ClosestPoint(const Float3& p, const LineSegment3D& segment)
 {
     const auto& [a, b] = segment;

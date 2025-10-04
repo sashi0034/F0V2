@@ -160,6 +160,7 @@
     <ClCompile Include="GameFlowchart.cpp" />
     <ClCompile Include="GM\DebugService.cpp" />
     <ClCompile Include="Race\Common\CourseBuilder.cpp" />
+    <ClCompile Include="Race\Common\CourseConstants.cpp" />
     <ClCompile Include="Race\Common\CourseData.cpp" />
     <ClCompile Include="Race\Common\RaceSharedState.cpp" />
     <ClCompile Include="Race\Machine\MachinePhysics.cpp" />
@@ -256,6 +257,7 @@
     <ClInclude Include="GameFlowchart.h" />
     <ClInclude Include="GM\DebugService.h" />
     <ClInclude Include="Race\Common\CourseBuilder.h" />
+    <ClInclude Include="Race\Common\CourseConstants.h" />
     <ClInclude Include="Race\Common\CourseData.h" />
     <ClInclude Include="Race\Common\RaceSharedState.h" />
     <ClInclude Include="Race\IRaceContext.h" />
