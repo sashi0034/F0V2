@@ -231,7 +231,8 @@ private:
                 segment.p1_roll = p1_roll;
                 segment.p2_roll = p2_roll;
 
-                segment.midwayPositions = generateCatmullRomPoints(p0, p1, p2, p3, 10);
+                const int samplesPerSegment = (p2 - p1).length() / 1.0f;
+                segment.midwayPositions = generateCatmullRomPoints(p0, p1, p2, p3, samplesPerSegment);
 
                 rebuildIndexes.push_back(i0);
                 rebuildIndexes.push_back(i1);
