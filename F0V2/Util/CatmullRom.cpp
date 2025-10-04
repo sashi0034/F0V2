@@ -1,15 +1,6 @@
 ﻿#include "pch.h"
 #include "CatmullRom.h"
 
-namespace
-{
-    float UnwrapAngle(float angle, float reference)
-    {
-        float diff = std::fmod(angle - reference + Math::Pi_v<float>, Math::TwoPi_v<float>) - Math::Pi_v<float>;
-        return reference + diff;
-    }
-}
-
 Float3 Util::CatmullRom(const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, float t)
 {
     float t2 = t * t;
@@ -39,26 +30,40 @@ Array<Float3> Util::GenerateCatmullRomPoints(const Float3& p0, const Float3& p1,
     return result;
 }
 
+namespace
+{
+    float UnwrapNear(float a, float ref)
+    {
+        // 対称ラップ（[-π, π] に収める差分）std::remainder は負にも自然
+        return ref + std::remainder(a - ref, Math::TwoPi_v<float>);
+    }
+}
+
 float Util::CatmullRomAngle(float p0, float p1, float p2, float p3, float t)
 {
-    // p1 を基準に角度を連続化
-    p0 = UnwrapAngle(p0, p1);
-    p2 = UnwrapAngle(p2, p1);
-    p3 = UnwrapAngle(p3, p1);
+    // 区間は p1 --> p2
+    // 始点側は p1 基準、終点側の p3 は p2 基準で連続化する
+    const float a1 = p1;
+    const float a0 = UnwrapNear(p0, a1);
+    const float a2 = UnwrapNear(p2, a1);
+    const float a3 = UnwrapNear(p3, a2); // <-- p2 基準
 
-    // 通常の Catmull-Rom 式
-    float t2 = t * t;
-    float t3 = t2 * t;
-    float result = (p1 * 2.0f +
-        (p2 - p0) * t +
-        (p0 * 2.0f - p1 * 5.0f + p2 * 4.0f - p3) * t2 +
-        (-p0 + p1 * 3.0f - p2 * 3.0f + p3) * t3) * 0.5f;
+    const float t2 = t * t;
+    const float t3 = t2 * t;
 
-    // [-π, π) に正規化して返す
-    result = std::fmod(result + Math::Pi_v<float>, Math::TwoPi_v<float>);
-    if (result < 0.0f)
-        result += Math::TwoPi_v<float>;
-    result -= Math::Pi_v<float>;
+    float result = (a1 * 2.0f +
+        (a2 - a0) * t +
+        (a0 * 2.0f - a1 * 5.0f + a2 * 4.0f - a3) * t2 +
+        (-a0 + a1 * 3.0f - a2 * 3.0f + a3) * t3) * 0.5f;
+
+    // 出力は好きなレンジへ正規化（[-π, π) なら以下）
+    result = std::remainder(result, Math::TwoPi_v<float>);
+
+    // remainder は [-π, π]なので [-π, π) にしたい場合だけ調整
+    if (result == Math::Pi_v<float>)
+    {
+        result = -Math::Pi_v<float>;
+    }
 
     return result;
 }
