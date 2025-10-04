@@ -300,30 +300,36 @@ namespace Race
 
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
 
-        state.m_velocity += state.m_gravity * 1.5f * InGameDeltaTime();
+        state.m_velocity += state.m_gravity * 50.0f * InGameDeltaTime();
 
         if (props.hasAccelInput)
         {
-            state.m_velocity += forwardVector * 1.5f * InGameDeltaTime();
+            state.m_velocity += forwardVector * 50.0f * InGameDeltaTime();
         }
 
-        if (state.m_velocity.lengthSq() > Math::Square(5.0f))
+        const float maxSpeed = 100.0f;
+        if (state.m_velocity.lengthSq() > Math::Square(maxSpeed))
         {
-            state.m_velocity = state.m_velocity.normalized() * 5.0f;
+            state.m_velocity = state.m_velocity.normalized() * maxSpeed;
         }
 
-        Float3 moveVector = state.m_velocity;
+        Float3 moveVector = state.m_velocity * InGameDeltaTime();
+
+        moveVector += -state.m_upVector * 10.0f * InGameDeltaTime(); // 常に微小量の力で地面方向に押し付ける
 
         updateCapsulePosition(state, props, state.m_pose.position, moveVector);
 
-        constexpr float mu = 0.75f; // TODO
-        if (state.m_velocity.lengthSq() > Math::Square(mu * InGameDeltaTime()))
+        for (const auto dt : StandardStep_60Hz())
         {
-            state.m_velocity -= state.m_velocity.normalized() * mu * InGameDeltaTime();
-        }
-        else
-        {
-            state.m_velocity = {};
+            constexpr float mu = 0.5f; // TODO
+            if (state.m_velocity.lengthSq() > Math::Square(mu))
+            {
+                state.m_velocity -= state.m_velocity.normalized() * mu;
+            }
+            else
+            {
+                state.m_velocity = {};
+            }
         }
     }
 }
