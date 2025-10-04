@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "CatmullRom.h"
 
-Float3 Util::CatmullRom(const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, float t)
+Float3 Util::CatmullRomPoint(const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, float t)
 {
     float t2 = t * t;
     float t3 = t2 * t;
@@ -22,7 +22,7 @@ Array<Float3> Util::GenerateCatmullRomPoints(const Float3& p0, const Float3& p1,
     for (int j = 1; j < samplesPerSegment; ++j)
     {
         float t = static_cast<float>(j) / samplesPerSegment;
-        result.push_back(CatmullRom(p0, p1, p2, p3, t));
+        result.push_back(CatmullRomPoint(p0, p1, p2, p3, t));
     }
 
     result.push_back(p2);

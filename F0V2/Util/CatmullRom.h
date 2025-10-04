@@ -5,7 +5,7 @@
 namespace Util
 {
     // Catmull-Rom 補間 (区間 p1 --> p2)
-    Float3 CatmullRom(const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, float t);
+    Float3 CatmullRomPoint(const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, float t);
 
     Array<Float3> GenerateCatmullRomPoints(
         const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, int samplesPerSegment);

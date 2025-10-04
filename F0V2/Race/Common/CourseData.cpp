@@ -1,6 +1,9 @@
 ﻿#include "pch.h"
 #include "CourseData.h"
 
+#include "Util/CatmullRom.h"
+#include "Util/Utilities.h"
+
 namespace Race
 {
     float CourseNode::rollRadians() const
@@ -36,6 +39,12 @@ namespace Race
 
                         node.roll = static_cast<float>((*nodeTbl)["roll"].value_or(0.0));
 
+                        if (auto* styleStr = (*nodeTbl)["style"].as_string())
+                        {
+                            node.style = Util::GetEnumValueByName<CourseSegmentStyle>(styleStr->get())
+                                .value_or(CourseSegmentStyle{});
+                        }
+
                         result.nodes.push_back(node);
                     }
                 }
@@ -64,6 +73,7 @@ namespace Race
 
             nodeTbl.insert("pos", std::move(posArr));
             nodeTbl.insert("roll", node.roll);
+            nodeTbl.insert("style", Util::GetEnumName(node.style));
 
             nodesArr.push_back(std::move(nodeTbl));
         }

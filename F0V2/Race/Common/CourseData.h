@@ -14,6 +14,13 @@ namespace Race
         Float3 normal;
     };
 
+    enum class CourseSegmentStyle : uint8_t
+    {
+        Road,
+        Tunnel,
+        Max // end marker
+    };
+
     struct CourseSegment
     {
         Float3 side_p0{};
@@ -26,6 +33,8 @@ namespace Race
         float p2_roll; // radians
         float side_p3_roll; // radians
 
+        CourseSegmentStyle style{};
+
         Array<CourseStrip> midwayStrips{};
     };
 
@@ -33,6 +42,7 @@ namespace Race
     {
         Float3 pos{};
         int roll{}; // degrees
+        CourseSegmentStyle style{};
 
         float rollRadians() const;
     };

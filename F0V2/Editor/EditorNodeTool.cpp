@@ -22,6 +22,7 @@
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "Util/CatmullRom.h"
+#include "Util/Utilities.h"
 
 using namespace Editor;
 using namespace Race;
@@ -183,6 +184,8 @@ private:
             const float p2_roll = nodeList[i2].rollRadians();
             const float p3_roll = nodeList[i3].rollRadians();
 
+            const auto style = nodeList[i0].style;
+
             if (i >= m_segments.size() ||
                 m_segments[i].side_p0 != p0 ||
                 m_segments[i].p1 != p1 ||
@@ -191,7 +194,8 @@ private:
                 m_segments[i].side_p0_roll != p0_roll ||
                 m_segments[i].p1_roll != p1_roll ||
                 m_segments[i].p2_roll != p2_roll ||
-                m_segments[i].side_p3_roll != p3_roll)
+                m_segments[i].side_p3_roll != p3_roll ||
+                m_segments[i].style != style)
             {
                 if (i >= m_segments.size())
                 {
@@ -208,6 +212,8 @@ private:
                 segment.p1_roll = p1_roll;
                 segment.p2_roll = p2_roll;
                 segment.side_p3 = p3;
+
+                segment.style = style;
 
                 rebuildIndexes.push_back(i0);
                 rebuildIndexes.push_back(i1);
@@ -336,6 +342,15 @@ private:
             if (ImGui::InputInt(std::format("Roll##{}", i).c_str(), &nodeList[i].roll, 5, 15))
             {
                 nodeList[i].roll = std::clamp(nodeList[i].roll, -180, 180);
+            }
+
+            int style = static_cast<int>(nodeList[i].style);
+            if (ImGui::Combo(std::format("Style##{}", i).c_str(),
+                             &style,
+                             GetEnumCStrList<CourseSegmentStyle>().data(),
+                             static_cast<int>(CourseSegmentStyle::Max)))
+            {
+                nodeList[i].style = static_cast<CourseSegmentStyle>(style);
             }
         }
 
