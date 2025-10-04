@@ -198,6 +198,7 @@ namespace
         return bestSegment.first;
     }
 
+    // TODO: 最適化
     int findNearestStripIndex(const CourseSegment& segment, const Float3& position)
     {
         const auto& strips = segment.midwayStrips;
@@ -215,6 +216,7 @@ namespace
         return bestStrip.first;
     }
 
+    // TODO: 削除していいかも
     const CourseStrip& getNextStrip(const Array<CourseSegment>& courseSegments, int segmentId, int stripId)
     {
         const auto& segment = courseSegments[segmentId];
@@ -237,25 +239,16 @@ namespace Race
         // 現在位置における重力方向を計算
         {
             const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
+
             const int nearestSegmentId = findNearestSegmentIndex(courseSegments, state.m_pose.position);
-
             const auto& nearestSegment = courseSegments[nearestSegmentId];
+
             const int nearestStripId = findNearestStripIndex(nearestSegment, state.m_pose.position);
-
             const auto& nearestStrip = nearestSegment.midwayStrips[nearestStripId];
-            const auto& nextStrip = getNextStrip(courseSegments, nearestSegmentId, nearestStripId);
-
-            const float t = LineSegment3D{nearestStrip.center, nextStrip.center}
-                .projectionParameter(state.m_pose.position);
 
             const Float3 n0 = -nearestStrip.normal;
-            const Float3 n1 = -nextStrip.normal;
 
-            state.m_gravity = n0.slerp(n1, t);
-            if (state.m_gravity.isZero())
-            {
-                state.m_gravity = n0;
-            }
+            state.m_gravity = n0;
 
             if (props.debug.drawHitTris)
             {
