@@ -6,7 +6,7 @@
 #include "ColorPalette.h"
 #include "DebugUI.h"
 #include "EditorState.h"
-#include "Race/Common/CourseHelper.h"
+#include "Race/Common/CourseBuilder.h"
 #include "Race/Common/CourseData.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"

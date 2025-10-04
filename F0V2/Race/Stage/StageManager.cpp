@@ -6,7 +6,7 @@
 #include "CB/Skydome.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
-#include "Race/Common/CourseHelper.h"
+#include "Race/Common/CourseBuilder.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
