@@ -198,32 +198,21 @@ struct StageManager::Impl : GameObjectBase
 
         // -----------------------------------------------
 
+        Array<Triangle3D> colliderTriangles{};
         for (const auto& segment : g_sharedState->courseSegments)
         {
+            const auto courseModel = BuildCourseModel(segment, &colliderTriangles);
             m_courseDrawers.push_back(
                 ModelDrawerParams{}
-                .setModel(BuildCourseModel(segment))
+                .setModel(courseModel)
                 .setShader(Asset_shader::lambert)
                 .setCbv10AndLater({GetRaceContextContent().cb.lambert}));
         }
 
         // -----------------------------------------------
 
-        Array<Triangle3D> triangles{};
-        for (const auto& segment : g_sharedState->courseSegments)
-        {
-            for (int i = 0; i < segment.midwayStrips.size() - 1; ++i)
-            {
-                const auto& s0 = segment.midwayStrips[i];
-                const auto& s1 = segment.midwayStrips[i + 1];
-
-                triangles.push_back(Triangle3D{s1.leftmost, s0.leftmost, s1.rightmost});
-                triangles.push_back(Triangle3D{s1.rightmost, s0.leftmost, s0.rightmost});
-            }
-        }
-
-        m_triangleCount = triangles.size();
-        m_staticBvh = TriangleBvh{triangles};
+        m_triangleCount = colliderTriangles.size();
+        m_staticBvh = TriangleBvh{colliderTriangles};
     }
 
 private:

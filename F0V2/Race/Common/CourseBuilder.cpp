@@ -8,7 +8,7 @@ using namespace Race;
 
 namespace
 {
-    ModelBuffer buildRoadModel(const CourseSegment& segment)
+    ModelBuffer buildRoadModel(const CourseSegment& segment, Array<Triangle3D>* outCollider)
     {
         Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
         Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
@@ -50,6 +50,12 @@ namespace
 
             v_offset += 4;
             i_offset += 6;
+
+            if (outCollider)
+            {
+                outCollider->push_back(Triangle3D{s1.leftmost, s0.leftmost, s1.rightmost});
+                outCollider->push_back(Triangle3D{s1.rightmost, s0.leftmost, s0.rightmost});
+            }
         }
 
         ModelMaterial material{};
@@ -66,7 +72,7 @@ namespace
         return modelBuffer;
     }
 
-    ModelBuffer buildTunnelModel(const CourseSegment& segment)
+    ModelBuffer buildTunnelModel(const CourseSegment& segment, Array<Triangle3D>* outCollider)
     {
         const int subdivisions = 6;
         Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * (subdivisions * 4 * 2));
@@ -117,6 +123,12 @@ namespace
 
                 v_offset += 4;
                 i_offset += 6;
+
+                if (outCollider)
+                {
+                    outCollider->push_back(Triangle3D{l1, l0, r1});
+                    outCollider->push_back(Triangle3D{r1, l0, r0});
+                }
             }
 
             // 裏面
@@ -161,17 +173,17 @@ namespace
 
 namespace Race
 {
-    ModelBuffer BuildCourseModel(const CourseSegment& segment)
+    ModelBuffer BuildCourseModel(const CourseSegment& segment, Array<Triangle3D>* outCollider)
     {
         assert(segment.midwayStrips.size() > 0);
 
         if (segment.style == CourseSegmentStyle::Road)
         {
-            return buildRoadModel(segment);
+            return buildRoadModel(segment, outCollider);
         }
         else if (segment.style == CourseSegmentStyle::Tunnel)
         {
-            return buildTunnelModel(segment);
+            return buildTunnelModel(segment, outCollider);
         }
         else
         {
