@@ -21,43 +21,11 @@
 #include "TY/ShapeDrawer.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
+#include "Util/CatmullRom.h"
 
 using namespace Editor;
 using namespace Race;
-
-namespace
-{
-    // Catmull-Rom 補間 (区間 p1 --> p2)
-    Float3 CatmullRom(const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, float t)
-    {
-        float t2 = t * t;
-        float t3 = t2 * t;
-
-        return (p1 * 2.0f +
-            (p2 - p0) * t +
-            (p0 * 2.0f - p1 * 5.0f + p2 * 4.0f - p3) * t2 +
-            (-p0 + p1 * 3.0f - p2 * 3.0f + p3) * t3) * 0.5f;
-    }
-
-    // 点列を補完して返す
-    Array<Float3> generateCatmullRomPoints(
-        const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, int samplesPerSegment)
-    {
-        Array<Float3> result;
-
-        result.push_back(p1);
-
-        for (int j = 1; j < samplesPerSegment; ++j)
-        {
-            float t = static_cast<float>(j) / samplesPerSegment;
-            result.push_back(CatmullRom(p0, p1, p2, p3, t));
-        }
-
-        result.push_back(p2);
-
-        return result;
-    }
-}
+using namespace Util;
 
 struct EditorNodeTool::Impl : GameObjectBase
 {
@@ -210,14 +178,20 @@ private:
             const Float3& p2 = nodeList[i2].pos;
             const Float3& p3 = nodeList[i3].pos;
 
+            const float p0_roll = nodeList[i0].rollRadians();
             const float p1_roll = nodeList[i1].rollRadians();
             const float p2_roll = nodeList[i2].rollRadians();
+            const float p3_roll = nodeList[i3].rollRadians();
 
             if (i >= m_segments.size() ||
+                m_segments[i].side_p0 != p0 ||
                 m_segments[i].p1 != p1 ||
                 m_segments[i].p2 != p2 ||
+                m_segments[i].side_p3 != p3 ||
+                m_segments[i].side_p0_roll != p0_roll ||
                 m_segments[i].p1_roll != p1_roll ||
-                m_segments[i].p2_roll != p2_roll)
+                m_segments[i].p2_roll != p2_roll ||
+                m_segments[i].side_p3_roll != p3_roll)
             {
                 if (i >= m_segments.size())
                 {
@@ -225,14 +199,15 @@ private:
                 }
 
                 auto& segment = m_segments[i];
+                segment.side_p0_roll = p0_roll;
                 segment.p1 = p1;
                 segment.p2 = p2;
+                segment.side_p3_roll = p3_roll;
 
+                segment.side_p0 = p0;
                 segment.p1_roll = p1_roll;
                 segment.p2_roll = p2_roll;
-
-                const int samplesPerSegment = (p2 - p1).length() / 1.0f;
-                segment.midwayPositions = generateCatmullRomPoints(p0, p1, p2, p3, samplesPerSegment);
+                segment.side_p3 = p3;
 
                 rebuildIndexes.push_back(i0);
                 rebuildIndexes.push_back(i1);
@@ -261,18 +236,21 @@ private:
         {
             auto& segment = m_segments[i];
             segment.midwayStrips.clear();
-            for (int m = 0; m < segment.midwayPositions.size() - 1 /* 終端は除外 */; ++m)
+
+            const int samplesPerSegment = (segment.p2 - segment.p1).length() / 1.0f;
+            const auto midwayPositions = GenerateCatmullRomPoints(
+                segment.side_p0, segment.p1, segment.p2, segment.side_p3, samplesPerSegment);
+            const auto midwayRolls = GenerateCatmullRomAngles(
+                segment.side_p0_roll, segment.p1_roll, segment.p2_roll, segment.side_p3_roll, samplesPerSegment);
+
+            for (int m = 0; m < midwayPositions.size() - 1 /* 終端は除外 */; ++m)
             {
                 CourseStrip strip{};
-                strip.center = segment.midwayPositions[m];
+                strip.center = midwayPositions[m];
 
-                const float roll =
-                    Math::LerpAngle(
-                        segment.p1_roll,
-                        segment.p2_roll,
-                        static_cast<float>(m) / (segment.midwayPositions.size() - 1));
+                const float roll = midwayRolls[m];
 
-                auto nextPosition = segment.midwayPositions[m + 1];
+                auto nextPosition = midwayPositions[m + 1];
                 strip.toNext = nextPosition - strip.center;
 
                 {

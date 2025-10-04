@@ -7,12 +7,12 @@ namespace Race
 {
     ModelBuffer BuildCourseModel(const CourseSegment& segment)
     {
-        assert(segment.midwayPositions.size() > 0);
-        Array<ModelVertex> vertices((segment.midwayPositions.size() - 1) * 8);
-        Array<uint16_t> indices((segment.midwayPositions.size() - 1) * 12);
+        assert(segment.midwayStrips.size() > 0);
+        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
+        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
         int v_offset{};
         int i_offset{};
-        for (int m = 0; m < segment.midwayPositions.size() - 1; ++m)
+        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];

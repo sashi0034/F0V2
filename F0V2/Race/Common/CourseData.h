@@ -16,13 +16,16 @@ namespace Race
 
     struct CourseSegment
     {
+        Float3 side_p0{};
         Float3 p1{};
         Float3 p2{};
+        Float3 side_p3{};
 
+        float side_p0_roll; // radians
         float p1_roll; // radians
         float p2_roll; // radians
+        float side_p3_roll; // radians
 
-        Array<Float3> midwayPositions{};
         Array<CourseStrip> midwayStrips{};
     };
 
