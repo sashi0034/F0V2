@@ -58,6 +58,100 @@ namespace
 
         return TextureResource{image};
     }
+
+    // -----------------------------------------------
+
+    void drawBvh(
+        const TriangleBvh::Node* node, Shape3D::LineSet& lineSet, std::pair<int, int> targetRange, int nest = 0)
+    {
+        if (not node)
+        {
+            return;
+        }
+
+        if (nest > targetRange.second)
+        {
+            return;
+        }
+
+        if (targetRange.first <= nest)
+        {
+            lineSet.appendAabb(node->aabb());
+        }
+
+        if (const auto* branch = node->asBranch())
+        {
+            drawBvh(branch->left.get(), lineSet, targetRange, nest + 1);
+            drawBvh(branch->right.get(), lineSet, targetRange, nest + 1);
+        }
+    }
+
+    void drawLeafAabb(
+        const TriangleBvh::Node* node, Shape3D::LineSet& lineSet, int targetIndex, int* currentIndex = nullptr)
+    {
+        if (not node)
+        {
+            return;
+        }
+
+        std::unique_ptr<int> currentIndexPtr{};
+        if (not currentIndex)
+        {
+            currentIndexPtr = std::make_unique<int>(0);
+            currentIndex = currentIndexPtr.get();
+        }
+
+        if (const auto* leaf = node->asLeaf())
+        {
+            if (*currentIndex == targetIndex)
+            {
+                lineSet.appendAabb(node->aabb());
+            }
+
+            ++(*currentIndex);
+
+            return;
+        }
+
+        if (const auto* branch = node->asBranch())
+        {
+            drawLeafAabb(branch->left.get(), lineSet, targetIndex, currentIndex);
+            drawLeafAabb(branch->right.get(), lineSet, targetIndex, currentIndex);
+        }
+    }
+
+    void printBvhLeaf(const TriangleBvh::Node* node, int nest = 0)
+    {
+        if (nest == 0)
+        {
+            std::cout << "----------------------------------------------- BVH Leaf Information\n";
+        }
+
+        if (not node)
+        {
+            return;
+        }
+
+        if (const auto* leaf = node->asLeaf())
+        {
+            std::cout << std::format("[{}] tris: {}, aabb-volume: {}\n", nest, leaf->tris.size(), leaf->aabb.volume());
+
+            return;
+        }
+
+        if (const auto* branch = node->asBranch())
+        {
+            printBvhLeaf(branch->left.get(), nest + 1);
+            printBvhLeaf(branch->right.get(), nest + 1);
+        }
+
+        if (nest == 0)
+        {
+            std::cout << "----------------------------------------------- End BVH Leaf Information\n";
+        }
+    }
+
+    std::pair s_visibleBvhRange{0, 0};
 }
 
 struct StageManager::Impl : GameObjectBase
@@ -70,6 +164,7 @@ struct StageManager::Impl : GameObjectBase
 
     Array<ModelDrawer> m_courseDrawers{};
 
+    int m_triangleCount{};
     TriangleBvh m_staticBvh{};
 
     void Init()
@@ -127,6 +222,7 @@ struct StageManager::Impl : GameObjectBase
             }
         }
 
+        m_triangleCount = triangles.size();
         m_staticBvh = TriangleBvh{triangles};
     }
 
@@ -150,22 +246,25 @@ private:
             m_courseDrawers[i].draw();
         }
 
-        // コース中心を線分で描画
-        Shape3D::LineSet lineSet{};
         auto& segments = g_sharedState->courseSegments;
-        for (int i = 0; i < segments.size(); ++i)
-        {
-            const auto& segment = segments[i];
-            for (int j = 0; j < segment.midwayStrips.size() - 1; ++j)
-            {
-                const Float3 d0 = segment.midwayStrips[j].normal;
-                const Float3 d1 = segment.midwayStrips[j + 1].normal;
-                lineSet.appendLine(segment.midwayStrips[j].center + d0, segment.midwayStrips[j + 1].center + d1);
-            }
-        }
 
-        lineSet.setColor(ColorF32{1.0f, 0.5f, 0.1f})
-               .pushAuto();
+        // コース中心を線分で描画
+        {
+            Shape3D::LineSet lineSet{};
+            for (int i = 0; i < segments.size(); ++i)
+            {
+                const auto& segment = segments[i];
+                for (int j = 0; j < segment.midwayStrips.size() - 1; ++j)
+                {
+                    const Float3 d0 = segment.midwayStrips[j].normal;
+                    const Float3 d1 = segment.midwayStrips[j + 1].normal;
+                    lineSet.appendLine(segment.midwayStrips[j].center + d0, segment.midwayStrips[j + 1].center + d1);
+                }
+            }
+
+            lineSet.setColor(ColorF32{1.0f, 0.5f, 0.1f})
+                   .pushAuto();
+        }
 
         // インデックスをテキスト描画
         const auto worldToScreen = Graphics3D::WorldToScreen();
@@ -183,7 +282,36 @@ private:
                 .pushAuto();
         }
 
+        {
+            Shape3D::LineSet lineSet{};
+
+            drawBvh(m_staticBvh.root().get(), lineSet, s_visibleBvhRange);
+            lineSet.setColor(ColorF32{0.3f, 1, 0.3f}).pushAuto();
+        }
+
         ShapeDrawer::Global().draw();
+
+        debugUI();
+    }
+
+    void debugUI()
+    {
+        ImGui::Begin("Stage Manager");
+
+        ImGui::Text("Triangles Count: %d", m_triangleCount);
+
+        ImGui::DragIntRange2("Visible BVH Range", &s_visibleBvhRange.first, &s_visibleBvhRange.second, 0.1);
+        if (ImGui::Button("Expand Visible BVH Range"))
+        {
+            s_visibleBvhRange.second++;
+        }
+
+        if (ImGui::Button("Print BVH Leaf Info to Console"))
+        {
+            printBvhLeaf(m_staticBvh.root().get());
+        }
+
+        ImGui::End();
     }
 
     void killed() override
