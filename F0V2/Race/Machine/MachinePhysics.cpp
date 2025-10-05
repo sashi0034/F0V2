@@ -115,6 +115,7 @@ namespace
         Float3 newPos = toPos;
 
         const auto hits = GetRaceContext().stageManager().staticBvh().queryHits(moveTestCapsule.aabb());
+        // TODO: 衝突した三角形配列を距離で昇順にしてから判定
         hits.forEachTriangle([&](const Triangle3D& tri)
         {
             tryMoveCapsulePosition_internal(state, tri, moveTestCapsule, fromPos, toPos, hitTri, newPos);
@@ -131,6 +132,13 @@ namespace
         if (moveVector.lengthSq() < 1e-6f)
         {
             return;
+        }
+
+        if (nest == 0)
+        {
+            // TODO: 改良
+            state.m_groundedness = 0.0f;
+            state.m_surfaceNormal = {};
         }
 
         const auto toPos = fromPos + moveVector;
@@ -162,9 +170,17 @@ namespace
             }
 
             // 面の法線を採用
-            state.m_surfaceNormal = tri.plane.normal;
+            const Float3 n = tri.plane.normal;
 
-            const Float3 n = state.m_surfaceNormal;
+            // TODO: 改良
+            const float groundness = n.dot(state.m_upVector);
+            if (groundness >= state.m_groundedness)
+            {
+                state.m_groundedness = groundness;
+                state.m_surfaceNormal = n;
+            }
+
+            state.m_surfaceNormal = tri.plane.normal;
 
             // 法線方向速度の除去
             state.m_velocity = state.m_velocity - n * state.m_velocity.dot(n);
@@ -334,7 +350,8 @@ namespace Race
 
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
 
-        state.m_velocity += state.m_gravity * 50.0f * InGameDeltaTime();
+        const float airness = 1.0f - state.m_groundedness;
+        state.m_velocity += state.m_gravity * airness * 50.0f * InGameDeltaTime();
 
         if (props.hasAccelInput)
         {
@@ -349,7 +366,7 @@ namespace Race
 
         Float3 moveVector = state.m_velocity * InGameDeltaTime();
 
-        moveVector += -state.m_upVector * 10.0f * InGameDeltaTime(); // 常に微小量の力で地面方向に押し付ける
+        moveVector += -state.m_upVector * airness * 10.0f * InGameDeltaTime(); // 常に微小量の力で地面方向に押し付ける
 
         updateCapsulePosition(state, props, state.m_pose.position, moveVector);
 
