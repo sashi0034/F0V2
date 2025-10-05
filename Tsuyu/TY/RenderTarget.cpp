@@ -103,7 +103,8 @@ struct RenderTarget::Impl
             resourceDesc.Format = DXGI_FORMAT_D32_FLOAT;
             resourceDesc.SampleDesc = {1, 0};
             resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-            resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+            resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL; // FIXME
+            // resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 

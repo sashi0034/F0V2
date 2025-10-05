@@ -220,6 +220,10 @@ struct Demo_FSR2_impl
 
     ComPtr<ID3D12Resource> m_motionVectorTex;
 
+    ComPtr<ID3D12Resource> m_upscaledOutputTex;
+
+    TextureDrawer m_upscaledOutputDrawer{};
+
     RenderTarget m_inputRT{{.size = Scene::Size() * 0.5, .clearColor = ColorF32{0.0f, 1.0f}}};
 
     void InitFsr2()
@@ -248,6 +252,14 @@ struct Demo_FSR2_impl
         LogInfo(std::format("FSR2 memory usage: {:.2} MB\n", memoryUsageInMegabytes));
 
         createMotionVectors();
+
+        createUpscaledOutput();
+
+        m_upscaledOutputDrawer = TextureDrawer{
+            TextureDrawerParams{}
+            .setShader(m_shaders.default2d)
+            .setTexture(TextureResource{m_upscaledOutputTex.Get()})
+        };
     }
 
     void createMotionVectors()
@@ -281,6 +293,33 @@ struct Demo_FSR2_impl
         // TODO: destoy
     }
 
+    void createUpscaledOutput()
+    {
+        UINT width = Scene::Size().x;
+        UINT height = Scene::Size().y;
+
+        D3D12_RESOURCE_DESC texDesc = {};
+        texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        texDesc.Width = width;
+        texDesc.Height = height;
+        texDesc.DepthOrArraySize = 1;
+        texDesc.MipLevels = 1;
+        texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        texDesc.SampleDesc.Count = 1;
+        texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+        texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS; // UAV OK
+
+        auto device = detail::EngineRenderContext::GetDevice();
+        auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        device->CreateCommittedResource(
+            &props,
+            D3D12_HEAP_FLAG_NONE,
+            &texDesc,
+            D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            IID_PPV_ARGS(&m_upscaledOutputTex));
+    }
+
     void DrawFsr2()
     {
         FfxFsr2DispatchDescription dispatchParameters = {};
@@ -295,8 +334,7 @@ struct Demo_FSR2_impl
 
         dispatchParameters.output = ffxGetResourceDX12(
             &m_context,
-            detail::EngineRenderContext::GetBackBuffer().getRtvResource(
-                detail::EngineRenderContext::CurrentBackBufferIndex()),
+            m_upscaledOutputTex.Get(),
             L"FSR2_OutputUpscaledColor",
             FFX_RESOURCE_STATE_UNORDERED_ACCESS);
         dispatchParameters.jitterOffset.x = 0;
@@ -315,6 +353,8 @@ struct Demo_FSR2_impl
 
         FfxErrorCode errorCode = ffxFsr2ContextDispatch(&m_context, &dispatchParameters);
         FFX_ASSERT(errorCode == FFX_OK);
+
+        m_upscaledOutputDrawer.as2D().scaled(Scene::Size()).draw(Float2{});
     }
 
     static void onFSR2Msg(FfxFsr2MsgType type, const wchar_t* message)
