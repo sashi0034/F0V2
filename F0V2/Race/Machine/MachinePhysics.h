@@ -17,9 +17,9 @@ namespace Race
 
         Float3 m_gravity{0, -1, 0};
 
-        float m_groundedness{}; // 接触したポリゴンの法線と上ベクトルのコサイン類似度
-
         Float3 m_surfaceNormal{};
+
+        float m_groundedness{}; // 接触したポリゴンの法線と上ベクトルのコサイン類似度
 
         Float3 m_upVector{0, 1, 0};
     };

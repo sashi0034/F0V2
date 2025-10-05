@@ -12,6 +12,8 @@ using namespace Race;
 
 namespace
 {
+    constexpr float epsGround = 1e-2f;
+
     struct HitTri
     {
         float moveDistance;
@@ -84,7 +86,7 @@ namespace
 
             const Float3 SH = (H - S);
 
-            const float r = state.m_radius + 1e-2f;
+            const float r = state.m_radius + epsGround;
 
             const float SUoSH = SU.dot(SH);
             const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
@@ -113,13 +115,6 @@ namespace
         if (moveVector.lengthSq() < 1e-6f)
         {
             return;
-        }
-
-        if (nest == 0)
-        {
-            // TODO: 改良
-            state.m_groundedness = 0.0f;
-            state.m_surfaceNormal = {};
         }
 
         const auto toPos = fromPos + moveVector;
@@ -153,16 +148,6 @@ namespace
             // 面の法線を採用
             const Float3 n = tri.plane.normal;
 
-            // TODO: 改良
-            const float groundness = n.dot(state.m_upVector);
-            if (groundness >= state.m_groundedness)
-            {
-                state.m_groundedness = groundness;
-                state.m_surfaceNormal = n;
-            }
-
-            state.m_surfaceNormal = tri.plane.normal;
-
             // 法線方向速度の除去
             state.m_velocity = state.m_velocity - n * state.m_velocity.dot(n);
 
@@ -182,6 +167,30 @@ namespace
                 updateCapsulePosition(state, props, state.m_pose.position, newMoveVector, nest + 1);
             }
         }
+    }
+
+    // -----------------------------------------------
+
+    void updateGroundedness(MachinePhysicsState& state)
+    {
+        // Float3 vector = state.m_velocity.normalized() * (state.m_radius + 0.1f);
+        // if (vector.isZero())
+        Float3 vector = -state.m_upVector * (state.m_radius + epsGround);
+
+        const auto testCapsule = Capsule{state.m_pose.position, state.m_pose.position + vector, state.m_radius};
+        const auto hit = GetRaceContext().stageManager().staticBvh().sphereCast(testCapsule);
+        if (hit.has_value())
+        {
+            state.m_surfaceNormal = hit->getNormal();
+            state.m_groundedness = state.m_surfaceNormal.dot(state.m_upVector);
+        }
+        else
+        {
+            state.m_surfaceNormal = {};
+            state.m_groundedness = 0.0f;
+        }
+
+        std::cout << "groundedness: " << state.m_groundedness << std::endl;
     }
 
     // -----------------------------------------------
@@ -330,6 +339,8 @@ namespace Race
         }
 
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
+
+        updateGroundedness(state);
 
         const float airness = 1.0f - state.m_groundedness;
         state.m_velocity += state.m_gravity * airness * 50.0f * InGameDeltaTime();
