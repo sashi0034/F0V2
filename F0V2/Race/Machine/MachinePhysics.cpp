@@ -73,14 +73,14 @@ namespace
         // const Float3 H = S - plane.normal * distance;
         const float lengthSH = Abs(distance);
 
-        const Float3& V = toPos;
+        const Float3 V = toPos;
         const Float3 SV = V - S;
         const Float3 IV = SV - plane.normal * SV.dot(plane.normal);
         const Float3 I = V - IV;
         const Float3 SI = I - S;
 
         const float lengthSV = SV.length();
-        const float lengthSG = lengthSH - state.m_radius;
+        const float lengthSG = lengthSH - (state.m_radius + epsGround);
         const float lengthSI = SI.length();
 
         const float cosTheta = lengthSI / lengthSV;
@@ -188,6 +188,18 @@ namespace
         {
             state.m_surfaceNormal = hit->getNormal();
             state.m_groundedness = state.m_surfaceNormal.dot(state.m_upVector);
+
+            const auto plane = hit->asPlane();
+            const Float3 S = state.m_pose.position;
+            const float distance = plane.signedDistanceFrom(S);
+
+            const float lengthSH = Abs(distance);
+            if (lengthSH < state.m_radius + epsGround)
+            {
+                // めり込んだ場合の位置の調整
+                const float lengthSG = lengthSH - (state.m_radius + epsGround);
+                state.m_pose.position = S - plane.normal * lengthSG;
+            }
         }
         else
         {
@@ -294,6 +306,31 @@ namespace Race
 {
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
+        const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
+
+        const float airness = 1.0f - state.m_groundedness;
+        state.m_velocity += state.m_gravity * airness * 50.0f * InGameDeltaTime();
+
+        if (props.hasAccelInput)
+        {
+            state.m_velocity += forwardVector * 50.0f * InGameDeltaTime();
+        }
+
+        const float maxSpeed = 100.0f;
+        if (state.m_velocity.lengthSq() > Math::Square(maxSpeed))
+        {
+            state.m_velocity = state.m_velocity.normalized() * maxSpeed;
+        }
+
+        // 移動処理
+        {
+            Float3 moveVector = state.m_velocity * InGameDeltaTime();
+
+            moveVector += -state.m_upVector * airness * 10.0f * InGameDeltaTime(); // 常に微小量の力で地面方向に押し付ける
+
+            updateCapsulePosition(state, props, state.m_pose.position, moveVector);
+        }
+
         // 現在位置における重力方向を計算
         {
             state.m_gravity = calculateGravity(state.m_pose.position);
@@ -343,30 +380,9 @@ namespace Race
             // state.m_actualSurfaceNormal = state.m_actualSurfaceNormal.slerp(-gravity, 1.0f * InGameDeltaTime());
         }
 
-        const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
-
         updateGroundedness(state);
 
-        const float airness = 1.0f - state.m_groundedness;
-        state.m_velocity += state.m_gravity * airness * 50.0f * InGameDeltaTime();
-
-        if (props.hasAccelInput)
-        {
-            state.m_velocity += forwardVector * 50.0f * InGameDeltaTime();
-        }
-
-        const float maxSpeed = 100.0f;
-        if (state.m_velocity.lengthSq() > Math::Square(maxSpeed))
-        {
-            state.m_velocity = state.m_velocity.normalized() * maxSpeed;
-        }
-
-        Float3 moveVector = state.m_velocity * InGameDeltaTime();
-
-        moveVector += -state.m_upVector * airness * 10.0f * InGameDeltaTime(); // 常に微小量の力で地面方向に押し付ける
-
-        updateCapsulePosition(state, props, state.m_pose.position, moveVector);
-
+        // 速度の減衰
         for (const auto dt : StandardStep_60Hz())
         {
             constexpr float mu = 0.5f; // TODO
