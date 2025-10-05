@@ -226,6 +226,8 @@ struct Demo_FSR2_impl
 
     RenderTarget m_inputRT{{.size = Scene::Size() * 0.5, .clearColor = ColorF32{0.0f, 1.0f}}};
 
+    Float2 m_jitterOffset{};
+
     void InitFsr2()
     {
         const size_t scratchBufferSize = ffxFsr2GetScratchMemorySizeDX12();
@@ -332,17 +334,35 @@ struct Demo_FSR2_impl
                                                               L"FSR2_InputMotionVectors");
         dispatchParameters.exposure = ffxGetResourceDX12(&m_context, nullptr, L"FSR2_InputExposure");
 
+        static float s_sharpness = 0.1f;
+        static bool s_jitterEnabled{};
+
         dispatchParameters.output = ffxGetResourceDX12(
             &m_context,
             m_upscaledOutputTex.Get(),
             L"FSR2_OutputUpscaledColor",
             FFX_RESOURCE_STATE_UNORDERED_ACCESS);
-        dispatchParameters.jitterOffset.x = 0;
-        dispatchParameters.jitterOffset.y = 0;
+
+        dispatchParameters.jitterOffset.x = m_jitterOffset.x;
+        dispatchParameters.jitterOffset.y = m_jitterOffset.y;
+
+        if (s_jitterEnabled)
+        {
+            const int renderW = m_initializationParameters.maxRenderSize.width; // = m_inputRT.size().x
+            const int displayW = m_initializationParameters.displaySize.width; // = Scene::Size().x
+
+            const int jitterPhaseCount = ffxFsr2GetJitterPhaseCount(renderW, displayW);
+
+            ffxFsr2GetJitterOffset(&m_jitterOffset.x, &m_jitterOffset.y, System::FrameCount(), jitterPhaseCount);
+
+            // std::cout << "jitter offset: " << m_jitterOffset.x << ", " << m_jitterOffset.y << "\n";
+        }
+
         dispatchParameters.motionVectorScale.x = static_cast<float>(Scene::Size().x) * 0.5f;
         dispatchParameters.motionVectorScale.y = static_cast<float>(Scene::Size().y) * 0.5f;
         dispatchParameters.reset = false;
-        dispatchParameters.enableSharpening = false;
+        dispatchParameters.enableSharpening = true;
+        dispatchParameters.sharpness = s_sharpness;
         dispatchParameters.frameTimeDelta = System::DeltaTime() * 1000.0f;
         dispatchParameters.preExposure = 1.0f;
         dispatchParameters.renderSize.width = Scene::Size().x * 0.5;
@@ -355,6 +375,14 @@ struct Demo_FSR2_impl
         FFX_ASSERT(errorCode == FFX_OK);
 
         m_upscaledOutputDrawer.as2D().resized(Scene::Size()).draw(Float2{});
+
+        ImGui::Begin("FSR2");
+
+        ImGui::Checkbox("Jitter", &s_jitterEnabled);
+
+        ImGui::SliderFloat("Sharpness", &s_sharpness, 0.0f, 1.0f);
+
+        ImGui::End();
     }
 
     static void onFSR2Msg(FfxFsr2MsgType type, const wchar_t* message)
@@ -447,12 +475,21 @@ struct Demo_FSR2_impl
         Graphics3D::SetViewMatrix(m_camera.viewMatrix());
 
         {
+            Float2 jitter_ndc = 2.0f * m_jitterOffset / m_inputRT.size();
+
+            jitter_ndc *= 5.0f; // FIXME
+            // std::cout  << "jitter ndc: " << jitter_ndc.x << ", " << jitter_ndc.y << "\n";
+
+            const Mat4x4 jitterMat = Mat4x4::Translate({jitter_ndc.x, -jitter_ndc.y, 0.0f});
+
             m_projectionMat = Mat4x4::PerspectiveFov(
                 75.0_deg,
                 Scene::Size().horizontalAspectRatio(),
                 fovNearZ,
                 fovFarZ
             );
+
+            m_projectionMat = jitterMat * m_projectionMat;
 
             Graphics3D::SetProjectionMatrix(m_projectionMat);
         }
