@@ -38,9 +38,6 @@ namespace
 
         const auto moveTestCapsule = Capsule{fromPos, toPos, state.m_radius};
 
-        HitTri hitTri{};
-        hitTri.moveDistance = FLT_MAX;
-
         const auto hit = GetRaceContext().stageManager().staticBvh().sphereCast(moveTestCapsule);
         if (not hit.has_value())
         {
@@ -51,74 +48,67 @@ namespace
         // -----------------------------------------------
         // 衝突あり
 
-        //            U
-        //           /|
-        //          / |
-        //         /  |
-        //        /   |
-        //       /    |
-        //    T /--r--|
-        //     /|     |
-        //    / |     |
-        //   /  |     |
-        //  /   |     |
-        // /----------|
-        // S    G     H
+        //             V  /|
+        //               / |
+        //              /  |
+        //             /   |
+        //          U /    |
+        //           /+    |
+        //          / +    |
+        //         /  +    |
+        //        /   +    |
+        //       /    +    |
+        //    T /--r--+    |
+        //     /|     +    |
+        //    / |     +    |
+        //   /  |     +    |
+        //  / θ |     +    |
+        // /----+-----+----+
+        // S    G     H    I
 
         const auto plane = hit->asPlane();
         const float distance = plane.signedDistanceFrom(fromPos);
 
         const Float3 S = fromPos;
-        const Float3 H = S - plane.normal * distance;
+        // const Float3 H = S - plane.normal * distance;
         const float lengthSH = Abs(distance);
 
-        const auto lineST = Line3D::FromPoints(fromPos, toPos);
-        if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
+        const Float3& V = toPos;
+        const Float3 SV = V - S;
+        const Float3 IV = SV - plane.normal * SV.dot(plane.normal);
+        const Float3 I = V - IV;
+        const Float3 SI = I - S;
+
+        const float lengthSV = SV.length();
+        const float lengthSG = lengthSH - state.m_radius;
+        const float lengthSI = SI.length();
+
+        const float cosTheta = lengthSI / lengthSV;
+
+        if (Abs(cosTheta) < 0.1f)
         {
-            // 移動ベクトルと三角形がほぼ並行の場合
+            const Float3 G = S - plane.normal * lengthSG;
+            const Float3 T = G + IV;
 
-            // 移動ベクトルを三角形の平面上に投影
-            Float3 moveVector = toPos - fromPos;
-            moveVector = moveVector - plane.normal * moveVector.dot(plane.normal);
-
-            const Float3 G = H + plane.normal * state.m_radius;
-
-            hitTri.moveDistance = moveVector.length();
+            HitTri hitTri{};
+            hitTri.moveDistance = (T - S).length();
             hitTri.tri = *hit;
             hitTri.plane = plane;
-            const Float3 newPos = G + moveVector;
-            return {newPos, hitTri};
+            return {T, hitTri};
         }
         else
         {
-            float lengthSU{};
-            const auto tryU = IntersectsAt(lineST, plane, &lengthSU);
-            if (not tryU)
-            {
-                assert(false); // 前の分岐処理で平行な場合を除いているから線分と平面が衝突するはず
-                return {toPos, std::nullopt};
-            }
+            // ST : SV = SG : SI
+            const float lengthST = (lengthSV * lengthSG / lengthSI);
 
-            const Float3 U = *tryU;
-            const Float3 SU = U - S;
+            const Float3 ST = SV.normalized() * lengthST;
+            const Float3 T = S + ST;
 
-            const Float3 SH = (H - S);
-
-            const float r = state.m_radius + epsGround;
-
-            const float SUoSH = SU.dot(SH);
-            const float lengthST = lengthSU - r * (lengthSU * lengthSH) / Max(1e-30f, SUoSH);
-
-            if (hitTri.moveDistance < lengthST)
-            {
-                return {toPos, std::nullopt};
-            }
-
+            HitTri hitTri{};
             hitTri.moveDistance = lengthST;
             hitTri.tri = *hit;
             hitTri.plane = plane;
-            const Float3 newPos = S + lineST.normalizedDir * lengthST;
-            return {newPos, hitTri};
+            return {T, hitTri};
         }
     }
 
@@ -205,7 +195,7 @@ namespace
             state.m_groundedness = 0.0f;
         }
 
-        std::cout << "groundedness: " << state.m_groundedness << std::endl;
+        // std::cout << "groundedness: " << state.m_groundedness << std::endl;
     }
 
     // -----------------------------------------------
