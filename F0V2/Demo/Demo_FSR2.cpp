@@ -339,17 +339,17 @@ struct Demo_FSR2_impl
             FFX_RESOURCE_STATE_UNORDERED_ACCESS);
         dispatchParameters.jitterOffset.x = 0;
         dispatchParameters.jitterOffset.y = 0;
-        dispatchParameters.motionVectorScale.x = (float)0;
-        dispatchParameters.motionVectorScale.y = (float)0;
+        dispatchParameters.motionVectorScale.x = static_cast<float>(Scene::Size().x) * 0.5f;
+        dispatchParameters.motionVectorScale.y = static_cast<float>(Scene::Size().y) * 0.5f;
         dispatchParameters.reset = false;
         dispatchParameters.enableSharpening = false;
-        dispatchParameters.frameTimeDelta = System::DeltaTime();
+        dispatchParameters.frameTimeDelta = System::DeltaTime() * 1000.0f;
         dispatchParameters.preExposure = 1.0f;
         dispatchParameters.renderSize.width = Scene::Size().x * 0.5;
         dispatchParameters.renderSize.height = Scene::Size().y * 0.5;
         dispatchParameters.cameraFar = fovFarZ;
         dispatchParameters.cameraNear = fovNearZ;
-        dispatchParameters.cameraFovAngleVertical = 0.0f;
+        dispatchParameters.cameraFovAngleVertical = Math::ToRadians(75.0f);
 
         FfxErrorCode errorCode = ffxFsr2ContextDispatch(&m_context, &dispatchParameters);
         FFX_ASSERT(errorCode == FFX_OK);
