@@ -179,13 +179,13 @@ namespace TY
             });
         }
 
-        const Float3 capsuleCenter = (capsule.p0 + capsule.p1) * 0.5f;
+        const Float3 startPoint = capsule.p0;
 
         float bestDistSq = std::numeric_limits<float>::max();
         std::optional<Triangle3D> bestTri{};
         for (const auto& tri : candidates)
         {
-            float distSq = (tri.centroid() - capsuleCenter).lengthSq();
+            const float distSq = (tri.centroid() - startPoint).lengthSq();
             if (distSq >= bestDistSq)
             {
                 // これ以上は遠い
