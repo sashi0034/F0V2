@@ -84,7 +84,15 @@ private:
 
         m_physicsProps.debug.drawHitTris = true;
 
-        if (not s_stopMove)
+#ifdef _DEBUG
+        if (s_stopMove)
+        {
+            auto previousState = m_physicsState;
+            UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
+            m_physicsState = previousState;
+        }
+        else
+#endif
         {
             UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
         }
@@ -113,30 +121,37 @@ private:
 
         // -----------------------------------------------
 
-        static std::deque<Pose> s_poseHistory{};
+        static std::deque<MachinePhysicsState> s_physicsHistory{};
         static int s_rewindFrames{};
 
         if (not s_stopMove)
         {
-            s_poseHistory.push_back(m_physicsState.m_pose);
+            s_physicsHistory.push_back(m_physicsState);
             s_rewindFrames = 0;
         }
 
-        while (s_poseHistory.size() > 300)
+        while (s_physicsHistory.size() > 300)
         {
-            s_poseHistory.pop_front();
+            s_physicsHistory.pop_front();
         }
 
-        if (ImGui::SliderInt("Rewind Frames", &s_rewindFrames, static_cast<int>(s_poseHistory.size()) - 1, 0))
+        if (ImGui::SliderInt("Rewind Frames", &s_rewindFrames, static_cast<int>(s_physicsHistory.size()) - 1, 0))
         {
-            s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_poseHistory.size()) - 1);
+            s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
-            m_physicsState.m_pose = s_poseHistory[s_poseHistory.size() - 1 - s_rewindFrames];
+            m_physicsState = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
         }
 
         if (ImGui::IsItemDeactivatedAfterEdit())
         {
             s_stopMove = false;
+        }
+
+        if (ImGui::InputInt("(Rewind Frames9", &s_rewindFrames))
+        {
+            s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
+            s_stopMove = true;
+            m_physicsState = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
         }
 
         // -----------------------------------------------
