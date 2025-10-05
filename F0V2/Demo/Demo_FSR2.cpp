@@ -354,7 +354,7 @@ struct Demo_FSR2_impl
         FfxErrorCode errorCode = ffxFsr2ContextDispatch(&m_context, &dispatchParameters);
         FFX_ASSERT(errorCode == FFX_OK);
 
-        m_upscaledOutputDrawer.as2D().scaled(Scene::Size()).draw(Float2{});
+        m_upscaledOutputDrawer.as2D().resized(Scene::Size()).draw(Float2{});
     }
 
     static void onFSR2Msg(FfxFsr2MsgType type, const wchar_t* message)
