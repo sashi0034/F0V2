@@ -85,7 +85,7 @@ namespace
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];
 
-            constexpr float r = 10.0f; // TODO
+            constexpr float r = 25.0f; // TODO
 
             std::array<Float3, subdivision> n0s = s0.tunnel.ringVectors;
             std::array<Float3, subdivision> n1s = s1.tunnel.ringVectors;
