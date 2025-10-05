@@ -66,7 +66,7 @@ public:
         {
             if (Intersects(aabb, leaf->aabb))
             {
-                hits.push_back(*leaf);
+                hits.emplace_back(*leaf);
             }
 
             return;
@@ -169,6 +169,7 @@ namespace TY
         }
 
         Array<Triangle3D> candidates{};
+        candidates.reserve(64);
         const auto hits = queryHits(capsule.aabb());
         for (const auto& node : hits.list)
         {
@@ -179,22 +180,25 @@ namespace TY
         }
 
         const Float3 capsuleCenter = (capsule.p0 + capsule.p1) * 0.5f;
-        std::ranges::sort(
-            candidates,
-            [&capsuleCenter](const Triangle3D& a, const Triangle3D& b)
-            {
-                return (a.centroid() - capsuleCenter).lengthSq() < (b.centroid() - capsuleCenter).
-                    lengthSq();
-            });
 
+        float bestDistSq = std::numeric_limits<float>::max();
+        std::optional<Triangle3D> bestTri{};
         for (const auto& tri : candidates)
         {
+            float distSq = (tri.centroid() - capsuleCenter).lengthSq();
+            if (distSq >= bestDistSq)
+            {
+                // これ以上は遠い
+                continue;
+            }
+
             if (Intersects(capsule, tri))
             {
-                return tri;
+                bestTri = tri;
+                bestDistSq = distSq;
             }
         }
 
-        return std::nullopt;
+        return bestTri;
     }
 }
