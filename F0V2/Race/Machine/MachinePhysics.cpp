@@ -169,9 +169,16 @@ namespace
             // 法線方向速度の除去
             state.m_velocity = state.m_velocity - n * state.m_velocity.dot(n);
 
-            // 法線方向移動ベクトルの除去
+            // 法線方向移動ベクトルの補正
             const Float3 r = toPos - state.m_pose.position;
-            const auto newMoveVector = r - n * r.dot(n);
+            Float3 newMoveVector = r - n * r.dot(n);
+            if (newMoveVector.isZero())
+            {
+                return;
+            }
+
+            // 移動ベクトルの長さを残りの移動量に調節する
+            newMoveVector = newMoveVector.normalized() * Max(0.0f, moveVector.length() - hitTris->moveDistance);
 
             if (nest < 3)
             {
@@ -278,9 +285,11 @@ namespace Race
     {
         // 現在位置における重力方向を計算
         {
-            const Float3 n0 = calculateGravity(state.m_pose.position);
+            state.m_gravity = calculateGravity(state.m_pose.position);
 
-            state.m_gravity = n0;
+#if 0
+            state.m_gravity = Float3(0, -1, 0);
+#endif
 
             if (props.debug.drawHitTris)
             {
