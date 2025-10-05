@@ -55,6 +55,8 @@ namespace TY
 
         NodeList queryHits(const Aabb3D& aabb) const;
 
+        std::optional<Triangle3D> sphereCast(const Capsule& capsule) const;
+
     private:
         class Internal;
 

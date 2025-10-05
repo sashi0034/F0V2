@@ -27,19 +27,21 @@ namespace
         std::optional<HitTri> tri{};
     };
 
-    int s_triTestCount{};
-
-    void tryMoveCapsulePosition_internal(
-        const MachinePhysicsState& state,
-        const Triangle3D& testTri,
-        const Capsule& moveTestCapsule,
-        const Float3& fromPos,
-        const Float3& toPos,
-        HitTri& hitTri,
-        Float3& newPos)
+    MoveResult tryMoveCapsulePosition(const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos)
     {
-        s_triTestCount++;
-        if (Intersects(moveTestCapsule, testTri))
+        if (fromPos == toPos)
+        {
+            return {toPos, {}};
+        }
+
+        const auto moveTestCapsule = Capsule{fromPos, toPos, state.m_radius};
+
+        HitTri hitTri{};
+        hitTri.moveDistance = FLT_MAX;
+        Float3 newPos = toPos;
+
+        const auto hit = GetRaceContext().stageManager().staticBvh().sphereCast(moveTestCapsule);
+        if (hit.has_value())
         {
             //            U
             //           /|
@@ -57,12 +59,12 @@ namespace
 
             const auto lineST = Line3D::FromPoints(fromPos, toPos);
 
-            auto plane = testTri.asPlane();
+            auto plane = hit->asPlane();
             if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
             {
                 // 移動ベクトルと三角形がほぼ並行の場合
                 // TODO: 対策考える
-                return;
+                return {newPos, hitTri};
             }
 
             const Float3 S = fromPos;
@@ -70,7 +72,7 @@ namespace
             const auto tryU = IntersectsAt(lineST, plane, &lengthSU);
             if (not tryU)
             {
-                return;
+                return {newPos, hitTri};
             }
 
             const Float3 U = *tryU;
@@ -89,37 +91,16 @@ namespace
 
             if (hitTri.moveDistance < lengthST)
             {
-                return;
+                return {newPos, hitTri};
             }
 
             hitTri.moveDistance = lengthST;
-            hitTri.tri = testTri;
+            hitTri.tri = *hit;
             hitTri.plane = plane;
             hitTri.intersection = U;
             hitTri.foot = H;
             newPos = S + lineST.normalizedDir * lengthST;
         }
-    }
-
-    MoveResult tryMoveCapsulePosition(const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos)
-    {
-        if (fromPos == toPos)
-        {
-            return {toPos, {}};
-        }
-
-        const auto moveTestCapsule = Capsule{fromPos, toPos, state.m_radius};
-
-        HitTri hitTri{};
-        hitTri.moveDistance = FLT_MAX;
-        Float3 newPos = toPos;
-
-        const auto hits = GetRaceContext().stageManager().staticBvh().queryHits(moveTestCapsule.aabb());
-        // TODO: 衝突した三角形配列を距離で昇順にしてから判定
-        hits.forEachTriangle([&](const Triangle3D& tri)
-        {
-            tryMoveCapsulePosition_internal(state, tri, moveTestCapsule, fromPos, toPos, hitTri, newPos);
-        });
 
         return {newPos, hitTri};
     }

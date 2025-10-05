@@ -160,4 +160,41 @@ namespace TY
         Internal::QueryHits(*m_root.get(), aabb, result.list);
         return result;
     }
+
+    std::optional<Triangle3D> TriangleBvh::sphereCast(const Capsule& capsule) const
+    {
+        if (not m_root)
+        {
+            return std::nullopt;
+        }
+
+        Array<Triangle3D> candidates{};
+        const auto hits = queryHits(capsule.aabb());
+        for (const auto& node : hits.list)
+        {
+            node.forEachTriangle([&](const Triangle3D& tri)
+            {
+                candidates.push_back(tri);
+            });
+        }
+
+        const Float3 capsuleCenter = (capsule.p0 + capsule.p1) * 0.5f;
+        std::ranges::sort(
+            candidates,
+            [&capsuleCenter](const Triangle3D& a, const Triangle3D& b)
+            {
+                return (a.centroid() - capsuleCenter).lengthSq() < (b.centroid() - capsuleCenter).
+                    lengthSq();
+            });
+
+        for (const auto& tri : candidates)
+        {
+            if (Intersects(capsule, tri))
+            {
+                return tri;
+            }
+        }
+
+        return std::nullopt;
+    }
 }
