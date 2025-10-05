@@ -57,32 +57,38 @@ namespace
             //   /  |     |
             //  /   |     |
             // /----------|
-            // S          H
+            // S    G     H
+
+            const auto plane = hit->asPlane();
+            const float distance = plane.signedDistanceFrom(fromPos);
+
+            const Float3 S = fromPos;
+            const Float3 H = S - plane.normal * distance;
+            const float lengthSH = Abs(distance);
 
             const auto lineST = Line3D::FromPoints(fromPos, toPos);
-
-            auto plane = hit->asPlane();
             if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
             {
                 // 移動ベクトルと三角形がほぼ並行の場合
-                // TODO: 対策考える
-                return {newPos, hitTri};
+
+                // 移動ベクトルを三角形の平面上に投影
+                Float3 moveVector = toPos - fromPos;
+                moveVector = moveVector - plane.normal * moveVector.dot(plane.normal);
+
+                const Float3 G = H + plane.normal * state.m_radius;
+                return {G + moveVector, hitTri};
             }
 
-            const Float3 S = fromPos;
             float lengthSU{};
             const auto tryU = IntersectsAt(lineST, plane, &lengthSU);
             if (not tryU)
             {
+                assert(false); // 既に上の分岐処理で平行な場合は弾かれているはず
                 return {newPos, hitTri};
             }
 
             const Float3 U = *tryU;
             const Float3 SU = U - S;
-
-            const float distance = plane.signedDistanceFrom(fromPos);
-            const Float3 H = S - plane.normal * distance;
-            const float lengthSH = Abs(distance);
 
             const Float3 SH = (H - S);
 
