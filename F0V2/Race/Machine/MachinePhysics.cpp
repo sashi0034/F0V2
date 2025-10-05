@@ -19,8 +19,8 @@ namespace
         float moveDistance;
         Triangle3D tri;
         Plane3D plane;
-        Float3 intersection;
-        Float3 foot;
+        // Float3 intersection;
+        // Float3 foot;
     };
 
     struct MoveResult
@@ -33,58 +33,70 @@ namespace
     {
         if (fromPos == toPos)
         {
-            return {toPos, {}};
+            return {toPos, std::nullopt};
         }
 
         const auto moveTestCapsule = Capsule{fromPos, toPos, state.m_radius};
 
         HitTri hitTri{};
         hitTri.moveDistance = FLT_MAX;
-        Float3 newPos = toPos;
 
         const auto hit = GetRaceContext().stageManager().staticBvh().sphereCast(moveTestCapsule);
-        if (hit.has_value())
+        if (not hit.has_value())
         {
-            //            U
-            //           /|
-            //          / |
-            //         /  |
-            //        /   |
-            //       /    |
-            //    T /--r--|
-            //     /|     |
-            //    / |     |
-            //   /  |     |
-            //  /   |     |
-            // /----------|
-            // S    G     H
+            // 衝突なし
+            return {toPos, std::nullopt};
+        }
 
-            const auto plane = hit->asPlane();
-            const float distance = plane.signedDistanceFrom(fromPos);
+        // -----------------------------------------------
+        // 衝突あり
 
-            const Float3 S = fromPos;
-            const Float3 H = S - plane.normal * distance;
-            const float lengthSH = Abs(distance);
+        //            U
+        //           /|
+        //          / |
+        //         /  |
+        //        /   |
+        //       /    |
+        //    T /--r--|
+        //     /|     |
+        //    / |     |
+        //   /  |     |
+        //  /   |     |
+        // /----------|
+        // S    G     H
 
-            const auto lineST = Line3D::FromPoints(fromPos, toPos);
-            if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
-            {
-                // 移動ベクトルと三角形がほぼ並行の場合
+        const auto plane = hit->asPlane();
+        const float distance = plane.signedDistanceFrom(fromPos);
 
-                // 移動ベクトルを三角形の平面上に投影
-                Float3 moveVector = toPos - fromPos;
-                moveVector = moveVector - plane.normal * moveVector.dot(plane.normal);
+        const Float3 S = fromPos;
+        const Float3 H = S - plane.normal * distance;
+        const float lengthSH = Abs(distance);
 
-                const Float3 G = H + plane.normal * state.m_radius;
-                return {G + moveVector, hitTri};
-            }
+        const auto lineST = Line3D::FromPoints(fromPos, toPos);
+        if (Abs(lineST.normalizedDir.dot(plane.normal)) < 0.1f)
+        {
+            // 移動ベクトルと三角形がほぼ並行の場合
 
+            // 移動ベクトルを三角形の平面上に投影
+            Float3 moveVector = toPos - fromPos;
+            moveVector = moveVector - plane.normal * moveVector.dot(plane.normal);
+
+            const Float3 G = H + plane.normal * state.m_radius;
+
+            hitTri.moveDistance = moveVector.length();
+            hitTri.tri = *hit;
+            hitTri.plane = plane;
+            const Float3 newPos = G + moveVector;
+            return {newPos, hitTri};
+        }
+        else
+        {
             float lengthSU{};
             const auto tryU = IntersectsAt(lineST, plane, &lengthSU);
             if (not tryU)
             {
-                assert(false); // 既に上の分岐処理で平行な場合は弾かれているはず
-                return {newPos, hitTri};
+                assert(false); // 前の分岐処理で平行な場合を除いているから線分と平面が衝突するはず
+                return {toPos, std::nullopt};
             }
 
             const Float3 U = *tryU;
@@ -99,18 +111,15 @@ namespace
 
             if (hitTri.moveDistance < lengthST)
             {
-                return {newPos, hitTri};
+                return {toPos, std::nullopt};
             }
 
             hitTri.moveDistance = lengthST;
             hitTri.tri = *hit;
             hitTri.plane = plane;
-            hitTri.intersection = U;
-            hitTri.foot = H;
-            newPos = S + lineST.normalizedDir * lengthST;
+            const Float3 newPos = S + lineST.normalizedDir * lengthST;
+            return {newPos, hitTri};
         }
-
-        return {newPos, hitTri};
     }
 
     void updateCapsulePosition(
