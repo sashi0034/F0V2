@@ -67,26 +67,24 @@ namespace
         // S    G     H    I
 
         const auto plane = hit->asPlane();
-        const float distance = plane.signedDistanceFrom(fromPos);
+        const float signedDistanceHS = plane.signedDistanceFrom(fromPos);
+        const float signedDistanceHI = plane.signedDistanceFrom(toPos);
 
         const Float3 S = fromPos;
         // const Float3 H = S - plane.normal * distance;
-        const float lengthSH = Abs(distance);
+        const float lengthSH = Abs(signedDistanceHS);
+        const float lengthHI = Abs(signedDistanceHI);
 
         const Float3 V = toPos;
         const Float3 SV = V - S;
         const Float3 IV = SV - plane.normal * SV.dot(plane.normal);
-        const Float3 I = V - IV;
-        const Float3 SI = I - S;
 
-        const float lengthSV = SV.length();
         const float lengthSG = lengthSH - (state.m_radius + epsGround);
-        const float lengthSI = SI.length();
+        const float lengthSI = lengthSH + lengthHI;
 
-        const float cosTheta = lengthSI / lengthSV;
-
-        if (Abs(cosTheta) < 0.1f)
+        if (signedDistanceHS * signedDistanceHI >= 0)
         {
+            // 移動ベクトルが面を貫通していない場合
             const Float3 G = S - plane.normal * lengthSG;
             const Float3 T = G + IV;
 
@@ -99,6 +97,7 @@ namespace
         else
         {
             // ST : SV = SG : SI
+            const float lengthSV = SV.length();
             const float lengthST = (lengthSV * lengthSG / lengthSI);
 
             const Float3 ST = SV.normalized() * lengthST;
