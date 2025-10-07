@@ -167,7 +167,6 @@
     <ClCompile Include="Race\Player\Player.cpp" />
     <ClCompile Include="Race\Stage\StageManager.cpp" />
     <ClCompile Include="Race\Toys\ToyCinnamon.cpp" />
-    <ClCompile Include="DebugUI.cpp" />
     <ClCompile Include="Demo\Demo_Collision1.cpp" />
     <ClCompile Include="Demo\Demo_Collision2.cpp" />
     <ClCompile Include="Demo\Demo_Collision3.cpp" />
@@ -178,6 +177,7 @@
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
     <ClCompile Include="Util\CatmullRom.cpp" />
+    <ClCompile Include="Util\DebugUI.cpp" />
     <ClCompile Include="Util\Utilities.cpp" />
     <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
     <Content Include="asset\font\0xProto\README.md" />
@@ -267,7 +267,6 @@
     <ClInclude Include="Race\RaceScene.h" />
     <ClInclude Include="Race\Stage\StageManager.h" />
     <ClInclude Include="Race\Toys\ToyCinnamon.h" />
-    <ClInclude Include="DebugUI.h" />
     <ClInclude Include="Demo\Demo_AirCombat.h" />
     <ClInclude Include="Demo\Demo_Basic3D.h" />
     <ClInclude Include="Demo\Demo_Collision1.h" />
@@ -293,6 +292,7 @@
     <ClInclude Include="TY_Extension\SerializeTransform.h" />
     <ClInclude Include="TY_Extension\Transform.h" />
     <ClInclude Include="Util\CatmullRom.h" />
+    <ClInclude Include="Util\DebugUI.h" />
     <ClInclude Include="Util\Utilities.h" />
   </ItemGroup>
   <ItemGroup>

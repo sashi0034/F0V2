@@ -5,7 +5,7 @@
 #include "ColorPalette.h"
 #include "EditorState.h"
 #include "EditorPlayground.h"
-#include "DebugUI.h"
+#include "Util/DebugUI.h"
 #include "EditorNodeTool.h"
 #include "GM/DebugService.h"
 #include "Race/Common/CourseData.h"

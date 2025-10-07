@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "ColorPalette.h"
-#include "DebugUI.h"
+#include "Util/DebugUI.h"
 #include "EditorState.h"
 #include "Race/Common/CourseBuilder.h"
 #include "Race/Common/CourseData.h"

@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "ColorPalette.h"
 #include "EditorState.h"
-#include "DebugUI.h"
+#include "Util/DebugUI.h"
 #include "CB/Skydome.h"
 #include "GM/DebugService.h"
 #include "TY/ActorContainer.h"
