@@ -5,7 +5,7 @@ import sys
 parent_root_dir = "F0V2"
 
 # Set of directory names to exclude from processing
-excluded_dirs = {".git", ".vs", "__pycache__"}  # Add more as needed
+excluded_dirs = {"external", "package", ".git", ".vs", "__pycache__"}  # Add more as needed
 
 
 def find_parent_root(start_path):

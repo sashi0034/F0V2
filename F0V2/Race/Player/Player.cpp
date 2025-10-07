@@ -13,7 +13,7 @@
 #include "TY/KeyboardInput.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/ShapeDrawer.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/detail/EngineKeyboardMouse.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/Pose.h"
@@ -97,7 +97,7 @@ private:
             UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
         }
 
-        ShapeDrawer::Global().draw();
+        ImmediateDrawer::Global().draw();
 
         // -----------------------------------------------
 

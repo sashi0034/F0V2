@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ShapeDrawer.h"
+#include "ImmediateDrawer.h"
 
 #include "ArrayPool.h"
 #include "Graphics3D.h"
@@ -12,13 +12,13 @@
 #include "detail/EngineRenderContext.h"
 #include "detail/GraphicsPipelineState.h"
 #include "detail/RenderEventComponent.h"
-#include "detail/ShapeDrawer_Component.h"
-#include "detail/ShapeDrawer_DescriptorManager.h"
-#include "detail/ShapeDrawer_StateManager.h"
+#include "detail/ImmediateDrawer_Component.h"
+#include "detail/ImmediateDrawer_DescriptorManager.h"
+#include "detail/ImmediateDrawer_StateManager.h"
 
 using namespace TY;
 using namespace TY::detail;
-using namespace TY::ShapeDrawer_detail;
+using namespace TY::ImmediateDrawer_detail;
 
 namespace
 {
@@ -47,7 +47,7 @@ namespace
     };
 }
 
-struct ShapeDrawer::Impl : RenderEvent::Lister
+struct ImmediateDrawer::Impl : RenderEvent::Lister
 {
     ShapeBuilder2D::BufferCreator m_bufferCreator2D{};
     ShapeBuilder3D::BufferCreator m_bufferCreator3D{};
@@ -93,7 +93,7 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
         m_stateManager.request2D();
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
 
-        auto&& component = ShapeDrawerComponent::Instance;
+        auto&& component = ImmediateDrawerComponent::Instance;
         if (shape.isHolds<Shape2D::Rect>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
@@ -163,7 +163,7 @@ struct ShapeDrawer::Impl : RenderEvent::Lister
         m_stateManager.request3D();
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
 
-        auto&& component = ShapeDrawerComponent::Instance;
+        auto&& component = ImmediateDrawerComponent::Instance;
         if (shape.isHolds<Shape3D::Line>())
         {
             m_stateManager.RequestPixelShader(component->m_ps3d.shape);
@@ -283,7 +283,7 @@ namespace
 {
     struct GlobalInstance : IInlineComponent
     {
-        ShapeDrawer instance{};
+        ImmediateDrawer instance{};
     };
 
     InlineComponent<GlobalInstance> s_global{};
@@ -291,13 +291,13 @@ namespace
 
 namespace TY
 {
-    ShapeDrawer::ShapeDrawer() :
+    ImmediateDrawer::ImmediateDrawer() :
         p_impl(std::make_shared<Impl>())
     {
         RenderEvent::AddLister(p_impl);
     }
 
-    const ShapeDrawer& ShapeDrawer::push(const Shape2D::shape_type& shape) const
+    const ImmediateDrawer& ImmediateDrawer::push(const Shape2D::shape_type& shape) const
     {
         if (not p_impl) return *this;
 
@@ -306,7 +306,7 @@ namespace TY
         return *this;
     }
 
-    const ShapeDrawer& ShapeDrawer::push(const Shape3D::shape_type& shape) const
+    const ImmediateDrawer& ImmediateDrawer::push(const Shape3D::shape_type& shape) const
     {
         if (not p_impl) return *this;
 
@@ -315,17 +315,17 @@ namespace TY
         return *this;
     }
 
-    const ShapeDrawer& ShapeDrawer::operator<<(const Shape2D::shape_type& shape) const
+    const ImmediateDrawer& ImmediateDrawer::operator<<(const Shape2D::shape_type& shape) const
     {
         return push(shape);
     }
 
-    const ShapeDrawer& ShapeDrawer::operator<<(const Shape3D::shape_type& shape) const
+    const ImmediateDrawer& ImmediateDrawer::operator<<(const Shape3D::shape_type& shape) const
     {
         return push(shape);
     }
 
-    void ShapeDrawer::draw() const
+    void ImmediateDrawer::draw() const
     {
         if (p_impl)
         {
@@ -333,25 +333,25 @@ namespace TY
         }
     }
 
-    ShapeDrawer& ShapeDrawer::Global()
+    ImmediateDrawer& ImmediateDrawer::Global()
     {
         return s_global->instance;
     }
 
     namespace detail
     {
-        void InitShapeDrawerComponent()
+        void InitImmediateDrawerComponent()
         {
-            EngineComponent::Register<ShapeDrawerComponent>("ShapeDrawerComponent");
+            EngineComponent::Register<ImmediateDrawerComponent>("ImmediateDrawerComponent");
         }
     }
 
-    void operator>>(const Shape2D::shape_type& shape, const ShapeDrawer& drawer)
+    void operator>>(const Shape2D::shape_type& shape, const ImmediateDrawer& drawer)
     {
         (void)drawer.push(shape);
     }
 
-    void operator>>(const Shape3D::shape_type& shape, const ShapeDrawer& drawer)
+    void operator>>(const Shape3D::shape_type& shape, const ImmediateDrawer& drawer)
     {
         (void)drawer.push(shape);
     }

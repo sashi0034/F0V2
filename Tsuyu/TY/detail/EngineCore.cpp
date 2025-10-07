@@ -31,7 +31,7 @@ namespace TY::detail
 
     extern void InitGpgpuCacheComponent();
 
-    extern void InitShapeDrawerComponent();
+    extern void InitImmediateDrawerComponent();
 
     extern void InitFreeTypeContextComponent();
 }
@@ -50,7 +50,7 @@ namespace
 
         InitGpgpuCacheComponent();
 
-        InitShapeDrawerComponent();
+        InitImmediateDrawerComponent();
 
         InitFreeTypeContextComponent();
     }

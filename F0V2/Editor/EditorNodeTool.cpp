@@ -18,7 +18,7 @@
 #include "TY/Scene.h"
 #include "TY/Shape2D.h"
 #include "TY/Shape3D.h"
-#include "TY/ShapeDrawer.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "Util/CatmullRom.h"
@@ -160,7 +160,7 @@ private:
 
         // -----------------------------------------------
 
-        ShapeDrawer::Global().draw();
+        ImmediateDrawer::Global().draw();
     }
 
     void buildSegmentsIfNeeded()

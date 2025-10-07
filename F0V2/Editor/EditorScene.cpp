@@ -11,7 +11,7 @@
 #include "Race/Common/CourseData.h"
 #include "TY/ActorContainer.h"
 #include "TY/Scene.h"
-#include "TY/ShapeDrawer.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY_Extension/GameObjectHierarchy.h"
 #include "Util/Utilities.h"
 
@@ -72,7 +72,7 @@ namespace
         const auto operationRects =
             Util::SliceRectByLength(operationRegion, operationRegion.w / 4, Direction2::Horizontal);
 
-        ShapeDrawer::Global().draw();
+        ImmediateDrawer::Global().draw();
     }
 
     // -----------------------------------------------

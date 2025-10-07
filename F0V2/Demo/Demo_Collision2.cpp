@@ -21,7 +21,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/ShapeDrawer.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -436,7 +436,7 @@ struct Demo_Collision2_impl
         m_triangleObject.m_drawer.draw();
         m_triangleObject.DebugUI();
 
-        ShapeDrawer::Global().draw(); // <-- flush
+        ImmediateDrawer::Global().draw(); // <-- flush
 
         bool intersectionTest = Intersects(testCapsule, m_triangleObject.m_tri);
 
@@ -543,7 +543,7 @@ private:
         {
             const auto& tri = *hitTris;
             const auto triCenter = tri.tri.centroid();
-            ShapeDrawer::Global().push(Shape3D::Line{
+            ImmediateDrawer::Global().push(Shape3D::Line{
                 triCenter,
                 triCenter + tri.plane.normal * 10
             }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));

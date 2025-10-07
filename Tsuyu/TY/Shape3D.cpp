@@ -1,15 +1,15 @@
 ﻿#include "pch.h"
 #include "Shape3D.h"
 
-#include "ShapeDrawer.h"
+#include "ImmediateDrawer.h"
 
 using namespace TY;
 
 namespace
 {
-    ShapeDrawer& activeShapeDrawer()
+    ImmediateDrawer& activeImmediateDrawer()
     {
-        return ShapeDrawer::Global();
+        return ImmediateDrawer::Global();
     }
 }
 
@@ -36,7 +36,7 @@ namespace TY
 
     void Shape3D::Line::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 
     Shape3D::LineSet& Shape3D::LineSet::setColor(const ColorF32& color)
@@ -85,6 +85,6 @@ namespace TY
 
     void Shape3D::LineSet::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 }

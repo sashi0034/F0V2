@@ -13,7 +13,7 @@
 #include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/ShapeDrawer.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 
@@ -278,7 +278,7 @@ private:
             lineSet.setColor(ColorF32{0.3f, 1, 0.3f}).pushAuto();
         }
 
-        ShapeDrawer::Global().draw();
+        ImmediateDrawer::Global().draw();
 
         debugUI();
     }

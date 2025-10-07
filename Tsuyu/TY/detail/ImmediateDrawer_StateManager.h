@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "GraphicsPipelineState.h"
-#include "ShapeDrawer_DescriptorManager.h"
+#include "ImmediateDrawer_DescriptorManager.h"
 
-namespace TY::ShapeDrawer_detail
+namespace TY::ImmediateDrawer_detail
 {
     class SD_StateManager
     {

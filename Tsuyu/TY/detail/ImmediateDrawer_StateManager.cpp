@@ -1,15 +1,15 @@
 ﻿#include "pch.h"
-#include "ShapeDrawer_StateManager.h"
+#include "ImmediateDrawer_StateManager.h"
 
-#include "ShapeDrawer_Component.h"
+#include "ImmediateDrawer_Component.h"
 
-using namespace ShapeDrawer_detail;
+using namespace ImmediateDrawer_detail;
 
 namespace
 {
     GraphicsPipelineStateParams getDefaultPsoParams(bool is3D, const DescriptorTable& descriptorTable)
     {
-        auto&& component = ShapeDrawerComponent::Instance;
+        auto&& component = ImmediateDrawerComponent::Instance;
 
         if (not is3D)
         {
@@ -48,7 +48,7 @@ namespace
     }
 }
 
-namespace TY::ShapeDrawer_detail
+namespace TY::ImmediateDrawer_detail
 {
     SD_StateManager::state_type SD_StateManager::state_type::Default(
         bool is3D,

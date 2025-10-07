@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ShapeDrawer_DescriptorManager.h"
+#include "ImmediateDrawer_DescriptorManager.h"
 
 #include "EngineRenderContext.h"
 
@@ -7,7 +7,7 @@ namespace
 {
 }
 
-namespace TY::ShapeDrawer_detail
+namespace TY::ImmediateDrawer_detail
 {
     SD_DescriptorManager::heap_type SD_DescriptorManager::heap_type::Create(const key_type& key, int cbv1_capacity)
     {
@@ -15,7 +15,7 @@ namespace TY::ShapeDrawer_detail
 
         auto&& cbv0 = EngineRenderContext::GetSceneState3D_CB0();
 
-        heap.cbv1 = ConstantBuffer<ShapeDrawer_b1>(cbv1_capacity);
+        heap.cbv1 = ConstantBuffer<ImmediateDrawer_b1>(cbv1_capacity);
         heap.cbv1_value.resize(cbv1_capacity);
 
         heap.keyResource = key;

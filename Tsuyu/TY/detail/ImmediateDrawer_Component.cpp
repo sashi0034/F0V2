@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
-#include "ShapeDrawer_Component.h"
+#include "ImmediateDrawer_Component.h"
 
-namespace TY::ShapeDrawer_detail
+namespace TY::ImmediateDrawer_detail
 {
-    bool ShapeDrawerComponent::init()
+    bool ImmediateDrawerComponent::init()
     {
         assert(not Instance);
 
@@ -12,7 +12,7 @@ namespace TY::ShapeDrawer_detail
         return true;
     }
 
-    ShapeDrawerComponent::~ShapeDrawerComponent()
+    ImmediateDrawerComponent::~ImmediateDrawerComponent()
     {
         if (Instance == this)
         {

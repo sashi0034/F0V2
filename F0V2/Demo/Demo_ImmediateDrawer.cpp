@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Demo_ShapeDrawer.h"
+#include "Demo_ImmediateDrawer.h"
 
 #include "TY/BitmapFont.h"
 #include "TY/ConstantBufferWrapper.h"
@@ -21,7 +21,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Scene.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/ShapeDrawer.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -108,7 +108,7 @@ namespace
     constexpr float fovFarZ = 1000.0f;
 }
 
-struct Demo_ShapeDrawer_impl
+struct Demo_ImmediateDrawer_impl
 {
     struct
     {
@@ -160,7 +160,7 @@ struct Demo_ShapeDrawer_impl
 
     TextureDrawer m_miniMapDrawer{};
 
-    Demo_ShapeDrawer_impl()
+    Demo_ImmediateDrawer_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -282,7 +282,7 @@ struct Demo_ShapeDrawer_impl
 
         // -----------------------------------------------
 
-        ShapeDrawer::Global()
+        ImmediateDrawer::Global()
             .push(Shape3D::Line{
                     Float3{0, -5, 0},
                     Float3{10, 30, 10}
@@ -330,23 +330,23 @@ struct Demo_ShapeDrawer_impl
                    .setColor(ColorF32{0.7, 1.0, 0.3})
             );
 
-        ShapeDrawer::Global().draw();
+        ImmediateDrawer::Global().draw();
 
         if (KeySpace.down())
         {
-            ShapeDrawer::Global() = ShapeDrawer{};
+            ImmediateDrawer::Global() = ImmediateDrawer{};
         }
 
-        ShapeDrawer::Global()
+        ImmediateDrawer::Global()
             .push(Shape2D::Rect{RectF{50, 500, 50, 50}})
             .draw();
 
         {
             const auto bind = m_miniMap.scopedBind();
 
-            ShapeDrawer::Global()
+            ImmediateDrawer::Global()
                 .push(Shape2D::Rect{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
-            ShapeDrawer::Global().draw();
+            ImmediateDrawer::Global().draw();
         }
 
         m_miniMapDrawer.as2D().draw(Float2{500, 10});
@@ -404,9 +404,9 @@ private:
     }
 };
 
-void Demo_ShapeDrawer()
+void Demo_ImmediateDrawer()
 {
-    Demo_ShapeDrawer_impl impl{};
+    Demo_ImmediateDrawer_impl impl{};
 
     Scene::RequestResize({1920, 1080});
 

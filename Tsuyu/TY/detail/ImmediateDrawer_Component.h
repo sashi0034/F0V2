@@ -3,14 +3,14 @@
 #include "TY/IComponent.h"
 #include "TY/Shader.h"
 
-namespace TY::ShapeDrawer_detail
+namespace TY::ImmediateDrawer_detail
 {
     const std::string ShaderPath2D = "engine/shape2d.hlsl";
     const std::string ShaderPath3D = "engine/shape3d.hlsl";
 
-    struct ShapeDrawerComponent : IComponent
+    struct ImmediateDrawerComponent : IComponent
     {
-        static inline ShapeDrawerComponent* Instance{};
+        static inline ImmediateDrawerComponent* Instance{};
 
         VertexShader m_vs2d{ShaderPath2D, "VS"};
 
@@ -36,6 +36,6 @@ namespace TY::ShapeDrawer_detail
 
         bool init() override;
 
-        ~ShapeDrawerComponent() override;
+        ~ImmediateDrawerComponent() override;
     };
 }

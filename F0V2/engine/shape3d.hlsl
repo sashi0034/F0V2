@@ -15,7 +15,7 @@ cbuffer SceneState : register(b0)
     float4x4 g_viewMatrix;
 }
 
-cbuffer ShapeDrawer : register(b1)
+cbuffer ImmediateDrawer : register(b1)
 {
     row_major float2x4 g_transform;
     float4 g_colorMul;

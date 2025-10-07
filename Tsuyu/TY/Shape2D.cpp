@@ -1,15 +1,15 @@
 ﻿#include "pch.h"
 #include "Shape2D.h"
 
-#include "ShapeDrawer.h"
+#include "ImmediateDrawer.h"
 
 using namespace TY;
 
 namespace
 {
-    ShapeDrawer& activeShapeDrawer()
+    ImmediateDrawer& activeImmediateDrawer()
     {
-        return ShapeDrawer::Global();
+        return ImmediateDrawer::Global();
     }
 }
 
@@ -48,7 +48,7 @@ namespace TY
 
     void Shape2D::Rect::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 
     Shape2D::RoundRect::RoundRect(const RectF& rect)
@@ -77,7 +77,7 @@ namespace TY
 
     void Shape2D::RoundRect::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 
     Shape2D::Line::Line(const Float2& start_, const Float2& end_)
@@ -116,7 +116,7 @@ namespace TY
 
     void Shape2D::Line::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 
     Shape2D::SquareDotLine& Shape2D::SquareDotLine::setDotOffset(float offset_)
@@ -127,7 +127,7 @@ namespace TY
 
     void Shape2D::SquareDotLine::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 
     Shape2D::Path::Path(const Array<Float2>& points_)
@@ -160,7 +160,7 @@ namespace TY
 
     void Shape2D::Path::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 
     Shape2D::CyclePath::CyclePath(Path path_)
@@ -170,7 +170,7 @@ namespace TY
 
     void Shape2D::CyclePath::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 
     Shape2D::Text::Text(const FontObject& font_, const std::u32string& text_)
@@ -200,6 +200,6 @@ namespace TY
 
     void Shape2D::Text::pushAuto()
     {
-        (void)activeShapeDrawer().push(*this);
+        (void)activeImmediateDrawer().push(*this);
     }
 }

@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "ShapeDrawer_Common.h"
+#include "ImmediateDrawer_Common.h"
 #include "TY/Mat3x2.h"
 
-namespace TY::ShapeDrawer_detail
+namespace TY::ImmediateDrawer_detail
 {
     class SD_DescriptorManager
     {
@@ -21,8 +21,8 @@ namespace TY::ShapeDrawer_detail
             DescriptorHeap descriptorHeap{};
             DescriptorTable table{};
 
-            ConstantBuffer<ShapeDrawer_b1> cbv1{};
-            Array<ShapeDrawer_b1> cbv1_value{};
+            ConstantBuffer<ImmediateDrawer_b1> cbv1{};
+            Array<ImmediateDrawer_b1> cbv1_value{};
             int next_cbv1{};
 
             /// @brief テクスチャといったリソースはそれぞれ別々のヒープごとを割り当てる。このような特殊リソースはこのクラスにまとめる

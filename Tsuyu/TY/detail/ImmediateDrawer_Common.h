@@ -5,9 +5,9 @@
 using namespace TY;
 using namespace TY::detail;
 
-namespace TY::ShapeDrawer_detail
+namespace TY::ImmediateDrawer_detail
 {
-    struct ShapeDrawer_b1
+    struct ImmediateDrawer_b1
     {
         Float4 g_transform[2];
         Float4 g_colorMul{1.0f};
