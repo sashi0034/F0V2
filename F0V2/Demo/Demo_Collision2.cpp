@@ -401,12 +401,12 @@ struct Demo_Collision2_impl
             const Float3 previousPos = m_capsuleObject.m_pos;
             Float3 newPos = previousPos;
 
-            Shape3D::Line{
+            Immediate3D::Line{
                     previousPos,
                     previousPos + Float3{0, 1, 0} * 10
                 }.setColor(ColorF32{1.0f, 0.5f, 0.5f})
                  .pushAuto();
-            Shape3D::Line{
+            Immediate3D::Line{
                     previousPos,
                     previousPos + m_capsuleObject.m_normalOnGround * 10
                 }.setColor(ColorF32{1.0f, 0.0f, 0.0f})
@@ -414,7 +414,7 @@ struct Demo_Collision2_impl
 
             if (s_moveEnabled)
             {
-                Shape3D::Line{
+                Immediate3D::Line{
                         previousPos,
                         previousPos + moveVector * 10
                     }.setColor(ColorF32{0.5f})
@@ -543,7 +543,7 @@ private:
         {
             const auto& tri = *hitTris;
             const auto triCenter = tri.tri.centroid();
-            ImmediateDrawer::Global().push(Shape3D::Line{
+            ImmediateDrawer::Global().push(Immediate3D::Line{
                 triCenter,
                 triCenter + tri.plane.normal * 10
             }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "TY/Shape2D.h"
+#include "TY/Immediate2D.h"
 
 namespace DebugUI
 {

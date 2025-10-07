@@ -55,7 +55,7 @@ namespace TY
 
         // -----------------------------------------------
 
-        index_type BuildRect_Standard(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
+        index_type BuildRect_Standard(BufferCreator& bufferCreator, const Immediate2D::Rect& rect)
         {
             constexpr int indexSize = rectIndexTable.size();
             const auto buffer = bufferCreator.request(4, indexSize);
@@ -80,7 +80,7 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildRect_Outline(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
+        index_type BuildRect_Outline(BufferCreator& bufferCreator, const Immediate2D::Rect& rect)
         {
             constexpr int indexSize = rectIndexTable02.size() + 3 * 8;
             const auto buffer = bufferCreator.request(12, indexSize);
@@ -134,7 +134,7 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildRect(BufferCreator& bufferCreator, const Shape2D::Rect& rect)
+        index_type BuildRect(BufferCreator& bufferCreator, const Immediate2D::Rect& rect)
         {
             if (rect.outline.thickness <= 0.0f)
             {
@@ -166,7 +166,7 @@ namespace TY
             return s_offsetTable[segments];
         }
 
-        index_type BuildRoundRect_Standard(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
+        index_type BuildRoundRect_Standard(BufferCreator& bufferCreator, const Immediate2D::RoundRect& rect)
         {
             const int indexSize = (2 + rect.segments) * 3 * 4;
             const auto buffer = bufferCreator.request(1 + (2 + rect.segments) * 4, indexSize);
@@ -218,7 +218,7 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildRoundRect_Outline(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
+        index_type BuildRoundRect_Outline(BufferCreator& bufferCreator, const Immediate2D::RoundRect& rect)
         {
             const int indexSize = (2 + rect.segments) * 3 * 4 * 3;
             const auto buffer = bufferCreator.request(1 + (2 + rect.segments) * 4 * 3, indexSize);
@@ -281,7 +281,7 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildRoundRect(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect)
+        index_type BuildRoundRect(BufferCreator& bufferCreator, const Immediate2D::RoundRect& rect)
         {
             if (rect.outline.thickness <= 0.0f)
             {
@@ -293,7 +293,7 @@ namespace TY
             }
         }
 
-        index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line)
+        index_type BuildLine(BufferCreator& bufferCreator, const Immediate2D::Line& line)
         {
             if (line.thickness <= 0.0f)
             {
@@ -327,7 +327,7 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Shape2D::SquareDotLine& dotLine, float scale)
+        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Immediate2D::SquareDotLine& dotLine, float scale)
         {
             const auto& line = dotLine.line;
             if (line.thickness <= 0.0f)
@@ -375,7 +375,7 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildPath(BufferCreator& bufferCreator, const Shape2D::Path& path)
+        index_type BuildPath(BufferCreator& bufferCreator, const Immediate2D::Path& path)
         {
             if (path.thickness <= 0.0f)
             {
@@ -502,7 +502,7 @@ namespace TY
             return indexCount;
         }
 
-        index_type BuildCyclePath(BufferCreator& bufferCreator, const Shape2D::CyclePath& cyclePath)
+        index_type BuildCyclePath(BufferCreator& bufferCreator, const Immediate2D::CyclePath& cyclePath)
         {
             const auto& path = cyclePath.path;
             if (path.thickness <= 0.0f)
@@ -613,7 +613,7 @@ namespace TY
             return indexCount;
         }
 
-        index_type BuildText(BufferCreator& bufferCreator, const Shape2D::Text& text)
+        index_type BuildText(BufferCreator& bufferCreator, const Immediate2D::Text& text)
         {
             const int characterCount = text.text.size();
 

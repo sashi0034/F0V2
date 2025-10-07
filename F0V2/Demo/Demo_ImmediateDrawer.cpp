@@ -283,48 +283,48 @@ struct Demo_ImmediateDrawer_impl
         // -----------------------------------------------
 
         ImmediateDrawer::Global()
-            .push(Shape3D::Line{
+            .push(Immediate3D::Line{
                     Float3{0, -5, 0},
                     Float3{10, 30, 10}
                 }.setColor(ColorF32{1.0f, 0.3f, 0.7f})
             )
-            .push(Shape2D::Rect{RectF{10, 10, 100, 50}})
-            .push(Shape2D::Rect{RectF{1000, 10, 100, 50}}
+            .push(Immediate2D::Rect{RectF{10, 10, 100, 50}})
+            .push(Immediate2D::Rect{RectF{1000, 10, 100, 50}}
                 .setColor(ColorF32{1.0f, 0.3f, 0.7f, 0.5f})
             )
-            .push(Shape2D::Line{Float2{100, 200}, Float2{200, 300}}
+            .push(Immediate2D::Line{Float2{100, 200}, Float2{200, 300}}
                   .setThickness(5.0f)
                   .setColor(ColorF32{1.0f, 0.9f, 0.3f})
                   .asDotLine(InGameElapsedTime() * 50.0f)
             )
-            .push(Shape2D::Line{Float2{200, 200}, Float2{300, 400}}
+            .push(Immediate2D::Line{Float2{200, 200}, Float2{300, 400}}
                   .setThickness(10.0f)
                   .setColor(ColorF32{1.0f, 0.9f, 0.3f})
-            ).push(Shape2D::Path({
+            ).push(Immediate2D::Path({
                        {400.0f, 500.0f}, {550.0f, 500.0f}, {600.0f, 600.0f}, {750.0f, 600.0f}, {850.0f, 550.0f},
                        {900.0f, 700.0f}, {1100.0f, 710.0f}, {1150.0f, 500.0f}
                    })
                    .setThickness(50.0f)
                    .setColor(ColorF32{0.3f, 1.0f, 0.7f})
             )
-            .push(Shape2D::Text(m_zxProtoBitmap, U"強化人間-san IS VERY INTERESTING")
+            .push(Immediate2D::Text(m_zxProtoBitmap, U"強化人間-san IS VERY INTERESTING")
                   .setPosition({300, 300})
                   .setColor(ColorF32{0.7, 0.4, 1.0})
             )
-            .push(Shape2D::Path({{1000, 600}, {1200, 600}, {1300, 800}, {1200, 1000}, {1000, 1000}, {900, 800}})
+            .push(Immediate2D::Path({{1000, 600}, {1200, 600}, {1300, 800}, {1200, 1000}, {1000, 1000}, {900, 800}})
                   .setThickness(50.0f)
                   .setColor(ColorF32{0.1f, 1.0f, 0.3f})
                   .asCycle()
                 // )
-                // .push(Shape2D::Text(m_rocknRollOneSdf, U"メイン")
+                // .push(Immediate2D::Text(m_rocknRollOneSdf, U"メイン")
                 //       .setSize(200.0f)
                 //       .setPosition(Scene::Center().movedBy(0, 100), Alignment9::MiddleCenter)
                 //       .setColor(ColorF32{0.7, 1.0, 0.3})
-            ).push(Shape2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
+            ).push(Immediate2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
                    .setSize(16.0f)
                    .setPosition(Scene::Center(), Alignment9::MiddleLeft)
                    .setColor(ColorF32{0.7})
-            ).push(Shape2D::Text(m_rocknRollOneBitmap, U"メインシステム")
+            ).push(Immediate2D::Text(m_rocknRollOneBitmap, U"メインシステム")
                    .setSize(64.0f)
                    .setPosition(Scene::Center().movedBy(0, -100), Alignment9::MiddleCenter)
                    .setColor(ColorF32{0.7, 1.0, 0.3})
@@ -338,14 +338,14 @@ struct Demo_ImmediateDrawer_impl
         }
 
         ImmediateDrawer::Global()
-            .push(Shape2D::Rect{RectF{50, 500, 50, 50}})
+            .push(Immediate2D::Rect{RectF{50, 500, 50, 50}})
             .draw();
 
         {
             const auto bind = m_miniMap.scopedBind();
 
             ImmediateDrawer::Global()
-                .push(Shape2D::Rect{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
+                .push(Immediate2D::Rect{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
             ImmediateDrawer::Global().draw();
         }
 

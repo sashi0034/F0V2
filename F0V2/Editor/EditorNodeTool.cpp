@@ -16,8 +16,8 @@
 #include "TY/Mouse.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/Scene.h"
-#include "TY/Shape2D.h"
-#include "TY/Shape3D.h"
+#include "TY/Immediate2D.h"
+#include "TY/Immediate3D.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
@@ -77,7 +77,7 @@ private:
     void courseDebugUI(const Array<CourseSegment>& segments)
     {
         // コース中心を線分で描画
-        Shape3D::LineSet lineSet{};
+        Immediate3D::LineSet lineSet{};
         for (int i = 0; i < segments.size(); ++i)
         {
             const auto& segment = segments[i];
@@ -115,10 +115,10 @@ private:
 
             if (i == m_activeNodeIndex)
             {
-                Shape2D::RoundRect{buttonRect}.setColor(ColorPalette::GamingGreen).pushAuto();
+                Immediate2D::RoundRect{buttonRect}.setColor(ColorPalette::GamingGreen).pushAuto();
             }
 
-            Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
+            Immediate2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
                 .setPosition(p1InScreen.xy(), Alignment9::MiddleCenter)
                 .setColor(i == m_activeNodeIndex ? ColorF32{0.0f} : ColorF32{1.0f})
                 .pushAuto();

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Shape2D.h"
+#include "Immediate2D.h"
 #include "ShapeBufferCreator.h"
 #include "Vector2D.h"
 #include "Vector4D.h"
@@ -25,18 +25,18 @@ namespace TY
 
         // -----------------------------------------------
 
-        index_type BuildRect(BufferCreator& bufferCreator, const Shape2D::Rect& rect);
+        index_type BuildRect(BufferCreator& bufferCreator, const Immediate2D::Rect& rect);
 
-        index_type BuildRoundRect(BufferCreator& bufferCreator, const Shape2D::RoundRect& rect);
+        index_type BuildRoundRect(BufferCreator& bufferCreator, const Immediate2D::RoundRect& rect);
 
-        index_type BuildLine(BufferCreator& bufferCreator, const Shape2D::Line& line);
+        index_type BuildLine(BufferCreator& bufferCreator, const Immediate2D::Line& line);
 
-        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Shape2D::SquareDotLine& line, float scale);
+        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Immediate2D::SquareDotLine& line, float scale);
 
-        index_type BuildPath(BufferCreator& bufferCreator, const Shape2D::Path& path);
+        index_type BuildPath(BufferCreator& bufferCreator, const Immediate2D::Path& path);
 
-        index_type BuildCyclePath(BufferCreator& bufferCreator, const Shape2D::CyclePath& cyclePath);
+        index_type BuildCyclePath(BufferCreator& bufferCreator, const Immediate2D::CyclePath& cyclePath);
 
-        index_type BuildText(BufferCreator& bufferCreator, const Shape2D::Text& text);
+        index_type BuildText(BufferCreator& bufferCreator, const Immediate2D::Text& text);
     }
 }

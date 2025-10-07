@@ -62,7 +62,7 @@ namespace
     // -----------------------------------------------
 
     void drawBvh(
-        const TriangleBvh::Node* node, Shape3D::LineSet& lineSet, std::pair<int, int> targetRange, int nest = 0)
+        const TriangleBvh::Node* node, Immediate3D::LineSet& lineSet, std::pair<int, int> targetRange, int nest = 0)
     {
         if (not node)
         {
@@ -87,7 +87,7 @@ namespace
     }
 
     void drawLeafAabb(
-        const TriangleBvh::Node* node, Shape3D::LineSet& lineSet, int targetIndex, int* currentIndex = nullptr)
+        const TriangleBvh::Node* node, Immediate3D::LineSet& lineSet, int targetIndex, int* currentIndex = nullptr)
     {
         if (not node)
         {
@@ -239,7 +239,7 @@ private:
 
         // コース中心を線分で描画
         {
-            Shape3D::LineSet lineSet{};
+            Immediate3D::LineSet lineSet{};
             for (int i = 0; i < segments.size(); ++i)
             {
                 const auto& segment = segments[i];
@@ -266,13 +266,13 @@ private:
                 continue;
             }
 
-            Shape2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
+            Immediate2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
                 .setPosition(p1InScreen.xy())
                 .pushAuto();
         }
 
         {
-            Shape3D::LineSet lineSet{};
+            Immediate3D::LineSet lineSet{};
 
             drawBvh(m_staticBvh.root().get(), lineSet, s_visibleBvhRange);
             lineSet.setColor(ColorF32{0.3f, 1, 0.3f}).pushAuto();

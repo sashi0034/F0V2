@@ -11,7 +11,7 @@ namespace TY
             color = color_.toFloat4();
         }
 
-        index_type BuildLine(BufferCreator& bufferCreator, const Shape3D::Line& line)
+        index_type BuildLine(BufferCreator& bufferCreator, const Immediate3D::Line& line)
         {
             constexpr int indexSize = 2;
             const auto buffer = bufferCreator.request(2, indexSize);
@@ -34,7 +34,7 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildLineSet(BufferCreator& bufferCreator, const Shape3D::LineSet& lineSet)
+        index_type BuildLineSet(BufferCreator& bufferCreator, const Immediate3D::LineSet& lineSet)
         {
             const int lineCount = static_cast<int>(lineSet.lines.size());
             const int indexSize = lineCount * 2;

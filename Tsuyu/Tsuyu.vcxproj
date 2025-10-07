@@ -213,8 +213,8 @@
     <ClInclude Include="TY\Random.h" />
     <ClInclude Include="TY\ScopedDeferStack.h" />
     <ClInclude Include="TY\SdfFont.h" />
-    <ClInclude Include="TY\Shape2D.h" />
-    <ClInclude Include="TY\Shape3D.h" />
+    <ClInclude Include="TY\Immediate2D.h" />
+    <ClInclude Include="TY\Immediate3D.h" />
     <ClInclude Include="TY\ShapeBufferCreator.h" />
     <ClInclude Include="TY\ShapeBuilder2D.h" />
     <ClInclude Include="TY\ShapeBuilder3D.h" />
@@ -360,8 +360,8 @@
     <ClCompile Include="TY\Random.cpp" />
     <ClCompile Include="TY\ScopedDeferStack.cpp" />
     <ClCompile Include="TY\SdfFont.cpp" />
-    <ClCompile Include="TY\Shape2D.cpp" />
-    <ClCompile Include="TY\Shape3D.cpp" />
+    <ClCompile Include="TY\Immediate2D.cpp" />
+    <ClCompile Include="TY\Immediate3D.cpp" />
     <ClCompile Include="TY\ShapeBufferCreator.cpp" />
     <ClCompile Include="TY\ShapeBuilder2D.cpp" />
     <ClCompile Include="TY\ShapeBuilder3D.cpp" />

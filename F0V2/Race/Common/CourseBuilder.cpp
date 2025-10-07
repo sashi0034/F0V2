@@ -3,7 +3,7 @@
 
 #include "CourseConstants.h"
 #include "TY/Quaternion.h"
-#include "TY/Shape3D.h"
+#include "TY/Immediate3D.h"
 
 using namespace Race;
 

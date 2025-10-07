@@ -295,7 +295,7 @@ namespace
     };
 
     void drawBvh(
-        const TriangleBvh::Node* node, Shape3D::LineSet& lineSet, std::pair<int, int> targetRange, int nest = 0)
+        const TriangleBvh::Node* node, Immediate3D::LineSet& lineSet, std::pair<int, int> targetRange, int nest = 0)
     {
         if (not node)
         {
@@ -315,7 +315,7 @@ namespace
     }
 
     void drawLeafAabb(
-        const TriangleBvh::Node* node, Shape3D::LineSet& lineSet, int targetIndex, int* currentIndex = nullptr)
+        const TriangleBvh::Node* node, Immediate3D::LineSet& lineSet, int targetIndex, int* currentIndex = nullptr)
     {
         if (not node)
         {
@@ -488,7 +488,7 @@ struct Demo_Collision3_impl
 
         static std::pair s_visibleBvhRange{0, 16};
         static int s_visibleBvhLeaf = -1;
-        Shape3D::LineSet lineSet{};
+        Immediate3D::LineSet lineSet{};
 
         if (s_visibleBvhLeaf < 0)
         {
@@ -507,12 +507,12 @@ struct Demo_Collision3_impl
             const Float3 previousPos = m_capsuleObject.m_pos;
             Float3 newPos = previousPos;
 
-            Shape3D::Line{
+            Immediate3D::Line{
                     previousPos,
                     previousPos + Float3{0, 1, 0} * 10
                 }.setColor(ColorF32{1.0f, 0.5f, 0.5f})
                  .pushAuto();
-            Shape3D::Line{
+            Immediate3D::Line{
                     previousPos,
                     previousPos + m_capsuleObject.m_normalOnGround * 10
                 }.setColor(ColorF32{1.0f, 0.0f, 0.0f})
@@ -520,7 +520,7 @@ struct Demo_Collision3_impl
 
             if (s_moveEnabled)
             {
-                Shape3D::Line{
+                Immediate3D::Line{
                         previousPos,
                         previousPos + moveVector * 10
                     }.setColor(ColorF32{0.5f})
@@ -682,7 +682,7 @@ private:
         {
             const auto& tri = *hitTris;
             const auto triCenter = tri.tri.centroid();
-            ImmediateDrawer::Global().push(Shape3D::Line{
+            ImmediateDrawer::Global().push(Immediate3D::Line{
                 triCenter,
                 triCenter + tri.plane.normal * 10
             }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f}));

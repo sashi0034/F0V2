@@ -24,7 +24,7 @@ namespace
     {
         const auto backgroundRegion = RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 800}};
 
-        Shape2D::RoundRect{backgroundRegion}
+        Immediate2D::RoundRect{backgroundRegion}
             .setColor(ColorPalette::EditorBackground)
             .setOutline({1.0f, ColorPalette::GrayOrange})
             .pushAuto();
@@ -32,11 +32,11 @@ namespace
         constexpr float lineLength = 28.0f;
         auto [headerRegion, contentRegion] = backgroundRegion.separate(lineLength, Direction4::Up);
 
-        Shape2D::RoundRect{headerRegion.stretched(-1)}
+        Immediate2D::RoundRect{headerRegion.stretched(-1)}
             .setColor(ColorF32{ColorPalette::DarkOrange} * 1.05f)
             .pushAuto();
 
-        Shape2D_Text::MPlus1_16_Bitmap(U"GameObject List")
+        Immediate2D_Text::MPlus1_16_Bitmap(U"GameObject List")
             .setPosition(headerRegion.stretched(-5).middleLeft(), Alignment9::MiddleLeft)
             .pushAuto();
 

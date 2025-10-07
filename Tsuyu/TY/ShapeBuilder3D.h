@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Color.h"
-#include "Shape3D.h"
+#include "Immediate3D.h"
 #include "ShapeBufferCreator.h"
 #include "Vector3D.h"
 #include "Vector4D.h"
@@ -23,8 +23,8 @@ namespace TY
 
         // -----------------------------------------------
 
-        index_type BuildLine(BufferCreator& bufferCreator, const Shape3D::Line& line);
+        index_type BuildLine(BufferCreator& bufferCreator, const Immediate3D::Line& line);
 
-        index_type BuildLineSet(BufferCreator& bufferCreator, const Shape3D::LineSet& lineSet);
+        index_type BuildLineSet(BufferCreator& bufferCreator, const Immediate3D::LineSet& lineSet);
     }
 }

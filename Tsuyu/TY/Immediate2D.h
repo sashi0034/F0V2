@@ -8,7 +8,7 @@
 
 namespace TY
 {
-    namespace Shape2D
+    namespace Immediate2D
     {
         struct Outline
         {

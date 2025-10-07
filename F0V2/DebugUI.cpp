@@ -36,10 +36,10 @@ bool DebugUI::Button(const RectF& region, const std::u32string& text)
 {
     const bool isHovered = Intersects(region, Mouse::PosF());
 
-    Shape2D::RoundRect{region}
+    Immediate2D::RoundRect{region}
         .setColor(ColorPalette::DarkOrange * (isHovered ? (MouseL.pressed() ? 1.3f : 1.5f) : 1.0f))
         .pushAuto();
-    Shape2D_Text::MPlus1_16_Bitmap(text)
+    Immediate2D_Text::MPlus1_16_Bitmap(text)
         .setPosition(region.middleCenter(), Alignment9::MiddleCenter)
         .pushAuto();
 
@@ -78,10 +78,10 @@ bool DebugUI::DragButton(const RectF& region, const std::u32string& text)
         }
     }
 
-    Shape2D::RoundRect{region}
+    Immediate2D::RoundRect{region}
         .setColor(ColorPalette::DarkOrange * (dragging ? 1.5f : (isHovered ? 1.3f : 1.0f)))
         .pushAuto();
-    Shape2D_Text::MPlus1_16_Bitmap(text)
+    Immediate2D_Text::MPlus1_16_Bitmap(text)
         .setPosition(region.middleCenter(), Alignment9::MiddleCenter)
         .pushAuto();
 
@@ -96,12 +96,12 @@ bool DebugUI::ItemButton(const RectF& region, const std::u32string& text, bool a
         hovered = true;
     }
 
-    Shape2D::RoundRect{region}
+    Immediate2D::RoundRect{region}
         .setColor(ColorF32{0.15} * (hovered ? (MouseL.pressed() ? 1.3f : 1.5f) : 1.0f))
         .setOutline({active ? 1.0f : 0.0f, ColorPalette::GoldenYellow})
         .pushAuto();
 
-    Shape2D_Text::MPlus1_16_Bitmap(text)
+    Immediate2D_Text::MPlus1_16_Bitmap(text)
         .setPosition(region.stretched(-10).middleLeft(), Alignment9::MiddleLeft)
         .pushAuto();
 
@@ -178,7 +178,7 @@ bool DebugUI::ListSlider(
 
     startIndex = Math::Clamp(startIndex, 0, listCount - pageCapacity);
 
-    Shape2D::RoundRect{thumbRect}
+    Immediate2D::RoundRect{thumbRect}
         .setColor(ColorF32{"#4F4F4F"} * (dragging ? 1.5f : 1.0f))
         .pushAuto();
 

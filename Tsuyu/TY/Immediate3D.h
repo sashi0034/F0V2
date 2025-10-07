@@ -7,7 +7,7 @@
 
 namespace TY
 {
-    namespace Shape3D
+    namespace Immediate3D
     {
         struct Line
         {

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "TY/BitmapFont.h"
 #include "TY/SdfFont.h"
-#include "TY/Shape2D.h"
+#include "TY/Immediate2D.h"
 
 namespace Asset0
 {
@@ -14,13 +14,13 @@ namespace Asset0
     SdfFont MPlus1_Sdf();
 }
 
-namespace Shape2D_Text
+namespace Immediate2D_Text
 {
-    Shape2D::Text RocknRoll_24_Bitmap(const std::u32string& text);
+    Immediate2D::Text RocknRoll_24_Bitmap(const std::u32string& text);
 
-    Shape2D::Text MPlus1_16_Bitmap(const std::u32string& text);
+    Immediate2D::Text MPlus1_16_Bitmap(const std::u32string& text);
 
-    Shape2D::Text MPlus1_24_Bitmap(const std::u32string& text);
+    Immediate2D::Text MPlus1_24_Bitmap(const std::u32string& text);
 
-    Shape2D::Text MPlus1_Sdf(const std::u32string& text);
+    Immediate2D::Text MPlus1_Sdf(const std::u32string& text);
 }

@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Shape3D.h"
+#include "Immediate3D.h"
 
 #include "ImmediateDrawer.h"
 
@@ -15,44 +15,44 @@ namespace
 
 namespace TY
 {
-    Shape3D::Line::Line(const Float3& start_, const Float3& end_)
+    Immediate3D::Line::Line(const Float3& start_, const Float3& end_)
         : start(start_), end(end_)
     {
     }
 
-    Shape3D::Line& Shape3D::Line::setColor(const ColorF32& color)
+    Immediate3D::Line& Immediate3D::Line::setColor(const ColorF32& color)
     {
         colors[0] = color;
         colors[1] = color;
         return *this;
     }
 
-    Shape3D::Line& Shape3D::Line::setColor(const ColorF32& c0, const ColorF32& c1)
+    Immediate3D::Line& Immediate3D::Line::setColor(const ColorF32& c0, const ColorF32& c1)
     {
         colors[0] = c0;
         colors[1] = c1;
         return *this;
     }
 
-    void Shape3D::Line::pushAuto()
+    void Immediate3D::Line::pushAuto()
     {
         (void)activeImmediateDrawer().push(*this);
     }
 
-    Shape3D::LineSet& Shape3D::LineSet::setColor(const ColorF32& color)
+    Immediate3D::LineSet& Immediate3D::LineSet::setColor(const ColorF32& color)
     {
         colors[0] = color;
         colors[1] = color;
         return *this;
     }
 
-    Shape3D::LineSet& Shape3D::LineSet::appendLine(const Float3& start, const Float3& end)
+    Immediate3D::LineSet& Immediate3D::LineSet::appendLine(const Float3& start, const Float3& end)
     {
         lines.emplace_back(start, end);
         return *this;
     }
 
-    Shape3D::LineSet& Shape3D::LineSet::appendTriangle(const Triangle3D& tri)
+    Immediate3D::LineSet& Immediate3D::LineSet::appendTriangle(const Triangle3D& tri)
     {
         lines.emplace_back(tri.p0, tri.p1);
         lines.emplace_back(tri.p1, tri.p2);
@@ -60,7 +60,7 @@ namespace TY
         return *this;
     }
 
-    Shape3D::LineSet& Shape3D::LineSet::appendAabb(const Aabb3D& aabb)
+    Immediate3D::LineSet& Immediate3D::LineSet::appendAabb(const Aabb3D& aabb)
     {
         const Float3& min = aabb.min;
         const Float3& max = aabb.max;
@@ -83,7 +83,7 @@ namespace TY
         return *this;
     }
 
-    void Shape3D::LineSet::pushAuto()
+    void Immediate3D::LineSet::pushAuto()
     {
         (void)activeImmediateDrawer().push(*this);
     }

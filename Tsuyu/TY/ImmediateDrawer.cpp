@@ -78,13 +78,13 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
     // TODO: 複雑になってきたのでリファクタリングしたい
     // 最近 ConstantBuffer のフレーム内における複数 upload に対応したのでそれを利用する
 
-    void Push(const Shape2D::shape_type& shape)
+    void Push(const Immediate2D::shape_type& shape)
     {
         constexpr double maxScaling = 1.0f; // TODO: Transformer の Matrix から取得
 
-        if (shape.isHolds<Shape2D::Text>())
+        if (shape.isHolds<Immediate2D::Text>())
         {
-            m_descriptorManager.RequestSrv0(shape.get<Shape2D::Text>().font.atlasTexture());
+            m_descriptorManager.RequestSrv0(shape.get<Immediate2D::Text>().font.atlasTexture());
         }
 
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
@@ -94,45 +94,45 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
 
         auto&& component = ImmediateDrawerComponent::Instance;
-        if (shape.isHolds<Shape2D::Rect>())
+        if (shape.isHolds<Immediate2D::Rect>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildRect(m_bufferCreator2D, shape.get<Shape2D::Rect>());
+            ShapeBuilder2D::BuildRect(m_bufferCreator2D, shape.get<Immediate2D::Rect>());
         }
-        else if (shape.isHolds<Shape2D::RoundRect>())
+        else if (shape.isHolds<Immediate2D::RoundRect>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildRoundRect(m_bufferCreator2D, shape.get<Shape2D::RoundRect>());
+            ShapeBuilder2D::BuildRoundRect(m_bufferCreator2D, shape.get<Immediate2D::RoundRect>());
         }
-        else if (shape.isHolds<Shape2D::Line>())
+        else if (shape.isHolds<Immediate2D::Line>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildLine(m_bufferCreator2D, shape.get<Shape2D::Line>());
+            ShapeBuilder2D::BuildLine(m_bufferCreator2D, shape.get<Immediate2D::Line>());
         }
-        else if (shape.isHolds<Shape2D::SquareDotLine>())
+        else if (shape.isHolds<Immediate2D::SquareDotLine>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.squareDot);
             commitPendingState();
-            ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator2D, shape.get<Shape2D::SquareDotLine>(), maxScaling);
+            ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator2D, shape.get<Immediate2D::SquareDotLine>(), maxScaling);
         }
-        else if (shape.isHolds<Shape2D::Path>())
+        else if (shape.isHolds<Immediate2D::Path>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildPath(m_bufferCreator2D, shape.get<Shape2D::Path>());
+            ShapeBuilder2D::BuildPath(m_bufferCreator2D, shape.get<Immediate2D::Path>());
         }
-        else if (shape.isHolds<Shape2D::CyclePath>())
+        else if (shape.isHolds<Immediate2D::CyclePath>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildCyclePath(m_bufferCreator2D, shape.get<Shape2D::CyclePath>());
+            ShapeBuilder2D::BuildCyclePath(m_bufferCreator2D, shape.get<Immediate2D::CyclePath>());
         }
-        else if (shape.isHolds<Shape2D::Text>())
+        else if (shape.isHolds<Immediate2D::Text>())
         {
-            auto& font = shape.get<Shape2D::Text>().font;
+            auto& font = shape.get<Immediate2D::Text>().font;
             if (font.isBitmap())
             {
                 m_stateManager.RequestPixelShader(component->m_ps2d.bitmapFont);
@@ -147,7 +147,7 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
             }
 
             commitPendingState();
-            ShapeBuilder2D::BuildText(m_bufferCreator2D, shape.get<Shape2D::Text>());
+            ShapeBuilder2D::BuildText(m_bufferCreator2D, shape.get<Immediate2D::Text>());
         }
         else
         {
@@ -155,7 +155,7 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         }
     }
 
-    void Push(const Shape3D::shape_type& shape)
+    void Push(const Immediate3D::shape_type& shape)
     {
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
         m_descriptorManager.RequestTransform(transformMatrix);
@@ -164,17 +164,17 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
 
         auto&& component = ImmediateDrawerComponent::Instance;
-        if (shape.isHolds<Shape3D::Line>())
+        if (shape.isHolds<Immediate3D::Line>())
         {
             m_stateManager.RequestPixelShader(component->m_ps3d.shape);
             commitPendingState();
-            ShapeBuilder3D::BuildLine(m_bufferCreator3D, shape.get<Shape3D::Line>());
+            ShapeBuilder3D::BuildLine(m_bufferCreator3D, shape.get<Immediate3D::Line>());
         }
-        else if (shape.isHolds<Shape3D::LineSet>())
+        else if (shape.isHolds<Immediate3D::LineSet>())
         {
             m_stateManager.RequestPixelShader(component->m_ps3d.shape);
             commitPendingState();
-            ShapeBuilder3D::BuildLineSet(m_bufferCreator3D, shape.get<Shape3D::LineSet>());
+            ShapeBuilder3D::BuildLineSet(m_bufferCreator3D, shape.get<Immediate3D::LineSet>());
         }
         else
         {
@@ -297,7 +297,7 @@ namespace TY
         RenderEvent::AddLister(p_impl);
     }
 
-    const ImmediateDrawer& ImmediateDrawer::push(const Shape2D::shape_type& shape) const
+    const ImmediateDrawer& ImmediateDrawer::push(const Immediate2D::shape_type& shape) const
     {
         if (not p_impl) return *this;
 
@@ -306,7 +306,7 @@ namespace TY
         return *this;
     }
 
-    const ImmediateDrawer& ImmediateDrawer::push(const Shape3D::shape_type& shape) const
+    const ImmediateDrawer& ImmediateDrawer::push(const Immediate3D::shape_type& shape) const
     {
         if (not p_impl) return *this;
 
@@ -315,12 +315,12 @@ namespace TY
         return *this;
     }
 
-    const ImmediateDrawer& ImmediateDrawer::operator<<(const Shape2D::shape_type& shape) const
+    const ImmediateDrawer& ImmediateDrawer::operator<<(const Immediate2D::shape_type& shape) const
     {
         return push(shape);
     }
 
-    const ImmediateDrawer& ImmediateDrawer::operator<<(const Shape3D::shape_type& shape) const
+    const ImmediateDrawer& ImmediateDrawer::operator<<(const Immediate3D::shape_type& shape) const
     {
         return push(shape);
     }
@@ -346,12 +346,12 @@ namespace TY
         }
     }
 
-    void operator>>(const Shape2D::shape_type& shape, const ImmediateDrawer& drawer)
+    void operator>>(const Immediate2D::shape_type& shape, const ImmediateDrawer& drawer)
     {
         (void)drawer.push(shape);
     }
 
-    void operator>>(const Shape3D::shape_type& shape, const ImmediateDrawer& drawer)
+    void operator>>(const Immediate3D::shape_type& shape, const ImmediateDrawer& drawer)
     {
         (void)drawer.push(shape);
     }

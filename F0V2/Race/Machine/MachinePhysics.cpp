@@ -6,7 +6,7 @@
 #include "TY/GameStep.h"
 #include "TY/GameTime.h"
 #include "TY/Intersects3D.h"
-#include "TY/Shape3D.h"
+#include "TY/Immediate3D.h"
 
 using namespace Race;
 
@@ -141,12 +141,12 @@ namespace
 
             if (props.debug.drawHitTris)
             {
-                Shape3D::Line{
+                Immediate3D::Line{
                         triCenter,
                         triCenter + tri.plane.normal * 10
                     }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f})
                      .pushAuto();
-                Shape3D::LineSet{}
+                Immediate3D::LineSet{}
                     .appendTriangle(tri.tri.movedBy(tri.plane.normal * 0.1f))
                     .setColor(ColorF32{1.0f, 1.0f, 0.5f})
                     .pushAuto();
@@ -345,7 +345,7 @@ namespace Race
 
             if (props.debug.drawHitTris)
             {
-                Shape3D::Line{
+                Immediate3D::Line{
                         state.m_pose.position,
                         state.m_pose.position - state.m_gravity * 10
                     }.setColor(ColorF32{1.0f, 0.0f, 0.5f}, ColorF32{0.5f, 0, 0.5f})
