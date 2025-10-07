@@ -17,10 +17,13 @@
 #include "Demo/Demo_ImmediateDrawer.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
+#include "Util/ImmediatePrint.h"
 
 void Main()
 {
     InitLivePPAddon();
+
+    Util::InitImmediatePrintAddon();
 
 #if 0
     Demo_Collision3();

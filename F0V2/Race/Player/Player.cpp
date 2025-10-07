@@ -9,12 +9,10 @@
 #include "TY/ActorContainer.h"
 #include "TY/GameStep.h"
 #include "TY/GameTime.h"
-#include "TY/Intersects3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/ImmediateDrawer.h"
-#include "TY/detail/EngineKeyboardMouse.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/Pose.h"
 

@@ -178,6 +178,7 @@
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
     <ClCompile Include="Util\CatmullRom.cpp" />
     <ClCompile Include="Util\DebugUI.cpp" />
+    <ClCompile Include="Util\ImmediatePrint.cpp" />
     <ClCompile Include="Util\Utilities.cpp" />
     <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
     <Content Include="asset\font\0xProto\README.md" />
@@ -293,6 +294,7 @@
     <ClInclude Include="TY_Extension\Transform.h" />
     <ClInclude Include="Util\CatmullRom.h" />
     <ClInclude Include="Util\DebugUI.h" />
+    <ClInclude Include="Util\ImmediatePrint.h" />
     <ClInclude Include="Util\Utilities.h" />
   </ItemGroup>
   <ItemGroup>

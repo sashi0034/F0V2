@@ -112,9 +112,9 @@ struct EngineCoreImpl
 
     void EndFrame()
     {
-        EngineImGui::Render();
-
         EngineComponent::BeforeFlush();
+
+        EngineImGui::Render();
 
         EngineRenderContext::Render();
 
