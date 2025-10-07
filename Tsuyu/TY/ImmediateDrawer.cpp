@@ -25,7 +25,7 @@ namespace
     struct BufferUnit
     {
         GraphicsPipelineState pso{};
-        SD_DescriptorManager::element_cursor descriptor{};
+        ID_DescriptorManager::element_cursor descriptor{};
         IndexBuffer indexBuffer{Empty};
         VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer2D{Empty};
         VertexBuffer<ShapeBuilder3D::Vertex3D> vertexBuffer3D{Empty};
@@ -54,9 +54,9 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
 
     ArrayPool<BufferUnit> m_bufferUnitList{};
 
-    SD_DescriptorManager m_descriptorManager{};
+    ID_DescriptorManager m_descriptorManager{};
 
-    SD_StateManager m_stateManager{};
+    ID_StateManager m_stateManager{};
 
     size_t m_drawUnitIndex{};
 
@@ -224,7 +224,7 @@ private:
         }
     }
 
-    void flushCurrentBuffer(const SD_StateManager::state_type& state)
+    void flushCurrentBuffer(const ID_StateManager::state_type& state)
     {
         for (const auto& buffer : m_bufferCreator2D.buffers())
         {
@@ -244,7 +244,7 @@ private:
     // using VertexType = ShapeBuilder2D::Vertex2D; // for IDE
     template <typename VertexType, bool is3D>
     void flushCurrentBuffer_internal(
-        const SD_StateManager::state_type& state,
+        const ID_StateManager::state_type& state,
         const ShapeBufferCreator<VertexType>::buffer_type& buffer)
     {
         m_bufferUnitList.add_logical_size(1);

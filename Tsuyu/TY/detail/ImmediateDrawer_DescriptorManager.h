@@ -4,7 +4,7 @@
 
 namespace TY::ImmediateDrawer_detail
 {
-    class SD_DescriptorManager
+    class ID_DescriptorManager
     {
     public:
         //                    --- heap_type [] ---
@@ -72,7 +72,7 @@ namespace TY::ImmediateDrawer_detail
             bool operator !=(const element_cursor& other) const { return not(*this == other); }
         };
 
-        SD_DescriptorManager()
+        ID_DescriptorManager()
         {
             pushBackNewHeap(heap_type::key_type{}, heap_type::DefaultCapacity);
 

@@ -4,13 +4,13 @@
 
 namespace TY::ImmediateDrawer_detail
 {
-    class SD_StateManager
+    class ID_StateManager
     {
     public:
         struct state_type
         {
             GraphicsPipelineStateParams psoParams{};
-            SD_DescriptorManager::element_cursor descriptor{};
+            ID_DescriptorManager::element_cursor descriptor{};
             bool is3D{}; // 2D if false
 
             static state_type Default(bool is3D, const DescriptorTable& descriptorTable);
@@ -19,7 +19,7 @@ namespace TY::ImmediateDrawer_detail
         void Reset(const DescriptorTable& descriptorTable);
 
         void RequestDescriptor(
-            const SD_DescriptorManager::element_cursor& descriptor,
+            const ID_DescriptorManager::element_cursor& descriptor,
             const DescriptorTable& descriptorTable);
 
         void RequestPixelShader(const PixelShader& ps);

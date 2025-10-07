@@ -9,7 +9,7 @@ namespace
 
 namespace TY::ImmediateDrawer_detail
 {
-    SD_DescriptorManager::heap_type SD_DescriptorManager::heap_type::Create(const key_type& key, int cbv1_capacity)
+    ID_DescriptorManager::heap_type ID_DescriptorManager::heap_type::Create(const key_type& key, int cbv1_capacity)
     {
         heap_type heap{};
 
@@ -36,7 +36,7 @@ namespace TY::ImmediateDrawer_detail
         return heap;
     }
 
-    void SD_DescriptorManager::RequestTransform(const Mat3x2& transform)
+    void ID_DescriptorManager::RequestTransform(const Mat3x2& transform)
     {
         bool hasChanged;
         if (m_currentCursor.cb1_index == -1)
@@ -78,7 +78,7 @@ namespace TY::ImmediateDrawer_detail
         }
     }
 
-    void SD_DescriptorManager::RequestSrv0(const TextureResource& srv)
+    void ID_DescriptorManager::RequestSrv0(const TextureResource& srv)
     {
         if (currentHeap().keyResource.srv0.unique_id() == srv.unique_id())
         {
@@ -96,7 +96,7 @@ namespace TY::ImmediateDrawer_detail
         m_currentCursor = fetchHeap(newKey);
     }
 
-    void SD_DescriptorManager::Upload() const
+    void ID_DescriptorManager::Upload() const
     {
         for (int i = 0; i < m_heapList.size(); ++i)
         {
@@ -108,7 +108,7 @@ namespace TY::ImmediateDrawer_detail
         }
     }
 
-    void SD_DescriptorManager::Reset()
+    void ID_DescriptorManager::Reset()
     {
         m_currentCursor = element_cursor{.heapIndex = 0, .cb1_index = -1};
 
@@ -118,7 +118,7 @@ namespace TY::ImmediateDrawer_detail
         }
     }
 
-    void SD_DescriptorManager::CommandSet(const element_cursor& element) const
+    void ID_DescriptorManager::CommandSet(const element_cursor& element) const
     {
         auto& heap = m_heapList[element.heapIndex];
         heap.descriptorHeap.commandSet(PipelineType::Graphics);
@@ -126,7 +126,7 @@ namespace TY::ImmediateDrawer_detail
         heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 1, element.cb1_index);
     }
 
-    SD_DescriptorManager::element_cursor SD_DescriptorManager::fetchHeap(const heap_type::key_type& keyResource)
+    ID_DescriptorManager::element_cursor ID_DescriptorManager::fetchHeap(const heap_type::key_type& keyResource)
     {
         int next_cbv1_capacity = heap_type::DefaultCapacity;
         for (int i = 0; i < m_heapList.size(); ++i)
@@ -147,7 +147,7 @@ namespace TY::ImmediateDrawer_detail
         return pushBackNewHeap(keyResource, next_cbv1_capacity);
     }
 
-    SD_DescriptorManager::element_cursor SD_DescriptorManager::pushBackNewHeap(
+    ID_DescriptorManager::element_cursor ID_DescriptorManager::pushBackNewHeap(
         const heap_type::key_type& keyResource,
         int cbv1_capacity)
     {

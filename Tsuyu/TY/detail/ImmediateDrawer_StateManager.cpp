@@ -50,7 +50,7 @@ namespace
 
 namespace TY::ImmediateDrawer_detail
 {
-    SD_StateManager::state_type SD_StateManager::state_type::Default(
+    ID_StateManager::state_type ID_StateManager::state_type::Default(
         bool is3D,
         const DescriptorTable& descriptorTable)
     {
@@ -60,14 +60,14 @@ namespace TY::ImmediateDrawer_detail
         };
     }
 
-    void SD_StateManager::Reset(const DescriptorTable& descriptorTable)
+    void ID_StateManager::Reset(const DescriptorTable& descriptorTable)
     {
         m_current = state_type::Default(false, descriptorTable);
         m_next.reset();
     }
 
-    void SD_StateManager::RequestDescriptor(
-        const SD_DescriptorManager::element_cursor& descriptor,
+    void ID_StateManager::RequestDescriptor(
+        const ID_DescriptorManager::element_cursor& descriptor,
         const DescriptorTable& descriptorTable)
     {
         assert(descriptor.isValid());
@@ -79,7 +79,7 @@ namespace TY::ImmediateDrawer_detail
         }
     }
 
-    void SD_StateManager::RequestPixelShader(const PixelShader& ps)
+    void ID_StateManager::RequestPixelShader(const PixelShader& ps)
     {
         if (m_current.psoParams.shader.ps.unique_id() != ps.unique_id())
         {
@@ -87,7 +87,7 @@ namespace TY::ImmediateDrawer_detail
         }
     }
 
-    void SD_StateManager::request2D()
+    void ID_StateManager::request2D()
     {
         if (m_current.is3D)
         {
@@ -96,7 +96,7 @@ namespace TY::ImmediateDrawer_detail
         }
     }
 
-    void SD_StateManager::request3D()
+    void ID_StateManager::request3D()
     {
         if (not m_current.is3D)
         {
@@ -105,7 +105,7 @@ namespace TY::ImmediateDrawer_detail
         }
     }
 
-    std::optional<SD_StateManager::state_type> SD_StateManager::CommitPendingState()
+    std::optional<ID_StateManager::state_type> ID_StateManager::CommitPendingState()
     {
         if (m_next.has_value())
         {
@@ -118,7 +118,7 @@ namespace TY::ImmediateDrawer_detail
         return std::nullopt;
     }
 
-    SD_StateManager::state_type& SD_StateManager::getNext()
+    ID_StateManager::state_type& ID_StateManager::getNext()
     {
         if (m_next.has_value())
         {
