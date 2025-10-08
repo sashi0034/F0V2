@@ -2,6 +2,7 @@
 #include "ImmediatePrint.h"
 
 #include "Asset0.h"
+#include "ColorPalette.h"
 #include "TY/Addon.h"
 #include "TY/Array.h"
 #include "TY/IAddon.h"
@@ -17,6 +18,7 @@ namespace
     {
         void draw() override
         {
+            ImmediateBuffer textBuffer{};
             for (int a = 0; a < s_texts.size(); ++a)
             {
                 const auto& texts = s_texts[a];
@@ -26,15 +28,26 @@ namespace
                 }
 
                 const auto align = static_cast<Alignment9>(a);
+                constexpr float lineHeight = 16.0f;
+
+                Float2 offset = Scene::RectF().getRelativePoint(align);
+                offset.y -= (texts.size() - 1) * lineHeight * AlignmentToPivot(align).y;
+
                 for (int y = 0; y < texts.size(); ++y)
                 {
-                    Immediate2D_Text::MPlus1_16_Bitmap(texts[y])
-                        .setPosition(Scene::RectF().getRelativePoint(align) + Float2{0, y * 20.0f}, align)
-                        .setColor(ColorF32{1.0f})
-                        .cache()
-                        .pushAuto();
+                    const auto t =
+                        Immediate2D_Text::MPlus1_16_Bitmap(texts[y])
+                        .setPosition(offset + Float2{0, y * lineHeight}, align)
+                        .setColor(ColorPalette::GamingGreen)
+                        .cache();
+
+                    Immediate2D::Rect{t.region.stretched(1.5f)}.setColor(ColorF32{0.0f}).pushAuto();
+
+                    textBuffer.append(t);
                 }
             }
+
+            textBuffer.pushAuto();
 
             ImmediateDrawer::Global().draw();
 

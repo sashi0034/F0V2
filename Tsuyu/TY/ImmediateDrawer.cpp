@@ -302,6 +302,29 @@ namespace
 
 namespace TY
 {
+    const ImmediateBuffer& ImmediateBuffer::append(const Immediate2D::shape_type& shape)
+    {
+        m_shapes.push_back(shape);
+        return *this;
+    }
+
+    const ImmediateBuffer& ImmediateBuffer::append(const Immediate3D::shape_type& shape)
+    {
+        m_shapes.push_back(shape);
+        return *this;
+    }
+
+    void ImmediateBuffer::pushAuto()
+    {
+        (void)ImmediateDrawer::Global().push(*this);
+        m_shapes.clear();
+    }
+
+    const Array<ImmediateBuffer::shape_type>& ImmediateBuffer::shapes() const
+    {
+        return m_shapes;
+    }
+
     ImmediateDrawer::ImmediateDrawer() :
         p_impl(std::make_shared<Impl>())
     {
@@ -322,6 +345,32 @@ namespace TY
         if (not p_impl) return *this;
 
         p_impl->Push(shape);
+
+        return *this;
+    }
+
+    const ImmediateDrawer& ImmediateDrawer::push(const ImmediateBuffer& buffer) const
+    {
+        if (not p_impl)
+        {
+            return *this;
+        }
+
+        for (const auto& shape : buffer.shapes())
+        {
+            if (shape.isHolds<Immediate2D::shape_type>())
+            {
+                p_impl->Push(shape.get<Immediate2D::shape_type>());
+            }
+            else if (shape.isHolds<Immediate3D::shape_type>())
+            {
+                p_impl->Push(shape.get<Immediate3D::shape_type>());
+            }
+            else
+            {
+                assert(false);
+            }
+        }
 
         return *this;
     }
