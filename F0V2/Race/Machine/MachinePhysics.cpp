@@ -7,6 +7,7 @@
 #include "TY/GameTime.h"
 #include "TY/Intersects3D.h"
 #include "TY/Immediate3D.h"
+#include "Util/ImmediatePrint.h"
 
 using namespace Race;
 
@@ -279,27 +280,35 @@ namespace
             not nearestStrip.tunnel.ringVectors[0].isZero()) // FIXME
         {
             // トンネル内の重力
-            const auto& ringVectors = nearestStrip.tunnel.ringVectors;
-            std::array<Float3, TunnelSubdivision> ringPoints{}; // リング上の仮点
-            for (int i = 0; i < TunnelSubdivision; ++i)
-            {
-                const Float3 dir = ringVectors[i] + ringVectors[(i + 1) % TunnelSubdivision];
-                ringPoints[i] = nearestStrip.center + dir;
-            }
 
-            float minDistSq = FLT_MAX;
-            int minIndex{};
-            for (int i = 0; i < TunnelSubdivision; ++i)
-            {
-                const float distSq = DistanceSq(position, ringPoints[i]);
-                if (distSq < minDistSq)
-                {
-                    minDistSq = distSq;
-                    minIndex = i;
-                }
-            }
+            // 連続的に計算
+            const auto line = Line3D::FromPoints(nearestStrip.center, nearestStrip.center + nearestStrip.toNext);
 
-            return (ringPoints[minIndex] - nearestStrip.center).normalized();
+            const Float3 p = line.projectPoint(position);
+            return (position - p).normalized();
+
+            // 離散的に計算
+            // const auto& ringVectors = nearestStrip.tunnel.ringVectors;
+            // std::array<Float3, TunnelSubdivision> ringPoints{}; // リング上の仮点
+            // for (int i = 0; i < TunnelSubdivision; ++i)
+            // {
+            //     const Float3 dir = ringVectors[i] + ringVectors[(i + 1) % TunnelSubdivision];
+            //     ringPoints[i] = nearestStrip.center + dir;
+            // }
+            //
+            // float minDistSq = FLT_MAX;
+            // int minIndex{};
+            // for (int i = 0; i < TunnelSubdivision; ++i)
+            // {
+            //     const float distSq = DistanceSq(position, ringPoints[i]);
+            //     if (distSq < minDistSq)
+            //     {
+            //         minDistSq = distSq;
+            //         minIndex = i;
+            //     }
+            // }
+            //
+            // return (ringPoints[minIndex] - nearestStrip.center).normalized();
         }
 
         return -nearestStrip.normal;
@@ -334,6 +343,8 @@ namespace Race
 
             updateCapsulePosition(state, props, state.m_pose.position, moveVector);
         }
+
+        ImmediatePrint(std::format("groundedness: {:.2f}", state.m_groundedness), Alignment9::BottomCenter);
 
         // 現在位置における重力方向を計算
         {

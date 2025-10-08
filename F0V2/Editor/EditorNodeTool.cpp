@@ -278,7 +278,7 @@ private:
                     for (int t = 0; t < TunnelSubdivision; ++t)
                     {
                         // 円周上の方向ベクトルを計算
-                        const float angle = -(static_cast<float>(t) / TunnelSubdivision) * Math::TwoPi_v<float>;
+                        const float angle = -(0.5 + static_cast<float>(t) / TunnelSubdivision) * Math::TwoPi_v<float>;
                         const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
                         strip.tunnel.ringVectors[t] = dir;
                     }

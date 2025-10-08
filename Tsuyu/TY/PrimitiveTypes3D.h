@@ -97,6 +97,8 @@ namespace TY
 
         Line3D(const Float3& point, const Float3& normalizedDir);
 
+        Float3 projectPoint(const Float3& p) const;
+
         static Line3D FromPoints(const Float3& from, const Float3& to);
     };
 

@@ -132,6 +132,13 @@ namespace TY
     {
     }
 
+    Float3 Line3D::projectPoint(const Float3& p) const
+    {
+        Float3 v = p - point;
+        float t = v.dot(normalizedDir);
+        return point + normalizedDir * t;
+    }
+
     Line3D Line3D::FromPoints(const Float3& from, const Float3& to)
     {
         const Float3 dir = (to - from).normalized();
