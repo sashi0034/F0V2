@@ -684,9 +684,11 @@ namespace TY
             {
                 vertices[i * 4 + 0].set(text.characters[i].posTL, text.characters[i].uvTL, text.color);
                 vertices[i * 4 + 1].set({text.characters[i].posBR.x, text.characters[i].posTL.y},
-                                        {text.characters[i].uvBR.x, text.characters[i].uvTL.y}, text.color);
+                                        {text.characters[i].uvBR.x, text.characters[i].uvTL.y},
+                                        text.color);
                 vertices[i * 4 + 2].set({text.characters[i].posTL.x, text.characters[i].posBR.y},
-                                        {text.characters[i].uvTL.x, text.characters[i].uvBR.y}, text.color);
+                                        {text.characters[i].uvTL.x, text.characters[i].uvBR.y},
+                                        text.color);
                 vertices[i * 4 + 3].set(text.characters[i].posBR, text.characters[i].uvBR, text.color);
             }
 

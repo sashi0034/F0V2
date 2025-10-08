@@ -225,19 +225,19 @@ namespace TY
 
             if (i == 0)
             {
-                regionTL = posTL - position;
+                regionTL = posTL;
             }
 
             if (i == characterCount - 1)
             {
-                regionBR = posBR - position;
+                regionBR = posBR;
             }
 
             callback({posTL, posBR, uvTL, uvBR});
         }
 
         const SizeF regionSize = regionBR - regionTL;
-        offsetToApply = -regionTL - regionSize * pivot;
+        offsetToApply = -(regionTL - position) - regionSize * pivot;
 
         return RectF{regionTL + offsetToApply, regionSize};
     }
@@ -250,13 +250,14 @@ namespace TY
         cachedText.color = color;
 
         Float2 offsetToApply{};
-        build([&cachedText](const Text::build_intermediate& intermediate)
-              {
-                  cachedText.characters.push_back({
-                      intermediate.posTL, intermediate.posBR, intermediate.uvTL, intermediate.uvBR
-                  });
-              },
-              offsetToApply);
+        cachedText.region =
+            build([&cachedText](const Text::build_intermediate& intermediate)
+                  {
+                      cachedText.characters.push_back({
+                          intermediate.posTL, intermediate.posBR, intermediate.uvTL, intermediate.uvBR
+                      });
+                  },
+                  offsetToApply);
 
         for (auto& c : cachedText.characters)
         {
