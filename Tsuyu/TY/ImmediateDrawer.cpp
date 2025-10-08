@@ -5,8 +5,8 @@
 #include "Graphics3D.h"
 #include "IndexBuffer.h"
 #include "InlineComponent.h"
-#include "ShapeBuilder2D.h"
-#include "ShapeBuilder3D.h"
+#include "ImmediateBuilder2D.h"
+#include "ImmediateBuilder3D.h"
 #include "VertexBuffer.h"
 #include "detail/EngineComponent.h"
 #include "detail/EngineRenderContext.h"
@@ -27,8 +27,8 @@ namespace
         GraphicsPipelineState pso{};
         ID_DescriptorManager::element_cursor descriptor{};
         IndexBuffer indexBuffer{Empty};
-        VertexBuffer<ShapeBuilder2D::Vertex2D> vertexBuffer2D{Empty};
-        VertexBuffer<ShapeBuilder3D::Vertex3D> vertexBuffer3D{Empty};
+        VertexBuffer<ImmediateBuilder2D::Vertex2D> vertexBuffer2D{Empty};
+        VertexBuffer<ImmediateBuilder3D::Vertex3D> vertexBuffer3D{Empty};
         size_t indexCount{0};
         bool is3D{};
 
@@ -49,8 +49,8 @@ namespace
 
 struct ImmediateDrawer::Impl : RenderEvent::Lister
 {
-    ShapeBuilder2D::BufferCreator m_bufferCreator2D{};
-    ShapeBuilder3D::BufferCreator m_bufferCreator3D{};
+    ImmediateBuilder2D::BufferCreator m_bufferCreator2D{};
+    ImmediateBuilder3D::BufferCreator m_bufferCreator3D{};
 
     ArrayPool<BufferUnit> m_bufferUnitList{};
 
@@ -98,37 +98,37 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildRect(m_bufferCreator2D, shape.get<Immediate2D::Rect>());
+            ImmediateBuilder2D::BuildRect(m_bufferCreator2D, shape.get<Immediate2D::Rect>());
         }
         else if (shape.isHolds<Immediate2D::RoundRect>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildRoundRect(m_bufferCreator2D, shape.get<Immediate2D::RoundRect>());
+            ImmediateBuilder2D::BuildRoundRect(m_bufferCreator2D, shape.get<Immediate2D::RoundRect>());
         }
         else if (shape.isHolds<Immediate2D::Line>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildLine(m_bufferCreator2D, shape.get<Immediate2D::Line>());
+            ImmediateBuilder2D::BuildLine(m_bufferCreator2D, shape.get<Immediate2D::Line>());
         }
         else if (shape.isHolds<Immediate2D::SquareDotLine>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.squareDot);
             commitPendingState();
-            ShapeBuilder2D::BuildSquareDotLine(m_bufferCreator2D, shape.get<Immediate2D::SquareDotLine>(), maxScaling);
+            ImmediateBuilder2D::BuildSquareDotLine(m_bufferCreator2D, shape.get<Immediate2D::SquareDotLine>(), maxScaling);
         }
         else if (shape.isHolds<Immediate2D::Path>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildPath(m_bufferCreator2D, shape.get<Immediate2D::Path>());
+            ImmediateBuilder2D::BuildPath(m_bufferCreator2D, shape.get<Immediate2D::Path>());
         }
         else if (shape.isHolds<Immediate2D::CyclePath>())
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
-            ShapeBuilder2D::BuildCyclePath(m_bufferCreator2D, shape.get<Immediate2D::CyclePath>());
+            ImmediateBuilder2D::BuildCyclePath(m_bufferCreator2D, shape.get<Immediate2D::CyclePath>());
         }
         else if (shape.isHolds<Immediate2D::Text>())
         {
@@ -147,7 +147,7 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
             }
 
             commitPendingState();
-            ShapeBuilder2D::BuildText(m_bufferCreator2D, shape.get<Immediate2D::Text>());
+            ImmediateBuilder2D::BuildText(m_bufferCreator2D, shape.get<Immediate2D::Text>());
         }
         else
         {
@@ -168,13 +168,13 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         {
             m_stateManager.RequestPixelShader(component->m_ps3d.shape);
             commitPendingState();
-            ShapeBuilder3D::BuildLine(m_bufferCreator3D, shape.get<Immediate3D::Line>());
+            ImmediateBuilder3D::BuildLine(m_bufferCreator3D, shape.get<Immediate3D::Line>());
         }
         else if (shape.isHolds<Immediate3D::LineSet>())
         {
             m_stateManager.RequestPixelShader(component->m_ps3d.shape);
             commitPendingState();
-            ShapeBuilder3D::BuildLineSet(m_bufferCreator3D, shape.get<Immediate3D::LineSet>());
+            ImmediateBuilder3D::BuildLineSet(m_bufferCreator3D, shape.get<Immediate3D::LineSet>());
         }
         else
         {
@@ -228,14 +228,14 @@ private:
     {
         for (const auto& buffer : m_bufferCreator2D.buffers())
         {
-            flushCurrentBuffer_internal<ShapeBuilder2D::Vertex2D, false>(state, buffer);
+            flushCurrentBuffer_internal<ImmediateBuilder2D::Vertex2D, false>(state, buffer);
         }
 
         m_bufferCreator2D.clear();
 
         for (const auto& buffer : m_bufferCreator3D.buffers())
         {
-            flushCurrentBuffer_internal<ShapeBuilder3D::Vertex3D, true>(state, buffer);
+            flushCurrentBuffer_internal<ImmediateBuilder3D::Vertex3D, true>(state, buffer);
         }
 
         m_bufferCreator3D.clear();

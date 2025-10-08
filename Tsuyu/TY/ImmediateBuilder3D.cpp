@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
-#include "ShapeBuilder3D.h"
+#include "ImmediateBuilder3D.h"
 
 namespace TY
 {
-    namespace ShapeBuilder3D
+    namespace ImmediateBuilder3D
     {
         void Vertex3D::set(const Float3& pos_, const ColorF32& color_)
         {

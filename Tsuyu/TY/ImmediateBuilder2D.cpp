@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ShapeBuilder2D.h"
+#include "ImmediateBuilder2D.h"
 
 using namespace TY;
 
@@ -7,15 +7,15 @@ using namespace TY;
 
 namespace
 {
-    constexpr std::array<ShapeBuilder2D::index_type, 6> rectIndexTable = {0, 1, 2, 2, 1, 3}; // 1-2 対角線
+    constexpr std::array<ImmediateBuilder2D::index_type, 6> rectIndexTable = {0, 1, 2, 2, 1, 3}; // 1-2 対角線
 
-    constexpr std::array<ShapeBuilder2D::index_type, 6> rectIndexTable02 = {0, 1, 2, 2, 0, 3}; // 0-2 対角線
+    constexpr std::array<ImmediateBuilder2D::index_type, 6> rectIndexTable02 = {0, 1, 2, 2, 0, 3}; // 0-2 対角線
 
-    const std::array<ShapeBuilder2D::index_type, 6>& takeRectIndexTable(
-        const ShapeBuilder2D::Vertex2D& v0,
-        const ShapeBuilder2D::Vertex2D& v1,
-        const ShapeBuilder2D::Vertex2D& v2,
-        const ShapeBuilder2D::Vertex2D& v3)
+    const std::array<ImmediateBuilder2D::index_type, 6>& takeRectIndexTable(
+        const ImmediateBuilder2D::Vertex2D& v0,
+        const ImmediateBuilder2D::Vertex2D& v1,
+        const ImmediateBuilder2D::Vertex2D& v2,
+        const ImmediateBuilder2D::Vertex2D& v3)
     {
         const Float2 v01 = v1.pos - v0.pos;
         const Float2 v02 = v2.pos - v0.pos;
@@ -26,8 +26,8 @@ namespace
                    : rectIndexTable;
     }
 
-    const std::array<ShapeBuilder2D::index_type, 6>& takeRectIndexTable(
-        std::span<const ShapeBuilder2D::Vertex2D> vertexes)
+    const std::array<ImmediateBuilder2D::index_type, 6>& takeRectIndexTable(
+        std::span<const ImmediateBuilder2D::Vertex2D> vertexes)
     {
         assert(vertexes.size() == 4);
         return takeRectIndexTable(vertexes[0], vertexes[1], vertexes[2], vertexes[3]);
@@ -38,7 +38,7 @@ namespace
 
 namespace TY
 {
-    namespace ShapeBuilder2D
+    namespace ImmediateBuilder2D
     {
         void Vertex2D::set(const Float2& pos_, const ColorF32& color_)
         {

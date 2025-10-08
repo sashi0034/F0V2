@@ -6,7 +6,7 @@
 
 namespace TY
 {
-    namespace ShapeBuilder2D
+    namespace ImmediateBuilder2D
     {
         struct Vertex2D
         {

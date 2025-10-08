@@ -217,8 +217,8 @@
     <ClInclude Include="TY\Immediate2D.h" />
     <ClInclude Include="TY\Immediate3D.h" />
     <ClInclude Include="TY\ShapeBufferCreator.h" />
-    <ClInclude Include="TY\ShapeBuilder2D.h" />
-    <ClInclude Include="TY\ShapeBuilder3D.h" />
+    <ClInclude Include="TY\ImmediateBuilder2D.h" />
+    <ClInclude Include="TY\ImmediateBuilder3D.h" />
     <ClInclude Include="TY\ImmediateDrawer.h" />
     <ClInclude Include="TY\Stopwatch.h" />
     <ClInclude Include="TY\StructuredBuffer.h" />
@@ -365,8 +365,8 @@
     <ClCompile Include="TY\Immediate2D.cpp" />
     <ClCompile Include="TY\Immediate3D.cpp" />
     <ClCompile Include="TY\ShapeBufferCreator.cpp" />
-    <ClCompile Include="TY\ShapeBuilder2D.cpp" />
-    <ClCompile Include="TY\ShapeBuilder3D.cpp" />
+    <ClCompile Include="TY\ImmediateBuilder2D.cpp" />
+    <ClCompile Include="TY\ImmediateBuilder3D.cpp" />
     <ClCompile Include="TY\ImmediateDrawer.cpp" />
     <ClCompile Include="TY\Stopwatch.cpp" />
     <ClCompile Include="TY\StructuredBuffer.cpp" />

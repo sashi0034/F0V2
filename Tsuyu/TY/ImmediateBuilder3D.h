@@ -7,7 +7,7 @@
 
 namespace TY
 {
-    namespace ShapeBuilder3D
+    namespace ImmediateBuilder3D
     {
         struct Vertex3D
         {
