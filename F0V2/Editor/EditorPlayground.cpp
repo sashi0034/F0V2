@@ -9,7 +9,7 @@
 #include "GM/DebugService.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
-#include "TY/DynamicMipmappedTexture.h"
+#include "TY/MipmappedDynamicTexture.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
@@ -82,7 +82,7 @@ namespace
             }
         }
 
-        return DynamicMipmappedTexture{image.view()}.getResource();
+        return MipmappedDynamicTexture{image.view()}.getResource();
     }
 
     constexpr float groundPositionY = -50.0f;

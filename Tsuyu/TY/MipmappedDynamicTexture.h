@@ -4,12 +4,12 @@
 
 namespace TY
 {
-    class DynamicMipmappedTexture
+    class MipmappedDynamicTexture
     {
     public:
-        DynamicMipmappedTexture() = default;
+        MipmappedDynamicTexture() = default;
 
-        DynamicMipmappedTexture(const ImageView& image);
+        MipmappedDynamicTexture(const ImageView& image);
 
         TextureResource getResource() const;
 

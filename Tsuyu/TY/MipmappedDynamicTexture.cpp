@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "DynamicMipmappedTexture.h"
+#include "MipmappedDynamicTexture.h"
 
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
@@ -7,7 +7,7 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct DynamicMipmappedTexture::Impl
+struct MipmappedDynamicTexture::Impl
 {
     bool m_valid{};
 
@@ -184,7 +184,7 @@ struct DynamicMipmappedTexture::Impl
 
 namespace TY
 {
-    DynamicMipmappedTexture::DynamicMipmappedTexture(const ImageView& image)
+    MipmappedDynamicTexture::MipmappedDynamicTexture(const ImageView& image)
         : p_impl{std::make_shared<Impl>(image)}
     {
         if (not p_impl->m_valid)
@@ -193,7 +193,7 @@ namespace TY
         }
     }
 
-    TextureResource DynamicMipmappedTexture::getResource() const
+    TextureResource MipmappedDynamicTexture::getResource() const
     {
         return p_impl ? p_impl->m_textureResource : TextureResource{};
     }
