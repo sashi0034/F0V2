@@ -129,6 +129,8 @@ namespace TY
             void pushAuto();
         };
 
+        struct CachedText;
+
         struct Text
         {
             FontObject font;
@@ -148,6 +150,39 @@ namespace TY
 
             Text& setColor(const ColorF32& color_);
 
+            struct build_intermediate
+            {
+                Float2 posTL;
+                Float2 posBR;
+                Float2 uvTL;
+                Float2 uvBR;
+            };
+
+            RectF build(const std::function<void(build_intermediate)>& callback, Float2& offsetToApply) const;
+
+            CachedText cache() const;
+
+            void pushAuto();
+        };
+
+        struct CachedText
+        {
+            FontObject font;
+
+            ColorF32 color{ColorF32{1.0}};
+
+            struct character_type
+            {
+                Float2 posTL;
+                Float2 posBR;
+                Float2 uvTL;
+                Float2 uvBR;
+            };
+
+            Array<character_type> characters{};
+
+            RectF region{};
+
             void pushAuto();
         };
 
@@ -160,7 +195,8 @@ namespace TY
             SquareDotLine,
             Path,
             CyclePath,
-            Text
+            Text,
+            CachedText
         >;
     }
 }

@@ -31,12 +31,15 @@ namespace TY
 
         index_type BuildLine(BufferCreator& bufferCreator, const Immediate2D::Line& line);
 
-        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Immediate2D::SquareDotLine& line, float scale);
+        index_type BuildSquareDotLine(
+            BufferCreator& bufferCreator, const Immediate2D::SquareDotLine& line, float scale);
 
         index_type BuildPath(BufferCreator& bufferCreator, const Immediate2D::Path& path);
 
         index_type BuildCyclePath(BufferCreator& bufferCreator, const Immediate2D::CyclePath& cyclePath);
 
         index_type BuildText(BufferCreator& bufferCreator, const Immediate2D::Text& text);
+
+        index_type BuildCachedText(BufferCreator& bufferCreator, const Immediate2D::CachedText& text);
     }
 }

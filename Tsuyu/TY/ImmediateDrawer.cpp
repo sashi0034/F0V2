@@ -45,6 +45,23 @@ namespace
             }
         }
     };
+
+    PixelShader takeFontPS(const FontObject& font)
+    {
+        if (font.isBitmap())
+        {
+            return ImmediateDrawerComponent::Instance->m_ps2d.bitmapFont;
+        }
+        else if (font.isSdf())
+        {
+            return ImmediateDrawerComponent::Instance->m_ps2d.sdfFont;
+        }
+        else
+        {
+            assert(false);
+            return PixelShader{};
+        }
+    }
 }
 
 struct ImmediateDrawer::Impl : RenderEvent::Lister
@@ -116,7 +133,8 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         {
             m_stateManager.RequestPixelShader(component->m_ps2d.squareDot);
             commitPendingState();
-            ImmediateBuilder2D::BuildSquareDotLine(m_bufferCreator2D, shape.get<Immediate2D::SquareDotLine>(), maxScaling);
+            ImmediateBuilder2D::BuildSquareDotLine(m_bufferCreator2D, shape.get<Immediate2D::SquareDotLine>(),
+                                                   maxScaling);
         }
         else if (shape.isHolds<Immediate2D::Path>())
         {
@@ -132,22 +150,15 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         }
         else if (shape.isHolds<Immediate2D::Text>())
         {
-            auto& font = shape.get<Immediate2D::Text>().font;
-            if (font.isBitmap())
-            {
-                m_stateManager.RequestPixelShader(component->m_ps2d.bitmapFont);
-            }
-            else if (font.isSdf())
-            {
-                m_stateManager.RequestPixelShader(component->m_ps2d.sdfFont);
-            }
-            else
-            {
-                assert(false);
-            }
-
+            m_stateManager.RequestPixelShader(takeFontPS(shape.get<Immediate2D::Text>().font));
             commitPendingState();
             ImmediateBuilder2D::BuildText(m_bufferCreator2D, shape.get<Immediate2D::Text>());
+        }
+        else if (shape.isHolds<Immediate2D::CachedText>())
+        {
+            m_stateManager.RequestPixelShader(takeFontPS(shape.get<Immediate2D::CachedText>().font));
+            commitPendingState();
+            ImmediateBuilder2D::BuildCachedText(m_bufferCreator2D, shape.get<Immediate2D::CachedText>());
         }
         else
         {

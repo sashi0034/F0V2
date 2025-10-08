@@ -198,7 +198,81 @@ namespace TY
         return *this;
     }
 
+    RectF Immediate2D::Text::build(
+        const std::function<void(build_intermediate)>& callback, Float2& offsetToApply) const
+    {
+        const float textScaling = size.has_value() ? *size / font.fontSize() : 1.0f;
+
+        const Size atlasSize = font.atlasTexture().size();
+
+        Float2 penPos{position};
+        Float2 regionTL{};
+        Float2 regionBR{};
+        const int characterCount = text.size();
+        for (int i = 0; i < characterCount; ++i)
+        {
+            const auto& c = text[i];
+
+            const auto& glyph = font.fetchByCodePoint(c);
+
+            const Float2 posTL = penPos + (glyph.baselineOffset() + Point{0, font.fontSize()}) * textScaling;
+            const Float2 posBR = posTL + glyph.size() * textScaling;
+
+            const Float2 uvTL = glyph.topLeftInAtlas.cast<Float2>() / atlasSize;
+            const Float2 uvBR = uvTL + glyph.size().cast<Float2>() / atlasSize;
+
+            penPos.x += glyph.xAdvance * textScaling;
+
+            if (i == 0)
+            {
+                regionTL = posTL - position;
+            }
+
+            if (i == characterCount - 1)
+            {
+                regionBR = posBR - position;
+            }
+
+            callback({posTL, posBR, uvTL, uvBR});
+        }
+
+        const SizeF regionSize = regionBR - regionTL;
+        offsetToApply = -regionTL - regionSize * pivot;
+
+        return RectF{regionTL + offsetToApply, regionSize};
+    }
+
+    Immediate2D::CachedText Immediate2D::Text::cache() const
+    {
+        CachedText cachedText{};
+
+        cachedText.font = font;
+        cachedText.color = color;
+
+        Float2 offsetToApply{};
+        build([&cachedText](const Text::build_intermediate& intermediate)
+              {
+                  cachedText.characters.push_back({
+                      intermediate.posTL, intermediate.posBR, intermediate.uvTL, intermediate.uvBR
+                  });
+              },
+              offsetToApply);
+
+        for (auto& c : cachedText.characters)
+        {
+            c.posBR += offsetToApply;
+            c.posTL += offsetToApply;
+        }
+
+        return cachedText;
+    }
+
     void Immediate2D::Text::pushAuto()
+    {
+        (void)activeImmediateDrawer().push(*this);
+    }
+
+    void Immediate2D::CachedText::pushAuto()
     {
         (void)activeImmediateDrawer().push(*this);
     }

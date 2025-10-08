@@ -31,6 +31,7 @@ namespace
                     Immediate2D_Text::MPlus1_16_Bitmap(texts[y])
                         .setPosition(Scene::RectF().getRelativePoint(align) + Float2{0, y * 20.0f}, align)
                         .setColor(ColorF32{1.0f})
+                        .cache()
                         .pushAuto();
                 }
             }

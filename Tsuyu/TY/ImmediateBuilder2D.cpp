@@ -327,7 +327,8 @@ namespace TY
             return indexSize;
         }
 
-        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Immediate2D::SquareDotLine& dotLine, float scale)
+        index_type BuildSquareDotLine(BufferCreator& bufferCreator, const Immediate2D::SquareDotLine& dotLine,
+                                      float scale)
         {
             const auto& line = dotLine.line;
             if (line.thickness <= 0.0f)
@@ -629,59 +630,71 @@ namespace TY
             const auto& vertices = buffer.vertices;
             const auto& indices = buffer.indices;
 
-            const float textScaling = text.size.has_value() ? *text.size / text.font.fontSize() : 1.0f;
+            int vertexOffset{};
+            Float2 offsetToApply{};
+            text.build(
+                [&](const Immediate2D::Text::build_intermediate& next)
+                {
+                    vertices[vertexOffset + 0].set(
+                        next.posTL, next.uvTL, text.color);
+                    vertices[vertexOffset + 1].set(
+                        {next.posBR.x, next.posTL.y}, {next.uvBR.x, next.uvTL.y}, text.color);
+                    vertices[vertexOffset + 2].set(
+                        {next.posTL.x, next.posBR.y}, {next.uvTL.x, next.uvBR.y}, text.color);
+                    vertices[vertexOffset + 3].set(
+                        next.posBR, next.uvBR, text.color);
+                    vertexOffset += 4;
+                },
+                offsetToApply);
 
-            const Size atlasSize = text.font.atlasTexture().size();
-
-            Float2 penPos{text.position};
-            Float2 regionTL{};
-            Float2 regionBR{};
             for (int i = 0; i < characterCount; ++i)
             {
-                const auto& c = text.text[i];
-
-                const auto& glyph = text.font.fetchByCodePoint(c);
-
-                const Float2 posTL = penPos + (glyph.baselineOffset() + Point{0, text.font.fontSize()}) * textScaling;
-                const Float2 posBR = posTL + glyph.size() * textScaling;
-
-                const Float2 uvTL = glyph.topLeftInAtlas.cast<Float2>() / atlasSize;
-                const Float2 uvBR = uvTL + glyph.size().cast<Float2>() / atlasSize;
-
-                // -----------------------------------------------
-
-                vertices[i * 4 + 0].set(posTL, uvTL, text.color);
-                vertices[i * 4 + 1].set({posBR.x, posTL.y}, {uvBR.x, uvTL.y}, text.color);
-                vertices[i * 4 + 2].set({posTL.x, posBR.y}, {uvTL.x, uvBR.y}, text.color);
-                vertices[i * 4 + 3].set(posBR, uvBR, text.color);
-
-                for (int j = 0; j < rectIndexTable.size(); ++j)
+                for (int j = 0; j < 6; ++j)
                 {
                     indices[i * 6 + j] = buffer.indexOffset + i * 4 + rectIndexTable[j];
-                }
-
-                // -----------------------------------------------
-
-                penPos.x += glyph.xAdvance * textScaling;
-
-                if (i == 0)
-                {
-                    regionTL = posTL - text.position;
-                }
-
-                if (i == characterCount - 1)
-                {
-                    regionBR = posBR - text.position;
                 }
             }
 
             if (not text.pivot.isZero())
             {
-                const SizeF regionSize = regionBR - regionTL;
-                const Float2 regionOffset = -regionTL - regionSize * text.pivot;
-                for (int i = 0; i < vertices.size(); ++i)
+                for (auto& c : buffer.vertices)
                 {
-                    vertices[i].pos += regionOffset;
+                    c.pos += offsetToApply;
+                }
+            }
+
+            return indexSize;
+        }
+
+        index_type BuildCachedText(BufferCreator& bufferCreator, const Immediate2D::CachedText& text)
+        {
+            const int characterCount = text.characters.size();
+
+            const int indexSize = characterCount * 6;
+            const auto buffer = bufferCreator.request(characterCount * 4, indexSize);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            const auto& vertices = buffer.vertices;
+            const auto& indices = buffer.indices;
+
+            for (int i = 0; i < characterCount; ++i)
+            {
+                vertices[i * 4 + 0].set(text.characters[i].posTL, text.characters[i].uvTL, text.color);
+                vertices[i * 4 + 1].set({text.characters[i].posBR.x, text.characters[i].posTL.y},
+                                        {text.characters[i].uvBR.x, text.characters[i].uvTL.y}, text.color);
+                vertices[i * 4 + 2].set({text.characters[i].posTL.x, text.characters[i].posBR.y},
+                                        {text.characters[i].uvTL.x, text.characters[i].uvBR.y}, text.color);
+                vertices[i * 4 + 3].set(text.characters[i].posBR, text.characters[i].uvBR, text.color);
+            }
+
+            for (int i = 0; i < characterCount; ++i)
+            {
+                for (int j = 0; j < 6; ++j)
+                {
+                    indices[i * 6 + j] = buffer.indexOffset + i * 4 + rectIndexTable[j];
                 }
             }
 
