@@ -378,8 +378,9 @@ private:
 
         if (ImGui::Button("Add Node"))
         {
+            auto firstElement = nodeList.empty() ? CourseNode{} : nodeList.front();
             auto lastElement = nodeList.empty() ? CourseNode{} : nodeList.back();
-            lastElement.pos.z += 1.0f;
+            lastElement.pos = (lastElement.pos + firstElement.pos) * 0.5f;
             nodeList.push_back(lastElement);
         }
 
@@ -390,7 +391,8 @@ private:
             if (InRange(m_activeNodeIndex, 0, static_cast<int>(nodeList.size() - 1)))
             {
                 auto element = nodeList[m_activeNodeIndex];
-                element.pos.z += 1.0f;
+                auto forwardElement = nodeList[Modulo<int>(m_activeNodeIndex + 1, nodeList.size())];
+                element.pos = (element.pos + forwardElement.pos) * 0.5f;
                 nodeList.insert(nodeList.begin() + m_activeNodeIndex + 1, element);
                 m_activeNodeIndex += 1;
             }

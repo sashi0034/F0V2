@@ -143,9 +143,12 @@ struct EditorPlayground::Impl : ActorBase
     {
         m_children.updateEach();
 
+        static float s_cameraSpeed = 3.0f;
+
         if (not ImGui::IsAnyItemActive())
         {
-            const Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);
+            Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);
+            moveVector *= s_cameraSpeed;
 
             const Float2 rotateVector = Mouse::Drag(MouseM) * Float2{1, -1} * 5.0f;
             m_camera.transform(System::DeltaTime(), moveVector, rotateVector);
@@ -183,6 +186,21 @@ struct EditorPlayground::Impl : ActorBase
                     .draw();
             }
         }
+
+        // -----------------------------------------------
+
+        {
+            ImGui::Begin("Editor");
+
+            if (ImGui::Button("Reset Camera"))
+            {
+                ResetCamera();
+            }
+
+            ImGui::SliderFloat("Camera Speed", &s_cameraSpeed, 1.0f, 10.0f);
+
+            ImGui::End();
+        }
     }
 
     void draw() const override
@@ -206,11 +224,6 @@ namespace Editor
     void EditorPlayground::init()
     {
         p_impl->init();
-    }
-
-    void EditorPlayground::resetCamera()
-    {
-        p_impl->ResetCamera();
     }
 
     std::shared_ptr<ActorBase> EditorPlayground::asActor() const

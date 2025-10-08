@@ -104,19 +104,6 @@ struct EditorScene::Impl : ActorBase
         m_children.updateEach();
 
         // hierarchWindow(GlobalGameObjectHierarchy().list());
-
-        // -----------------------------------------------
-
-        {
-            ImGui::Begin("Editor");
-
-            if (ImGui::Button("Reset Camera"))
-            {
-                m_debugPlayground.resetCamera();
-            }
-
-            ImGui::End();
-        }
     }
 
     void draw() const override
