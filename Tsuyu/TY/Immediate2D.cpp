@@ -227,11 +227,12 @@ namespace TY
             {
                 regionTL = posTL;
             }
-
-            if (i == characterCount - 1)
+            else
             {
-                regionBR = posBR;
+                regionTL.y = Min(regionTL.y, posTL.y);
             }
+
+            regionBR = MaxVector2(regionBR, posBR);
 
             callback({posTL, posBR, uvTL, uvBR});
         }
