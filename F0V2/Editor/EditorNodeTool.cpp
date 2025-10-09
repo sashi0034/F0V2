@@ -243,7 +243,7 @@ private:
             auto& segment = m_segments[i];
             segment.midwayStrips.clear();
 
-            const int samplesPerSegment = (segment.p2 - segment.p1).length() / 1.0f;
+            const int samplesPerSegment = (segment.p2 - segment.p1).length() / 5.0f;
             const auto midwayPositions = GenerateCatmullRomPoints(
                 segment.side_p0, segment.p1, segment.p2, segment.side_p3, samplesPerSegment);
             const auto midwayRolls = GenerateCatmullRomAngles(

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Array.h"
+#include "IndexedTriangle.h"
 #include "PrimitiveTypes3D.h"
 #include "Variant.h"
 
@@ -10,7 +11,7 @@ namespace TY
     public:
         TriangleBvh() = default;
 
-        TriangleBvh(const Array<Triangle3D>& tris);
+        TriangleBvh(const Array<IndexedTriangle>& tris);
 
         struct Node;
 
@@ -26,9 +27,9 @@ namespace TY
         struct Leaf
         {
             Aabb3D aabb{};
-            Array<Triangle3D> tris{};
+            Array<IndexedTriangle> tris{};
 
-            explicit Leaf(const Aabb3D& aabb, const Array<Triangle3D>& tris);
+            explicit Leaf(const Aabb3D& aabb, const Array<IndexedTriangle>& tris);
         };
 
         struct Node : Variant<Branch, Leaf>
@@ -41,21 +42,21 @@ namespace TY
 
             Aabb3D aabb() const;
 
-            void forEachTriangle(const std::function<void(const Triangle3D&)>& func) const;
+            void forEachTriangle(const std::function<void(const IndexedTriangle&)>& func) const;
         };
 
         struct NodeList
         {
             Array<Node> list{};
 
-            void forEachTriangle(const std::function<void(const Triangle3D&)>& func) const;
+            void forEachTriangle(const std::function<void(const IndexedTriangle&)>& func) const;
         };
 
         const std::unique_ptr<Node>& root() const;
 
         NodeList queryHits(const Aabb3D& aabb) const;
 
-        std::optional<Triangle3D> sphereCast(const Capsule& capsule) const;
+        std::optional<IndexedTriangle> sphereCast(const Capsule& capsule) const;
 
     private:
         class Internal;

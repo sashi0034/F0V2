@@ -260,6 +260,7 @@
     <ClInclude Include="Race\Common\CourseBuilder.h" />
     <ClInclude Include="Race\Common\CourseConstants.h" />
     <ClInclude Include="Race\Common\CourseData.h" />
+    <ClInclude Include="Race\Common\CourseTriangleAttribute.h" />
     <ClInclude Include="Race\Common\RaceSharedState.h" />
     <ClInclude Include="Race\IRaceContext.h" />
     <ClInclude Include="Race\Machine\MachinePhysics.h" />
