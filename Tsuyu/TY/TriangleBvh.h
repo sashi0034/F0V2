@@ -56,6 +56,8 @@ namespace TY
 
         NodeList queryHits(const Aabb3D& aabb) const;
 
+        std::optional<IndexedTriangle> rayCast(const LineSegment3D& segment) const;
+
         std::optional<IndexedTriangle> sphereCast(const Capsule& capsule) const;
 
     private:

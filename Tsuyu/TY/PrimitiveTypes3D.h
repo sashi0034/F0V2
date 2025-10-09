@@ -61,6 +61,14 @@ namespace TY
 
         [[nodiscard]]
         Plane3Points asPlane3Points() const;
+
+        struct barycentric_type
+        {
+            float w0, w1, w2;
+        };
+
+        [[nodiscard]]
+        barycentric_type getBarycentric(const Float3& p) const;
     };
 
     struct Quad3D

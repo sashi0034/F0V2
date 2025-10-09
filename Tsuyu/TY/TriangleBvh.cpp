@@ -83,6 +83,44 @@ public:
         QueryHits(*branch->left.get(), aabb, hits);
         QueryHits(*branch->right.get(), aabb, hits);
     }
+
+    template <typename T>
+    // using T = LineSegment3D; // for debug
+    static std::optional<IndexedTriangle> RayCast(const TriangleBvh& bvh, const T& ray)
+    {
+        Array<IndexedTriangle> candidates{};
+        candidates.reserve(64);
+        const auto hits = bvh.queryHits(ray.aabb());
+        for (const auto& node : hits.list)
+        {
+            node.forEachTriangle([&](const IndexedTriangle& tri)
+            {
+                candidates.push_back(tri);
+            });
+        }
+
+        const Float3 startPoint = ray.p0;
+
+        float bestDistSq = std::numeric_limits<float>::max();
+        std::optional<IndexedTriangle> bestTri{};
+        for (const auto& tri : candidates)
+        {
+            const float distSq = (tri.centroid() - startPoint).lengthSq();
+            if (distSq >= bestDistSq)
+            {
+                // これ以上は遠い
+                continue;
+            }
+
+            if (Intersects(ray, tri))
+            {
+                bestTri = tri;
+                bestDistSq = distSq;
+            }
+        }
+
+        return bestTri;
+    }
 };
 
 namespace TY
@@ -161,6 +199,16 @@ namespace TY
         return result;
     }
 
+    std::optional<IndexedTriangle> TriangleBvh::rayCast(const LineSegment3D& segment) const
+    {
+        if (not m_root)
+        {
+            return std::nullopt;
+        }
+
+        return Internal::RayCast(*this, segment);
+    }
+
     std::optional<IndexedTriangle> TriangleBvh::sphereCast(const Capsule& capsule) const
     {
         if (not m_root)
@@ -168,37 +216,6 @@ namespace TY
             return std::nullopt;
         }
 
-        Array<IndexedTriangle> candidates{};
-        candidates.reserve(64);
-        const auto hits = queryHits(capsule.aabb());
-        for (const auto& node : hits.list)
-        {
-            node.forEachTriangle([&](const IndexedTriangle& tri)
-            {
-                candidates.push_back(tri);
-            });
-        }
-
-        const Float3 startPoint = capsule.p0;
-
-        float bestDistSq = std::numeric_limits<float>::max();
-        std::optional<IndexedTriangle> bestTri{};
-        for (const auto& tri : candidates)
-        {
-            const float distSq = (tri.centroid() - startPoint).lengthSq();
-            if (distSq >= bestDistSq)
-            {
-                // これ以上は遠い
-                continue;
-            }
-
-            if (Intersects(capsule, tri))
-            {
-                bestTri = tri;
-                bestDistSq = distSq;
-            }
-        }
-
-        return bestTri;
+        return Internal::RayCast(*this, capsule);
     }
 }
