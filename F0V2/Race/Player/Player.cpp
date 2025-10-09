@@ -69,7 +69,7 @@ private:
 
         for (const float dt : StandardStep_60Hz())
         {
-            m_cameraUp = m_cameraUp.slerp(-m_physicsState.m_gravity, dt);
+            m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, dt);
         }
 
 #ifdef _DEBUG

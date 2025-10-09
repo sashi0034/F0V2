@@ -54,18 +54,24 @@ namespace
 
             if (outCollider)
             {
+                const std::array normals{s0.normal, s0.normal, s1.normal, s1.normal};
+
                 outCollider->tris.push_back(IndexedTriangle{
                     s1.leftmost, s0.leftmost, s1.rightmost, outCollider->attributes.size()
                 });
                 outCollider->attributes.push_back(CourseTriangleAttribute{
-                    s1.normal, s0.normal, s1.normal
+                    CourseTriangleAttribute::Triangle_01_00_11,
+                    normals,
+                    s0.rightmost
                 });
 
                 outCollider->tris.push_back(IndexedTriangle{
                     s1.rightmost, s0.leftmost, s0.rightmost, outCollider->attributes.size()
                 });
                 outCollider->attributes.push_back(CourseTriangleAttribute{
-                    s1.normal, s0.normal, s0.normal
+                    CourseTriangleAttribute::Triangle_11_00_10,
+                    normals,
+                    s1.leftmost
                 });
             }
         }
@@ -128,15 +134,21 @@ namespace
 
                 if (outCollider)
                 {
+                    const std::array normals{-n0s[s], -n0s[s], -n1s[s], -n1s[s]};
+
                     outCollider->tris.push_back(IndexedTriangle{l1, l0, r1, outCollider->attributes.size()});
-                    outCollider->attributes.push_back(
-                        CourseTriangleAttribute{-n1s[s], -n0s[s], -n1s[s]}
-                    );
+                    outCollider->attributes.push_back(CourseTriangleAttribute{
+                        CourseTriangleAttribute::Triangle_01_00_11,
+                        normals,
+                        r0
+                    });
 
                     outCollider->tris.push_back(IndexedTriangle{r1, l0, r0, outCollider->attributes.size()});
-                    outCollider->attributes.push_back(
-                        CourseTriangleAttribute{-n1s[s], -n0s[s], -n1s[s1]}
-                    );
+                    outCollider->attributes.push_back(CourseTriangleAttribute{
+                        CourseTriangleAttribute::Triangle_11_00_10,
+                        normals,
+                        l1
+                    });
                 }
             }
 

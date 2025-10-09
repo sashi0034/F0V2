@@ -18,10 +18,24 @@ namespace
     struct HitTri
     {
         float moveDistance;
-        Triangle3D tri;
-        Plane3D plane;
+        IndexedTriangle tri;
+        Float3 normal;
         // Float3 intersection;
         // Float3 foot;
+
+        void debugDraw() const
+        {
+            const auto triCenter = tri.centroid();
+            Immediate3D::Line{
+                    triCenter,
+                    triCenter + normal * 10
+                }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f})
+                 .pushAuto();
+            Immediate3D::LineSet{}
+                .appendTriangle(tri.movedBy(tri.getNormal() * 0.1f))
+                .setColor(ColorF32{1.0f, 1.0f, 0.5f})
+                .pushAuto();
+        }
     };
 
     struct MoveResult
@@ -30,7 +44,109 @@ namespace
         std::optional<HitTri> tri{};
     };
 
+    Float3 bilinear_00_10_01_11(const std::array<Float3, 4>& v, const Float2& uv)
+    {
+        return v[0] * (1 - uv.x) * (1 - uv.y) +
+            v[1] * uv.x * (1 - uv.y) +
+            v[2] * (1 - uv.x) * uv.y +
+            v[3] * uv.x * uv.y;
+    }
+
     MoveResult tryMoveCapsulePosition(const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos)
+    {
+        if (fromPos == toPos)
+        {
+            return {toPos, std::nullopt};
+        }
+
+        // const auto moveTestCapsule = Capsule{fromPos, toPos, state.m_radius}; // FIXME?
+        const auto moveTestRay = LineSegment3D{fromPos, toPos};
+
+        const auto hit = GetRaceContext().stageManager().staticBvh().rayCast(moveTestRay);
+        if (not hit.has_value())
+        {
+            // 衝突なし
+            return {toPos, std::nullopt};
+        }
+
+        // -----------------------------------------------
+        // 衝突あり
+
+        //         +   T
+        //         +  /|
+        //         + / |
+        //         +/  |
+        // U <-- I +   |    <-- normal
+        //        /+   |
+        //       / +   |
+        //      /  +   |
+        //     /---+---|
+        //     S   H    
+
+        const Float3 S = fromPos;
+        const Float3 T = toPos;
+
+        // const Float3 H = S - plane.normal * distance;
+
+        Float3 I;
+        if (const auto I_ = IntersectsAt(moveTestRay, hit->asPlane()))
+        {
+            I = *I_;
+        }
+        else
+        {
+            // 移動ベクトルが面を貫通していない場合
+            const auto plane = hit->asPlane();
+            I = plane.projection(T);
+        }
+
+        const auto& a = GetRaceContext().stageManager().fetchTriangleAttribute(hit->id);
+        const auto bc = hit->getBarycentric(I);
+
+        Float2 normalUV{};
+        std::array<Float3, 4> p_00_10_01_11;
+        if (a.pattern == CourseTriangleAttribute::Triangle_01_00_11)
+        {
+            normalUV = Float2{0, 1} * bc.w0 + Float2{0, 0} * bc.w1 + Float2{1, 1} * bc.w2;
+            p_00_10_01_11 = {
+                hit->p1,
+                a.p3,
+                hit->p0,
+                hit->p2
+            };
+        }
+        else // Triangle_11_00_10
+        {
+            normalUV = Float2{1, 1} * bc.w0 + Float2{0, 0} * bc.w1 + Float2{1, 0} * bc.w2;
+            p_00_10_01_11 = {
+                hit->p1,
+                hit->p2,
+                a.p3,
+                hit->p0
+            };
+        }
+
+        Float3 normal = bilinear_00_10_01_11(a.normals_00_10_01_11, normalUV).normalized();
+        if (normal.isZero())
+        {
+            normal = hit->asPlane().normal;
+        }
+
+        const Float3 bilinearI = bilinear_00_10_01_11(p_00_10_01_11, normalUV);
+
+        const float r = state.m_radius + epsGround;
+
+        const Float3 U = bilinearI + normal * (r + 1.0f); // TODO
+
+        HitTri hitTri{};
+        hitTri.tri = *hit;
+        hitTri.moveDistance = (U - S).length();
+        hitTri.normal = normal;
+        return {U, hitTri};
+    }
+
+#if 0
+    MoveResult tryMoveCapsulePosition_old(const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos)
     {
         if (fromPos == toPos)
         {
@@ -93,7 +209,7 @@ namespace
             HitTri hitTri{};
             hitTri.moveDistance = (T - S).length();
             hitTri.tri = *hit;
-            hitTri.plane = plane;
+            // hitTri.plane = plane;
             return {T, hitTri};
         }
         else
@@ -110,15 +226,18 @@ namespace
             HitTri hitTri{};
             hitTri.moveDistance = lengthST;
             hitTri.tri = *hit;
-            hitTri.plane = plane;
+            // hitTri.plane = plane;
             return {T, hitTri};
         }
     }
+#endif
 
     void updateCapsulePosition(
         MachinePhysicsState& state,
         const MachinePhysicsProps& props,
-        const Float3& fromPos, const Float3& moveVector, int nest = 0)
+        const Float3& fromPos,
+        const Float3& moveVector,
+        int nest = 0)
     {
         if (moveVector.lengthSq() < 1e-6f)
         {
@@ -126,7 +245,7 @@ namespace
         }
 
         const auto toPos = fromPos + moveVector;
-        const auto [newPos, hitTris] = tryMoveCapsulePosition(state, fromPos, toPos);
+        const auto [newPos, hitOpt] = tryMoveCapsulePosition(state, fromPos, toPos);
 
         state.m_pose.position = newPos;
 
@@ -135,29 +254,21 @@ namespace
             return;
         }
 
-        if (hitTris.has_value())
+        if (hitOpt.has_value())
         {
-            const auto& tri = *hitTris;
-            const auto triCenter = tri.tri.centroid();
+            const auto& hit = *hitOpt;
 
             if (props.debug.drawHitTris)
             {
-                Immediate3D::Line{
-                        triCenter,
-                        triCenter + tri.plane.normal * 10
-                    }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f})
-                     .pushAuto();
-                Immediate3D::LineSet{}
-                    .appendTriangle(tri.tri.movedBy(tri.plane.normal * 0.1f))
-                    .setColor(ColorF32{1.0f, 1.0f, 0.5f})
-                    .pushAuto();
+                hit.debugDraw();
             }
 
-            // 面の法線を採用
-            const Float3 n = tri.plane.normal;
+            // 法線の適応
+            const Float3 n = hit.normal;
+            state.m_surfaceNormal = n;
 
             // 法線方向速度の除去
-            state.m_velocity = state.m_velocity - n * state.m_velocity.dot(n);
+            state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
 
             // 法線方向移動ベクトルの補正
             const Float3 r = toPos - state.m_pose.position;
@@ -168,7 +279,7 @@ namespace
             }
 
             // 移動ベクトルの長さを残りの移動量に調節する
-            newMoveVector = newMoveVector.normalized() * Max(0.0f, moveVector.length() - hitTris->moveDistance);
+            newMoveVector = newMoveVector.normalized() * Max(0.0f, moveVector.length() - hitOpt->moveDistance);
 
             if (nest < 3)
             {
@@ -181,35 +292,38 @@ namespace
 
     void updateGroundedness(MachinePhysicsState& state)
     {
-        // Float3 vector = state.m_velocity.normalized() * (state.m_radius + 0.1f);
-        // if (vector.isZero())
-        Float3 vector = -state.m_upVector * (state.m_radius + epsGround);
+        const float r = state.m_radius + epsGround;
 
-        const auto testCapsule = Capsule{state.m_pose.position, state.m_pose.position + vector, state.m_radius};
-        const auto hit = GetRaceContext().stageManager().staticBvh().sphereCast(testCapsule);
-        if (hit.has_value())
+        state.m_upVector = state.m_surfaceNormal;
+        if (state.m_upVector.isZero())
         {
-            state.m_surfaceNormal = hit->getNormal();
-            state.m_groundedness = state.m_surfaceNormal.dot(state.m_upVector);
+            state.m_upVector = -state.m_gravity;
+        }
 
-            const auto plane = hit->asPlane();
+        Float3 vector = -state.m_upVector * (r + 2.0f); // TODO
 
-            const Float3 S = state.m_pose.position;
+        const Float3 fromPos = state.m_pose.position;
+        const Float3 toPos = state.m_pose.position + vector;
 
-            const float signedDistanceHS = plane.signedDistanceFrom(S);
+        const auto [newPos, hitOpt] = tryMoveCapsulePosition(state, fromPos, toPos);
+        if (hitOpt.has_value())
+        {
+            Immediate3D::Line{fromPos - vector * 10, toPos}.setColor(ColorF32{1.0f, 1, 0}).pushAuto();
 
-            const float r = state.m_radius + epsGround;
-            if (Abs(signedDistanceHS) < r)
-            {
-                // めり込んだ場合の位置の調整
-                const float signedDistanceGS = signedDistanceHS - r;
-                state.m_pose.position = S - plane.normal * signedDistanceGS;
-            }
+            const auto& hit = *hitOpt;
+
+            hit.debugDraw();
+
+            state.m_pose.position = newPos;
+
+            const Float3 n = hit.normal;
+            state.m_surfaceNormal = n;
+
+            state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
         }
         else
         {
             state.m_surfaceNormal = {};
-            state.m_groundedness = 0.0f;
         }
 
         // std::cout << "groundedness: " << state.m_groundedness << std::endl;
@@ -266,8 +380,10 @@ namespace
         }
     }
 
-    Float3 calculateGravity(const Float3& position)
+    Float3 calculateGravity(const MachinePhysicsState& state)
     {
+        const Float3& position = state.m_pose.position;
+
         const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
 
         const int nearestSegmentId = findNearestSegmentIndex(courseSegments, position);
@@ -276,9 +392,24 @@ namespace
         const int nearestStripId = findNearestStripIndex(nearestSegment, position);
         const auto& nearestStrip = nearestSegment.midwayStrips[nearestStripId];
 
-        if (nearestSegment.style == CourseSegmentStyle::Tunnel &&
-            not nearestStrip.tunnel.ringVectors[0].isZero()) // FIXME
+        if (nearestSegment.style == CourseSegmentStyle::Road)
         {
+            Float3 n = state.m_surfaceNormal; // TODO: m_surfaceNormal を使わずに計算する (絶対) 
+            if (n.isZero())
+            {
+                n = nearestStrip.normal;
+            }
+
+            return -n;
+        }
+        else if (nearestSegment.style == CourseSegmentStyle::Tunnel)
+        {
+            if (nearestStrip.tunnel.ringVectors[0].isZero())
+            {
+                // FIXME
+                return -nearestStrip.normal;
+            }
+
             // トンネル内の重力
 
             // 連続的に計算
@@ -311,7 +442,8 @@ namespace
             // return (ringPoints[minIndex] - nearestStrip.center).normalized();
         }
 
-        return -nearestStrip.normal;
+        assert(false);
+        return {};
     }
 }
 
@@ -321,8 +453,9 @@ namespace Race
     {
         const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
 
-        const float airness = 1.0f - state.m_groundedness;
-        state.m_velocity += state.m_gravity * airness * 50.0f * InGameDeltaTime();
+        // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);
+        Float3 gravity = state.m_gravity; // TODO: 地面方向の成分を除去
+        state.m_velocity += gravity * 50.0f * InGameDeltaTime();
 
         if (props.hasAccelInput)
         {
@@ -339,16 +472,16 @@ namespace Race
         {
             Float3 moveVector = state.m_velocity * InGameDeltaTime();
 
-            moveVector += -state.m_upVector * airness * 10.0f * InGameDeltaTime(); // 常に微小量の力で地面方向に押し付ける
+            // moveVector += -state.m_upVector * gravity * 10.0f * InGameDeltaTime(); // 常に微小量の力で地面方向に押し付ける
 
             updateCapsulePosition(state, props, state.m_pose.position, moveVector);
         }
 
-        ImmediatePrint(std::format("groundedness: {:.2f}", state.m_groundedness), Alignment9::BottomCenter);
+        // ImmediatePrint(std::format("groundedness: {:.2f}", state.m_groundedness), Alignment9::BottomCenter);
 
         // 現在位置における重力方向を計算
         {
-            state.m_gravity = calculateGravity(state.m_pose.position);
+            state.m_gravity = calculateGravity(state);
 
 #if 0
             state.m_gravity = Float3(0, -1, 0);
@@ -359,12 +492,12 @@ namespace Race
                 Immediate3D::Line{
                         state.m_pose.position,
                         state.m_pose.position - state.m_gravity * 10
-                    }.setColor(ColorF32{1.0f, 0.0f, 0.5f}, ColorF32{0.5f, 0, 0.5f})
+                    }.setColor(ColorF32{0.3f, 0.0f, 0.3f}, ColorF32{0.1f, 0, 0.1f})
                      .pushAuto();
             }
         }
 
-        state.m_upVector = -state.m_gravity;
+        // state.m_upVector = -state.m_gravity;
 
         // for (const auto dt : StandardStep_60Hz())
         // {
@@ -384,6 +517,19 @@ namespace Race
             // 例外処理
             targetRotation = Quaternion(-v010, state.m_yaw);
         }
+
+        ImmediatePrint(
+            std::format("Pos: {:.02f}, {:.02f}, {:.02f}", state.m_pose.position.x, state.m_pose.position.y,
+                        state.m_pose.position.z), Alignment9::MiddleCenter);
+
+        ImmediatePrint(
+            std::format("Up: {:.02f}, {:.02f}, {:.02f}", state.m_upVector.x, state.m_upVector.y, state.m_upVector.z),
+            Alignment9::MiddleCenter);
+
+        ImmediatePrint(
+            std::format("Gravity: {:.02f}, {:.02f}, {:.02f}", state.m_gravity.x, state.m_gravity.y, state.m_gravity.z),
+            Alignment9::MiddleCenter
+        );
 
         // 滑らかに回転
         for (const auto dt : StandardStep_60Hz())
