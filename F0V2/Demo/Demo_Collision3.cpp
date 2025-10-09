@@ -163,7 +163,7 @@ namespace
         Pose m_pose{};
         ModelDrawer m_drawer;
 
-        Array<Triangle3D> m_polygons{};
+        Array<IndexedTriangle> m_polygons{};
 
         TriangleBvh m_bvh{};
 
@@ -185,7 +185,7 @@ namespace
                     const auto& v0 = shape.vertexBuffer[shape.indexBuffer[j + 0]].position;
                     const auto& v1 = shape.vertexBuffer[shape.indexBuffer[j + 1]].position;
                     const auto& v2 = shape.vertexBuffer[shape.indexBuffer[j + 2]].position;
-                    m_polygons.push_back(Triangle3D{v0, v1, v2});
+                    m_polygons.push_back(IndexedTriangle{v0, v1, v2, 0});
                 }
             }
 

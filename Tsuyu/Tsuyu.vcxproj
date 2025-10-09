@@ -169,6 +169,7 @@
     <ClInclude Include="TY\BasicCamera3D.h" />
     <ClInclude Include="TY\BitmapFont.h" />
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
+    <ClInclude Include="TY\IndexedTriangle.h" />
     <ClInclude Include="TY\MipmappedDynamicTexture.h" />
     <ClInclude Include="TY\IGpuMemoryUsage.h" />
     <ClInclude Include="TY\Periodic.h" />

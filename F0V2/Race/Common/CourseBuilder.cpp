@@ -9,7 +9,7 @@ using namespace Race;
 
 namespace
 {
-    ModelBuffer buildRoadModel(const CourseSegment& segment, Array<Triangle3D>* outCollider)
+    ModelBuffer buildRoadModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
         Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
@@ -54,8 +54,25 @@ namespace
 
             if (outCollider)
             {
-                outCollider->push_back(Triangle3D{s1.leftmost, s0.leftmost, s1.rightmost});
-                outCollider->push_back(Triangle3D{s1.rightmost, s0.leftmost, s0.rightmost});
+                const std::array normals{s0.normal, s0.normal, s1.normal, s1.normal};
+
+                outCollider->tris.push_back(IndexedTriangle{
+                    s1.leftmost, s0.leftmost, s1.rightmost, outCollider->attributes.size()
+                });
+                outCollider->attributes.push_back(CourseTriangleAttribute{
+                    CourseTriangleAttribute::Triangle_01_00_11,
+                    normals,
+                    s0.rightmost
+                });
+
+                outCollider->tris.push_back(IndexedTriangle{
+                    s1.rightmost, s0.leftmost, s0.rightmost, outCollider->attributes.size()
+                });
+                outCollider->attributes.push_back(CourseTriangleAttribute{
+                    CourseTriangleAttribute::Triangle_11_00_10,
+                    normals,
+                    s1.leftmost
+                });
             }
         }
 
@@ -73,7 +90,7 @@ namespace
         return modelBuffer;
     }
 
-    ModelBuffer buildTunnelModel(const CourseSegment& segment, Array<Triangle3D>* outCollider)
+    ModelBuffer buildTunnelModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         constexpr int subdivision = TunnelSubdivision;
         Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * (subdivision * 4 * 2));
@@ -98,10 +115,12 @@ namespace
                 const Float3 l1 = s1.center + n1s[s] * r;
                 const Float3 r1 = s1.center + n1s[(s + 1) % subdivision] * r;
 
-                vertices[v_offset] = ModelVertex{l1, -n1s[s] * r, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, -n1s[(s + 1) % subdivision] * r, Float2{1, 0}};
+                int s1 = (s + 1) % subdivision;
+
+                vertices[v_offset] = ModelVertex{l1, -n1s[s], Float2{}};
+                vertices[v_offset + 1] = ModelVertex{r1, -n1s[s1], Float2{1, 0}};
                 vertices[v_offset + 2] = ModelVertex{l0, -n0s[s], Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, -n1s[(s + 1) % subdivision], Float2{1, 1}};
+                vertices[v_offset + 3] = ModelVertex{r0, -n1s[s1], Float2{1, 1}};
 
                 indices[i_offset] = v_offset;
                 indices[i_offset + 1] = v_offset + 2;
@@ -115,8 +134,21 @@ namespace
 
                 if (outCollider)
                 {
-                    outCollider->push_back(Triangle3D{l1, l0, r1});
-                    outCollider->push_back(Triangle3D{r1, l0, r0});
+                    const std::array normals{-n0s[s], -n0s[s], -n1s[s], -n1s[s]};
+
+                    outCollider->tris.push_back(IndexedTriangle{l1, l0, r1, outCollider->attributes.size()});
+                    outCollider->attributes.push_back(CourseTriangleAttribute{
+                        CourseTriangleAttribute::Triangle_01_00_11,
+                        normals,
+                        r0
+                    });
+
+                    outCollider->tris.push_back(IndexedTriangle{r1, l0, r0, outCollider->attributes.size()});
+                    outCollider->attributes.push_back(CourseTriangleAttribute{
+                        CourseTriangleAttribute::Triangle_11_00_10,
+                        normals,
+                        l1
+                    });
                 }
             }
 
@@ -162,7 +194,7 @@ namespace
 
 namespace Race
 {
-    ModelBuffer BuildCourseModel(const CourseSegment& segment, Array<Triangle3D>* outCollider)
+    ModelBuffer BuildCourseModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         assert(segment.midwayStrips.size() > 0);
 

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Race/Common/CourseData.h"
+#include "Race/Common/CourseTriangleAttribute.h"
 #include "TY/TriangleBvh.h"
 #include "TY_Extension/GameObjectHandle.h"
 
@@ -14,6 +15,8 @@ namespace Race
 
         TriangleBvh& staticBvh();
         const TriangleBvh& staticBvh() const;
+
+        const CourseTriangleAttribute& fetchTriangleAttribute(uint64_t index) const;
 
         Array<CourseSegment>& courseSegments();
         const Array<CourseSegment>& courseSegments() const;

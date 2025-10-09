@@ -69,7 +69,7 @@ private:
 
         for (const float dt : StandardStep_60Hz())
         {
-            m_cameraUp = m_cameraUp.slerp(-m_physicsState.m_gravity, dt);
+            m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, dt);
         }
 
 #ifdef _DEBUG
@@ -157,7 +157,7 @@ private:
         ImGui::Checkbox("Fix Camera Up", &s_fixedCameraUp);
 
         const auto& surfaceNormal = m_physicsState.m_surfaceNormal;
-        ImGui::Text("Normal: (%.2f, %.2f, %.2f)", surfaceNormal.x, surfaceNormal.y, surfaceNormal.z);
+        ImGui::Text("Normal: (%.3f, %.3f, %.3f)", surfaceNormal.x, surfaceNormal.y, surfaceNormal.z);
 
         ImGui::Separator();
 

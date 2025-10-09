@@ -42,6 +42,26 @@ namespace TY
         return Plane3Points{p0, p1, p2};
     }
 
+    Triangle3D::barycentric_type Triangle3D::getBarycentric(const Float3& p) const
+    {
+        const Float3 v1 = p1 - p0;
+        const Float3 v2 = p2 - p0;
+        const Float3 v3 = p - p0;
+
+        const float d11 = v1.dot(v1);
+        const float d12 = v1.dot(v2);
+        const float d22 = v2.dot(v2);
+        const float d31 = v3.dot(v1);
+        const float d32 = v3.dot(v2);
+
+        const float denom = d11 * d22 - d12 * d12;
+        const float v = (d22 * d31 - d12 * d32) / denom;
+        const float w = (d11 * d32 - d12 * d31) / denom;
+        const float u = 1.0f - v - w;
+
+        return {u, v, w};
+    }
+
     float Plane3D::signedDistanceFrom(const Float3& p) const
     {
         return normal.dot(p) + d;
@@ -130,6 +150,13 @@ namespace TY
     Line3D::Line3D(const Float3& point, const Float3& normalizedDir)
         : point(point), normalizedDir(normalizedDir)
     {
+    }
+
+    Float3 Line3D::projectPoint(const Float3& p) const
+    {
+        Float3 v = p - point;
+        float t = v.dot(normalizedDir);
+        return point + normalizedDir * t;
     }
 
     Line3D Line3D::FromPoints(const Float3& from, const Float3& to)

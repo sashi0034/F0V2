@@ -8,6 +8,7 @@ namespace TY
     // - Aabb3D
     // - Line3D
     // - LineSegment3D
+    // - Plane3D
     // - Plane3Points
     // - Triangle3D
     // - Quad3D
@@ -45,6 +46,8 @@ namespace TY
     bool Intersects(const LineSegment3D& segment, const Triangle3D& tri);
 
     bool Intersects(const LineSegment3D& segment, const Quad3D& quad);
+
+    std::optional<Float3> IntersectsAt(const LineSegment3D& segment, const Plane3D& plane);
 
     std::optional<Float3> IntersectsAt(const LineSegment3D& segment, const Triangle3D& tri);
 

@@ -167,6 +167,8 @@ struct StageManager::Impl : GameObjectBase
     int m_triangleCount{};
     TriangleBvh m_staticBvh{};
 
+    Array<CourseTriangleAttribute> m_triangleAttributes{};
+
     void Init()
     {
         auto skydome_b4 = ConstantBufferWrapper<Skydome_b10>{};
@@ -198,10 +200,10 @@ struct StageManager::Impl : GameObjectBase
 
         // -----------------------------------------------
 
-        Array<Triangle3D> colliderTriangles{};
+        CoursePolygoneCollider collider{};
         for (const auto& segment : g_sharedState->courseSegments)
         {
-            const auto courseModel = BuildCourseModel(segment, &colliderTriangles);
+            const auto courseModel = BuildCourseModel(segment, &collider);
             m_courseDrawers.push_back(
                 ModelDrawerParams{}
                 .setModel(courseModel)
@@ -211,8 +213,10 @@ struct StageManager::Impl : GameObjectBase
 
         // -----------------------------------------------
 
-        m_triangleCount = colliderTriangles.size();
-        m_staticBvh = TriangleBvh{colliderTriangles};
+        m_triangleCount = collider.tris.size();
+        m_staticBvh = TriangleBvh{collider.tris};
+
+        m_triangleAttributes = std::move(collider.attributes);
     }
 
 private:
@@ -335,6 +339,18 @@ namespace Race
     const TriangleBvh& StageManager::staticBvh() const
     {
         return p_impl->m_staticBvh;
+    }
+
+    const CourseTriangleAttribute& StageManager::fetchTriangleAttribute(uint64_t index) const
+    {
+        assert(index < p_impl->m_triangleAttributes.size());
+        if (index < p_impl->m_triangleAttributes.size())
+        {
+            return p_impl->m_triangleAttributes[index];
+        }
+
+        static constexpr CourseTriangleAttribute placeholder{};
+        return placeholder;
     }
 
     Array<CourseSegment>& StageManager::courseSegments()

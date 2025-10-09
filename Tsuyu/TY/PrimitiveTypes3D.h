@@ -61,6 +61,14 @@ namespace TY
 
         [[nodiscard]]
         Plane3Points asPlane3Points() const;
+
+        struct barycentric_type
+        {
+            float w0, w1, w2;
+        };
+
+        [[nodiscard]]
+        barycentric_type getBarycentric(const Float3& p) const;
     };
 
     struct Quad3D
@@ -96,6 +104,8 @@ namespace TY
         Line3D() = default;
 
         Line3D(const Float3& point, const Float3& normalizedDir);
+
+        Float3 projectPoint(const Float3& p) const;
 
         static Line3D FromPoints(const Float3& from, const Float3& to);
     };

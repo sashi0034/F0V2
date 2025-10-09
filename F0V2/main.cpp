@@ -23,7 +23,7 @@ void Main()
 {
     InitLivePPAddon();
 
-    Util::InitImmediatePrintAddon();
+    InitImmediatePrintAddon();
 
 #if 0
     Demo_Collision3();

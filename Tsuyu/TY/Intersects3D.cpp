@@ -210,6 +210,25 @@ bool TY::Intersects(const LineSegment3D& segment, const Quad3D& quad)
     return Intersects(segment, t1) || Intersects(segment, t2);
 }
 
+std::optional<Float3> TY::IntersectsAt(const LineSegment3D& segment, const Plane3D& plane)
+{
+    const Float3 dir = segment.p1 - segment.p0;
+    const float denom = plane.normal.dot(dir);
+    if (std::abs(denom) < 1e-6f)
+    {
+        // 平行
+        return std::nullopt;
+    }
+
+    const float t = -(plane.normal.dot(segment.p0) + plane.d) / denom;
+    if (t < 0.0f || t > 1.0f)
+    {
+        return std::nullopt;
+    }
+
+    return segment.p0 + dir * t;
+}
+
 std::optional<Float3> TY::IntersectsAt(const LineSegment3D& segment, const Triangle3D& tri)
 {
     Float3 intersection;

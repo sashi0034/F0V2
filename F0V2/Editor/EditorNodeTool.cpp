@@ -243,7 +243,7 @@ private:
             auto& segment = m_segments[i];
             segment.midwayStrips.clear();
 
-            const int samplesPerSegment = (segment.p2 - segment.p1).length() / 1.0f;
+            const int samplesPerSegment = (segment.p2 - segment.p1).length() / 5.0f;
             const auto midwayPositions = GenerateCatmullRomPoints(
                 segment.side_p0, segment.p1, segment.p2, segment.side_p3, samplesPerSegment);
             const auto midwayRolls = GenerateCatmullRomAngles(
@@ -278,7 +278,7 @@ private:
                     for (int t = 0; t < TunnelSubdivision; ++t)
                     {
                         // 円周上の方向ベクトルを計算
-                        const float angle = -(static_cast<float>(t) / TunnelSubdivision) * Math::TwoPi_v<float>;
+                        const float angle = -(0.5 + static_cast<float>(t) / TunnelSubdivision) * Math::TwoPi_v<float>;
                         const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
                         strip.tunnel.ringVectors[t] = dir;
                     }
@@ -378,8 +378,9 @@ private:
 
         if (ImGui::Button("Add Node"))
         {
+            auto firstElement = nodeList.empty() ? CourseNode{} : nodeList.front();
             auto lastElement = nodeList.empty() ? CourseNode{} : nodeList.back();
-            lastElement.pos.z += 1.0f;
+            lastElement.pos = (lastElement.pos + firstElement.pos) * 0.5f;
             nodeList.push_back(lastElement);
         }
 
@@ -390,7 +391,8 @@ private:
             if (InRange(m_activeNodeIndex, 0, static_cast<int>(nodeList.size() - 1)))
             {
                 auto element = nodeList[m_activeNodeIndex];
-                element.pos.z += 1.0f;
+                auto forwardElement = nodeList[Modulo<int>(m_activeNodeIndex + 1, nodeList.size())];
+                element.pos = (element.pos + forwardElement.pos) * 0.5f;
                 nodeList.insert(nodeList.begin() + m_activeNodeIndex + 1, element);
                 m_activeNodeIndex += 1;
             }
