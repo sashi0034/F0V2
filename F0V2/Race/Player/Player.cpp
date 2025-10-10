@@ -117,6 +117,19 @@ private:
 
         ImGui::DragFloat3("Position", &m_physicsState.m_pose.position.x, 0.1f);
 
+        static int s_checkpointIndex{};
+        ImGui::InputInt("Checkpoint Index", &s_checkpointIndex);
+
+        const auto& segments = GetRaceContext().stageManager().courseSegments();
+        s_checkpointIndex = Math::Clamp<int>(s_checkpointIndex, 0, static_cast<int>(segments.size() - 1));
+
+        if (ImGui::Button("Go To Checkpoint"))
+        {
+            const auto& s = segments[s_checkpointIndex];
+            m_physicsState.m_pose.position = s.p1 + s.midwayStrips[0].normal * 10.0f;
+            m_physicsState.m_pose.rotation = {};
+        }
+
         // -----------------------------------------------
 
         static std::deque<MachinePhysicsState> s_physicsHistory{};
