@@ -137,7 +137,7 @@ namespace
 
         const float r = state.m_radius + epsGround;
 
-        const Float3 U = bilinearI + normal * (r + 1.0f); // TODO
+        const Float3 U = bilinearI + normal * r; // TODO
 
         HitTri hitTri{};
         hitTri.tri = *hit;
@@ -304,13 +304,11 @@ namespace
             state.m_upVector = -state.m_gravity;
         }
 
-        Float3 vector = state.m_surfaceToTriangle;
+        Float3 vector = state.m_surfaceToTriangle * r * 2.0f;
         if (vector.isZero())
         {
-            vector = -state.m_upVector;
+            vector = -state.m_upVector * r;
         }
-
-        vector = vector * (r + 2.0f); // TODO
 
         const Float3 fromPos = state.m_pose.position;
         const Float3 toPos = state.m_pose.position + vector;
