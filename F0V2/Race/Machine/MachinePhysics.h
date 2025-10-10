@@ -19,6 +19,8 @@ namespace Race
 
         Float3 m_surfaceNormal{};
 
+        Float3 m_surfaceToTriangle{};
+
         Float3 m_upVector{0, 1, 0};
     };
 

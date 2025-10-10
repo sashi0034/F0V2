@@ -20,6 +20,7 @@ namespace
         float moveDistance;
         IndexedTriangle tri;
         Float3 normal;
+        Float3 surfaceToTriangle;
         // Float3 intersection;
         // Float3 foot;
 
@@ -142,6 +143,7 @@ namespace
         hitTri.tri = *hit;
         hitTri.moveDistance = (U - S).length();
         hitTri.normal = normal;
+        hitTri.surfaceToTriangle = (I - U).normalized();
         return {U, hitTri};
     }
 
@@ -267,6 +269,8 @@ namespace
             const Float3 n = hit.normal;
             state.m_surfaceNormal = n;
 
+            state.m_surfaceToTriangle = hit.surfaceToTriangle;
+
             // 法線方向速度の除去
             state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
 
@@ -300,7 +304,13 @@ namespace
             state.m_upVector = -state.m_gravity;
         }
 
-        Float3 vector = -state.m_upVector * (r + 2.0f); // TODO
+        Float3 vector = state.m_surfaceToTriangle;
+        if (vector.isZero())
+        {
+            vector = -state.m_upVector;
+        }
+
+        vector = vector * (r + 2.0f); // TODO
 
         const Float3 fromPos = state.m_pose.position;
         const Float3 toPos = state.m_pose.position + vector;
@@ -318,6 +328,8 @@ namespace
 
             const Float3 n = hit.normal;
             state.m_surfaceNormal = n;
+
+            state.m_surfaceToTriangle = hit.surfaceToTriangle;
 
             state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
         }
