@@ -139,20 +139,20 @@ namespace
 
                 if (outCollider)
                 {
-                    const std::array normals_00_10_01_11{l1_n, r1_n, l0_n, r0_n};
+                    const std::array normals_00_10_01_11{l0_n, /* 10: */ r0_n, /* 01: */ l1_n, r1_n};
 
-                    outCollider->tris.push_back(IndexedTriangle{l0, l1, r0, outCollider->attributes.size()});
+                    outCollider->tris.push_back(IndexedTriangle{l1, l0, r1, outCollider->attributes.size()});
                     outCollider->attributes.push_back(CourseTriangleAttribute{
                         CourseTriangleAttribute::Triangle_01_00_11,
                         normals_00_10_01_11,
-                        r1
+                        r0
                     });
 
-                    outCollider->tris.push_back(IndexedTriangle{r0, l1, r1, outCollider->attributes.size()});
+                    outCollider->tris.push_back(IndexedTriangle{r1, l0, r0, outCollider->attributes.size()});
                     outCollider->attributes.push_back(CourseTriangleAttribute{
                         CourseTriangleAttribute::Triangle_11_00_10,
                         normals_00_10_01_11,
-                        l0
+                        l1
                     });
                 }
             }
