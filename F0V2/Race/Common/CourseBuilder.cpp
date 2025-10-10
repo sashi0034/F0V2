@@ -54,14 +54,14 @@ namespace
 
             if (outCollider)
             {
-                const std::array normals{s0.normal, s0.normal, s1.normal, s1.normal};
+                const std::array normals_00_10_01_11{s0.normal, s0.normal, s1.normal, s1.normal};
 
                 outCollider->tris.push_back(IndexedTriangle{
                     s1.leftmost, s0.leftmost, s1.rightmost, outCollider->attributes.size()
                 });
                 outCollider->attributes.push_back(CourseTriangleAttribute{
                     CourseTriangleAttribute::Triangle_01_00_11,
-                    normals,
+                    normals_00_10_01_11,
                     s0.rightmost
                 });
 
@@ -70,7 +70,7 @@ namespace
                 });
                 outCollider->attributes.push_back(CourseTriangleAttribute{
                     CourseTriangleAttribute::Triangle_11_00_10,
-                    normals,
+                    normals_00_10_01_11,
                     s1.leftmost
                 });
             }
@@ -108,23 +108,28 @@ namespace
             std::array<Float3, subdivision> n1s = s1.tunnel.ringVectors;
 
             // 表面
-            for (int s = 0; s < subdivision; ++s)
+            for (int i0 = 0; i0 < subdivision; ++i0)
             {
-                const Float3 l0 = s0.center + n0s[s] * r;
-                const Float3 r0 = s0.center + n0s[(s + 1) % subdivision] * r;
-                const Float3 l1 = s1.center + n1s[s] * r;
-                const Float3 r1 = s1.center + n1s[(s + 1) % subdivision] * r;
+                const int i1 = (i0 + 1) % subdivision;
 
-                int s1 = (s + 1) % subdivision;
+                const Float3 l0 = s0.center + n0s[i0] * r;
+                const Float3 r0 = s0.center + n0s[i1] * r;
+                const Float3 l1 = s1.center + n1s[i0] * r;
+                const Float3 r1 = s1.center + n1s[i1] * r;
 
-                vertices[v_offset] = ModelVertex{l1, -n1s[s], Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, -n1s[s1], Float2{1, 0}};
-                vertices[v_offset + 2] = ModelVertex{l0, -n0s[s], Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, -n1s[s1], Float2{1, 1}};
+                const Float3 l0_n = -n0s[i0];
+                const Float3 r0_n = -n0s[i1];
+                const Float3 l1_n = -n1s[i0];
+                const Float3 r1_n = -n1s[i1];
 
-                indices[i_offset] = v_offset;
-                indices[i_offset + 1] = v_offset + 2;
-                indices[i_offset + 2] = v_offset + 1;
+                vertices[v_offset] = ModelVertex{l1, l1_n, Float2{}};
+                vertices[v_offset + 1] = ModelVertex{r1, r1_n, Float2{1, 0}};
+                vertices[v_offset + 2] = ModelVertex{l0, l0_n, Float2{0, 1}};
+                vertices[v_offset + 3] = ModelVertex{r0, r0_n, Float2{1, 1}};
+
+                indices[i_offset] = v_offset; // l1
+                indices[i_offset + 1] = v_offset + 2; // l0
+                indices[i_offset + 2] = v_offset + 1; // r1
                 indices[i_offset + 3] = v_offset + 1;
                 indices[i_offset + 4] = v_offset + 2;
                 indices[i_offset + 5] = v_offset + 3;
@@ -134,36 +139,43 @@ namespace
 
                 if (outCollider)
                 {
-                    const std::array normals{-n0s[s], -n0s[s], -n1s[s], -n1s[s]};
+                    const std::array normals_00_10_01_11{l1_n, r1_n, l0_n, r0_n};
 
-                    outCollider->tris.push_back(IndexedTriangle{l1, l0, r1, outCollider->attributes.size()});
+                    outCollider->tris.push_back(IndexedTriangle{l0, l1, r0, outCollider->attributes.size()});
                     outCollider->attributes.push_back(CourseTriangleAttribute{
                         CourseTriangleAttribute::Triangle_01_00_11,
-                        normals,
-                        r0
+                        normals_00_10_01_11,
+                        r1
                     });
 
-                    outCollider->tris.push_back(IndexedTriangle{r1, l0, r0, outCollider->attributes.size()});
+                    outCollider->tris.push_back(IndexedTriangle{r0, l1, r1, outCollider->attributes.size()});
                     outCollider->attributes.push_back(CourseTriangleAttribute{
                         CourseTriangleAttribute::Triangle_11_00_10,
-                        normals,
-                        l1
+                        normals_00_10_01_11,
+                        l0
                     });
                 }
             }
 
             // 裏面
-            for (int s = 0; s < subdivision; ++s)
+            for (int i0 = 0; i0 < subdivision; ++i0)
             {
-                const Float3 l0 = s0.center + n0s[s] * r;
-                const Float3 r0 = s0.center + n0s[(s + 1) % subdivision] * r;
-                const Float3 l1 = s1.center + n1s[s] * r;
-                const Float3 r1 = s1.center + n1s[(s + 1) % subdivision] * r;
+                const int i1 = (i0 + 1) % subdivision;
 
-                vertices[v_offset] = ModelVertex{l1, n1s[s] * r, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, n1s[(s + 1) % subdivision], Float2{1, 0}};
-                vertices[v_offset + 2] = ModelVertex{l0, n0s[s], Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, n0s[(s + 1) % subdivision], Float2{1, 1}};
+                const Float3 l0 = s0.center + n0s[i0] * r;
+                const Float3 r0 = s0.center + n0s[i1] * r;
+                const Float3 l1 = s1.center + n1s[i0] * r;
+                const Float3 r1 = s1.center + n1s[i1] * r;
+
+                const Float3 l0_n = n0s[i0];
+                const Float3 r0_n = n0s[i1];
+                const Float3 l1_n = n1s[i0];
+                const Float3 r1_n = n1s[i1];
+
+                vertices[v_offset] = ModelVertex{l1, l1_n, Float2{}};
+                vertices[v_offset + 1] = ModelVertex{r1, r1_n, Float2{1, 0}};
+                vertices[v_offset + 2] = ModelVertex{l0, l0_n, Float2{0, 1}};
+                vertices[v_offset + 3] = ModelVertex{r0, r0_n, Float2{1, 1}};
 
                 indices[i_offset] = v_offset;
                 indices[i_offset + 1] = v_offset + 1;
