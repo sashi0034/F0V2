@@ -34,6 +34,9 @@ namespace TY
         static Quaternion Identity();
 
         [[nodiscard]]
+        static Quaternion FromAxisAngle(const Float3& axis, float angle);
+
+        [[nodiscard]]
         static Quaternion FromEuler(const Float3& euler);
 
         [[nodiscard]]

@@ -41,6 +41,11 @@ namespace TY
         return Quaternion{DirectX::XMQuaternionIdentity()};
     }
 
+    Quaternion Quaternion::FromAxisAngle(const Float3& axis, float angle)
+    {
+        return Quaternion{axis, angle};
+    }
+
     Quaternion Quaternion::FromEuler(const Float3& euler)
     {
         using namespace DirectX;
@@ -51,27 +56,51 @@ namespace TY
     {
         using namespace DirectX;
 
-        XMVECTOR vFrom = XMVector3Normalize(XMVECTOR{from.x, from.y, from.z, 0.0f});
-        XMVECTOR vTo = XMVector3Normalize(XMVECTOR{to.x, to.y, to.z, 0.0f});
+        XMVECTOR vFrom = XMVector3Normalize(XMVectorSet(from.x, from.y, from.z, 0.0f));
+        XMVECTOR vTo = XMVector3Normalize(XMVectorSet(to.x, to.y, to.z, 0.0f));
 
-        float cosTheta = XMVectorGetX(XMVector3Dot(vFrom, vTo));
-        cosTheta = std::clamp(cosTheta, -1.0f, 1.0f);
+        float r = XMVectorGetX(XMVector3Dot(vFrom, vTo)) + 1.0f;
 
-        if (cosTheta >= 1.0f - 1e-6f)
+        XMVECTOR q; // (x, y, z, w)
+
+        if (r < 1e-6f)
         {
-            return Quaternion::Identity(); // 同じ方向
-        }
-        else if (cosTheta <= -1.0f + 1e-6f)
-        {
-            XMVECTOR orthogonal = XMVector3Normalize(XMVector3Orthogonal(vFrom));
-            return XMQuaternionRotationNormal(orthogonal, XM_PI);
+            // from と to が反対方向 --> from と直交する軸を一つ選ぶ
+            XMVECTOR absFrom = XMVectorAbs(vFrom);
+            if (XMVectorGetZ(absFrom) < XMVectorGetX(absFrom))
+            {
+                // X 成分が小さいとき --> YZ 平面から軸を選ぶ
+                q = XMVectorSet(
+                    -XMVectorGetY(vFrom),
+                    XMVectorGetX(vFrom),
+                    0.0f,
+                    0.0f);
+            }
+            else
+            {
+                // Z成分が小さいとき --> XY 平面から軸を選ぶ
+                q = XMVectorSet(
+                    0.0f,
+                    -XMVectorGetZ(vFrom),
+                    XMVectorGetY(vFrom),
+                    0.0f);
+            }
         }
         else
         {
-            XMVECTOR rotationAxis = XMVector3Normalize(XMVector3Cross(vFrom, vTo));
-            float angle = std::acos(cosTheta);
-            return XMQuaternionRotationNormal(rotationAxis, angle);
+            XMVECTOR cross = XMVector3Cross(vFrom, vTo);
+            q = XMVectorSet(
+                XMVectorGetX(cross),
+                XMVectorGetY(cross),
+                XMVectorGetZ(cross),
+                r);
         }
+
+        q = XMVector4Normalize(q);
+
+        Quaternion result;
+        XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), q);
+        return result;
     }
 
     Quaternion Quaternion::operator*(const Quaternion& q) const
