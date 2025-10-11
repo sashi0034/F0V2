@@ -16,14 +16,14 @@ namespace Race
 
         struct
         {
-            std::array<Float3, TunnelSubdivision> ringVectors{}; // リング上の頂点方向へのベクトル
-        } tunnel;
+            std::array<Float3, PipeSubdivision> ringVectors{}; // リング上の頂点方向へのベクトル
+        } pipe;
     };
 
     enum class CourseSegmentStyle : uint8_t
     {
         Road,
-        Tunnel,
+        Pipe,
         Max // end marker
     };
 

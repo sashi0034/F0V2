@@ -272,15 +272,15 @@ private:
                 strip.leftmost = strip.center - right * width;
                 strip.rightmost = strip.center + right * width;
 
-                if (segment.style == CourseSegmentStyle::Tunnel)
+                if (segment.style == CourseSegmentStyle::Pipe)
                 {
                     // トンネル頂点の計算
-                    for (int t = 0; t < TunnelSubdivision; ++t)
+                    for (int t = 0; t < PipeSubdivision; ++t)
                     {
                         // 円周上の方向ベクトルを計算
-                        const float angle = -(0.5 + static_cast<float>(t) / TunnelSubdivision) * Math::TwoPi_v<float>;
+                        const float angle = -(0.5 + static_cast<float>(t) / PipeSubdivision) * Math::TwoPi_v<float>;
                         const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
-                        strip.tunnel.ringVectors[t] = dir;
+                        strip.pipe.ringVectors[t] = dir;
                     }
                 }
 

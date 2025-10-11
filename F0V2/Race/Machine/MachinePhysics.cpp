@@ -412,9 +412,9 @@ namespace
 
             return -n;
         }
-        else if (nearestSegment.style == CourseSegmentStyle::Tunnel)
+        else if (nearestSegment.style == CourseSegmentStyle::Pipe)
         {
-            if (nearestStrip.tunnel.ringVectors[0].isZero())
+            if (nearestStrip.pipe.ringVectors[0].isZero())
             {
                 // FIXME
                 return -nearestStrip.normal;
@@ -429,17 +429,17 @@ namespace
             return (position - p).normalized();
 
             // 離散的に計算
-            // const auto& ringVectors = nearestStrip.tunnel.ringVectors;
-            // std::array<Float3, TunnelSubdivision> ringPoints{}; // リング上の仮点
-            // for (int i = 0; i < TunnelSubdivision; ++i)
+            // const auto& ringVectors = nearestStrip.pipe.ringVectors;
+            // std::array<Float3, PipeSubdivision> ringPoints{}; // リング上の仮点
+            // for (int i = 0; i < PipeSubdivision; ++i)
             // {
-            //     const Float3 dir = ringVectors[i] + ringVectors[(i + 1) % TunnelSubdivision];
+            //     const Float3 dir = ringVectors[i] + ringVectors[(i + 1) % PipeSubdivision];
             //     ringPoints[i] = nearestStrip.center + dir;
             // }
             //
             // float minDistSq = FLT_MAX;
             // int minIndex{};
-            // for (int i = 0; i < TunnelSubdivision; ++i)
+            // for (int i = 0; i < PipeSubdivision; ++i)
             // {
             //     const float distSq = DistanceSq(position, ringPoints[i]);
             //     if (distSq < minDistSq)

@@ -2,5 +2,5 @@
 
 namespace Race
 {
-    constexpr int TunnelSubdivision = 6;
+    constexpr int PipeSubdivision = 6;
 }

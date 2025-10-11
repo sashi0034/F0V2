@@ -90,9 +90,9 @@ namespace
         return modelBuffer;
     }
 
-    ModelBuffer buildTunnelModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    ModelBuffer buildPipeModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
-        constexpr int subdivision = TunnelSubdivision;
+        constexpr int subdivision = PipeSubdivision;
         Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * (subdivision * 4 * 2));
         Array<uint16_t> indices((segment.midwayStrips.size() - 1) * (subdivision * 6 * 2));
         int v_offset{};
@@ -104,8 +104,8 @@ namespace
 
             constexpr float r = 25.0f; // TODO
 
-            std::array<Float3, subdivision> n0s = s0.tunnel.ringVectors;
-            std::array<Float3, subdivision> n1s = s1.tunnel.ringVectors;
+            std::array<Float3, subdivision> n0s = s0.pipe.ringVectors;
+            std::array<Float3, subdivision> n1s = s1.pipe.ringVectors;
 
             // 表面
             for (int i0 = 0; i0 < subdivision; ++i0)
@@ -214,9 +214,9 @@ namespace Race
         {
             return buildRoadModel(segment, outCollider);
         }
-        else if (segment.style == CourseSegmentStyle::Tunnel)
+        else if (segment.style == CourseSegmentStyle::Pipe)
         {
-            return buildTunnelModel(segment, outCollider);
+            return buildPipeModel(segment, outCollider);
         }
         else
         {
