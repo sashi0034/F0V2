@@ -67,10 +67,11 @@ private:
         eyePos += -forwardVector.normalized() * 10.0f;
         eyePos += m_cameraUp * 5.0f;
 
-        for (const float dt : StandardStep_60Hz())
-        {
-            m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, dt);
-        }
+        // for (const float dt : StandardStep_60Hz())
+        // {
+        //     m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, dt);
+        // }
+        m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, InGameDeltaTime() * 5.0f);
 
 #ifdef _DEBUG
         if (s_fixedCameraUp) m_cameraUp = Float3{0, 1, 0};
@@ -117,20 +118,25 @@ private:
 
         ImGui::DragFloat3("Position", &m_physicsState.m_pose.position.x, 0.1f);
 
-        static int s_checkpointIndex{};
-        ImGui::InputInt("Checkpoint Index", &s_checkpointIndex);
-
-        const auto& segments = GetRaceContext().stageManager().courseSegments();
-        s_checkpointIndex = Math::Clamp<int>(s_checkpointIndex, 0, static_cast<int>(segments.size() - 1));
-
-        if (ImGui::Button("Go To Checkpoint"))
+        if (ImGui::CollapsingHeader("Checkpoint Teleport"))
         {
-            const auto& s = segments[s_checkpointIndex];
-            m_physicsState.m_pose.position = s.p1 + s.midwayStrips[0].normal * 10.0f;
-            m_physicsState.m_pose.rotation = {};
+            static int s_checkpointIndex{};
+            ImGui::InputInt("Checkpoint Index", &s_checkpointIndex);
+
+            const auto& segments = GetRaceContext().stageManager().courseSegments();
+            s_checkpointIndex = Math::Clamp<int>(s_checkpointIndex, 0, static_cast<int>(segments.size() - 1));
+
+            if (ImGui::Button("Go To Checkpoint"))
+            {
+                const auto& s = segments[s_checkpointIndex];
+                m_physicsState.m_pose.position = s.p1 + s.midwayStrips[0].normal * 10.0f;
+                m_physicsState.m_pose.rotation = {};
+            }
         }
 
         // -----------------------------------------------
+
+        ImGui::Separator();
 
         static std::deque<MachinePhysicsState> s_physicsHistory{};
         static int s_rewindFrames{};
