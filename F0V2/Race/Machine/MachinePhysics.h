@@ -11,7 +11,9 @@ namespace Race
 
         Pose m_pose{};
 
-        float m_yaw{};
+        Float3 m_forwardVector{0, 1, 0};
+
+        Float3 m_upVector{0, 1, 0};
 
         Float3 m_velocity{};
 
@@ -21,7 +23,7 @@ namespace Race
 
         Float3 m_surfaceToTriangle{};
 
-        Float3 m_upVector{0, 1, 0};
+        Float3 rightVector() const;
     };
 
     struct MachinePhysicsProps

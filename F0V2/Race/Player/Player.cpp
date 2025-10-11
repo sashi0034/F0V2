@@ -56,12 +56,7 @@ private:
     {
         m_drawer.uploadWorldMatrix(m_physicsState.m_pose.getMatrix()).draw();
 
-        float rotateInput = (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
-
-        // TODO: 修正
-        m_physicsState.m_yaw += rotateInput * Math::ToRadians(90.0f) * InGameDeltaTime();
-
-        const Float3 forwardVector = Mat4x4{m_physicsState.m_pose.rotation}.forward();
+        const Float3 forwardVector = m_physicsState.m_forwardVector;
 
         Float3 eyePos = m_physicsState.m_pose.position;
         eyePos += -forwardVector.normalized() * 10.0f;
@@ -82,6 +77,13 @@ private:
         m_physicsProps.hasAccelInput = KeyUp.pressed();
 
         m_physicsProps.debug.drawHitTris = true;
+
+        {
+            float rotateInput = (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
+
+            // TODO: 修正
+            m_physicsState.m_forwardVector += m_physicsState.rightVector() * rotateInput * InGameDeltaTime();
+        }
 
 #ifdef _DEBUG
         if (s_stopMove)

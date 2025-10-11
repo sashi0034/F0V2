@@ -459,17 +459,20 @@ namespace
 
 namespace Race
 {
+    Float3 MachinePhysicsState::rightVector() const
+    {
+        return m_upVector.cross(m_forwardVector).normalized();
+    }
+
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
-        const Float3 forwardVector = state.m_pose.rotation.rotate(Float3{0, 0, 1});
-
         // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);
         Float3 gravity = state.m_gravity; // TODO: 地面方向の成分を除去
         state.m_velocity += gravity * 50.0f * InGameDeltaTime();
 
         if (props.hasAccelInput)
         {
-            state.m_velocity += forwardVector * 50.0f * InGameDeltaTime();
+            state.m_velocity += state.m_forwardVector * 50.0f * InGameDeltaTime();
         }
 
         const float maxSpeed = 100.0f;
@@ -507,30 +510,32 @@ namespace Race
             }
         }
 
-        // state.m_upVector = -state.m_gravity;
+        // -----------------------------------------------
 
-        // for (const auto dt : StandardStep_60Hz())
-        // {
-        //     state.m_upVector =
-        //         state.m_upVector.slerp(-state.m_gravity, 10.0f * dt);
-        // }
+        state.m_forwardVector = state.m_forwardVector - state.m_upVector * state.m_upVector.dot(state.m_forwardVector);
 
-        constexpr Float3 v010{0, 1, 0};
-        Quaternion targetRotation;
-        if (v010.dot(state.m_upVector) > -0.999f)
+        if (state.m_forwardVector.isZero())
         {
-            targetRotation = Quaternion(v010, state.m_yaw);
-            targetRotation *= Quaternion::FromUnitVectors(v010, state.m_upVector);
+            state.m_forwardVector = Mat4x4{state.m_pose.rotation}.forward();
+            state.m_forwardVector = state.m_forwardVector - state.m_upVector * state.m_upVector.dot(
+                state.m_forwardVector);
+
+            if (state.m_forwardVector.isZero())
+            {
+                assert(false); // TODO
+            }
         }
-        else
-        {
-            // 例外処理
-            targetRotation = Quaternion(-v010, state.m_yaw);
-        }
+
+        state.m_forwardVector = state.m_forwardVector.normalized();
 
         ImmediatePrint(
             std::format("Pos: {:.02f}, {:.02f}, {:.02f}", state.m_pose.position.x, state.m_pose.position.y,
                         state.m_pose.position.z), Alignment9::MiddleCenter);
+
+        ImmediatePrint(
+            std::format("Forward: {:.02f}, {:.02f}, {:.02f}",
+                        state.m_forwardVector.x, state.m_forwardVector.y, state.m_forwardVector.z),
+            Alignment9::MiddleCenter);
 
         ImmediatePrint(
             std::format("Up: {:.02f}, {:.02f}, {:.02f}", state.m_upVector.x, state.m_upVector.y, state.m_upVector.z),
@@ -540,6 +545,9 @@ namespace Race
             std::format("Gravity: {:.02f}, {:.02f}, {:.02f}", state.m_gravity.x, state.m_gravity.y, state.m_gravity.z),
             Alignment9::MiddleCenter
         );
+
+        const Quaternion targetRotation =
+            Quaternion::FromUnitVectors(Float3{0, 1, 0}, state.m_upVector); // TODO: pitch
 
         // 滑らかに回転
         for (const auto dt : StandardStep_60Hz())

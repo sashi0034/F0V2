@@ -103,6 +103,26 @@ namespace TY
         return result;
     }
 
+    Quaternion Quaternion::FromAxes(const Float3& axisX, const Float3& axisY, const Float3& axisZ)
+    {
+        using namespace DirectX;
+
+        // 回転行列を構築（列ベクトルとして配置）
+        XMMATRIX m = XMMatrixSet(
+            axisX.x, axisY.x, axisZ.x, 0.0f,
+            axisX.y, axisY.y, axisZ.y, 0.0f,
+            axisX.z, axisY.z, axisZ.z, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+
+        // 回転行列からクォータニオンを生成
+        XMVECTOR q = XMQuaternionRotationMatrix(m);
+
+        Quaternion result;
+        XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&result), q);
+        return result;
+    }
+
     Quaternion Quaternion::operator*(const Quaternion& q) const
     {
         return DirectX::XMQuaternionMultiply(value, q.value);

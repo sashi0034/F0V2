@@ -43,6 +43,9 @@ namespace TY
         static Quaternion FromUnitVectors(const Float3& from, const Float3& to);
 
         [[nodiscard]]
+        static Quaternion FromAxes(const Float3& axisX, const Float3& axisY, const Float3& axisZ);
+
+        [[nodiscard]]
         Quaternion operator*(const Quaternion& q) const;
 
         Quaternion operator*=(const Quaternion& q);
