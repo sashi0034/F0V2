@@ -20,6 +20,18 @@ namespace TY
         return Mat4x4{XMMatrixTranspose(mat)};
     }
 
+    Mat4x4 Mat4x4::inverse() const
+    {
+        using namespace DirectX;
+        return Mat4x4{XMMatrixInverse(nullptr, mat)};
+    }
+
+    float Mat4x4::determinant() const
+    {
+        using namespace DirectX;
+        return XMVectorGetX(XMMatrixDeterminant(mat));
+    }
+
     Float3 Mat4x4::eulerRotation() const
     {
         using namespace DirectX;
@@ -52,6 +64,18 @@ namespace TY
         return Vector3D<float>{pitch, yaw, roll};
     }
 
+    float& Mat4x4::at1(int row, int col)
+    {
+        assert(1 <= row && row <= 4 && 1 <= col && col <= 4);
+        return mat.r[row - 1].m128_f32[col - 1];
+    }
+
+    float Mat4x4::at1(int row, int col) const
+    {
+        assert(1 <= row && row <= 4 && 1 <= col && col <= 4);
+        return mat.r[row - 1].m128_f32[col - 1];
+    }
+
     Float3 Mat4x4::transformPoint(const Float3 pos) const noexcept
     {
         using namespace DirectX;
@@ -72,6 +96,11 @@ namespace TY
     Mat4x4 Mat4x4::Scale(const Float3& v) noexcept
     {
         return DirectX::XMMatrixScaling(v.x, v.y, v.z);
+    }
+
+    Mat4x4 Mat4x4::Rotate(Quaternion quaternion) noexcept
+    {
+        return DirectX::XMMatrixRotationQuaternion(quaternion.value);
     }
 
     Mat4x4 Mat4x4::RollPitchYaw(Float3 angles)

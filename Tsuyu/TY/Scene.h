@@ -13,5 +13,7 @@ namespace TY
         [[nodiscard]] Point Center();
 
         [[nodiscard]] TY::Rect Rect();
+
+        [[nodiscard]] TY::RectF RectF();
     }
 }

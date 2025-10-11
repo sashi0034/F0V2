@@ -58,6 +58,11 @@ namespace TY
         s_engineTimer.Update();
     }
 
+    float EngineTimer::GetTime()
+    {
+        return s_engineTimer.GetElapsedTime();
+    }
+
     float EngineTimer::GetDeltaTime()
     {
         return s_engineTimer.GetDeltaTime();

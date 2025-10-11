@@ -27,4 +27,9 @@ namespace TY
     {
         return TY::Rect{Point::Zero(), Size()};
     }
+
+    TY::RectF Scene::RectF()
+    {
+        return TY::RectF{Float2::Zero(), Size()};
+    }
 }

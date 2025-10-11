@@ -6,7 +6,7 @@
 namespace TY
 {
     template <typename VertexType>
-    struct ShapeBufferSpan
+    struct ImmediateBufferSpan
     {
         using index_type = uint16_t;
 
@@ -24,7 +24,7 @@ namespace TY
     class ShapeBufferCreator
     {
     public:
-        using index_type = ShapeBufferSpan<VertexType>::index_type;
+        using index_type = ImmediateBufferSpan<VertexType>::index_type;
 
         struct buffer_type
         {
@@ -34,7 +34,7 @@ namespace TY
 
         static constexpr int MaxIndices = 65535;
 
-        ShapeBufferSpan<VertexType> request(int vertexCount, int indexCount)
+        ImmediateBufferSpan<VertexType> request(int vertexCount, int indexCount)
         {
             if (indexCount > MaxIndices || vertexCount > MaxIndices)
             {
@@ -59,7 +59,7 @@ namespace TY
             buffer.vertices.resize(static_cast<int>(buffer.vertices.size()) + vertexCount);
             buffer.indices.resize(static_cast<int>(buffer.indices.size()) + indexCount);
 
-            ShapeBufferSpan<VertexType> span;
+            ImmediateBufferSpan<VertexType> span;
             span.vertices = {buffer.vertices.data() + currentVertexCount, static_cast<uint16_t>(vertexCount)};
             span.indices = {buffer.indices.data() + currentIndexCount, static_cast<uint16_t>(indexCount)};
             span.indexOffset = static_cast<uint16_t>(currentVertexCount);

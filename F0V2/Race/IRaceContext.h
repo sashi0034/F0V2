@@ -1,0 +1,24 @@
+﻿#pragma once
+
+namespace Race
+{
+    struct RaceContextContent;
+
+    class StageManager;
+
+    class IRaceContext
+    {
+    public:
+        virtual ~IRaceContext() = default;
+
+        virtual RaceContextContent& state() = 0;
+        virtual const RaceContextContent& state() const = 0;
+
+        virtual StageManager& stageManager() = 0;
+        virtual const StageManager& stageManager() const = 0;
+    };
+
+    IRaceContext& GetRaceContext();
+
+    RaceContextContent& GetRaceContextContent();
+}

@@ -1,10 +1,13 @@
 ﻿#pragma once
+#include "IGpuMemoryUsage.h"
 
 namespace TY
 {
     namespace System
     {
         bool Update();
+
+        float Time();
 
         float DeltaTime();
 
@@ -15,5 +18,7 @@ namespace TY
         void ModalError(const std::wstring& message);
 
         void ModalError(const std::string& message);
+
+        IGpuMemoryUsage& GpuMemoryUsage();
     }
 }

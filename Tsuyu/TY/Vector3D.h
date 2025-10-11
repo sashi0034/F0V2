@@ -57,6 +57,31 @@ namespace TY
             return Vector2D<value_type>(x, y);
         }
 
+        [[nodiscard]] constexpr Vector2D<value_type> yz() const
+        {
+            return Vector2D<value_type>(y, z);
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> xz() const
+        {
+            return Vector2D<value_type>(x, z);
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> yx() const
+        {
+            return Vector2D<value_type>(y, x);
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> zy() const
+        {
+            return Vector2D<value_type>(z, y);
+        }
+
+        [[nodiscard]] constexpr Vector2D<value_type> zx() const
+        {
+            return Vector2D<value_type>(z, x);
+        }
+
         [[nodiscard]] constexpr Vector3D operator+() const
         {
             return *this;
@@ -124,6 +149,15 @@ namespace TY
             return *this;
         }
 
+        [[nodiscard]]
+        constexpr value_type elem(size_t index) const
+        {
+            if (index == 0) return x;
+            if (index == 1) return y;
+            if (index == 2) return z;
+            return 0;
+        }
+
         [[nodiscard]] constexpr Vector3D withX(value_type newX) const
         {
             return Vector3D(newX, y, z);
@@ -165,6 +199,15 @@ namespace TY
                 this->y * rhs.z - this->z * rhs.y,
                 this->z * rhs.x - this->x * rhs.z,
                 this->x * rhs.y - this->y * rhs.x);
+        }
+
+        [[nodiscard]] Vector3D slerp(const Vector3D& target, value_type t) const
+        {
+            float dot = this->dot(target);
+            dot = std::clamp(dot, -1.0f, 1.0f);
+            float theta = std::acos(dot) * t;
+            Vector3D relative = (target - (*this) * dot).normalized();
+            return (*this) * std::cos(theta) + relative * std::sin(theta);
         }
 
         [[nodiscard]] value_type lengthSq() const

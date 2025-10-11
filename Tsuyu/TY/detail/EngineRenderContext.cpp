@@ -7,6 +7,7 @@
 #include "CommandList.h"
 #include "EngineStateContext.h"
 #include "EngineWindow.h"
+#include "GpuMemoryUsage.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
 
@@ -51,6 +52,8 @@ struct EngineRenderContextImpl
     ComPtr<IDXGIAdapter> m_adapter;
     D3D_FEATURE_LEVEL m_featureLevel{};
 
+    GpuMemoryUsage m_gpuMemoryUsage{};
+
     CommandList m_drawCommandList{};
     CommandList m_copyCommandList{};
     CommandList m_computeCommandList{};
@@ -62,6 +65,7 @@ struct EngineRenderContextImpl
     UINT m_currentBackBufferIndex{};
 
     Mat3x2 m_windowToFrameBuffer{};
+    Mat3x2 m_frameBufferToWindow{};
 
     bool m_previousFullscreen{};
 
@@ -139,6 +143,8 @@ struct EngineRenderContextImpl
 
         LogInfo.writeln(std::format("Direct3D feature level: {:08x}", static_cast<int>(m_featureLevel)));
 
+        m_gpuMemoryUsage = GpuMemoryUsage{m_dxgiFactory.Get(), m_device->GetAdapterLuid()};
+
         // コマンドリストの作成
         m_drawCommandList = CommandList{CommandListType::Draw};
 
@@ -198,6 +204,7 @@ struct EngineRenderContextImpl
         m_backBuffer.setViewport(calculateViewportRect());
 
         m_windowToFrameBuffer = calculateWindowToFrameBuffer();
+        m_frameBufferToWindow = m_windowToFrameBuffer.inverse();
 
         // バックバッファを設定
         m_currentBackBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -308,11 +315,11 @@ private:
 
     Mat3x2 calculateWindowToFrameBuffer() const
     {
-        const Float2 windowSize = EngineWindow::GetSize();
-        const float fameBufferScaling = (Float2(m_frameBufferSize) / windowSize).maxComponent();
-        const Float2 windowSizeInScene = windowSize * fameBufferScaling;
+        const Float2 windowSize = EngineWindow::GetSize().cast<Float2>();
+        const float frameBufferScaling = (Float2(m_frameBufferSize) / windowSize).maxComponent();
+        const Float2 windowSizeInScene = windowSize * frameBufferScaling;
         return Mat3x2::Identity()
-               .scaled(Float2{fameBufferScaling, fameBufferScaling})
+               .scaled(Float2{frameBufferScaling, frameBufferScaling})
                .translated((m_frameBufferSize.cast<Float2>() - windowSizeInScene) * 0.5f);
     }
 
@@ -476,6 +483,11 @@ namespace TY::detail
         return s_renderContext.m_windowToFrameBuffer;
     }
 
+    Mat3x2 EngineRenderContext::FrameBufferToWindow()
+    {
+        return s_renderContext.m_frameBufferToWindow;
+    }
+
     ConstantBuffer<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
     {
         return s_renderContext.m_sceneState3D;
@@ -492,5 +504,10 @@ namespace TY::detail
     size_t EngineRenderContext::GetFlushTimestamp()
     {
         return s_renderContext.m_flushTimestamp;
+    }
+
+    IGpuMemoryUsage& EngineRenderContext::GpuMemoryUsage()
+    {
+        return s_renderContext.m_gpuMemoryUsage;
     }
 }

@@ -2,6 +2,7 @@
 #include "CommandList.h"
 #include "PipelineType.h"
 #include "TY/ConstantBuffer.h"
+#include "TY/IGpuMemoryUsage.h"
 #include "TY/Mat3x2.h"
 #include "TY/Mat4x4.h"
 #include "TY/RenderTarget.h"
@@ -59,10 +60,15 @@ namespace TY::detail
         Mat3x2 WindowToFrameBuffer();
 
         [[nodiscard]]
+        Mat3x2 FrameBufferToWindow();
+
+        [[nodiscard]]
         ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
 
         void SafeDisposeRenderResource(const RenderResource& renderResource);
 
         size_t GetFlushTimestamp();
+
+        IGpuMemoryUsage& GpuMemoryUsage();
     }
 }

@@ -73,7 +73,13 @@ namespace TY
         [[nodiscard]] Mat4x4 __vectorcall rotated(Quaternion quaternion) const;
 
         [[nodiscard]]
-        Mat4x4 transposed() const;
+        Mat4x4 __vectorcall transposed() const;
+
+        [[nodiscard]]
+        Mat4x4 __vectorcall inverse() const;
+
+        [[nodiscard]]
+        float determinant() const;
 
         [[nodiscard]] Float3 translation() const
         {
@@ -121,6 +127,12 @@ namespace TY
             };
         }
 
+        [[nodiscard]]
+        float& at1(int row, int col);
+
+        [[nodiscard]]
+        float at1(int row, int col) const;
+
         [[nodiscard]] Mat4x4 operator*(const Mat4x4& rhs) const
         {
             return Mat4x4{mat * rhs.mat};
@@ -156,6 +168,8 @@ namespace TY
         [[nodiscard]] static Mat4x4 Translate(const Float3& v) noexcept;
 
         [[nodiscard] ] static Mat4x4 Scale(const Float3& v) noexcept;
+
+        [[nodiscard]] static Mat4x4 Rotate(Quaternion quaternion) noexcept;
 
         [[nodiscard]] static Mat4x4 RollPitchYaw(Float3 angles);
 

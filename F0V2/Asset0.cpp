@@ -59,25 +59,25 @@ namespace Asset0
     }
 }
 
-namespace Shape2D_Text
+namespace Immediate2D_Text
 {
-    Shape2D::Text RocknRoll_24_Bitmap(const std::u32string& text)
+    Immediate2D::Text RocknRoll_24_Bitmap(const std::u32string& text)
     {
-        return Shape2D::Text(Asset0::RocknRoll_24_Bitmap(), text);
+        return Immediate2D::Text(Asset0::RocknRoll_24_Bitmap(), text);
     }
 
-    Shape2D::Text MPlus1_16_Bitmap(const std::u32string& text)
+    Immediate2D::Text MPlus1_16_Bitmap(const std::u32string& text)
     {
-        return Shape2D::Text(Asset0::MPlus1_16_Bitmap(), text);
+        return Immediate2D::Text(Asset0::MPlus1_16_Bitmap(), text);
     }
 
-    Shape2D::Text MPlus1_24_Bitmap(const std::u32string& text)
+    Immediate2D::Text MPlus1_24_Bitmap(const std::u32string& text)
     {
-        return Shape2D::Text(Asset0::MPlus1_24_Bitmap(), text);
+        return Immediate2D::Text(Asset0::MPlus1_24_Bitmap(), text);
     }
 
-    Shape2D::Text MPlus1_Sdf(const std::u32string& text)
+    Immediate2D::Text MPlus1_Sdf(const std::u32string& text)
     {
-        return Shape2D::Text(Asset0::MPlus1_Sdf(), text);
+        return Immediate2D::Text(Asset0::MPlus1_Sdf(), text);
     }
 }

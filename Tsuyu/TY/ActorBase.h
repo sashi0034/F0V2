@@ -24,8 +24,8 @@ namespace TY
         bool isAlive() const { return m_alive; }
 
         /// @brief オブジェクト優先度
-        /// @remark 大きいほど値であるほど Update() と Draw() において先に処理される
-        virtual double orderPriority() const { return 0; }
+        /// @remark 大きいほど値であるほど update() において先に処理される
+        virtual float orderPriority() const { return 0; }
 
     protected:
         /// @brief Kill() 呼び出し時に内部から呼ばれる

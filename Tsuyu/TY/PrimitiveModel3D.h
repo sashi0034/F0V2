@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "ModelData.h"
-#include "Triangle3D.h"
+#include "PrimitiveTypes3D.h"
 
 namespace TY
 {
@@ -8,7 +8,11 @@ namespace TY
     {
         ModelData Triangle(const Triangle3D& tri, const ColorF32& color);
 
+        ModelData Quad(const Quad3D& quad, const ColorF32& color);
+
         ModelData Sphere(float radius, const ColorF32& color);
+
+        ModelData Torus(float outerRadius, float innerRadius, const ColorF32& color);
 
         ModelData Capsule(float radius, float cylinderHeight, const ColorF32& color);
 

@@ -26,7 +26,9 @@ namespace TY::detail
         [[nodiscard]]
         Size GetSize();
 
-        float GetWheelDelta();
+        int TitleBarHeight();
+
+        float WheelDelta();
 
         void Resize(Size size);
 

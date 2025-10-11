@@ -54,7 +54,7 @@ namespace TY
         shape.materialIndex = 0; // 上で追加したマテリアルを参照
 
         // 頂点生成
-        Float3 norm = tri.getNormal();
+        Float3 norm = tri.getAreaNormal();
         shape.vertexBuffer = {
             {tri.p0, norm, {0, 0}},
             {tri.p1, norm, {1, 0}},
@@ -70,6 +70,46 @@ namespace TY
         shape.indexBuffer = {
             0, 1, 2, // 表
             3, 4, 5 // 裏（反時計回り）
+        };
+
+        data.shapes.push_back(std::move(shape));
+        return data;
+    }
+
+    ModelData PrimitiveModel3D::Quad(const Quad3D& quad, const ColorF32& color)
+    {
+        ModelData data;
+
+        ModelMaterialParameters params;
+        params.ambient = color.toFloat3() * 0.1f; // Ambient は拡散成分の 10%
+        params.diffuse = color.toFloat3();
+        params.specular = {1.0f, 1.0f, 1.0f};
+        params.shininess = 32.0f;
+
+        data.materials.push_back({"Quad", params, {}});
+
+        ModelShape shape;
+        shape.materialIndex = 0; // 上で追加したマテリアルを参照
+
+        // 頂点生成
+        Float3 norm = quad.getNormal();
+        shape.vertexBuffer = {
+            {quad.p0, norm, {0, 0}},
+            {quad.p1, norm, {1, 0}},
+            {quad.p2, norm, {0, 1}},
+            {quad.p3, norm, {1, 1}},
+
+            // 裏面用の頂点（法線とUV反転）
+            {quad.p0, -norm, {0, 0}},
+            {quad.p2, -norm, {0, 1}},
+            {quad.p1, -norm, {1, 0}},
+            {quad.p3, -norm, {1, 1}},
+        };
+
+        // インデックス生成（表 + 裏）
+        shape.indexBuffer = {
+            0, 1, 2, 2, 1, 3, // 表
+            4, 5, 6, 6, 5, 7 // 裏（反時計回り）
         };
 
         data.shapes.push_back(std::move(shape));
@@ -144,6 +184,80 @@ namespace TY
         return data;
     }
 
+    ModelData PrimitiveModel3D::Torus(float outerRadius, float innerRadius, const ColorF32& color)
+    {
+        constexpr uint16_t sliceCount = 32; // 外周の分割数
+        constexpr uint16_t stackCount = 16; // チューブ断面の分割数
+
+        ModelData data;
+
+        ModelMaterialParameters params;
+        params.ambient = color.toFloat3() * 0.1f;
+        params.diffuse = color.toFloat3();
+        params.specular = {1.0f, 1.0f, 1.0f};
+        params.shininess = 32.0f;
+
+        data.materials.push_back({"Torus", params, {}});
+
+        ModelShape shape;
+        shape.materialIndex = 0;
+
+        // 頂点生成
+        for (unsigned int i = 0; i <= stackCount; ++i)
+        {
+            float phi = 2.0f * Math::PiF * float(i) / float(stackCount);
+            float cosPhi = std::cos(phi);
+            float sinPhi = std::sin(phi);
+
+            for (unsigned int j = 0; j <= sliceCount; ++j)
+            {
+                float theta = 2.0f * Math::PiF * float(j) / float(sliceCount);
+                float cosTheta = std::cos(theta);
+                float sinTheta = std::sin(theta);
+
+                // 位置
+                float x = (outerRadius + innerRadius * cosPhi) * cosTheta;
+                float y = innerRadius * sinPhi;
+                float z = (outerRadius + innerRadius * cosPhi) * sinTheta;
+
+                Float3 pos = {x, y, z};
+
+                // 法線（内半径の方向を使う）
+                Float3 norm = {cosPhi * cosTheta, sinPhi, cosPhi * sinTheta};
+                norm = norm.normalized();
+
+                // UV（外周と断面をそれぞれ U, V に対応させる）
+                Float2 uv = {float(j) / float(sliceCount), float(i) / float(stackCount)};
+
+                shape.vertexBuffer.push_back({pos, norm, uv});
+            }
+        }
+
+        // インデックス生成（スフィアと同じく四角形を 2 つの三角形に分割）
+        const unsigned int ringVertexCount = sliceCount + 1;
+        for (unsigned int i = 0; i < stackCount; ++i)
+        {
+            for (unsigned int j = 0; j < sliceCount; ++j)
+            {
+                uint16_t i0 = uint16_t(i * ringVertexCount + j);
+                uint16_t i1 = uint16_t(i * ringVertexCount + j + 1);
+                uint16_t i2 = uint16_t((i + 1) * ringVertexCount + j);
+                uint16_t i3 = uint16_t((i + 1) * ringVertexCount + j + 1);
+
+                shape.indexBuffer.push_back(i0);
+                shape.indexBuffer.push_back(i2);
+                shape.indexBuffer.push_back(i1);
+
+                shape.indexBuffer.push_back(i1);
+                shape.indexBuffer.push_back(i2);
+                shape.indexBuffer.push_back(i3);
+            }
+        }
+
+        data.shapes.push_back(std::move(shape));
+        return data;
+    }
+
     ModelData PrimitiveModel3D::Capsule(float radius, float cylinderHeight, const ColorF32& color)
     {
         // 解像度（必要に応じて調整）
@@ -185,7 +299,7 @@ namespace TY
             return {0, 1, 0};
         };
 
-        // 垂直リングごとに頂点生成（上→下）
+        // 垂直リングごとに頂点生成（上 --> 下）
         for (uint32_t i = 0; i < rings; ++i)
         {
             float y = 0.0f;
@@ -211,7 +325,7 @@ namespace TY
             }
             else
             {
-                // 下半球: φ ∈ [0, π/2]　（赤道→下極）
+                // 下半球: φ ∈ [0, π/2]　（赤道 --> 下極）
                 float t = float(i - (hemiStacks + cylStacks)) / float(hemiStacks);
                 float phi = t * (Math::PiF * 0.5f);
                 y = -halfCyl - radius * std::sin(phi);
@@ -219,7 +333,7 @@ namespace TY
                 region = Region::BottomHemi;
             }
 
-            // V（縦UV）: 上端0 → 下端1
+            // V（縦UV）: 上端0 --> 下端1
             float v = (yTop - y) / totalHeight;
 
             for (uint32_t j = 0; j <= sliceCount; ++j)
@@ -264,12 +378,12 @@ namespace TY
 
                 // CCW
                 shape.indexBuffer.push_back(a);
-                shape.indexBuffer.push_back(b);
                 shape.indexBuffer.push_back(a + 1);
+                shape.indexBuffer.push_back(b);
 
                 shape.indexBuffer.push_back(a + 1);
-                shape.indexBuffer.push_back(b);
                 shape.indexBuffer.push_back(b + 1);
+                shape.indexBuffer.push_back(b);
             }
         }
 

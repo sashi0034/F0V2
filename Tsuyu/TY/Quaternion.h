@@ -22,8 +22,25 @@ namespace TY
         [[nodiscard]]
         Quaternion(const Float3& axis, float angle);
 
+        float x() const;
+
+        float y() const;
+
+        float z() const;
+
+        float w() const;
+
+        [[nodiscard]]
+        static Quaternion Identity();
+
+        [[nodiscard]]
+        static Quaternion FromAxisAngle(const Float3& axis, float angle);
+
         [[nodiscard]]
         static Quaternion FromEuler(const Float3& euler);
+
+        [[nodiscard]]
+        static Quaternion FromUnitVectors(const Float3& from, const Float3& to);
 
         [[nodiscard]]
         Quaternion operator*(const Quaternion& q) const;
@@ -31,7 +48,16 @@ namespace TY
         Quaternion operator*=(const Quaternion& q);
 
         [[nodiscard]]
+        Quaternion inverse() const;
+
+        [[nodiscard]]
         Float3 eulerAngles() const;
+
+        [[nodiscard]]
+        Float3 rotate(const Float3& v) const;
+
+        [[nodiscard]]
+        Quaternion slerp(const Quaternion& q, float t) const;
 
         [[nodiscard]]
         static Quaternion __vectorcall RotateX(float angle) noexcept;

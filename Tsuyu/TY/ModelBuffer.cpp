@@ -115,6 +115,7 @@ namespace TY
     }
 
     ModelBuffer::ModelBuffer(const ModelShapeBuffer& shapes, const Array<ModelMaterial>& materials)
+        : p_impl(std::make_shared<Impl>(shapes, materials))
     {
     }
 

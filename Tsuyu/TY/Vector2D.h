@@ -228,6 +228,11 @@ namespace TY
         {
             return static_cast<T>(x) / static_cast<T>(y);
         }
+
+        static constexpr Vector2D Zero() noexcept
+        {
+            return {0, 0};
+        }
     };
 
     using Vec2 = Vector2D<double>;

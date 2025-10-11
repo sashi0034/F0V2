@@ -41,6 +41,8 @@ namespace TY
 
         explicit constexpr ColorF32(std::string_view code);
 
+        ColorF32 lerp(const ColorF32& other, float rate) const;
+
         float* getPointer() { return &r; }
 
         Float3 toFloat3() const { return Float3{r, g, b}; }

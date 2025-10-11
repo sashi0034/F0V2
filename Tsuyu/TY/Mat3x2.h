@@ -21,7 +21,7 @@ namespace TY
         }
 
         [[nodiscard]]
-        Mat3x2 constexpr translated(Float2 v) const noexcept
+        constexpr Mat3x2 translated(Float2 v) const noexcept
         {
             Mat3x2 mat = *this;
             mat._31 += v.x;
@@ -30,7 +30,7 @@ namespace TY
         }
 
         [[nodiscard]]
-        Mat3x2 constexpr scaled(Float2 scale, Float2 center = Float2{0, 0}) const noexcept
+        constexpr Mat3x2 scaled(Float2 scale, Float2 center = Float2{0, 0}) const noexcept
         {
             const float b_11 = scale.x;
             const float b_22 = scale.y;
@@ -43,6 +43,15 @@ namespace TY
                 (_31 * b_11 + b_31), (_32 * b_22 + b_32)
             };
         }
+
+        [[nodiscard]]
+        constexpr float determinant() const noexcept
+        {
+            return _11 * _22 - _12 * _21;
+        }
+
+        [[nodiscard]]
+        Mat3x2 inverse() const noexcept;
 
         bool operator==(const Mat3x2& rhs) const noexcept;
 
