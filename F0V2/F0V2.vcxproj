@@ -154,7 +154,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
-    <ClCompile Include="Demo\Demo_Collision.cpp" />
     <ClCompile Include="Demo\Demo_FSR2.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
     <ClCompile Include="Editor\EditorNodeTool.cpp" />
