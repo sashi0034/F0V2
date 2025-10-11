@@ -59,7 +59,7 @@ private:
         const Float3 forwardVector = m_physicsState.m_forwardVector;
 
         Float3 eyePos = m_physicsState.m_pose.position;
-        eyePos += -forwardVector.normalized() * 10.0f;
+        eyePos += -forwardVector.normalized() * 15.0f;
         eyePos += m_cameraUp * 5.0f;
 
         // for (const float dt : StandardStep_60Hz())

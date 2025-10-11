@@ -7,7 +7,7 @@ namespace TY
     class GameObjectHierarchy
     {
     public:
-        using list_type = Array<std::shared_ptr<GameObjectBase>>;
+        using list_type = Array<std::weak_ptr<GameObjectBase>>;
 
         void push(const std::shared_ptr<GameObjectBase>& obj);
 

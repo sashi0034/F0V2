@@ -20,6 +20,7 @@ using namespace Race;
 
 namespace
 {
+#if 0
     void hierarchWindow(const GameObjectHierarchy::list_type& gameObjectList)
     {
         const auto backgroundRegion = RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 800}};
@@ -74,6 +75,7 @@ namespace
 
         ImmediateDrawer::Global().draw();
     }
+#endif
 
     // -----------------------------------------------
 
