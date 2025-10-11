@@ -272,7 +272,9 @@ private:
                 strip.leftmost = strip.center - right * width;
                 strip.rightmost = strip.center + right * width;
 
-                if (segment.style == CourseSegmentStyle::Pipe)
+                strip.style = segment.style;
+
+                if (strip.style == CourseSegmentStyle::Pipe)
                 {
                     // トンネル頂点の計算
                     for (int t = 0; t < PipeSubdivision; ++t)

@@ -5,6 +5,13 @@
 
 namespace Race
 {
+    enum class CourseSegmentStyle : uint8_t
+    {
+        Road,
+        Pipe,
+        Max // end marker
+    };
+
     struct CourseStrip
     {
         Float3 center{};
@@ -14,17 +21,12 @@ namespace Race
         Float3 toNext{}; // 次点へのベクトル
         Float3 normal{};
 
+        CourseSegmentStyle style{};
+
         struct
         {
             std::array<Float3, PipeSubdivision> ringVectors{}; // リング上の頂点方向へのベクトル
         } pipe;
-    };
-
-    enum class CourseSegmentStyle : uint8_t
-    {
-        Road,
-        Pipe,
-        Max // end marker
     };
 
     struct CourseSegment

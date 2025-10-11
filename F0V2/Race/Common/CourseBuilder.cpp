@@ -92,15 +92,23 @@ namespace
 
     ModelBuffer buildPipeModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
+        // TODO: 終端部分の調整
+
         constexpr int subdivision = PipeSubdivision;
         Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * (subdivision * 4 * 2));
         Array<uint16_t> indices((segment.midwayStrips.size() - 1) * (subdivision * 6 * 2));
         int v_offset{};
         int i_offset{};
-        for (int m = 0; m < segment.midwayStrips.size() - 2 /* TODO: 終端部分の調整 */ ; ++m)
+        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];
+
+            if (s1.style != CourseSegmentStyle::Pipe)
+            {
+                // パイプ終端
+                break;
+            }
 
             constexpr float r = 25.0f; // TODO
 
