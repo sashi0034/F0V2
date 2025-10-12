@@ -75,42 +75,41 @@ namespace
         }
     };
 
-    TextureResource makeGroundPlane(
-        const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
+    struct ToyModelBuffer : IGenericModelBuffer
     {
-        Image image{size, backColor};
-        const ColorU8 backColor2 = backColor.toColorU8().multiplied(0.9f);
+        GenericModelShapeBufferElement m_shape{};
 
-        for (int x = 0; x < size.x; x += 2)
+        ToyModelBuffer()
         {
-            for (int y = 0; y < size.y; y += 2)
-            {
-                image[Point{x, y}] = backColor2;
-            }
+            m_shape.materialIndex = 0;
+            m_shape.indexBuffer = IndexBuffer::Placeholder(6);
         }
 
-        const Size padding = (size % lineSpacing) / 2;
-
-        for (int x = padding.x; x < size.x; x += lineSpacing)
+        int shapeCount() const override
         {
-            for (int y = 0; y < size.y; y++)
-            {
-                image[Point{x, y}] = lineColor;
-            }
+            return 1; // Assuming a single shape
         }
 
-        for (int y = padding.y; y < size.y; y += lineSpacing)
+        GenericModelShapeBufferElement shapeAt(int index) const override
         {
-            for (int x = 0; x < size.x; x++)
-            {
-                image[Point{x, y}] = lineColor;
-            }
+            return m_shape;
         }
 
-        return TextureResource{image};
-    }
+        int materialCount() const override
+        {
+            return 1; // Assuming a single material for the shape
+        }
 
-    constexpr float groundPositionY = -10.0f;
+        ConstantBufferCore materialCbv() const override
+        {
+            return ConstantBufferCore{1};
+        }
+
+        Array<Array<ShaderResourceType>> materialSrv() const override
+        {
+            return {};
+        }
+    };
 
     constexpr float fovFarZ = 1000.0f;
 
@@ -123,13 +122,7 @@ struct Demo_FSR2_ST_impl
     {
         GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
 
-        GraphicsShader model{GraphicsShader::VS_PS("asset/shader/model.hlsl")};
-
-        // GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
-
-        GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
-
-        GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
+        GraphicsShader shadertoy{GraphicsShader::VS_PS("asset/shader/shadertoy.hlsl")};
     } m_shaders;
 
     struct
@@ -146,18 +139,11 @@ struct Demo_FSR2_ST_impl
 
     SimpleCamera3D m_camera{};
 
-    ModelDrawer m_skydomeModel{};
-
     Mat4x4 m_projectionMat{};
-
-    ConstantBufferWrapper<LambertLight_b4> m_planeLight{};
 
     ModelDrawer m_groundPlaneDrawer{};
 
-    ModelDrawer m_playerDrawer{};
-    Pose m_playerPose{};
-
-    ModelDrawer m_mountainDrawer{};
+    GenericModelDrawer m_toyDrawer{};
 
     Demo_FSR2_ST_impl()
     {
@@ -165,46 +151,12 @@ struct Demo_FSR2_ST_impl
 
         resetCamera();
 
-        auto skydome_b4 = ConstantBufferWrapper<Skydome_b4>{};
-        skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
-        skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
-        skydome_b4->sphereRadius = fovFarZ;
-        skydome_b4.upload();
-
-        m_skydomeModel = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(PrimitiveModel3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShader(m_shaders.skydome)
-            .setOptions(GraphicsOptions::Default3D()
-                        .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
-                        .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
-            )
-            .setCbv10AndLater({skydome_b4})
-        };
-
-        const auto groundPlaneTexture = makeGroundPlane(
-            Size{1024, 1024}, 32, ColorF32{0.9}, ColorF32{0.3});
-        m_groundPlaneDrawer = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
-            .setShader(m_shaders.model)
-        }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
-
-        m_playerDrawer = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(m_models.playerModel)
-            .setShader(m_shaders.phong)
-            .setCbv10AndLater({m_cb.phongLight})
-        };
-
-        m_playerPose.position.y = groundPositionY + 15.0f;
-
-        m_mountainDrawer = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(m_models.mountainModel)
-            .setShader(m_shaders.phong)
-            .setCbv10AndLater({m_cb.phongLight})
-        };
+        m_toyDrawer = GenericModelDrawerParams{}
+                      .setModel(std::make_unique<ToyModelBuffer>())
+                      .setVertexInput({})
+                      .setShader(m_shaders.shadertoy)
+                      .setOptions(GraphicsOptions{})
+                      .setCbv10AndLater({});
 
         InitFsr2();
     }
@@ -445,72 +397,7 @@ struct Demo_FSR2_ST_impl
 
     void draw3D()
     {
-        m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
-
-        if (not KeyShift.pressed())
-        {
-            m_camera.transformBySimpleInput();
-        }
-        else
-        {
-            const auto matrix = m_playerPose.getMatrix();
-            const auto forward = matrix.forward();
-            const auto right = matrix.right();
-            const auto up = matrix.up();
-
-            const auto moveInput = SimpleInput::GetPlayerMovement3D();
-            constexpr auto speed = 10.0f;
-            m_playerPose.position += forward * moveInput.z * speed * System::DeltaTime();
-            m_playerPose.position += right * moveInput.x * speed * System::DeltaTime();
-            m_playerPose.position += up * moveInput.y * speed * System::DeltaTime();
-
-            const auto rotateInput = SimpleInput::GetCameraRotation();
-            constexpr auto rotationSpeed = 2.0f;
-            m_playerPose.rotation *= Quaternion::RotateY(rotateInput.x * rotationSpeed * System::DeltaTime());
-        }
-
-        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
-
-        {
-            Float2 jitter_ndc = 2.0f * m_jitterOffset / m_inputRT.size();
-
-            // jitter_ndc *= 5.0f; // FIXME
-            // std::cout  << "jitter ndc: " << jitter_ndc.x << ", " << jitter_ndc.y << "\n";
-
-            const Mat4x4 jitterMat = Mat4x4::Translate({jitter_ndc.x, -jitter_ndc.y, 0.0f});
-
-            m_projectionMat = Mat4x4::PerspectiveFov(
-                75.0_deg,
-                Scene::Size().horizontalAspectRatio(),
-                fovNearZ,
-                fovFarZ
-            );
-
-            m_projectionMat = m_projectionMat * jitterMat;
-
-            Graphics3D::SetProjectionMatrix(m_projectionMat);
-        }
-
-        m_cb.phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
-        m_cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-        m_cb.phongLight->eyePosition = m_camera.eyePosition();
-        m_cb.phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
-
-        m_cb.phongLight.upload();
-
-        m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
-        m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
-        m_planeLight.upload();
-
-        // -----------------------------------------------
-
-        m_skydomeModel.uploadWorldMatrix(Mat4x4::Translate(m_camera.eyePosition())).draw();
-
-        m_groundPlaneDrawer.draw();
-
-        m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
-
-        m_playerDrawer.draw();
+        m_toyDrawer.draw();
     }
 
     void Update()

@@ -154,6 +154,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <Content Include="asset\shader\shadertoy.hlsl" />
     <ClCompile Include="Demo\Demo_FSR2.cpp" />
     <ClCompile Include="Demo\Demo_FSR2_ST.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
