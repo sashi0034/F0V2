@@ -11,6 +11,7 @@
 #include "Demo/Demo_Intersection.h"
 #include "Demo/Demo_Font.h"
 #include "Demo/Demo_FSR2.h"
+#include "Demo/Demo_FSR2_ST.h"
 #include "Demo/Demo_Gpgpu.h"
 #include "Demo/Demo_Ocean.h"
 #include "Demo/Demo_RenderTarget.h"
@@ -27,7 +28,7 @@ void Main()
     InitImmediatePrintAddon();
 
 #if 1
-    Demo_FSR2();
+    Demo_FSR2_ST();
 #else
     using namespace TY;
 

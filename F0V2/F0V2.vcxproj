@@ -155,6 +155,7 @@
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
     <ClCompile Include="Demo\Demo_FSR2.cpp" />
+    <ClCompile Include="Demo\Demo_FSR2_ST.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
     <ClCompile Include="Editor\EditorNodeTool.cpp" />
     <ClCompile Include="Editor\EditorPlayground.cpp" />
@@ -252,6 +253,7 @@
     <ClInclude Include="CB\Lambert.h" />
     <ClInclude Include="CB\Skydome.h" />
     <ClInclude Include="ColorPalette.h" />
+    <ClInclude Include="Demo\Demo_FSR2_ST.h" />
     <ClInclude Include="Editor\EditorScene.h" />
     <ClInclude Include="Editor\EditorState.h" />
     <ClInclude Include="Editor\EditorNodeTool.h" />
