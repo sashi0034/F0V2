@@ -90,6 +90,74 @@ namespace
         return modelBuffer;
     }
 
+    struct FaceVertex
+    {
+        Float3 p{};
+        Float3 n{};
+    };
+
+    void pushFaces(
+        Array<ModelVertex>& vertices,
+        Array<uint16_t>& indices,
+        int& v_offset,
+        int& i_offset,
+        const FaceVertex& l0,
+        const FaceVertex& r0,
+        const FaceVertex& l1,
+        const FaceVertex& r1,
+        CoursePolygoneCollider* outCollider = nullptr
+    )
+    {
+        vertices[v_offset] = ModelVertex{l1.p, l1.n, Float2{}};
+        vertices[v_offset + 1] = ModelVertex{r1.p, r1.n, Float2{1, 0}};
+        vertices[v_offset + 2] = ModelVertex{l0.p, l0.n, Float2{0, 1}};
+        vertices[v_offset + 3] = ModelVertex{r0.p, r0.n, Float2{1, 1}};
+
+        indices[i_offset] = v_offset;
+        indices[i_offset + 1] = v_offset + 2;
+        indices[i_offset + 2] = v_offset + 1;
+        indices[i_offset + 3] = v_offset + 1;
+        indices[i_offset + 4] = v_offset + 2;
+        indices[i_offset + 5] = v_offset + 3;
+
+        v_offset += 4;
+        i_offset += 6;
+
+        vertices[v_offset] = ModelVertex{l1.p, -l1.n, Float2{}};
+        vertices[v_offset + 1] = ModelVertex{r1.p, -r1.n, Float2{1, 0}};
+        vertices[v_offset + 2] = ModelVertex{l0.p, -l0.n, Float2{0, 1}};
+        vertices[v_offset + 3] = ModelVertex{r0.p, -r0.n, Float2{1, 1}};
+
+        indices[i_offset] = v_offset;
+        indices[i_offset + 1] = v_offset + 1;
+        indices[i_offset + 2] = v_offset + 2;
+        indices[i_offset + 3] = v_offset + 1;
+        indices[i_offset + 4] = v_offset + 3;
+        indices[i_offset + 5] = v_offset + 2;
+
+        v_offset += 4;
+        i_offset += 6;
+
+        if (outCollider)
+        {
+            const std::array normals_00_10_01_11{l0.n, /* 10: */ r0.n, /* 01: */ l1.n, r1.n};
+
+            outCollider->tris.push_back(IndexedTriangle{l1.p, l0.p, r1.p, outCollider->attributes.size()});
+            outCollider->attributes.push_back(CourseTriangleAttribute{
+                CourseTriangleAttribute::Triangle_01_00_11,
+                normals_00_10_01_11,
+                r0.p
+            });
+
+            outCollider->tris.push_back(IndexedTriangle{r1.p, l0.p, r0.p, outCollider->attributes.size()});
+            outCollider->attributes.push_back(CourseTriangleAttribute{
+                CourseTriangleAttribute::Triangle_11_00_10,
+                normals_00_10_01_11,
+                l1.p
+            });
+        }
+    }
+
     ModelBuffer buildPipeModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         // TODO: 終端部分の調整
@@ -145,65 +213,23 @@ namespace
                 const float t0 = static_cast<float>(i0) / (halfSubdivision1 - 1);
                 const float t1 = static_cast<float>(i1) / (halfSubdivision1 - 1);
 
-                const Float3 l0 = s0.leftmost * (1 - t0) + s0.rightmost * t0;
-                const Float3 r0 = s0.leftmost * (1 - t1) + s0.rightmost * t1;
-                const Float3& l0_n = s0.normal;
-                const Float3& r0_n = s0.normal;
+                FaceVertex l0, r0, l1, r1;
+
+                l0.p = s0.leftmost * (1 - t0) + s0.rightmost * t0;
+                r0.p = s0.leftmost * (1 - t1) + s0.rightmost * t1;
+                l0.n = s0.normal;
+                r0.n = s0.normal;
 
                 const auto& ringVectors = s1.pipe.ringVectors;
-                const Float3 l1 = s1.center + ringVectors[i0] * r;
-                const Float3 r1 = s1.center + ringVectors[i1] * r;
-                const Float3& l1_n = -ringVectors[i0];
-                const Float3& r1_n = -ringVectors[i1];
+                l1.p = s1.center + ringVectors[i0] * r;
+                r1.p = s1.center + ringVectors[i1] * r;
+                l1.n = -ringVectors[i0];
+                r1.n = -ringVectors[i1];
 
-                vertices[v_offset] = ModelVertex{l1, l1_n, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, r1_n, Float2{1, 0}};
-                vertices[v_offset + 2] = ModelVertex{l0, l0_n, Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, r0_n, Float2{1, 1}};
-
-                indices[i_offset] = v_offset; // l1
-                indices[i_offset + 1] = v_offset + 2; // l0
-                indices[i_offset + 2] = v_offset + 1; // r1
-                indices[i_offset + 3] = v_offset + 1;
-                indices[i_offset + 4] = v_offset + 2;
-                indices[i_offset + 5] = v_offset + 3;
-
-                v_offset += 4;
-                i_offset += 6;
-
-                vertices[v_offset] = ModelVertex{l1, -l1_n, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, -r1_n, Float2{1, 0}};
-                vertices[v_offset + 2] = ModelVertex{l0, -l0_n, Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, -r0_n, Float2{1, 1}};
-
-                indices[i_offset] = v_offset;
-                indices[i_offset + 1] = v_offset + 1;
-                indices[i_offset + 2] = v_offset + 2;
-                indices[i_offset + 3] = v_offset + 1;
-                indices[i_offset + 4] = v_offset + 3;
-                indices[i_offset + 5] = v_offset + 2;
-
-                v_offset += 4;
-                i_offset += 6;
-
-                if (outCollider)
-                {
-                    const std::array normals_00_10_01_11{l0_n, /* 10: */ r0_n, /* 01: */ l1_n, r1_n};
-
-                    outCollider->tris.push_back(IndexedTriangle{l1, l0, r1, outCollider->attributes.size()});
-                    outCollider->attributes.push_back(CourseTriangleAttribute{
-                        CourseTriangleAttribute::Triangle_01_00_11,
-                        normals_00_10_01_11,
-                        r0
-                    });
-
-                    outCollider->tris.push_back(IndexedTriangle{r1, l0, r0, outCollider->attributes.size()});
-                    outCollider->attributes.push_back(CourseTriangleAttribute{
-                        CourseTriangleAttribute::Triangle_11_00_10,
-                        normals_00_10_01_11,
-                        l1
-                    });
-                }
+                pushFaces(
+                    vertices, indices, v_offset, i_offset,
+                    l0, r0, l1, r1,
+                    outCollider);
             }
         }
 
@@ -220,80 +246,22 @@ namespace
             {
                 const int i1 = (i0 + 1) % subdivision;
 
-                const Float3 l0 = s0.center + n0s[i0] * r;
-                const Float3 r0 = s0.center + n0s[i1] * r;
-                const Float3 l1 = s1.center + n1s[i0] * r;
-                const Float3 r1 = s1.center + n1s[i1] * r;
+                FaceVertex l0, r0, l1, r1;
 
-                const Float3 l0_n = -n0s[i0];
-                const Float3 r0_n = -n0s[i1];
-                const Float3 l1_n = -n1s[i0];
-                const Float3 r1_n = -n1s[i1];
+                l0.p = s0.center + n0s[i0] * r;
+                r0.p = s0.center + n0s[i1] * r;
+                l1.p = s1.center + n1s[i0] * r;
+                r1.p = s1.center + n1s[i1] * r;
 
-                vertices[v_offset] = ModelVertex{l1, l1_n, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, r1_n, Float2{1, 0}};
-                vertices[v_offset + 2] = ModelVertex{l0, l0_n, Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, r0_n, Float2{1, 1}};
+                l0.n = -n0s[i0];
+                r0.n = -n0s[i1];
+                l1.n = -n1s[i0];
+                r1.n = -n1s[i1];
 
-                indices[i_offset] = v_offset; // l1
-                indices[i_offset + 1] = v_offset + 2; // l0
-                indices[i_offset + 2] = v_offset + 1; // r1
-                indices[i_offset + 3] = v_offset + 1;
-                indices[i_offset + 4] = v_offset + 2;
-                indices[i_offset + 5] = v_offset + 3;
-
-                v_offset += 4;
-                i_offset += 6;
-
-                if (outCollider)
-                {
-                    const std::array normals_00_10_01_11{l0_n, /* 10: */ r0_n, /* 01: */ l1_n, r1_n};
-
-                    outCollider->tris.push_back(IndexedTriangle{l1, l0, r1, outCollider->attributes.size()});
-                    outCollider->attributes.push_back(CourseTriangleAttribute{
-                        CourseTriangleAttribute::Triangle_01_00_11,
-                        normals_00_10_01_11,
-                        r0
-                    });
-
-                    outCollider->tris.push_back(IndexedTriangle{r1, l0, r0, outCollider->attributes.size()});
-                    outCollider->attributes.push_back(CourseTriangleAttribute{
-                        CourseTriangleAttribute::Triangle_11_00_10,
-                        normals_00_10_01_11,
-                        l1
-                    });
-                }
-            }
-
-            // 裏面
-            for (int i0 = 0; i0 < subdivision; ++i0)
-            {
-                const int i1 = (i0 + 1) % subdivision;
-
-                const Float3 l0 = s0.center + n0s[i0] * r;
-                const Float3 r0 = s0.center + n0s[i1] * r;
-                const Float3 l1 = s1.center + n1s[i0] * r;
-                const Float3 r1 = s1.center + n1s[i1] * r;
-
-                const Float3 l0_n = n0s[i0];
-                const Float3 r0_n = n0s[i1];
-                const Float3 l1_n = n1s[i0];
-                const Float3 r1_n = n1s[i1];
-
-                vertices[v_offset] = ModelVertex{l1, l1_n, Float2{}};
-                vertices[v_offset + 1] = ModelVertex{r1, r1_n, Float2{1, 0}};
-                vertices[v_offset + 2] = ModelVertex{l0, l0_n, Float2{0, 1}};
-                vertices[v_offset + 3] = ModelVertex{r0, r0_n, Float2{1, 1}};
-
-                indices[i_offset] = v_offset;
-                indices[i_offset + 1] = v_offset + 1;
-                indices[i_offset + 2] = v_offset + 2;
-                indices[i_offset + 3] = v_offset + 1;
-                indices[i_offset + 4] = v_offset + 3;
-                indices[i_offset + 5] = v_offset + 2;
-
-                v_offset += 4;
-                i_offset += 6;
+                pushFaces(
+                    vertices, indices, v_offset, i_offset,
+                    l0, r0, l1, r1,
+                    outCollider);
             }
         }
 
