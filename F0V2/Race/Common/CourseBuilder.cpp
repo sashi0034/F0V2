@@ -92,8 +92,8 @@ namespace
 
     struct FaceVertex
     {
-        Float3 p{};
-        Float3 n{};
+        Float3 pos{};
+        Float3 normal{};
     };
 
     void pushFaces(
@@ -108,10 +108,10 @@ namespace
         CoursePolygoneCollider* outCollider = nullptr
     )
     {
-        vertices[v_offset] = ModelVertex{l1.p, l1.n, Float2{}};
-        vertices[v_offset + 1] = ModelVertex{r1.p, r1.n, Float2{1, 0}};
-        vertices[v_offset + 2] = ModelVertex{l0.p, l0.n, Float2{0, 1}};
-        vertices[v_offset + 3] = ModelVertex{r0.p, r0.n, Float2{1, 1}};
+        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, Float2{}};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, Float2{1, 0}};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, Float2{0, 1}};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, Float2{1, 1}};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 2;
@@ -123,10 +123,10 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        vertices[v_offset] = ModelVertex{l1.p, -l1.n, Float2{}};
-        vertices[v_offset + 1] = ModelVertex{r1.p, -r1.n, Float2{1, 0}};
-        vertices[v_offset + 2] = ModelVertex{l0.p, -l0.n, Float2{0, 1}};
-        vertices[v_offset + 3] = ModelVertex{r0.p, -r0.n, Float2{1, 1}};
+        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, Float2{}};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, Float2{1, 0}};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, Float2{0, 1}};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, Float2{1, 1}};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 1;
@@ -140,20 +140,20 @@ namespace
 
         if (outCollider)
         {
-            const std::array normals_00_10_01_11{l0.n, /* 10: */ r0.n, /* 01: */ l1.n, r1.n};
+            const std::array normals_00_10_01_11{l0.normal, /* 10: */ r0.normal, /* 01: */ l1.normal, r1.normal};
 
-            outCollider->tris.push_back(IndexedTriangle{l1.p, l0.p, r1.p, outCollider->attributes.size()});
+            outCollider->tris.push_back(IndexedTriangle{l1.pos, l0.pos, r1.pos, outCollider->attributes.size()});
             outCollider->attributes.push_back(CourseTriangleAttribute{
                 CourseTriangleAttribute::Triangle_01_00_11,
                 normals_00_10_01_11,
-                r0.p
+                r0.pos
             });
 
-            outCollider->tris.push_back(IndexedTriangle{r1.p, l0.p, r0.p, outCollider->attributes.size()});
+            outCollider->tris.push_back(IndexedTriangle{r1.pos, l0.pos, r0.pos, outCollider->attributes.size()});
             outCollider->attributes.push_back(CourseTriangleAttribute{
                 CourseTriangleAttribute::Triangle_11_00_10,
                 normals_00_10_01_11,
-                l1.p
+                l1.pos
             });
         }
     }
@@ -215,16 +215,16 @@ namespace
 
                 FaceVertex l0, r0, l1, r1;
 
-                l0.p = s0.leftmost * (1 - t0) + s0.rightmost * t0;
-                r0.p = s0.leftmost * (1 - t1) + s0.rightmost * t1;
-                l0.n = s0.normal;
-                r0.n = s0.normal;
+                l0.pos = s0.leftmost * (1 - t0) + s0.rightmost * t0;
+                r0.pos = s0.leftmost * (1 - t1) + s0.rightmost * t1;
+                l0.normal = s0.normal;
+                r0.normal = s0.normal;
 
                 const auto& ringVectors = s1.pipe.ringVectors;
-                l1.p = s1.center + ringVectors[i0] * r;
-                r1.p = s1.center + ringVectors[i1] * r;
-                l1.n = -ringVectors[i0];
-                r1.n = -ringVectors[i1];
+                l1.pos = s1.center + ringVectors[i0] * r;
+                r1.pos = s1.center + ringVectors[i1] * r;
+                l1.normal = -ringVectors[i0];
+                r1.normal = -ringVectors[i1];
 
                 pushFaces(
                     vertices, indices, v_offset, i_offset,
@@ -248,15 +248,15 @@ namespace
 
                 FaceVertex l0, r0, l1, r1;
 
-                l0.p = s0.center + n0s[i0] * r;
-                r0.p = s0.center + n0s[i1] * r;
-                l1.p = s1.center + n1s[i0] * r;
-                r1.p = s1.center + n1s[i1] * r;
+                l0.pos = s0.center + n0s[i0] * r;
+                r0.pos = s0.center + n0s[i1] * r;
+                l1.pos = s1.center + n1s[i0] * r;
+                r1.pos = s1.center + n1s[i1] * r;
 
-                l0.n = -n0s[i0];
-                r0.n = -n0s[i1];
-                l1.n = -n1s[i0];
-                r1.n = -n1s[i1];
+                l0.normal = -n0s[i0];
+                r0.normal = -n0s[i1];
+                l1.normal = -n1s[i0];
+                r1.normal = -n1s[i1];
 
                 pushFaces(
                     vertices, indices, v_offset, i_offset,
