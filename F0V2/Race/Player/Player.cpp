@@ -131,8 +131,8 @@ private:
             if (ImGui::Button("Go To Checkpoint"))
             {
                 const auto& s = segments[s_checkpointIndex];
+                m_physicsState = {};
                 m_physicsState.m_pose.position = s.p1 + s.midwayStrips[0].normal * 10.0f;
-                m_physicsState.m_pose.rotation = {};
             }
         }
 
@@ -159,6 +159,7 @@ private:
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
             m_physicsState = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
+            m_physicsState.m_velocity = {};
         }
 
         if (ImGui::IsItemDeactivatedAfterEdit())
@@ -171,6 +172,7 @@ private:
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
             m_physicsState = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
+            m_physicsState.m_velocity = {};
         }
 
         // -----------------------------------------------

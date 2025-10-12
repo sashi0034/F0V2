@@ -240,6 +240,9 @@ private:
         // 変更があった CourseSegment の線分に対して面を構築する
         for (const auto i : rebuildIndexes)
         {
+            const auto& priorSegment = m_segments[Modulo<int>(i - 1, m_segments.size())];
+            const auto& nextSegment = m_segments[(i + 1) % m_segments.size()];
+
             auto& segment = m_segments[i];
             segment.midwayStrips.clear();
 
@@ -276,11 +279,38 @@ private:
 
                 if (strip.style == CourseSegmentStyle::Pipe)
                 {
+                    constexpr int pipeMargin = 20;
+
+                    if (priorSegment.style != CourseSegmentStyle::Pipe)
+                    {
+                        // 入口
+                        if (m == 0)
+                        {
+                            strip.style = CourseSegmentStyle::Road;
+                        }
+                        else if (m < pipeMargin)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (nextSegment.style != CourseSegmentStyle::Pipe)
+                    {
+                        if (m >= midwayPositions.size() - pipeMargin)
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                if (strip.style == CourseSegmentStyle::Pipe)
+                {
                     // トンネル頂点の計算
                     for (int t = 0; t < PipeSubdivision; ++t)
                     {
                         // 円周上の方向ベクトルを計算
-                        const float angle = -(0.5 + static_cast<float>(t) / PipeSubdivision) * Math::TwoPi_v<float>;
+                        const float angle =
+                            Math::HalfPiF - (0.5 + static_cast<float>(t) / PipeSubdivision) * Math::TwoPi_v<float>;
                         const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
                         strip.pipe.ringVectors[t] = dir;
                     }
