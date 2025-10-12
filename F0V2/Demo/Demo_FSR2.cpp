@@ -477,7 +477,7 @@ struct Demo_FSR2_impl
         {
             Float2 jitter_ndc = 2.0f * m_jitterOffset / m_inputRT.size();
 
-            jitter_ndc *= 5.0f; // FIXME
+            // jitter_ndc *= 5.0f; // FIXME
             // std::cout  << "jitter ndc: " << jitter_ndc.x << ", " << jitter_ndc.y << "\n";
 
             const Mat4x4 jitterMat = Mat4x4::Translate({jitter_ndc.x, -jitter_ndc.y, 0.0f});
@@ -489,7 +489,7 @@ struct Demo_FSR2_impl
                 fovFarZ
             );
 
-            m_projectionMat = jitterMat * m_projectionMat;
+            m_projectionMat = m_projectionMat * jitterMat;
 
             Graphics3D::SetProjectionMatrix(m_projectionMat);
         }
