@@ -162,6 +162,7 @@ namespace
     {
         // TODO: 終端部分の調整
 
+        constexpr int entryExitSegments = 10;
         constexpr int subdivision = PipeSubdivision;
         constexpr int halfSubdivision0 = subdivision / 2;
         constexpr int halfSubdivision1 = halfSubdivision0 + 1;
@@ -185,11 +186,11 @@ namespace
         // -----------------------------------------------
 
         Array<ModelVertex> vertices(
-            entryStrips * ((halfSubdivision1) * 4 * 2) +
+            entryStrips * entryExitSegments * ((halfSubdivision1) * 4 * 2) +
             (pipeStrips - 1) * (subdivision * 4 * 2) +
             exitStrips * (halfSubdivision1 * 4 * 2));
         Array<uint16_t> indices(
-            entryStrips * (halfSubdivision1 * 6 * 2) +
+            entryStrips * entryExitSegments * (halfSubdivision1 * 6 * 2) +
             (pipeStrips - 1) * (subdivision * 6 * 2) +
             exitStrips * (halfSubdivision1 * 6 * 2));
         int v_offset{};
@@ -213,23 +214,38 @@ namespace
                 const float t0 = static_cast<float>(i0) / (halfSubdivision1 - 1);
                 const float t1 = static_cast<float>(i1) / (halfSubdivision1 - 1);
 
-                FaceVertex l0, r0, l1, r1;
+                FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
 
-                l0.pos = s0.leftmost * (1 - t0) + s0.rightmost * t0;
-                r0.pos = s0.leftmost * (1 - t1) + s0.rightmost * t1;
-                l0.normal = s0.normal;
-                r0.normal = s0.normal;
+                cap_l0.pos = s0.leftmost * (1 - t0) + s0.rightmost * t0;
+                cap_r0.pos = s0.leftmost * (1 - t1) + s0.rightmost * t1;
+                cap_l0.normal = s0.normal;
+                cap_r0.normal = s0.normal;
 
                 const auto& ringVectors = s1.pipe.ringVectors;
-                l1.pos = s1.center + ringVectors[i0] * r;
-                r1.pos = s1.center + ringVectors[i1] * r;
-                l1.normal = -ringVectors[i0];
-                r1.normal = -ringVectors[i1];
+                cap_l1.pos = s1.center + ringVectors[i0] * r;
+                cap_r1.pos = s1.center + ringVectors[i1] * r;
+                cap_l1.normal = -ringVectors[i0];
+                cap_r1.normal = -ringVectors[i1];
 
-                pushFaces(
-                    vertices, indices, v_offset, i_offset,
-                    l0, r0, l1, r1,
-                    outCollider);
+                for (int s = 0; s < entryExitSegments; ++s)
+                {
+                    const float s0_rate = static_cast<float>(s) / entryExitSegments;
+                    const float r1_rate = static_cast<float>(s + 1) / entryExitSegments;
+                    FaceVertex l0, r0, l1, r1;
+                    l0.pos = cap_l0.pos * (1 - s0_rate) + cap_l1.pos * s0_rate;
+                    r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
+                    l1.pos = cap_l0.pos * (1 - r1_rate) + cap_l1.pos * r1_rate;
+                    r1.pos = cap_r0.pos * (1 - r1_rate) + cap_r1.pos * r1_rate;
+                    l0.normal = (cap_l0.normal * (1 - s0_rate) + cap_l1.normal * s0_rate).normalized();
+                    r0.normal = (cap_r0.normal * (1 - s0_rate) + cap_r1.normal * s0_rate).normalized();
+                    l1.normal = (cap_l0.normal * (1 - r1_rate) + cap_l1.normal * r1_rate).normalized();
+                    r1.normal = (cap_r0.normal * (1 - r1_rate) + cap_r1.normal * r1_rate).normalized();
+
+                    pushFaces(
+                        vertices, indices, v_offset, i_offset,
+                        l0, r0, l1, r1,
+                        outCollider);
+                }
             }
         }
 
