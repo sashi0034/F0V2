@@ -175,6 +175,8 @@ struct Demo_FSR2_ST_impl
 
     RenderTarget m_inputRT{{.size = Scene::Size() * 0.5, .clearColor = ColorF32{0.0f, 1.0f}}};
 
+    TextureDrawer m_debugInputRtDrawer{};
+
     Float2 m_jitterOffset{};
 
     void InitFsr2()
@@ -210,6 +212,12 @@ struct Demo_FSR2_ST_impl
             TextureDrawerParams{}
             .setShader(m_shaders.default2d)
             .setTexture(TextureResource{m_upscaledOutputTex.Get()})
+        };
+
+        m_debugInputRtDrawer = TextureDrawer{
+            TextureDrawerParams{}
+            .setShader(m_shaders.default2d)
+            .setTexture({m_inputRT.asShaderResource()})
         };
     }
 
@@ -402,40 +410,20 @@ struct Demo_FSR2_ST_impl
 
     void Update()
     {
+        static bool s_fsrEnabled{true};
+
         {
             auto bind = m_inputRT.scopedBind();
             draw3D();
         }
 
-        DrawFsr2();
-
+        if (s_fsrEnabled)
         {
-            ImGui::Begin("Camera");
-
-            ImGui::Text("Eye Position: (%.2f, %.2f, %.2f)",
-                        m_camera.eyePosition().x,
-                        m_camera.eyePosition().y,
-                        m_camera.eyePosition().z);
-
-            const auto targetPosition = m_camera.targetPosition();
-            ImGui::Text("Target Position: (%.2f, %.2f, %.2f)",
-                        targetPosition.x,
-                        targetPosition.y,
-                        targetPosition.z);
-
-            ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
-                        m_cb.phongLight->lightDirection.x,
-                        m_cb.phongLight->lightDirection.y,
-                        m_cb.phongLight->lightDirection.z);
-
-            ImGui::Separator();
-
-            if (ImGui::Button("Reset Camera"))
-            {
-                resetCamera();
-            }
-
-            ImGui::End();
+            DrawFsr2();
+        }
+        else
+        {
+            m_debugInputRtDrawer.as2D().resized(Scene::Size()).draw(Float2{});
         }
 
         {
@@ -448,6 +436,8 @@ struct Demo_FSR2_ST_impl
             {
                 System::Sleep(500);
             }
+
+            ImGui::Checkbox("FSR2 Enabled", &s_fsrEnabled);
 
             ImGui::End();
         }
