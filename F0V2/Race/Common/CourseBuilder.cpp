@@ -162,37 +162,26 @@ namespace
     {
         // TODO: 終端部分の調整
 
-        constexpr int entryExitSegments = 10;
         constexpr int subdivision = PipeSubdivision;
         constexpr int halfSubdivision0 = subdivision / 2;
         constexpr int halfSubdivision1 = halfSubdivision0 + 1;
 
-        int entryStrips = 0; // todo: bool 
-        while (entryStrips < segment.midwayStrips.size() &&
-            segment.midwayStrips[entryStrips].style != CourseSegmentStyle::Pipe)
-        {
-            ++entryStrips;
-        }
+        const bool hasEntry = segment.midwayStrips.size() >= 2 &&
+            segment.midwayStrips[0].style != CourseSegmentStyle::Pipe;
 
-        int exitStrips = 0;
-        while (exitStrips < segment.midwayStrips.size() &&
-            segment.midwayStrips[segment.midwayStrips.size() - 1 - exitStrips].style != CourseSegmentStyle::Pipe)
-        {
-            ++exitStrips;
-        }
+        const bool hasExit = segment.midwayStrips.size() >= 2 &&
+            segment.midwayStrips[segment.midwayStrips.size() - 1].style != CourseSegmentStyle::Pipe;
 
-        const int pipeStrips = segment.midwayStrips.size() - entryStrips - exitStrips;
+        const int pipeStrips = segment.midwayStrips.size() - hasEntry - hasExit;
 
         // -----------------------------------------------
 
         Array<ModelVertex> vertices(
-            entryStrips * entryExitSegments * ((halfSubdivision1) * 4 * 2) +
-            (pipeStrips - 1) * (subdivision * 4 * 2) +
-            exitStrips * (halfSubdivision1 * 4 * 2));
+            (hasEntry + hasExit) * PipeEntryExitStrips * ((halfSubdivision1) * 4 * 2) +
+            (pipeStrips - 1) * (subdivision * 4 * 2));
         Array<uint16_t> indices(
-            entryStrips * entryExitSegments * (halfSubdivision1 * 6 * 2) +
-            (pipeStrips - 1) * (subdivision * 6 * 2) +
-            exitStrips * (halfSubdivision1 * 6 * 2));
+            (hasEntry + hasExit) * PipeEntryExitStrips * (halfSubdivision1 * 6 * 2) +
+            (pipeStrips - 1) * (subdivision * 6 * 2));
         int v_offset{};
         int i_offset{};
 
@@ -200,7 +189,7 @@ namespace
 
         constexpr float r = 25.0f; // TODO
 
-        if (entryStrips)
+        if (hasEntry)
         {
             auto& s0 = segment.midwayStrips[0];
             assert(s0.style != CourseSegmentStyle::Pipe);
@@ -227,10 +216,10 @@ namespace
                 cap_l1.normal = -ringVectors[i0];
                 cap_r1.normal = -ringVectors[i1];
 
-                for (int s = 0; s < entryExitSegments; ++s)
+                for (int s = 0; s < PipeEntryExitStrips; ++s)
                 {
-                    const float s0_rate = static_cast<float>(s) / entryExitSegments;
-                    const float r1_rate = static_cast<float>(s + 1) / entryExitSegments;
+                    const float s0_rate = static_cast<float>(s) / PipeEntryExitStrips;
+                    const float r1_rate = static_cast<float>(s + 1) / PipeEntryExitStrips;
                     FaceVertex l0, r0, l1, r1;
                     l0.pos = cap_l0.pos * (1 - s0_rate) + cap_l1.pos * s0_rate;
                     r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
@@ -249,7 +238,7 @@ namespace
             }
         }
 
-        for (int m = entryStrips; m < entryStrips + pipeStrips - 1; ++m)
+        for (int m = hasEntry; m < hasEntry + pipeStrips - 1; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];
@@ -278,6 +267,55 @@ namespace
                     vertices, indices, v_offset, i_offset,
                     l0, r0, l1, r1,
                     outCollider);
+            }
+        }
+
+        if (hasExit)
+        {
+            auto& s0 = segment.midwayStrips[segment.midwayStrips.size() - 2];
+            assert(s0.style == CourseSegmentStyle::Pipe);
+
+            auto& s1 = segment.midwayStrips[segment.midwayStrips.size() - 1];
+            assert(s1.style != CourseSegmentStyle::Pipe);
+
+            for (int i0 = 0; i0 < halfSubdivision1 - 1; ++i0)
+            {
+                const int i1 = i0 + 1;
+                const float t0 = static_cast<float>(i0) / (halfSubdivision1 - 1);
+                const float t1 = static_cast<float>(i1) / (halfSubdivision1 - 1);
+
+                FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
+
+                const auto& ringVectors = s0.pipe.ringVectors;
+                cap_l0.pos = s0.center + ringVectors[i0] * r;
+                cap_r0.pos = s0.center + ringVectors[i1] * r;
+                cap_l0.normal = -ringVectors[i0];
+                cap_r0.normal = -ringVectors[i1];
+
+                cap_l1.pos = s1.leftmost * (1 - t0) + s1.rightmost * t0;
+                cap_r1.pos = s1.leftmost * (1 - t1) + s1.rightmost * t1;
+                cap_l1.normal = s1.normal;
+                cap_r1.normal = s1.normal;
+
+                for (int s = 0; s < PipeEntryExitStrips; ++s)
+                {
+                    const float s0_rate = static_cast<float>(s) / PipeEntryExitStrips;
+                    const float r1_rate = static_cast<float>(s + 1) / PipeEntryExitStrips;
+                    FaceVertex l0, r0, l1, r1;
+                    l0.pos = cap_l0.pos * (1 - s0_rate) + cap_l1.pos * s0_rate;
+                    r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
+                    l1.pos = cap_l0.pos * (1 - r1_rate) + cap_l1.pos * r1_rate;
+                    r1.pos = cap_r0.pos * (1 - r1_rate) + cap_r1.pos * r1_rate;
+                    l0.normal = (cap_l0.normal * (1 - s0_rate) + cap_l1.normal * s0_rate).normalized();
+                    r0.normal = (cap_r0.normal * (1 - s0_rate) + cap_r1.normal * s0_rate).normalized();
+                    l1.normal = (cap_l0.normal * (1 - r1_rate) + cap_l1.normal * r1_rate).normalized();
+                    r1.normal = (cap_r0.normal * (1 - r1_rate) + cap_r1.normal * r1_rate).normalized();
+
+                    pushFaces(
+                        vertices, indices, v_offset, i_offset,
+                        l0, r0, l1, r1,
+                        outCollider);
+                }
             }
         }
 

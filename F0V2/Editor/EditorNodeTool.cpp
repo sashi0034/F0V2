@@ -279,8 +279,6 @@ private:
 
                 if (strip.style == CourseSegmentStyle::Pipe)
                 {
-                    constexpr int pipeMargin = 20;
-
                     if (priorSegment.style != CourseSegmentStyle::Pipe)
                     {
                         // 入口
@@ -288,7 +286,7 @@ private:
                         {
                             strip.style = CourseSegmentStyle::Road;
                         }
-                        else if (m < pipeMargin)
+                        else if (m < PipeEntryExitStrips)
                         {
                             continue;
                         }
@@ -296,7 +294,7 @@ private:
 
                     if (nextSegment.style != CourseSegmentStyle::Pipe)
                     {
-                        if (m >= midwayPositions.size() - pipeMargin)
+                        if (m >= midwayPositions.size() - PipeEntryExitStrips)
                         {
                             continue;
                         }
