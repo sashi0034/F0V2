@@ -164,6 +164,8 @@ struct StageManager::Impl : GameObjectBase
 
     Array<ModelDrawer> m_courseDrawers{};
 
+    float m_courseLength{};
+
     int m_triangleCount{};
     TriangleBvh m_staticBvh{};
 
@@ -201,6 +203,7 @@ struct StageManager::Impl : GameObjectBase
         // -----------------------------------------------
 
         CoursePolygoneCollider collider{};
+        m_courseLength = 0.0f;
         for (const auto& segment : g_sharedState->courseSegments)
         {
             const auto courseModel = BuildCourseModel(segment, &collider);
@@ -209,6 +212,8 @@ struct StageManager::Impl : GameObjectBase
                 .setModel(courseModel)
                 .setShader(Asset_shader::lambert)
                 .setCbv10AndLater({GetRaceContextContent().cb.lambert}));
+
+            m_courseLength += segment.totalLength;
         }
 
         // -----------------------------------------------
@@ -329,6 +334,11 @@ namespace Race
     {
         p_impl->Init();
         GameObjectHandle::init();
+    }
+
+    float StageManager::courseLength() const
+    {
+        return p_impl->m_courseLength;
     }
 
     TriangleBvh& StageManager::staticBvh()

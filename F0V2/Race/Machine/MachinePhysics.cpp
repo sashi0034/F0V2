@@ -498,6 +498,25 @@ namespace Race
 
         // ImmediatePrint(std::format("groundedness: {:.2f}", state.m_groundedness), Alignment9::BottomCenter);
 
+        // TODO: calculateGravity の処理と最適化
+        {
+            const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
+
+            const int nearestSegmentId = findNearestSegmentIndex(courseSegments, state.m_pose.position);
+            const auto& nearestSegment = courseSegments[nearestSegmentId];
+
+            const int nearestStripId = findNearestStripIndex(nearestSegment, state.m_pose.position);
+
+            state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, {nearestSegmentId, nearestStripId});
+
+            ImmediatePrint(
+                std::format("Lap: {}, Segment: {}, Strip: {}",
+                            state.m_lapProgress.lapIndex,
+                            state.m_lapProgress.segmentIndex,
+                            state.m_lapProgress.stripIndex),
+                Alignment9::TopCenter);
+        }
+
         // 現在位置における重力方向を計算
         {
             state.m_gravity = calculateGravity(state);

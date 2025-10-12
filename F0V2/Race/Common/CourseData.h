@@ -19,6 +19,7 @@ namespace Race
         Float3 rightmost{};
 
         Float3 toNext{}; // 次点へのベクトル
+        float lengthToNext{};
         Float3 normal{};
 
         CourseSegmentStyle style{};
@@ -44,6 +45,7 @@ namespace Race
         CourseSegmentStyle style{};
 
         Array<CourseStrip> midwayStrips{};
+        float totalLength{};
     };
 
     struct CourseNode

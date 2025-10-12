@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "LapProgress.h"
 #include "TY_Extension/Pose.h"
 
 namespace Race
@@ -22,6 +23,8 @@ namespace Race
         Float3 m_surfaceNormal{};
 
         Float3 m_surfaceToTriangle{};
+
+        LapProgress m_lapProgress{};
 
         Float3 rightVector() const;
     };

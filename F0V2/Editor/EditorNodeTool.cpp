@@ -245,6 +245,7 @@ private:
 
             auto& segment = m_segments[i];
             segment.midwayStrips.clear();
+            segment.totalLength = 0.0f;
 
             const int samplesPerSegment = (segment.p2 - segment.p1).length() / 5.0f;
             const auto midwayPositions = GenerateCatmullRomPoints(
@@ -261,6 +262,7 @@ private:
 
                 auto nextPosition = midwayPositions[m + 1];
                 strip.toNext = nextPosition - strip.center;
+                strip.lengthToNext = strip.toNext.length();
 
                 {
                     const Float3 n = strip.toNext.cross(Float3(0, 1, 0));
@@ -315,6 +317,7 @@ private:
                 }
 
                 segment.midwayStrips.push_back(strip);
+                segment.totalLength += strip.lengthToNext;
             }
 
             // 終端部分は次のセクションで行う

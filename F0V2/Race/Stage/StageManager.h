@@ -13,6 +13,8 @@ namespace Race
 
         void init() override;
 
+        float courseLength() const;
+
         TriangleBvh& staticBvh();
         const TriangleBvh& staticBvh() const;
 
