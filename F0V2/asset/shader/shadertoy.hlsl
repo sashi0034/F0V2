@@ -1,3 +1,5 @@
+#define PI 3.14159265359
+
 Texture2D<float4> g_texture0 : register(t0);
 
 SamplerState g_sampler0 : register(s0);
@@ -104,7 +106,7 @@ SdfAndMat scanSdf(float3 pos)
 {
     SdfAndMat result = emptySdfAndMat();
 
-    float dSphere = sdfSphere(pos - float3(0, 0, 0), 0.1);
+    float dSphere = sdfSphere(pos - float3(0, 0, 0), 0.75);
     if (dSphere < result.sdf)
     {
         result.sdf = dSphere;
@@ -160,6 +162,14 @@ RaycastResult scanRaycast(float3 pos, float3 dir)
     return result;
 }
 
+// Bayer 4x4 Dither Matrix (0〜15)
+static const float Dither4x4[4][4] = {
+    {0, 8, 2, 10},
+    {12, 4, 14, 6},
+    {3, 11, 1, 9},
+    {15, 7, 13, 5},
+};
+
 // -----------------------------------------------
 
 float4 PS(PSInput input) : SV_TARGET
@@ -177,13 +187,36 @@ float4 PS(PSInput input) : SV_TARGET
 
     float3 rayDir = normalize(screenPos3 - eyePos);
 
+    // -----------------------------------------------
+
+    float2 mousePos2 = (g_mousePosition - g_screenResolution * 0.5) / g_screenResolution.y;
+
+    float lightTheta = mousePos2.x * PI;
+    float lightPhi = mousePos2.y * PI;
+    float3 lightDir = float3(
+        cos(lightTheta) * cos(lightPhi),
+        sin(lightPhi),
+        sin(lightTheta) * cos(lightPhi)
+    );
+
     RaycastResult r = scanRaycast(eyePos, rayDir);
 
-    float3 color = float3(0, 0, 0);
+    float3 color = float3(0, 0.3, 1);
     if (r.d.mat > 0)
     {
         float3 normal = scanNormal(r.pos);
-        color = normal * 0.5 + 0.5;
+        // color = normal * 0.5 + 0.5;
+
+        // simple lambert
+        float diff = max(dot(normal, lightDir), 0.0);
+
+        int2 pixelPos = int2(fmod(input.position.xy, 4.0));
+        float threshold = Dither4x4[pixelPos.y][pixelPos.x] / 16.0f;
+
+        if (diff >= threshold)
+        {
+            color = float3(1, 0.3, 0) * diff;
+        }
     }
 
     // if ((input.position.x + input.position.y) % 2 == 0)
