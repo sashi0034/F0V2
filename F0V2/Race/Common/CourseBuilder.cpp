@@ -166,13 +166,13 @@ namespace
         constexpr int halfSubdivision0 = subdivision / 2;
         constexpr int halfSubdivision1 = halfSubdivision0 + 1;
 
-        const bool hasEntry = segment.midwayStrips.size() >= 2 &&
+        const int hasEntry = segment.midwayStrips.size() >= PipeEntryExitStrips &&
             segment.midwayStrips[0].style != CourseSegmentStyle::Pipe;
 
-        const bool hasExit = segment.midwayStrips.size() >= 2 &&
+        const bool hasExit = segment.midwayStrips.size() >= PipeEntryExitStrips &&
             segment.midwayStrips[segment.midwayStrips.size() - 1].style != CourseSegmentStyle::Pipe;
 
-        const int pipeStrips = segment.midwayStrips.size() - hasEntry - hasExit;
+        const int pipeStrips = segment.midwayStrips.size() - (hasEntry + hasExit) * PipeEntryExitStrips;
 
         // -----------------------------------------------
 
@@ -194,7 +194,7 @@ namespace
             auto& s0 = segment.midwayStrips[0];
             assert(s0.style != CourseSegmentStyle::Pipe);
 
-            auto& s1 = segment.midwayStrips[1];
+            auto& s1 = segment.midwayStrips[PipeEntryExitStrips];
             assert(s1.style == CourseSegmentStyle::Pipe);
 
             for (int i0 = 0; i0 < halfSubdivision1 - 1; ++i0)
@@ -238,7 +238,7 @@ namespace
             }
         }
 
-        for (int m = hasEntry; m < hasEntry + pipeStrips - 1; ++m)
+        for (int m = hasEntry * PipeEntryExitStrips; m < hasEntry * PipeEntryExitStrips + pipeStrips - 1; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];
@@ -272,7 +272,7 @@ namespace
 
         if (hasExit)
         {
-            auto& s0 = segment.midwayStrips[segment.midwayStrips.size() - 2];
+            auto& s0 = segment.midwayStrips[segment.midwayStrips.size() - 1 - PipeEntryExitStrips];
             assert(s0.style == CourseSegmentStyle::Pipe);
 
             auto& s1 = segment.midwayStrips[segment.midwayStrips.size() - 1];

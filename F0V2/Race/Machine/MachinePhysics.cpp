@@ -381,6 +381,16 @@ namespace
         return bestStrip.first;
     }
 
+    SegmentAndStrip findNearestSegmentAndStrip(const Array<CourseSegment>& courseSegments, const Float3& position)
+    {
+        const int segmentId = findNearestSegmentIndex(courseSegments, position);
+        const auto& segment = courseSegments[segmentId];
+
+        const int stripId = findNearestStripIndex(segment, position);
+
+        return SegmentAndStrip{segmentId, stripId};
+    }
+
     // TODO: 削除していいかも
     const CourseStrip& getNextStrip(const Array<CourseSegment>& courseSegments, int segmentId, int stripId)
     {
@@ -396,19 +406,17 @@ namespace
         }
     }
 
-    Float3 calculateGravity(const MachinePhysicsState& state)
+    Float3 calculateGravity(const MachinePhysicsState& state, const SegmentAndStrip& nearestSegmentAndStrip)
     {
         const Float3& position = state.m_pose.position;
 
         const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
 
-        const int nearestSegmentId = findNearestSegmentIndex(courseSegments, position);
-        const auto& nearestSegment = courseSegments[nearestSegmentId];
+        const auto& nearestSegment = courseSegments[nearestSegmentAndStrip.segmentIndex];
 
-        const int nearestStripId = findNearestStripIndex(nearestSegment, position);
-        const auto& nearestStrip = nearestSegment.midwayStrips[nearestStripId];
+        const auto& nearestStrip = nearestSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
 
-        if (nearestSegment.style == CourseSegmentStyle::Road)
+        if (nearestStrip.style == CourseSegmentStyle::Road)
         {
             Float3 n = state.m_surfaceNormal; // TODO: m_surfaceNormal を使わずに計算する (絶対) 
             if (n.isZero())
@@ -418,7 +426,7 @@ namespace
 
             return -n;
         }
-        else if (nearestSegment.style == CourseSegmentStyle::Pipe)
+        else if (nearestStrip.style == CourseSegmentStyle::Pipe)
         {
             if (nearestStrip.pipe.ringVectors[0].isZero())
             {
@@ -498,16 +506,12 @@ namespace Race
 
         // ImmediatePrint(std::format("groundedness: {:.2f}", state.m_groundedness), Alignment9::BottomCenter);
 
-        // TODO: calculateGravity の処理と最適化
+        const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
+
+        const auto nearestSegmentAndStrip = findNearestSegmentAndStrip(courseSegments, state.m_pose.position);
+
         {
-            const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
-
-            const int nearestSegmentId = findNearestSegmentIndex(courseSegments, state.m_pose.position);
-            const auto& nearestSegment = courseSegments[nearestSegmentId];
-
-            const int nearestStripId = findNearestStripIndex(nearestSegment, state.m_pose.position);
-
-            state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, {nearestSegmentId, nearestStripId});
+            state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, nearestSegmentAndStrip);
 
             ImmediatePrint(
                 std::format("Lap: {}, Segment: {}, Strip: {}",
@@ -519,7 +523,7 @@ namespace Race
 
         // 現在位置における重力方向を計算
         {
-            state.m_gravity = calculateGravity(state);
+            state.m_gravity = calculateGravity(state, nearestSegmentAndStrip);
 
 #if 0
             state.m_gravity = Float3(0, -1, 0);

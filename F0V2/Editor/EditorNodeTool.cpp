@@ -281,25 +281,17 @@ private:
 
                 if (strip.style == CourseSegmentStyle::Pipe)
                 {
-                    if (priorSegment.style != CourseSegmentStyle::Pipe)
+                    if (priorSegment.style != CourseSegmentStyle::Pipe &&
+                        m < PipeEntryExitStrips)
                     {
                         // 入口
-                        if (m == 0)
-                        {
-                            strip.style = CourseSegmentStyle::Road;
-                        }
-                        else if (m < PipeEntryExitStrips)
-                        {
-                            continue;
-                        }
+                        strip.style = CourseSegmentStyle::Road;
                     }
-
-                    if (nextSegment.style != CourseSegmentStyle::Pipe)
+                    else if (nextSegment.style != CourseSegmentStyle::Pipe &&
+                        m >= midwayPositions.size() - PipeEntryExitStrips)
                     {
-                        if (m >= midwayPositions.size() - PipeEntryExitStrips)
-                        {
-                            continue;
-                        }
+                        // 出口
+                        strip.style = CourseSegmentStyle::Road;
                     }
                 }
 
