@@ -405,9 +405,10 @@ private:
 
 void Demo_FSR2_ST()
 {
-    Demo_FSR2_ST_impl impl{};
+    Scene::RequestResize(Size{1920, 1080} * 2);
+    System::Update();
 
-    Scene::RequestResize({1920, 1080});
+    Demo_FSR2_ST_impl impl{};
 
     while (System::Update())
     {
