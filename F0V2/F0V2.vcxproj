@@ -109,7 +109,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>%BOOST_INCLUDEDIR%;./;../external;../Tsuyu;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%BOOST_INCLUDEDIR%;./;../external;./;../external/FidelityFX/include;../Tsuyu;</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
@@ -121,7 +121,7 @@
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;./;../external/ffx_fsr2_api;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;./;../external/FidelityFX/bin;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,7 +137,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>%BOOST_INCLUDEDIR%;./;../external;../Tsuyu;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%BOOST_INCLUDEDIR%;./;../external;./;../external/FidelityFX/include;../Tsuyu;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -145,18 +145,33 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;./;../external/ffx_fsr2_api;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;./;../external/FidelityFX/bin;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\FidelityFX\internal\ffx_api.cpp" >
+        <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+        <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\external\FidelityFX\internal\ffx_assert.cpp" >
+        <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+        <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\external\FidelityFX\internal\ffx_message.cpp" >
+        <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+        <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\external\FidelityFX\internal\ffx_object_management.cpp" >
+        <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+        <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\external\imgui\imgui_demo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
     <Content Include="asset\shader\shadertoy.hlsl" />
-    <ClCompile Include="Demo\Demo_FSR2.cpp" />
-    <ClCompile Include="Demo\Demo_FSR2_ST.cpp" />
+    <ClCompile Include="Demo\Demo_FSR4.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
     <ClCompile Include="Editor\EditorNodeTool.cpp" />
     <ClCompile Include="Editor\EditorPlayground.cpp" />
@@ -248,13 +263,37 @@
     <Content Include="engine\shape2d.hlsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\FidelityFX\include\dx12\ffx_api_dx12.h" />
+    <ClInclude Include="..\external\FidelityFX\include\dx12\ffx_api_dx12.hpp" />
+    <ClInclude Include="..\external\FidelityFX\include\ffx_api-helper.h" />
+    <ClInclude Include="..\external\FidelityFX\include\ffx_api.h" />
+    <ClInclude Include="..\external\FidelityFX\include\ffx_api.hpp" />
+    <ClInclude Include="..\external\FidelityFX\include\ffx_api_loader.h" />
+    <ClInclude Include="..\external\FidelityFX\include\ffx_api_types.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_assert.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_backends.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_error.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_interface.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_internal_types.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_message.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_object_management.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_provider.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_provider_external.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\ffx_util.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\gpu\ffx_common_types.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\gpu\ffx_core.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\gpu\ffx_core_cpu.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\gpu\ffx_core_gpu_common.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\gpu\ffx_core_gpu_common_half.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\gpu\ffx_core_hlsl.h" />
+    <ClInclude Include="..\external\FidelityFX\internal\gpu\ffx_core_portability.h" />
     <ClInclude Include="Asset0.h" />
     <ClInclude Include="Asset.generated.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="CB\Lambert.h" />
     <ClInclude Include="CB\Skydome.h" />
     <ClInclude Include="ColorPalette.h" />
-    <ClInclude Include="Demo\Demo_FSR2_ST.h" />
+    <ClInclude Include="Demo\Demo_FSR4.h" />
     <ClInclude Include="Editor\EditorScene.h" />
     <ClInclude Include="Editor\EditorState.h" />
     <ClInclude Include="Editor\EditorNodeTool.h" />
@@ -280,18 +319,9 @@
     <ClInclude Include="Demo\Demo_Collision3.h" />
     <ClInclude Include="Demo\Demo_Intersection.h" />
     <ClInclude Include="Demo\Demo_Font.h" />
-    <ClInclude Include="Demo\Demo_FSR2.h" />
     <ClInclude Include="Demo\Demo_Gpgpu.h" />
     <ClInclude Include="Demo\Demo_Ocean.h" />
     <ClInclude Include="Demo\Demo_ShadowMap.h" />
-    <ClInclude Include="dx12\ffx_fsr2_dx12.h" />
-    <ClInclude Include="dx12\shaders\ffx_fsr2_shaders_dx12.h" />
-    <ClInclude Include="ffx_assert.h" />
-    <ClInclude Include="ffx_error.h" />
-    <ClInclude Include="ffx_fsr2.h" />
-    <ClInclude Include="ffx_fsr2_interface.h" />
-    <ClInclude Include="ffx_types.h" />
-    <ClInclude Include="ffx_util.h" />
     <ClInclude Include="Demo\Demo_ImmediateDrawer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Demo\Demo_RenderTarget.h" />

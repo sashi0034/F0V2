@@ -10,8 +10,7 @@
 #include "Demo/Demo_Collision3.h"
 #include "Demo/Demo_Intersection.h"
 #include "Demo/Demo_Font.h"
-#include "Demo/Demo_FSR2.h"
-#include "Demo/Demo_FSR2_ST.h"
+#include "Demo/Demo_FSR4.h"
 #include "Demo/Demo_Gpgpu.h"
 #include "Demo/Demo_Ocean.h"
 #include "Demo/Demo_RenderTarget.h"
@@ -28,7 +27,7 @@ void Main()
     InitImmediatePrintAddon();
 
 #if 1
-    Demo_FSR2_ST();
+    Demo_FSR4();
 #else
     using namespace TY;
 
