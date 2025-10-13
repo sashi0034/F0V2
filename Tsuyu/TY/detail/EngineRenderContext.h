@@ -51,6 +51,11 @@ namespace TY::detail
 
         void RequestFrameBufferSize(Size frameBufferSize);
 
+        void RequestFullscreen(bool fullscreen);
+
+        [[nodiscard]]
+        bool IsFullscreen();
+
         [[nodiscard]]
         Size FrameBufferSize();
 

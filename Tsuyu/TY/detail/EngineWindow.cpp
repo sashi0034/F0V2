@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "EngineWindow.h"
 
+#include "EngineRenderContext.h"
 #include "TY/Vector2D.h"
 
 #include "backends/imgui_impl_win32.h"
@@ -195,6 +196,12 @@ namespace
             s_engineWindow.m_wheelDelta += GET_WHEEL_DELTA_WPARAM(wParam) / 120.0f;
             break;
         }
+        case WM_SYSKEYDOWN:
+            if (wParam == VK_RETURN && (GetKeyState(VK_MENU) & 0x8000))
+            {
+                EngineRenderContext::RequestFullscreen(not EngineRenderContext::IsFullscreen());
+                return 0; // DXGI に渡さない
+            }
         }
 
         if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))

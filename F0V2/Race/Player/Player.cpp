@@ -133,6 +133,8 @@ private:
                 const auto& s = segments[s_checkpointIndex];
                 m_physicsState = {};
                 m_physicsState.m_pose.position = s.p1 + s.midwayStrips[0].normal * 10.0f;
+
+                s_stopMove = false;
             }
         }
 

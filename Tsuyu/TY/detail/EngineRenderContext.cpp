@@ -68,7 +68,9 @@ struct EngineRenderContextImpl
 
     bool m_previousFullscreen{};
 
-    std::optional<Size> m_requestedFrameBufferSize{};
+    std::optional<Size> m_wantsFrameBufferSize{};
+
+    std::optional<bool> m_wantsFullscreen{};
 
     ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
 
@@ -198,7 +200,14 @@ struct EngineRenderContextImpl
     void NewFrame()
     {
         // リサイズ制御
-        checkRecreateSwapchain();
+        if (m_wantsFullscreen.has_value())
+        {
+            toggleFullscreen();
+        }
+        else
+        {
+            checkRecreateSwapchain();
+        }
 
         m_backBuffer.setViewport(calculateViewportRect());
 
@@ -322,6 +331,31 @@ private:
                .translated((m_frameBufferSize.cast<Float2>() - windowSizeInScene) * 0.5f);
     }
 
+    void toggleFullscreen()
+    {
+        if (not m_wantsFullscreen.has_value())
+        {
+            return;
+        }
+
+        const bool shouldFullscreen = m_wantsFullscreen.value();
+
+        m_wantsFullscreen = {};
+
+        ComPtr<IDXGIOutput> output;
+        m_swapChain->GetContainingOutput(&output);
+
+        DXGI_OUTPUT_DESC desc;
+        output->GetDesc(&desc);
+        const auto& targetMode = desc.DesktopCoordinates; // 表示解像度取得
+
+        m_swapChain->SetFullscreenState(shouldFullscreen, nullptr);
+
+        recreateSwapChain(shouldFullscreen
+                              ? Size{targetMode.right - targetMode.left, targetMode.bottom - targetMode.top}
+                              : m_frameBufferSize);
+    }
+
     void checkRecreateSwapchain()
     {
         std::optional<Size> newSize{};
@@ -339,14 +373,14 @@ private:
         }
 
         // リサイズのリクエスト対応
-        if (m_requestedFrameBufferSize.has_value())
+        if (m_wantsFrameBufferSize.has_value())
         {
-            if (m_requestedFrameBufferSize != m_frameBufferSize)
+            if (m_wantsFrameBufferSize != m_frameBufferSize)
             {
-                newSize = m_requestedFrameBufferSize;
+                newSize = m_wantsFrameBufferSize;
             }
 
-            m_requestedFrameBufferSize = {};
+            m_wantsFrameBufferSize = {};
         }
 
         if (newSize.has_value())
@@ -362,6 +396,8 @@ private:
         assert(RenderTarget::Current().isEmpty());
 
         FlushAllCommand();
+
+        m_drawCommandList.WaitLastFlush();
 
         const int bufferCount = m_backBuffer.bufferCount();
 
@@ -464,7 +500,19 @@ namespace TY::detail
 
     void EngineRenderContext::RequestFrameBufferSize(Size frameBufferSize)
     {
-        s_renderContext.m_requestedFrameBufferSize = frameBufferSize;
+        s_renderContext.m_wantsFrameBufferSize = frameBufferSize;
+    }
+
+    void EngineRenderContext::RequestFullscreen(bool fullscreen)
+    {
+        s_renderContext.m_wantsFullscreen = fullscreen;
+    }
+
+    bool EngineRenderContext::IsFullscreen()
+    {
+        BOOL fullscreen;
+        s_renderContext.m_swapChain->GetFullscreenState(&fullscreen, nullptr);
+        return fullscreen != FALSE;
     }
 
     Size EngineRenderContext::FrameBufferSize()
