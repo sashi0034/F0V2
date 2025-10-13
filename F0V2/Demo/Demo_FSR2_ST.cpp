@@ -36,43 +36,11 @@ using namespace TY;
 
 namespace
 {
-    struct LambertLight_b4
+    struct Shadertoy_b10
     {
-        alignas(16) Float3 lightDirection;
-        alignas(16) Float3 lightColor{};
-    };
-
-    struct PhongLight_b4
-    {
-        alignas(16) Float3 lightDirection;
-        alignas(16) Float3 lightColor{};
-        alignas(16) Float3 eyePosition{};
-        alignas(16) Float3 ambientColor{};
-    };
-
-    struct Skydome_b4
-    {
-        alignas(16) ColorF32 topColor;
-        alignas(16) ColorF32 bottomColor;
-        float sphereRadius{};
-    };
-
-    struct Pose
-    {
-        Float3 position{};
-        Quaternion rotation{}; // Euler angles in radians
-
-        Mat4x4 getMatrix() const
-        {
-            return Mat4x4::Identity()
-                   .rotated(rotation)
-                   .translated(position);
-        }
-
-        Float3 eulerAngles() const
-        {
-            return rotation.eulerAngles();
-        }
+        Float2 g_screenResolution{};
+        Float2 g_mousePosition{};
+        Float2 g_jitterOffset{};
     };
 
     struct ToyModelBuffer : IGenericModelBuffer
@@ -125,38 +93,22 @@ struct Demo_FSR2_ST_impl
         GraphicsShader shadertoy{GraphicsShader::VS_PS("asset/shader/shadertoy.hlsl")};
     } m_shaders;
 
-    struct
-    {
-        ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
-
-        ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
-    } m_models;
-
-    struct
-    {
-        ConstantBufferWrapper<PhongLight_b4> phongLight{};
-    } m_cb;
-
-    SimpleCamera3D m_camera{};
-
     Mat4x4 m_projectionMat{};
 
-    ModelDrawer m_groundPlaneDrawer{};
-
     GenericModelDrawer m_toyDrawer{};
+
+    ConstantBufferWrapper<Shadertoy_b10> m_toyCB{};
 
     Demo_FSR2_ST_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
-
-        resetCamera();
 
         m_toyDrawer = GenericModelDrawerParams{}
                       .setModel(std::make_unique<ToyModelBuffer>())
                       .setVertexInput({})
                       .setShader(m_shaders.shadertoy)
                       .setOptions(GraphicsOptions{})
-                      .setCbv10AndLater({});
+                      .setCbv10AndLater({m_toyCB});
 
         InitFsr2();
     }
@@ -405,6 +357,11 @@ struct Demo_FSR2_ST_impl
 
     void draw3D()
     {
+        m_toyCB->g_screenResolution = Float2{m_inputRT.size()};
+        m_toyCB->g_mousePosition = Mouse::PosF() * 0.5f;
+        m_toyCB->g_jitterOffset = m_jitterOffset;
+        m_toyCB.upload();
+
         m_toyDrawer.draw();
     }
 
@@ -444,10 +401,6 @@ struct Demo_FSR2_ST_impl
     }
 
 private:
-    void resetCamera()
-    {
-        m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
-    }
 };
 
 void Demo_FSR2_ST()
