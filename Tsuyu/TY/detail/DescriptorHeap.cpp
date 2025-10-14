@@ -116,7 +116,7 @@ namespace
             srvDesc.Format = t.getFormat();
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.Texture2D.MipLevels = 1;
+            srvDesc.Texture2D.MipLevels = t.mipCount();
 
             p_resource = texture.getResource();
         }
@@ -134,6 +134,11 @@ namespace
             srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
             p_resource = rsc.getBuffer();
+        }
+        else
+        {
+            assert(false && "Unsupported SRV type");
+            return false;
         }
 
         EngineRenderContext::GetDevice()->CreateShaderResourceView(p_resource, &srvDesc, heapHandle);
@@ -161,21 +166,51 @@ namespace
         return createShaderResourceViewInternal(heapHandle, sr);
     }
 
-    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const StructuredBuffer& ua)
+    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const UnorderedAccessType& uav)
     {
-        const auto rsc = ua.getBuffer() ? ua : EnginePresetAsset::GetEmptyStructuredBuffer();
-
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-        uavDesc.Buffer.FirstElement = 0;
-        uavDesc.Buffer.NumElements = rsc.elementCount();
-        uavDesc.Buffer.StructureByteStride = rsc.elementStride();
+        ID3D12Resource* pResource{};
+
+        if (uav.isHolds<UnorderedTextureResource>())
+        {
+            const auto& t = uav.get<UnorderedTextureResource>();
+            assert(not t.isEmpty()); // TODO: fallback
+
+            uavDesc.Format = t.getFormat();
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+            uavDesc.Texture2D.MipSlice = 0;
+            uavDesc.Texture2D.PlaneSlice = 0;
+
+            pResource = t.getResource();
+        }
+        else if (uav.isHolds<UnorderedStructuredBuffer>())
+        {
+            const auto& t = uav.get<UnorderedStructuredBuffer>();
+            const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer(); // FIXME
+
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+            uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+            uavDesc.Buffer.FirstElement = 0;
+            uavDesc.Buffer.NumElements = rsc.elementCount();
+            uavDesc.Buffer.StructureByteStride = rsc.elementStride();
+            uavDesc.Buffer.CounterOffsetInBytes = 0;
+            uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+            pResource = rsc.getBuffer();
+        }
+        else
+        {
+            assert(false && "Unsupported UAV type");
+            return false;
+        }
 
         EngineRenderContext::GetDevice()->CreateUnorderedAccessView(
-            rsc.getBuffer(),
+            pResource,
             nullptr,
             &uavDesc,
-            heapHandle);
+            heapHandle
+        );
+
         return true;
     }
 

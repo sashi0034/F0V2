@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "TextureResource.h"
 
+#include "Logger.h"
 #include "detail/EngineRenderContext.h"
 #include "TY/AssertObject.h"
 #include "TY/Color.h"
@@ -254,5 +255,35 @@ namespace TY
     DXGI_FORMAT TextureResource::getFormat() const
     {
         return p_impl ? p_impl->m_format : DXGI_FORMAT_UNKNOWN;
+    }
+
+    int TextureResource::mipCount() const
+    {
+        return p_impl ? p_impl->m_finalBuffer->GetDesc().MipLevels : 0;
+    }
+
+    namespace
+    {
+        ID3D12Resource* checkUnorderedAccess(ID3D12Resource* resource)
+        {
+            if (not resource)
+            {
+                return nullptr;
+            }
+
+            const auto desc = resource->GetDesc();
+            if (not(desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS))
+            {
+                LogError("TextureResource: Resource is not created with D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS.");
+                return nullptr;
+            }
+
+            return resource;
+        }
+    }
+
+    UnorderedTextureResource::UnorderedTextureResource(ID3D12Resource* source)
+        : TextureResource(checkUnorderedAccess(source))
+    {
     }
 }

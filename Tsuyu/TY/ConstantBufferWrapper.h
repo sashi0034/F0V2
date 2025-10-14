@@ -7,6 +7,7 @@ namespace TY
     class ConstantBufferWrapper
     {
     public:
+        // TODO: uploadToDraw
         void upload()
         {
             m_uploader.upload(m_value);

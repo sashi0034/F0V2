@@ -21,8 +21,18 @@ namespace TY
 
         DXGI_FORMAT getFormat() const;
 
+        int mipCount() const;
+
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl{};
+    };
+
+    class UnorderedTextureResource : public TextureResource
+    {
+    public:
+        UnorderedTextureResource() = default;
+
+        UnorderedTextureResource(ID3D12Resource* source);
     };
 }

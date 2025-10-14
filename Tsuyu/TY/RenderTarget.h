@@ -15,6 +15,7 @@ namespace TY
         Size size;
         ColorF32 clearColor;
         GraphicsFormat format{DXGI_FORMAT_R8G8B8A8_UNORM};
+        bool allowUav{};
 
         RenderTargetParams& setBufferCount(int bufferCount_);
 
@@ -23,6 +24,8 @@ namespace TY
         RenderTargetParams& setClearColor(const ColorF32& clearColor_);
 
         RenderTargetParams& setFormat(GraphicsFormat format_);
+
+        RenderTargetParams& setAllowUav(bool allowUav_);
     };
 
     class ScopedRenderTarget : public ScopedDefer
