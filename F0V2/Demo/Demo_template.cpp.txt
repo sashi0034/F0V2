@@ -120,14 +120,14 @@ namespace
             GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
 
             GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
-        } shaders;
+        } shader;
 
         struct models_t
         {
             ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
 
             ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
-        } models;
+        } model;
 
         struct
         {
@@ -175,7 +175,7 @@ struct Demo_template_impl
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShader(getRsc().shaders.skydome)
+            .setShader(getRsc().shader.skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
@@ -188,13 +188,13 @@ struct Demo_template_impl
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
-            .setShader(getRsc().shaders.model)
+            .setShader(getRsc().shader.model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
         m_playerDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(getRsc().models.playerModel)
-            .setShader(getRsc().shaders.phong)
+            .setModel(getRsc().model.playerModel)
+            .setShader(getRsc().shader.phong)
             .setCbv10AndLater({getRsc().cb.phongLight})
         };
 
@@ -202,8 +202,8 @@ struct Demo_template_impl
 
         m_mountainDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(getRsc().models.mountainModel)
-            .setShader(getRsc().shaders.phong)
+            .setModel(getRsc().model.mountainModel)
+            .setShader(getRsc().shader.phong)
             .setCbv10AndLater({getRsc().cb.phongLight})
         };
     }

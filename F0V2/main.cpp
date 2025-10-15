@@ -15,6 +15,7 @@
 #include "Demo/Demo_RenderTarget.h"
 #include "Demo/Demo_ShadowMap.h"
 #include "Demo/Demo_ImmediateDrawer.h"
+#include "Demo/Demo_Shadertoy.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 #include "Util/ImmediatePrint.h"
@@ -25,8 +26,8 @@ void Main()
 
     InitImmediatePrintAddon();
 
-#if 0
-    Demo_Collision3();
+#if 1
+    Demo_Shadertoy();
 #else
     using namespace TY;
 

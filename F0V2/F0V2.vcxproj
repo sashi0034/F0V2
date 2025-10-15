@@ -154,6 +154,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <Content Include="asset\shader\shadertoy.hlsl" />
+    <ClCompile Include="Demo\Demo_Shadertoy.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
     <ClCompile Include="Editor\EditorNodeTool.cpp" />
     <ClCompile Include="Editor\EditorPlayground.cpp" />
@@ -252,6 +254,7 @@
     <ClInclude Include="CB\Lambert.h" />
     <ClInclude Include="CB\Skydome.h" />
     <ClInclude Include="ColorPalette.h" />
+    <ClInclude Include="Demo\Demo_Shadertoy.h" />
     <ClInclude Include="Editor\EditorScene.h" />
     <ClInclude Include="Editor\EditorState.h" />
     <ClInclude Include="Editor\EditorNodeTool.h" />
