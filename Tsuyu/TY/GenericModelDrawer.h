@@ -34,7 +34,6 @@ namespace TY
         GenericModelDrawerParams& setSrv10AndLater(const Array<ShaderResourceType>& srv);
     };
 
-    // TODO: Rename to SynchronousComputeDispatcher?
     class GenericModelDrawer
     {
     public:

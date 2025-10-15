@@ -39,6 +39,7 @@ namespace TY
         }
     };
 
+    // TODO: Rename to SynchronousComputeDispatcher?
     class Gpgpu
     {
     public:

@@ -113,10 +113,10 @@ namespace
             const auto texture =
                 t.isEmpty() ? EnginePresetAsset::GetWhiteTexture() : t;
 
-            srvDesc.Format = t.getFormat();
+            srvDesc.Format = texture.getFormat();
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.Texture2D.MipLevels = t.mipCount();
+            srvDesc.Texture2D.MipLevels = texture.mipCount();
 
             p_resource = texture.getResource();
         }
