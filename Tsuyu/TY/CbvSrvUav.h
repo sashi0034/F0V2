@@ -15,16 +15,14 @@ namespace TY
         }
     };
 
-    class UnorderedAccessType : public UnorderedStructuredBuffer
+    class UnorderedAccessType : public Variant<UnorderedTextureResource, UnorderedStructuredBuffer>
     {
     public:
-        using UnorderedStructuredBuffer::UnorderedStructuredBuffer;
+        using Variant::Variant;
 
-        UnorderedAccessType(const UnorderedStructuredBuffer& other)
-            : UnorderedStructuredBuffer(other)
+        bool isEmpty() const
         {
+            return isHolds<UnorderedTextureResource>() && get<UnorderedTextureResource>().isEmpty();
         }
-
-        // TODO: using Variant::Variant;
     };
 }

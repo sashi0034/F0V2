@@ -168,6 +168,7 @@
     <ClInclude Include="TY\AssertObject.h" />
     <ClInclude Include="TY\BasicCamera3D.h" />
     <ClInclude Include="TY\BitmapFont.h" />
+    <ClInclude Include="TY\ComputeDispatcher.h" />
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
     <ClInclude Include="TY\IndexedTriangle.h" />
     <ClInclude Include="TY\MipmappedDynamicTexture.h" />
@@ -330,6 +331,7 @@
     <ClCompile Include="TY\AssertObject.cpp" />
     <ClCompile Include="TY\BasicCamera3D.cpp" />
     <ClCompile Include="TY\BitmapFont.cpp" />
+    <ClCompile Include="TY\ComputeDispatcher.cpp" />
     <ClCompile Include="TY\detail\GpuMemoryUsage.cpp" />
     <ClCompile Include="TY\MipmappedDynamicTexture.cpp" />
     <ClCompile Include="TY\Periodic.cpp" />

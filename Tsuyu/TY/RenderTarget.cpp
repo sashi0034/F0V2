@@ -30,6 +30,7 @@ struct RenderTarget::Impl
     ComPtr<ID3D12Resource> m_dsvResource{};
 
     Array<TextureResource> m_rtvAsShaderResource{};
+    Array<UnorderedTextureResource> m_rtvAsUnorderedAccess{}; // TODO: m_rtvAsShaderResource と統合 
 
     RectF m_viewport{};
 
@@ -57,7 +58,12 @@ struct RenderTarget::Impl
             resourceDesc.Format = params.format;
             resourceDesc.SampleDesc = {1, 0};
             resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
             resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+            if (params.allowUav)
+            {
+                resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+            }
 
             D3D12_CLEAR_VALUE clearValue{};
             clearValue.Format = params.format;
@@ -162,6 +168,15 @@ struct RenderTarget::Impl
         {
             m_rtvAsShaderResource.push_back(TextureResource{m_rtvResources[i].Get()});
         }
+
+        // FIXME: m_rtvAsShaderResource と m_rtvAsUnorderedAccess を統合する
+        if (params.allowUav)
+        {
+            for (int i = 0; i < params.bufferCount; ++i)
+            {
+                m_rtvAsShaderResource.push_back(UnorderedTextureResource{m_rtvAsUnorderedAccess[i]});
+            }
+        }
     }
 
     void CommandSetViewportAndScissorsRect() const
@@ -259,6 +274,12 @@ namespace TY
     RenderTargetParams& RenderTargetParams::setFormat(GraphicsFormat format_)
     {
         format = format_;
+        return *this;
+    }
+
+    RenderTargetParams& RenderTargetParams::setAllowUav(bool allowUav_)
+    {
+        allowUav = allowUav_;
         return *this;
     }
 
