@@ -308,13 +308,13 @@ struct Gpgpu::Impl
             m_ua[i].upload(access(m_params.writableBuffer[i]).readonlyDataPointer());
         }
 
-        m_computePipelineState.commandSet();
+        m_computePipelineState.commandSet(CommandListType::Compute);
         m_descriptorHeap.commandSet(PipelineType::Compute);
-        m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
+        m_descriptorHeap.commandSetComputeTable(CommandListType::Compute, 0);
 
         if (m_tableIndexofCbv10AndLater != -1)
         {
-            m_descriptorHeap.commandSetTable(PipelineType::Compute, m_tableIndexofCbv10AndLater);
+            m_descriptorHeap.commandSetComputeTable(CommandListType::Compute, m_tableIndexofCbv10AndLater);
         }
 
         const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
@@ -389,13 +389,13 @@ struct Gpgpu::Impl
 
         for (auto& impl : list)
         {
-            impl->m_computePipelineState.commandSet();
+            impl->m_computePipelineState.commandSet(CommandListType::Compute);
             impl->m_descriptorHeap.commandSet(PipelineType::Compute);
-            impl->m_descriptorHeap.commandSetTable(PipelineType::Compute, 0);
+            impl->m_descriptorHeap.commandSetComputeTable(CommandListType::Compute, 0);
 
             if (impl->m_tableIndexofCbv10AndLater != -1)
             {
-                impl->m_descriptorHeap.commandSetTable(PipelineType::Compute, impl->m_tableIndexofCbv10AndLater);
+                impl->m_descriptorHeap.commandSetComputeTable(CommandListType::Compute, impl->m_tableIndexofCbv10AndLater);
             }
 
             const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);

@@ -3,6 +3,7 @@
 
 namespace TY
 {
+    // TODO: Rename to TextureHandle
     class TextureObject
     {
     public:

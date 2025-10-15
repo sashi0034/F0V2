@@ -73,9 +73,9 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
         // LogInfo.writeln("ComputePipelineState created successfully.");
     }
 
-    void CommandSet() const
+    void CommandSet(CommandListType commandListType) const
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
+        const auto commandList = EngineRenderContext::GetCommandList(commandListType);
         commandList->SetPipelineState(m_pso.Get());
         commandList->SetComputeRootSignature(m_rootSignature.getPointer());
     }
@@ -97,8 +97,8 @@ namespace TY::detail
         return p_impl ? p_impl->m_params.descriptorTable : DescriptorTable{};
     }
 
-    void ComputePipelineState::commandSet() const
+    void ComputePipelineState::commandSet(CommandListType commandList) const
     {
-        if (p_impl) p_impl->CommandSet();
+        if (p_impl) p_impl->CommandSet(commandList);
     }
 }

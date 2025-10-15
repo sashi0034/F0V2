@@ -38,12 +38,12 @@ struct ComputeDispatcher::Impl
 
     void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ, PipelineType pipeline) const
     {
-        auto commandList = EngineRenderContext::GetCommandList(PipelineType::Graphics);
+        auto commandList = EngineRenderContext::GetCommandList(pipeline);
 
-        m_pso.commandSet();
+        m_pso.commandSet(CommandListType::Draw);
 
         m_descriptorHeap.commandSet(PipelineType::Graphics);
-        m_descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
+        m_descriptorHeap.commandSetComputeTable(CommandListType::Draw, 0);
 
         commandList->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ); // TODO: グループ数を指定できるようにする
     }

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "CommandList.h"
 #include "DescriptorTable.h"
 #include "ShaderRegisterStart.h"
 #include "TY/Array.h"
@@ -26,7 +27,7 @@ namespace TY::detail
 
         DescriptorTable descriptorTable() const;
 
-        void commandSet() const;
+        void commandSet(CommandListType commandList) const;
 
     private:
         struct Impl;

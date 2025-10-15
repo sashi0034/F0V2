@@ -60,8 +60,17 @@ namespace TY
         [[nodiscard]]
         ScopedRenderTarget scopedBind(int index = 0) const;
 
+        // TODO: Enhance
+        void computeBarrierStart(int index = 0) const;
+
+        void computeBarrierEnd(int index = 0) const;
+
+        // TODO: Rename to asTexture
         [[nodiscard]]
         TextureObject asShaderResource(int index = 0) const;
+
+        [[nodiscard]]
+        UnorderedTextureObject asUnorderedTexture(int index = 0) const;
 
         [[nodiscard]]
         static RenderTarget Current();

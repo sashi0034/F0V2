@@ -314,9 +314,40 @@ namespace TY
         return p_impl->ScopedBind(index);
     }
 
+    void RenderTarget::computeBarrierStart(int index) const
+    {
+        if (not p_impl) return;
+
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
+
+        const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
+            p_impl->m_rtvResources[index].Get(),
+            D3D12_RESOURCE_STATE_PRESENT,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        commandList->ResourceBarrier(1, &resourceBarrierDesc);
+    }
+
+    void RenderTarget::computeBarrierEnd(int index) const
+    {
+        if (not p_impl) return;
+
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
+
+        const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
+            p_impl->m_rtvResources[index].Get(),
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_PRESENT);
+        commandList->ResourceBarrier(1, &resourceBarrierDesc);
+    }
+
     TextureObject RenderTarget::asShaderResource(int index) const
     {
         return TextureObject(p_impl->m_rtvResources[index].Get());
+    }
+
+    UnorderedTextureObject RenderTarget::asUnorderedTexture(int index) const
+    {
+        return UnorderedTextureObject(p_impl->m_rtvResources[index].Get());
     }
 
     RenderTarget RenderTarget::Current()

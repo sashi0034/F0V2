@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "CommandList.h"
 #include "DescriptorTable.h"
 #include "PipelineType.h"
 #include "TY/CbvSrvUav.h"
@@ -38,7 +39,10 @@ namespace TY::detail
 
         void commandSet(PipelineType pipeline) const;
 
+        // TODO: Rename to commandSetGraphicsTable 
         void commandSetTable(PipelineType pipeline, int tableId, int materialId = 0) const;
+
+        void commandSetComputeTable(CommandListType commandList, int tableId, int materialId = 0) const;
 
     private:
         struct Impl;

@@ -1,8 +1,7 @@
 ﻿#include "pch.h"
-#include "Demo_Shadertoy.h"
+#include "Demo_ShadertoyPS.h"
 
 #include "imgui/imgui.h"
-#include "TY/ComputeDispatcher.h"
 
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
@@ -66,7 +65,7 @@ namespace
         {
             GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
 
-            ComputeShader shadertoy_cs{ShaderParams::CS("asset/shader/shadertoy_cs.hlsl")};
+            GraphicsShader shadertoy{GraphicsShader::VS_PS("asset/shader/shadertoy_ps.hlsl")};
         } shader;
 
         struct
@@ -78,54 +77,68 @@ namespace
     InlineComponent<Resource_Shadertoy> s_rsc{};
 }
 
-struct Demo_Shadertoy_impl
+struct Demo_ShadertoyPS_impl
 {
+    GenericModelDrawer m_toyDrawer{};
+
+    TextureDrawer m_upscaledOutputDrawer{};
+
     RenderTarget m_lowResolution{};
 
     TextureDrawer m_lowResolutionDrawer{};
 
-    ComputeDispatcher m_csDispatcher{};
-
-    Demo_Shadertoy_impl()
+    Demo_ShadertoyPS_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
+
+        m_toyDrawer =
+            GenericModelDrawerParams{}
+            .setModel(std::make_unique<ToyModelBuffer>())
+            .setVertexInput({})
+            .setShader(s_rsc->shader.shadertoy)
+            .setOptions(GraphicsOptions{})
+            .setCbv10AndLater({s_rsc->cb.shadertoy});
 
         m_lowResolution =
             RenderTargetParams()
             .setSize(Scene::Size() * 0.5)
-            .setClearColor(ColorF32{0.0f, 1.0f})
-            .setAllowUav(true);
+            .setClearColor(ColorF32{0.0f, 1.0f});
 
         m_lowResolutionDrawer =
             TextureDrawerParams{}
             .setTexture(m_lowResolution.asShaderResource())
             .setShader(s_rsc->shader.default2d);
-
-        m_csDispatcher =
-            ComputeDispatcherParams{}
-            .setCS(s_rsc->shader.shadertoy_cs)
-            .setCbv({s_rsc->cb.shadertoy})
-            .setUav({m_lowResolution.asUnorderedTexture()});
     }
 
     // -----------------------------------------------
 
     void draw3D()
     {
-        const Float2 renderTargetSize = Float2{m_lowResolutionDrawer.size()};
+        const Float2 renderTargetSize = Float2{RenderTarget::Current().size()};
         s_rsc->cb.shadertoy->g_screenResolution = renderTargetSize;
         s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (renderTargetSize / Scene::Size().cast<Float2>());
         s_rsc->cb.shadertoy.upload();
 
-        const Size threadGroup = (renderTargetSize.asPoint() + Size{7, 7}) / 8;
-        m_csDispatcher.dispatchToDraw(threadGroup.x, threadGroup.y);
+        m_toyDrawer.draw();
     }
 
     void Update()
     {
-        draw3D();
+        static bool s_upscalingEnabled{true};
 
-        m_lowResolutionDrawer.as2D().resized(Scene::Size()).draw(Float2{});
+        if (s_upscalingEnabled)
+        {
+            {
+                auto bind = m_lowResolution.scopedBind();
+                draw3D();
+            }
+
+            m_lowResolutionDrawer.as2D().resized(Scene::Size()).draw(Float2{});
+        }
+        else
+        {
+            draw3D();
+        }
 
         {
             ImGui::Begin("System Settings");
@@ -138,6 +151,8 @@ struct Demo_Shadertoy_impl
                 System::Sleep(500);
             }
 
+            ImGui::Checkbox("Upscaling Enabled", &s_upscalingEnabled);
+
             ImGui::End();
         }
     }
@@ -145,9 +160,9 @@ struct Demo_Shadertoy_impl
 private:
 };
 
-void Demo_Shadertoy()
+void Demo_ShadertoyPS()
 {
-    Demo_Shadertoy_impl impl{};
+    Demo_ShadertoyPS_impl impl{};
 
     while (System::Update())
     {

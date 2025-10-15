@@ -376,23 +376,20 @@ struct DescriptorHeap::Impl
         EngineRenderContext::GetCommandList(pipeline)->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
-    void CommandSetTable(PipelineType pipeline, int tableId, int materialId) const
+    void CommandSetGraphicsTable(PipelineType pipeline, int tableId, int materialId) const
     {
         auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
-        if (pipeline == PipelineType::Graphics)
-        {
-            EngineRenderContext::GetCommandList(pipeline)->SetGraphicsRootDescriptorTable(tableId, heapHandle);
-        }
-        else if (pipeline == PipelineType::Compute)
-        {
-            EngineRenderContext::GetCommandList(pipeline)->SetComputeRootDescriptorTable(tableId, heapHandle);
-        }
-        else
-        {
-            assert(false);
-        }
+        EngineRenderContext::GetCommandList(pipeline)->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+    }
+
+    void CommandSetComputeTable(CommandListType commandList, int tableId, int materialId) const
+    {
+        auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
+        heapHandle.ptr += m_handleOffsets[tableId][materialId];
+
+        EngineRenderContext::GetCommandList(commandList)->SetComputeRootDescriptorTable(tableId, heapHandle);
     }
 };
 
@@ -423,6 +420,11 @@ namespace TY::detail
 
     void DescriptorHeap::commandSetTable(PipelineType pipeline, int tableId, int materialId) const
     {
-        if (p_impl) p_impl->CommandSetTable(pipeline, tableId, materialId);
+        if (p_impl) p_impl->CommandSetGraphicsTable(pipeline, tableId, materialId);
+    }
+
+    void DescriptorHeap::commandSetComputeTable(CommandListType commandList, int tableId, int materialId) const
+    {
+        if (p_impl) p_impl->CommandSetComputeTable(commandList, tableId, materialId);
     }
 }
