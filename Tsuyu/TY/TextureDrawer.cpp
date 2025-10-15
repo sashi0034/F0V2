@@ -100,7 +100,7 @@ namespace
 
 struct TextureDrawer::Impl
 {
-    TextureObject m_srv;
+    TextureHandle m_srv;
 
     GraphicsPipelineState m_pso;
 
@@ -117,7 +117,7 @@ struct TextureDrawer::Impl
     Impl(const TextureDrawerParams& options) :
         m_pso(makePipelineState(options))
     {
-        m_srv = TextureObject{options.texture};
+        m_srv = TextureHandle{options.texture};
 
         m_cb0 = ConstantBuffer<SceneState_b0>{1};
 
@@ -175,7 +175,7 @@ struct TextureDrawer::Impl
 
 namespace TY
 {
-    TextureDrawerParams& TextureDrawerParams::setTexture(const TextureObject& texture_)
+    TextureDrawerParams& TextureDrawerParams::setTexture(const TextureHandle& texture_)
     {
         texture = texture_;
         return *this;

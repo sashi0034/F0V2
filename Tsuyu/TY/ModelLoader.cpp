@@ -137,7 +137,7 @@ namespace
 
             material.diffuseTexture =
                 m.diffuse_texname.empty()
-                    ? TextureObject{}
+                    ? TextureHandle{}
                     : DiskTexture{baseDir + "/" + m.diffuse_texname};
 
             material.parameters.ambient = Float3(m.ambient[0], m.ambient[1], m.ambient[2]);

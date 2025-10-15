@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Array.h"
-#include "TextureObject.h"
+#include "TextureHandle.h"
 #include "Vector2D.h"
 #include "Vector3D.h"
 
@@ -32,7 +32,7 @@ namespace TY
     {
         std::string name{};
         ModelMaterialParameters parameters{};
-        TextureObject diffuseTexture{};
+        TextureHandle diffuseTexture{};
     };
 
     struct ModelData

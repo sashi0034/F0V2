@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Image.h"
 #include "ImageView.h"
-#include "TextureObject.h"
+#include "TextureHandle.h"
 
 namespace TY
 {
@@ -16,7 +16,7 @@ namespace TY
 
         void upload(const ImageView& image);
 
-        operator TextureObject() const;
+        operator TextureHandle() const;
 
     private:
         struct Impl;

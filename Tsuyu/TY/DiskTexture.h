@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "TextureObject.h"
+#include "TextureHandle.h"
 #include "UnifiedString.h"
 
 namespace TY
@@ -12,7 +12,7 @@ namespace TY
         DiskTexture(const UnifiedString& path);
 
         [[nodiscard]]
-        operator TextureObject() const;
+        operator TextureHandle() const;
 
     private:
         struct Impl;

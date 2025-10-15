@@ -222,8 +222,8 @@ namespace TY
         }
     }
 
-    TextureObject BitmapFont::atlasTexture() const
+    TextureHandle BitmapFont::atlasTexture() const
     {
-        return p_impl ? p_impl->m_atlasTexture : TextureObject{};
+        return p_impl ? p_impl->m_atlasTexture : TextureHandle{};
     }
 }

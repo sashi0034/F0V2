@@ -175,7 +175,7 @@
     <ClInclude Include="TY\MipmappedDynamicTexture.h" />
     <ClInclude Include="TY\IGpuMemoryUsage.h" />
     <ClInclude Include="TY\Periodic.h" />
-    <ClInclude Include="TY\TextureObject.h" />
+    <ClInclude Include="TY\TextureHandle.h" />
     <ClInclude Include="TY\TriangleBvh.h" />
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\CbvSrvUav.h" />
@@ -336,7 +336,7 @@
     <ClCompile Include="TY\DiskTexture.cpp" />
     <ClCompile Include="TY\MipmappedDynamicTexture.cpp" />
     <ClCompile Include="TY\Periodic.cpp" />
-    <ClCompile Include="TY\TextureObject.cpp" />
+    <ClCompile Include="TY\TextureHandle.cpp" />
     <ClCompile Include="TY\TriangleBvh.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />

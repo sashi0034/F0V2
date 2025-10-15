@@ -19,6 +19,6 @@ namespace TY
 
         ModelData Plane(const Float2& size, const ColorF32& color);
 
-        ModelData TexturePlane(const TextureObject& texture, const Float2& size = {1.0f, 1.0f});
+        ModelData TexturePlane(const TextureHandle& texture, const Float2& size = {1.0f, 1.0f});
     }
 }

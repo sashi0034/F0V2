@@ -3,7 +3,7 @@
 
 namespace TY
 {
-    class TextureObject;
+    class TextureHandle;
 
     class UnorderedStructuredBuffer;
 }
@@ -16,7 +16,7 @@ namespace TY::detail
 
         void Shutdown();
 
-        TextureObject GetWhiteTexture();
+        TextureHandle GetWhiteTexture();
 
         VertexShader GetStubVS();
 

@@ -3,13 +3,12 @@
 
 namespace TY
 {
-    // TODO: Rename to TextureHandle
-    class TextureObject
+    class TextureHandle
     {
     public:
-        TextureObject() = default;
+        TextureHandle() = default;
 
-        TextureObject(ID3D12Resource* resource);
+        TextureHandle(ID3D12Resource* resource);
 
         bool isEmpty() const;
 
@@ -28,11 +27,11 @@ namespace TY
         std::shared_ptr<Impl> p_impl;
     };
 
-    class UnorderedTextureObject : public TextureObject
+    class UnorderedTextureHandle : public TextureHandle
     {
     public:
-        UnorderedTextureObject() = default;
+        UnorderedTextureHandle() = default;
 
-        UnorderedTextureObject(ID3D12Resource* resource);
+        UnorderedTextureHandle(ID3D12Resource* resource);
     };
 }

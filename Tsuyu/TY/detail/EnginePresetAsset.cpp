@@ -5,7 +5,7 @@
 #include "TY/Image.h"
 #include "TY/Shader.h"
 #include "TY/StructuredBuffer.h"
-#include "TY/TextureObject.h"
+#include "TY/TextureHandle.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -14,7 +14,7 @@ struct EnginePresetAssetImpl
 {
     bool m_initialized = false;
 
-    TextureObject m_whiteTexture{};
+    TextureHandle m_whiteTexture{};
 
     VertexShader m_stubVS{};
 
@@ -63,7 +63,7 @@ namespace TY::detail
         s_enginePresetAsset = {};
     }
 
-    TextureObject EnginePresetAsset::GetWhiteTexture()
+    TextureHandle EnginePresetAsset::GetWhiteTexture()
     {
         assert(s_enginePresetAsset.m_initialized);
         return s_enginePresetAsset.m_whiteTexture;

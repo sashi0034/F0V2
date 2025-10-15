@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "TextureObject.h"
+#include "TextureHandle.h"
 
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
@@ -7,7 +7,7 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct TextureObject::Impl
+struct TextureHandle::Impl
 {
     ComPtr<ID3D12Resource> m_textureBuffer{};
 
@@ -23,7 +23,7 @@ struct TextureObject::Impl
 
 namespace TY
 {
-    TextureObject::TextureObject(ID3D12Resource* resource)
+    TextureHandle::TextureHandle(ID3D12Resource* resource)
         : p_impl(std::make_shared<Impl>(resource))
     {
         if (not p_impl->m_textureBuffer)
@@ -32,17 +32,17 @@ namespace TY
         }
     }
 
-    bool TextureObject::isEmpty() const
+    bool TextureHandle::isEmpty() const
     {
         return p_impl == nullptr;
     }
 
-    size_t TextureObject::resource_id() const
+    size_t TextureHandle::resource_id() const
     {
         return p_impl ? reinterpret_cast<size_t>(p_impl->m_textureBuffer.Get()) : 0;
     }
 
-    Size TextureObject::size() const
+    Size TextureHandle::size() const
     {
         if (not p_impl) return Size{};
 
@@ -51,17 +51,17 @@ namespace TY
         return Size{static_cast<int>(desc.Width), static_cast<int>(desc.Height)};
     }
 
-    ID3D12Resource* TextureObject::getResource() const
+    ID3D12Resource* TextureHandle::getResource() const
     {
         return p_impl ? p_impl->m_textureBuffer.Get() : nullptr;
     }
 
-    DXGI_FORMAT TextureObject::getFormat() const
+    DXGI_FORMAT TextureHandle::getFormat() const
     {
         return p_impl ? p_impl->m_textureBuffer->GetDesc().Format : DXGI_FORMAT_UNKNOWN;
     }
 
-    int TextureObject::mipCount() const
+    int TextureHandle::mipCount() const
     {
         return p_impl ? static_cast<int>(p_impl->m_textureBuffer->GetDesc().MipLevels) : 0;
     }
@@ -86,8 +86,8 @@ namespace TY
         }
     }
 
-    UnorderedTextureObject::UnorderedTextureObject(ID3D12Resource* resource)
-        : TextureObject(checkUnorderedAccess(resource))
+    UnorderedTextureHandle::UnorderedTextureHandle(ID3D12Resource* resource)
+        : TextureHandle(checkUnorderedAccess(resource))
     {
     }
 }

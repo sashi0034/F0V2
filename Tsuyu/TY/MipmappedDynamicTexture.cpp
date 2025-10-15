@@ -194,8 +194,8 @@ namespace TY
         }
     }
 
-    MipmappedDynamicTexture::operator TextureObject() const
+    MipmappedDynamicTexture::operator TextureHandle() const
     {
-        return p_impl ? TextureObject{p_impl->m_finalBuffer.Get()} : TextureObject{};
+        return p_impl ? TextureHandle{p_impl->m_finalBuffer.Get()} : TextureHandle{};
     }
 }

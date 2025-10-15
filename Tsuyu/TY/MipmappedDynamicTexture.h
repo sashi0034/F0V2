@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "ImageView.h"
-#include "TextureObject.h"
+#include "TextureHandle.h"
 
 namespace TY
 {
@@ -11,7 +11,7 @@ namespace TY
 
         MipmappedDynamicTexture(const ImageView& image);
 
-        operator TextureObject() const;
+        operator TextureHandle() const;
 
     private:
         struct Impl;

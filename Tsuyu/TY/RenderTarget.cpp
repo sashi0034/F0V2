@@ -340,14 +340,14 @@ namespace TY
         commandList->ResourceBarrier(1, &resourceBarrierDesc);
     }
 
-    TextureObject RenderTarget::asShaderResource(int index) const
+    TextureHandle RenderTarget::asShaderResource(int index) const
     {
-        return TextureObject(p_impl->m_rtvResources[index].Get());
+        return TextureHandle(p_impl->m_rtvResources[index].Get());
     }
 
-    UnorderedTextureObject RenderTarget::asUnorderedTexture(int index) const
+    UnorderedTextureHandle RenderTarget::asUnorderedTexture(int index) const
     {
-        return UnorderedTextureObject(p_impl->m_rtvResources[index].Get());
+        return UnorderedTextureHandle(p_impl->m_rtvResources[index].Get());
     }
 
     RenderTarget RenderTarget::Current()

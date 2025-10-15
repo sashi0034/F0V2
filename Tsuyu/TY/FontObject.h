@@ -33,7 +33,7 @@ namespace TY
             return std::visit([](const auto& font) { return font.fontSize(); }, *this);
         }
 
-        TextureObject atlasTexture() const
+        TextureHandle atlasTexture() const
         {
             return std::visit([](const auto& font) { return font.atlasTexture(); }, *this);
         }

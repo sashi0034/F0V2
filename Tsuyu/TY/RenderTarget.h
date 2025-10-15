@@ -67,10 +67,10 @@ namespace TY
 
         // TODO: Rename to asTexture
         [[nodiscard]]
-        TextureObject asShaderResource(int index = 0) const;
+        TextureHandle asShaderResource(int index = 0) const;
 
         [[nodiscard]]
-        UnorderedTextureObject asUnorderedTexture(int index = 0) const;
+        UnorderedTextureHandle asUnorderedTexture(int index = 0) const;
 
         [[nodiscard]]
         static RenderTarget Current();
