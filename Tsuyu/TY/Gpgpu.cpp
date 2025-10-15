@@ -309,7 +309,7 @@ struct Gpgpu::Impl
         }
 
         m_computePipelineState.commandSet(CommandListType::Compute);
-        m_descriptorHeap.commandSet(PipelineType::Compute);
+        m_descriptorHeap.commandSet(CommandListType::Compute);
         m_descriptorHeap.commandSetComputeTable(CommandListType::Compute, 0);
 
         if (m_tableIndexofCbv10AndLater != -1)
@@ -390,7 +390,7 @@ struct Gpgpu::Impl
         for (auto& impl : list)
         {
             impl->m_computePipelineState.commandSet(CommandListType::Compute);
-            impl->m_descriptorHeap.commandSet(PipelineType::Compute);
+            impl->m_descriptorHeap.commandSet(CommandListType::Compute);
             impl->m_descriptorHeap.commandSetComputeTable(CommandListType::Compute, 0);
 
             if (impl->m_tableIndexofCbv10AndLater != -1)

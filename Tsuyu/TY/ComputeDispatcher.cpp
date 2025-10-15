@@ -42,7 +42,7 @@ struct ComputeDispatcher::Impl
 
         m_pso.commandSet(CommandListType::Draw);
 
-        m_descriptorHeap.commandSet(PipelineType::Graphics);
+        m_descriptorHeap.commandSet(CommandListType::Draw);
         m_descriptorHeap.commandSetComputeTable(CommandListType::Draw, 0);
 
         commandList->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ); // TODO: グループ数を指定できるようにする

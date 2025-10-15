@@ -121,9 +121,9 @@ namespace TY::ImmediateDrawer_detail
     void ID_DescriptorManager::CommandSet(const element_cursor& element) const
     {
         auto& heap = m_heapList[element.heapIndex];
-        heap.descriptorHeap.commandSet(PipelineType::Graphics);
-        heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 0);
-        heap.descriptorHeap.commandSetTable(PipelineType::Graphics, 1, element.cb1_index);
+        heap.descriptorHeap.commandSet(CommandListType::Draw);
+        heap.descriptorHeap.commandSetGraphicsTable(CommandListType::Draw, 0);
+        heap.descriptorHeap.commandSetGraphicsTable(CommandListType::Draw, 1, element.cb1_index);
     }
 
     ID_DescriptorManager::element_cursor ID_DescriptorManager::fetchHeap(const heap_type::key_type& keyResource)

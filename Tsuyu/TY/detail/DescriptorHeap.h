@@ -37,10 +37,9 @@ namespace TY::detail
 
         void resetUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId = 0);
 
-        void commandSet(PipelineType pipeline) const;
+        void commandSet(CommandListType commandList) const;
 
-        // TODO: Rename to commandSetGraphicsTable 
-        void commandSetTable(PipelineType pipeline, int tableId, int materialId = 0) const;
+        void commandSetGraphicsTable(CommandListType commandList, int tableId, int materialId = 0) const;
 
         void commandSetComputeTable(CommandListType commandList, int tableId, int materialId = 0) const;
 
