@@ -65,9 +65,8 @@ namespace TY
 
         void computeBarrierEnd(int index = 0) const;
 
-        // TODO: Rename to asTexture
         [[nodiscard]]
-        TextureHandle asShaderResource(int index = 0) const;
+        TextureHandle asTexture(int index = 0) const;
 
         [[nodiscard]]
         UnorderedTextureHandle asUnorderedTexture(int index = 0) const;

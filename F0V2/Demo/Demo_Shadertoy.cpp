@@ -98,7 +98,7 @@ struct Demo_Shadertoy_impl
 
         m_lowResolutionDrawer =
             TextureDrawerParams{}
-            .setTexture(m_lowResolution.asShaderResource())
+            .setTexture(m_lowResolution.asTexture())
             .setShader(s_rsc->shader.default2d);
 
         m_csDispatcher =

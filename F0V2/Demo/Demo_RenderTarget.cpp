@@ -81,7 +81,7 @@ void Demo_RenderTarget()
 
     TextureDrawer renderTargetTexture{
         {
-            .texture = renderTarget.asShaderResource(),
+            .texture = renderTarget.asTexture(),
             .shader = {
                 .vs = default2dVS,
                 .ps = default2dPS,

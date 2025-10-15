@@ -340,7 +340,7 @@ namespace TY
         commandList->ResourceBarrier(1, &resourceBarrierDesc);
     }
 
-    TextureHandle RenderTarget::asShaderResource(int index) const
+    TextureHandle RenderTarget::asTexture(int index) const
     {
         return TextureHandle(p_impl->m_rtvResources[index].Get());
     }

@@ -217,7 +217,7 @@ struct Demo_ImmediateDrawer_impl
         m_miniMapDrawer = TextureDrawer{
             TextureDrawerParams{}
             .setShader(m_shaders.default2d)
-            .setTexture(m_miniMap.asShaderResource())
+            .setTexture(m_miniMap.asTexture())
         };
     }
 
