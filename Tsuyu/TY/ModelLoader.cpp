@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "ModelLoader.h"
 
+#include "DiskTexture.h"
 #include "Logger.h"
 
 using namespace TY;
@@ -136,8 +137,8 @@ namespace
 
             material.diffuseTexture =
                 m.diffuse_texname.empty()
-                    ? TextureResource{}
-                    : TextureResource{baseDir + "/" + m.diffuse_texname};
+                    ? TextureObject{}
+                    : DiskTexture{baseDir + "/" + m.diffuse_texname};
 
             material.parameters.ambient = Float3(m.ambient[0], m.ambient[1], m.ambient[2]);
             material.parameters.diffuse = Float3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);

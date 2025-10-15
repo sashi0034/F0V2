@@ -107,9 +107,9 @@ namespace
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         ID3D12Resource* p_resource{};
-        if (sr.isHolds<TextureResource>())
+        if (sr.isHolds<TextureObject>())
         {
-            const auto& t = sr.get<TextureResource>();
+            const auto& t = sr.get<TextureObject>();
             const auto texture =
                 t.isEmpty() ? EnginePresetAsset::GetWhiteTexture() : t;
 
@@ -171,9 +171,9 @@ namespace
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         ID3D12Resource* pResource{};
 
-        if (uav.isHolds<UnorderedTextureResource>())
+        if (uav.isHolds<UnorderedTextureObject>())
         {
-            const auto& t = uav.get<UnorderedTextureResource>();
+            const auto& t = uav.get<UnorderedTextureObject>();
             assert(not t.isEmpty()); // TODO: fallback
 
             uavDesc.Format = t.getFormat();

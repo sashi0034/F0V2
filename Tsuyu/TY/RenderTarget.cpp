@@ -29,9 +29,6 @@ struct RenderTarget::Impl
     Array<ComPtr<ID3D12Resource>> m_rtvResources{};
     ComPtr<ID3D12Resource> m_dsvResource{};
 
-    Array<TextureResource> m_rtvAsShaderResource{};
-    Array<UnorderedTextureResource> m_rtvAsUnorderedAccess{}; // TODO: m_rtvAsShaderResource と統合 
-
     RectF m_viewport{};
 
     // RenderTargetParams m_params{};
@@ -162,20 +159,6 @@ struct RenderTarget::Impl
                 m_dsvResource.Get(),
                 nullptr,
                 dsvHandle);
-        }
-
-        for (int i = 0; i < params.bufferCount; ++i)
-        {
-            m_rtvAsShaderResource.push_back(TextureResource{m_rtvResources[i].Get()});
-        }
-
-        // FIXME: m_rtvAsShaderResource と m_rtvAsUnorderedAccess を統合する
-        if (params.allowUav)
-        {
-            for (int i = 0; i < params.bufferCount; ++i)
-            {
-                m_rtvAsShaderResource.push_back(UnorderedTextureResource{m_rtvAsUnorderedAccess[i]});
-            }
         }
     }
 
@@ -331,14 +314,9 @@ namespace TY
         return p_impl->ScopedBind(index);
     }
 
-    TextureResource RenderTarget::asShaderResource(int index) const
+    TextureObject RenderTarget::asShaderResource(int index) const
     {
-        if (not p_impl || index < 0 || index >= p_impl->m_rtvAsShaderResource.size())
-        {
-            return TextureResource{};
-        }
-
-        return p_impl->m_rtvAsShaderResource[index];
+        return TextureObject(p_impl->m_rtvResources[index].Get());
     }
 
     RenderTarget RenderTarget::Current()

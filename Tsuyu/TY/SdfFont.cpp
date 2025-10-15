@@ -335,8 +335,8 @@ namespace TY
     //     }
     // }
 
-    TextureResource SdfFont::atlasTexture() const
+    TextureObject SdfFont::atlasTexture() const
     {
-        return p_impl ? p_impl->m_atlasTexture.getResource() : TextureResource{};
+        return p_impl ? p_impl->m_atlasTexture : TextureObject{};
     }
 }

@@ -28,11 +28,11 @@ namespace TY::ImmediateDrawer_detail
             /// @brief テクスチャといったリソースはそれぞれ別々のヒープごとを割り当てる。このような特殊リソースはこのクラスにまとめる
             struct key_type
             {
-                TextureResource srv0{};
+                TextureObject srv0{};
 
                 bool operator ==(const key_type& other) const
                 {
-                    return srv0.unique_id() == other.srv0.unique_id();
+                    return srv0.resource_id() == other.srv0.resource_id();
                 }
             } keyResource{};
 
@@ -41,7 +41,7 @@ namespace TY::ImmediateDrawer_detail
                 return next_cbv1 >= cbv1.materialCount();
             }
 
-            void resetSrv0(const TextureResource& srv)
+            void resetSrv0(const TextureObject& srv)
             {
                 constexpr int tableId = 0;
                 keyResource.srv0 = srv;
@@ -81,7 +81,7 @@ namespace TY::ImmediateDrawer_detail
 
         void RequestTransform(const Mat3x2& transform);
 
-        void RequestSrv0(const TextureResource& srv);
+        void RequestSrv0(const TextureObject& srv);
 
         void Upload() const;
 

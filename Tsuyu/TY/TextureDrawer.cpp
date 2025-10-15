@@ -100,7 +100,7 @@ namespace
 
 struct TextureDrawer::Impl
 {
-    TextureResource m_sr;
+    TextureObject m_srv;
 
     GraphicsPipelineState m_pso;
 
@@ -117,14 +117,14 @@ struct TextureDrawer::Impl
     Impl(const TextureDrawerParams& options) :
         m_pso(makePipelineState(options))
     {
-        m_sr = TextureResource{options.texture};
+        m_srv = TextureObject{options.texture};
 
         m_cb0 = ConstantBuffer<SceneState_b0>{1};
 
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,
             .materialCounts = {1},
-            .descriptors = {CbvSrvUavSet{{m_cb0}, {{m_sr}}}}
+            .descriptors = {CbvSrvUavSet{{m_cb0}, {{m_srv}}}}
         });
     }
 
@@ -156,7 +156,7 @@ struct TextureDrawer::Impl
     void Draw(const Vec2& position, const TextureDrawable2D& drawable)
     {
         const auto mat3x2 = Mat3x2::Screen(RenderTarget::Current().size());
-        const auto region = RectF{position, m_sr.size() * drawable.scaling};
+        const auto region = RectF{position, m_srv.size() * drawable.scaling};
         const auto transformedTL = mat3x2.transformPoint(region.tl());
         const auto transformedBR = mat3x2.transformPoint(region.br());
         m_textureVertexData.TransformPosition(transformedTL, transformedBR);
@@ -167,7 +167,7 @@ struct TextureDrawer::Impl
 
     void DrawAt(const Vec2 center, const TextureDrawable2D& drawable)
     {
-        const auto size = m_sr.size() * drawable.scaling;
+        const auto size = m_srv.size() * drawable.scaling;
         const auto tl = center - size.cast<double>() / 2.0;
         Draw(tl, drawable);
     }
@@ -175,15 +175,9 @@ struct TextureDrawer::Impl
 
 namespace TY
 {
-    TextureDrawerParams& TextureDrawerParams::loadTexture(const TextureSource& source)
+    TextureDrawerParams& TextureDrawerParams::setTexture(const TextureObject& texture_)
     {
-        texture = TextureResource{source};
-        return *this;
-    }
-
-    TextureDrawerParams& TextureDrawerParams::setTexture(const TextureResource& texture_)
-    {
-        texture = TextureResource{texture_};
+        texture = texture_;
         return *this;
     }
 
@@ -225,7 +219,7 @@ namespace TY
 
     Size TextureDrawer::size() const
     {
-        return p_impl ? p_impl->m_sr.size() : Size{};
+        return p_impl ? p_impl->m_srv.size() : Size{};
     }
 
     TextureDrawable2D& TextureDrawable2D::scaled(float value)

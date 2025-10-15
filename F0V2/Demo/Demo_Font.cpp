@@ -5,8 +5,10 @@
 
 #include "TY/BitmapFont.h"
 #include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicTexture.h"
 #include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
+#include "TY/Image.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 
@@ -66,7 +68,7 @@ namespace
         }
     };
 
-    TextureResource makeGroundPlane(
+    DynamicTexture makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
@@ -98,7 +100,7 @@ namespace
             }
         }
 
-        return TextureResource{image};
+        return {image};
     }
 
     constexpr float groundPositionY = -10.0f;
@@ -206,7 +208,7 @@ struct Demo_Font_impl
 
         m_fontDrawer = TextureDrawer{
             TextureDrawerParams{}
-            .setTexture(TextureResource{m_fontBitmap.atlasTexture().getResource()})
+            .setTexture({m_fontBitmap.atlasTexture().getResource()})
             .setShader(m_shaders.default2d)
         };
     }

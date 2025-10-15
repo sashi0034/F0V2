@@ -10,6 +10,7 @@
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicTexture.h"
 #include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
@@ -21,7 +22,7 @@ using namespace Race;
 
 namespace
 {
-    TextureResource makeGroundPlane(
+    DynamicTexture makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
@@ -56,7 +57,7 @@ namespace
             }
         }
 
-        return TextureResource{image};
+        return {image};
     }
 
     // -----------------------------------------------

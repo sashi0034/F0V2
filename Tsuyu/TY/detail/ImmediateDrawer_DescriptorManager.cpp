@@ -78,9 +78,9 @@ namespace TY::ImmediateDrawer_detail
         }
     }
 
-    void ID_DescriptorManager::RequestSrv0(const TextureResource& srv)
+    void ID_DescriptorManager::RequestSrv0(const TextureObject& srv)
     {
-        if (currentHeap().keyResource.srv0.unique_id() == srv.unique_id())
+        if (currentHeap().keyResource.srv0.resource_id() == srv.resource_id())
         {
             return;
         }

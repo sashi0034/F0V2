@@ -5,6 +5,7 @@
 
 #include "TY/BitmapFont.h"
 #include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicTexture.h"
 #include "TY/Gamepad.h"
 #include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
@@ -68,7 +69,7 @@ namespace
         }
     };
 
-    TextureResource makeGroundPlane(
+    DynamicTexture makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
@@ -100,7 +101,7 @@ namespace
             }
         }
 
-        return TextureResource{image};
+        return {image};
     }
 
     constexpr float groundPositionY = -10.0f;

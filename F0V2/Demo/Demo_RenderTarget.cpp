@@ -2,6 +2,8 @@
 #include "Demo_RenderTarget.h"
 
 #include "TY/Buffer3D.h"
+#include "TY/DiskTexture.h"
+#include "TY/DynamicTexture.h"
 #include "TY/Graphics3D.h"
 #include "TY/Image.h"
 #include "TY/KeyboardInput.h"
@@ -39,11 +41,11 @@ void Demo_RenderTarget()
     }
 
     const TextureDrawer noiseTexture{
-        TextureDrawerParams{.texture = image, .shader = {default2dVS, default2dPS,}}
+        TextureDrawerParams{.texture = DynamicTexture(image), .shader = {default2dVS, default2dPS,}}
     };
 
     const TextureDrawer pngTexture{
-        TextureDrawerParams{.texture = "asset/image/mii.png", .shader = {default2dVS, default2dPS}}
+        TextureDrawerParams{.texture = DiskTexture{"asset/image/mii.png"}, .shader = {default2dVS, default2dPS}}
     };
 
     Mat4x4 worldMat = Mat4x4::Identity().rotatedY(45.0_deg);

@@ -1,20 +1,15 @@
 ﻿#include "pch.h"
-#include "TextureResource.h"
+#include "DiskTexture.h"
 
-#include "Logger.h"
+#include "AssertObject.h"
+#include "System.h"
+#include "Utils.h"
 #include "detail/EngineRenderContext.h"
-#include "TY/AssertObject.h"
-#include "TY/Color.h"
-#include "TY/Image.h"
-#include "TY/System.h"
-#include "TY/TextureSource.h"
-#include "TY/Utils.h"
-#include "TY/Variant.h"
 
 using namespace TY;
 using namespace TY::detail;
 
-struct TextureResource::Impl
+struct DiskTexture::Impl
 {
     DXGI_FORMAT m_format{};
     Size m_size{};
@@ -157,133 +152,17 @@ struct TextureResource::Impl
 
         m_size = Size{static_cast<int>(metadata.width), static_cast<int>(metadata.height)};
     }
-
-    Impl(const ImageView& image)
-    {
-        D3D12_HEAP_PROPERTIES heapProperties{};
-        heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
-        heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-        heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-        heapProperties.CreationNodeMask = 0;
-        heapProperties.VisibleNodeMask = 0;
-
-        D3D12_RESOURCE_DESC resourceDesc{};
-        resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-        resourceDesc.Alignment = 0;
-        resourceDesc.Width = image.size.x;
-        resourceDesc.Height = image.size.y;
-        resourceDesc.DepthOrArraySize = 1;
-        resourceDesc.MipLevels = 1;
-        resourceDesc.Format = image.format;
-        resourceDesc.SampleDesc.Count = 1;
-        resourceDesc.SampleDesc.Quality = 0;
-        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-        resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-        AssertWin32{"failed to create commited resource"sv}
-            | EngineRenderContext::GetDevice()->CreateCommittedResource(
-                &heapProperties,
-                D3D12_HEAP_FLAG_NONE,
-                &resourceDesc,
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                nullptr,
-                IID_PPV_ARGS(&m_finalBuffer));
-
-        AssertWin32{"failed to write to subresource"sv}
-            | m_finalBuffer->WriteToSubresource(
-                0,
-                nullptr, // リソース全体領域をコピー
-                image.getPointer(),
-                image.size.x * image.pixelSizeInBytes(),
-                image.sizeInBytes);
-
-        m_format = resourceDesc.Format;
-
-        m_size = Size{static_cast<int>(resourceDesc.Width), static_cast<int>(resourceDesc.Height)};
-    }
-
-    Impl(ID3D12Resource* resource)
-    {
-        m_finalBuffer = ComPtr<ID3D12Resource>(resource);
-        m_format = resource->GetDesc().Format;
-        m_size = Size{static_cast<int>(resource->GetDesc().Width), static_cast<int>(resource->GetDesc().Height)};
-    }
 };
 
 namespace TY
 {
-    TextureResource::TextureResource(const TextureSource& source)
+    DiskTexture::DiskTexture(const UnifiedString& path)
+        : p_impl(std::make_shared<Impl>(path.toUtf16()))
     {
-        if (const auto path = source.tryGet<std::string>())
-        {
-            p_impl = std::make_shared<Impl>(ToUtf16(*path));
-        }
-        else if (const auto image = source.tryGet<ImageView>())
-        {
-            p_impl = std::make_shared<Impl>(*image);
-        }
-        else if (const auto resource = source.tryGet<ID3D12Resource*>())
-        {
-            p_impl = std::make_shared<Impl>(*resource);
-        }
-        else
-        {
-            assert(false);
-        }
     }
 
-    bool TextureResource::isEmpty() const
+    DiskTexture::operator TextureObject() const
     {
-        return p_impl == nullptr;
-    }
-
-    size_t TextureResource::unique_id() const
-    {
-        return p_impl ? reinterpret_cast<size_t>(p_impl.get()) : 0;
-    }
-
-    Size TextureResource::size() const
-    {
-        return p_impl ? p_impl->m_size : Size{};
-    }
-
-    ID3D12Resource* TextureResource::getResource() const
-    {
-        return p_impl ? p_impl->m_finalBuffer.Get() : nullptr;
-    }
-
-    DXGI_FORMAT TextureResource::getFormat() const
-    {
-        return p_impl ? p_impl->m_format : DXGI_FORMAT_UNKNOWN;
-    }
-
-    int TextureResource::mipCount() const
-    {
-        return p_impl ? p_impl->m_finalBuffer->GetDesc().MipLevels : 0;
-    }
-
-    namespace
-    {
-        ID3D12Resource* checkUnorderedAccess(ID3D12Resource* resource)
-        {
-            if (not resource)
-            {
-                return nullptr;
-            }
-
-            const auto desc = resource->GetDesc();
-            if (not(desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS))
-            {
-                LogError("TextureResource: Resource is not created with D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS.");
-                return nullptr;
-            }
-
-            return resource;
-        }
-    }
-
-    UnorderedTextureResource::UnorderedTextureResource(ID3D12Resource* source)
-        : TextureResource(checkUnorderedAccess(source))
-    {
+        return p_impl ? TextureObject{p_impl->m_finalBuffer.Get()} : TextureObject{};
     }
 }

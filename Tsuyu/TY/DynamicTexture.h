@@ -1,6 +1,7 @@
 ﻿#pragma once
+#include "Image.h"
 #include "ImageView.h"
-#include "TextureResource.h"
+#include "TextureObject.h"
 
 namespace TY
 {
@@ -9,11 +10,13 @@ namespace TY
     public:
         DynamicTexture() = default;
 
+        DynamicTexture(const Image& image);
+
         DynamicTexture(const ImageView& image);
 
         void upload(const ImageView& image);
 
-        TextureResource getResource() const;
+        operator TextureObject() const;
 
     private:
         struct Impl;

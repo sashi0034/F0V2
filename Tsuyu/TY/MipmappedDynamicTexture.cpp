@@ -17,8 +17,6 @@ struct MipmappedDynamicTexture::Impl
     ComPtr<ID3D12Resource> m_uploadBuffer{};
     ComPtr<ID3D12Resource> m_finalBuffer{};
 
-    TextureResource m_textureResource{};
-
     // struct frame_resources
     // {
     //     ComPtr<ID3D12Resource> uploadBuffer;
@@ -35,9 +33,10 @@ struct MipmappedDynamicTexture::Impl
 
         m_size = image.size;
 
-        Create(image);
-
-        m_textureResource = TextureResource{m_finalBuffer.Get()};
+        if (not Create(image))
+        {
+            return;
+        }
 
         m_valid = true;
     }
@@ -179,6 +178,8 @@ struct MipmappedDynamicTexture::Impl
             D3D12_RESOURCE_STATE_COPY_DEST,
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         cmdList->ResourceBarrier(1, &barrier);
+
+        return true;
     }
 };
 
@@ -193,8 +194,8 @@ namespace TY
         }
     }
 
-    TextureResource MipmappedDynamicTexture::getResource() const
+    MipmappedDynamicTexture::operator TextureObject() const
     {
-        return p_impl ? p_impl->m_textureResource : TextureResource{};
+        return p_impl ? TextureObject{p_impl->m_finalBuffer.Get()} : TextureObject{};
     }
 }

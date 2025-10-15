@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "GlyphInfo.h"
 #include "Grid.h"
-#include "TextureResource.h"
+#include "TextureObject.h"
 
 namespace TY
 {
@@ -25,7 +25,7 @@ namespace TY
 
         int fontSize() const;
 
-        TextureResource atlasTexture() const;
+        TextureObject atlasTexture() const;
 
     private:
         struct Impl;

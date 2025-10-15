@@ -170,10 +170,12 @@
     <ClInclude Include="TY\BitmapFont.h" />
     <ClInclude Include="TY\ComputeDispatcher.h" />
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
+    <ClInclude Include="TY\DiskTexture.h" />
     <ClInclude Include="TY\IndexedTriangle.h" />
     <ClInclude Include="TY\MipmappedDynamicTexture.h" />
     <ClInclude Include="TY\IGpuMemoryUsage.h" />
     <ClInclude Include="TY\Periodic.h" />
+    <ClInclude Include="TY\TextureObject.h" />
     <ClInclude Include="TY\TriangleBvh.h" />
     <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\CbvSrvUav.h" />
@@ -270,14 +272,12 @@
     <ClInclude Include="TY\Scene.h" />
     <ClInclude Include="TY\ScopedDefer.h" />
     <ClInclude Include="TY\Shader.h" />
-    <ClInclude Include="TY\TextureResource.h" />
     <ClInclude Include="TY\PrimitiveModel3D.h" />
     <ClInclude Include="TY\SimpleInput.h" />
     <ClInclude Include="TY\UnifiedString.h" />
     <ClInclude Include="TY\System.h" />
     <ClInclude Include="TY\TemplateHelper.h" />
     <ClInclude Include="TY\TextureDrawer.h" />
-    <ClInclude Include="TY\TextureSource.h" />
     <ClInclude Include="TY\Transformer3D.h" />
     <ClInclude Include="TY\Uncopyable.h" />
     <ClInclude Include="TY\Utils.h" />
@@ -333,8 +333,10 @@
     <ClCompile Include="TY\BitmapFont.cpp" />
     <ClCompile Include="TY\ComputeDispatcher.cpp" />
     <ClCompile Include="TY\detail\GpuMemoryUsage.cpp" />
+    <ClCompile Include="TY\DiskTexture.cpp" />
     <ClCompile Include="TY\MipmappedDynamicTexture.cpp" />
     <ClCompile Include="TY\Periodic.cpp" />
+    <ClCompile Include="TY\TextureObject.cpp" />
     <ClCompile Include="TY\TriangleBvh.cpp" />
     <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
@@ -411,7 +413,6 @@
     <ClCompile Include="TY\Scene.cpp" />
     <ClCompile Include="TY\ScopedDefer.cpp" />
     <ClCompile Include="TY\Shader.cpp" />
-    <ClCompile Include="TY\TextureResource.cpp" />
     <ClCompile Include="TY\PrimitiveModel3D.cpp" />
     <ClCompile Include="TY\SimpleInput.cpp" />
     <ClCompile Include="TY\UnifiedString.cpp" />

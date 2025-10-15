@@ -4,6 +4,7 @@
 #include "Demo_AirCombat.h"
 
 #include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicTexture.h"
 #include "TY/Gamepad.h"
 #include "TY/GameStep.h"
 #include "TY/Graphics3D.h"
@@ -67,7 +68,7 @@ namespace
         }
     };
 
-    TextureResource makeGroundPlane(
+    DynamicTexture makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
@@ -99,10 +100,10 @@ namespace
             }
         }
 
-        return TextureResource{image};
+        return {image};
     }
 
-    TextureResource makeAimIcon(const Size& size, const UnifiedColor& color)
+    DynamicTexture makeAimIcon(const Size& size, const UnifiedColor& color)
     {
         Image image{size, ColorU8{}};
 
@@ -122,7 +123,7 @@ namespace
             }
         }
 
-        return TextureResource{image};
+        return {image};
     }
 
     struct CommonResource : IInlineComponent
@@ -510,7 +511,7 @@ struct Demo_AirCombat_impl
         m_greenAimIcon = TextureDrawer{
             TextureDrawerParams{}
             .setShader(s_resource->default2d)
-            .loadTexture(makeAimIcon(Size{32, 32}, ColorF32{0.3f, 1.0f, 0.3f}).getResource())
+            .setTexture(makeAimIcon(Size{32, 32}, ColorF32{0.3f, 1.0f, 0.3f}))
         };
     }
 

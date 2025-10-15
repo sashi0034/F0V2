@@ -9,6 +9,7 @@
 #include "GM/DebugService.h"
 #include "TY/ActorContainer.h"
 #include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicTexture.h"
 #include "TY/MipmappedDynamicTexture.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
@@ -20,7 +21,6 @@
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 #include "TY/System.h"
-#include "TY/TextureResource.h"
 #include "TY_Extension/SerializeTransform.h"
 
 using namespace Editor;
@@ -47,7 +47,7 @@ namespace
         }
     };
 
-    TextureResource makeGroundPlane(
+    TextureObject makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};
@@ -82,7 +82,7 @@ namespace
             }
         }
 
-        return MipmappedDynamicTexture{image.view()}.getResource();
+        return MipmappedDynamicTexture{image.view()};
     }
 
     constexpr float groundPositionY = -50.0f;

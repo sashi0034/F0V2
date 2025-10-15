@@ -1,16 +1,17 @@
 ﻿#pragma once
-#include "ImageView.h"
 #include "TextureObject.h"
+#include "UnifiedString.h"
 
 namespace TY
 {
-    class MipmappedDynamicTexture
+    class DiskTexture
     {
     public:
-        MipmappedDynamicTexture() = default;
+        DiskTexture() = default;
 
-        MipmappedDynamicTexture(const ImageView& image);
+        DiskTexture(const UnifiedString& path);
 
+        [[nodiscard]]
         operator TextureObject() const;
 
     private:
