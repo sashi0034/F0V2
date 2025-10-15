@@ -66,9 +66,9 @@ struct EngineRenderContextImpl
     Mat3x2 m_windowToFrameBuffer{};
     Mat3x2 m_frameBufferToWindow{};
 
-    bool m_previousFullscreen{};
-
     std::optional<Size> m_wantsFrameBufferSize{};
+
+    // bool m_wasFullscreen{};
 
     std::optional<bool> m_wantsFullscreen{};
 
@@ -166,7 +166,7 @@ struct EngineRenderContextImpl
         swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-        swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        // swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
         if (const auto hr = m_dxgiFactory->CreateSwapChainForHwnd(
                 m_drawCommandList.GetCommandQueue(),
@@ -200,14 +200,7 @@ struct EngineRenderContextImpl
     void NewFrame()
     {
         // リサイズ制御
-        if (m_wantsFullscreen.has_value())
-        {
-            toggleFullscreen();
-        }
-        else
-        {
-            checkRecreateSwapchain();
-        }
+        checkRecreateSwapchain();
 
         m_backBuffer.setViewport(calculateViewportRect());
 
@@ -331,45 +324,41 @@ private:
                .translated((m_frameBufferSize.cast<Float2>() - windowSizeInScene) * 0.5f);
     }
 
-    void toggleFullscreen()
-    {
-        if (not m_wantsFullscreen.has_value())
-        {
-            return;
-        }
-
-        const bool shouldFullscreen = m_wantsFullscreen.value();
-
-        m_wantsFullscreen = {};
-
-        ComPtr<IDXGIOutput> output;
-        m_swapChain->GetContainingOutput(&output);
-
-        DXGI_OUTPUT_DESC desc;
-        output->GetDesc(&desc);
-        const auto& targetMode = desc.DesktopCoordinates; // 表示解像度取得
-
-        m_swapChain->SetFullscreenState(shouldFullscreen, nullptr);
-
-        recreateSwapChain(shouldFullscreen
-                              ? Size{targetMode.right - targetMode.left, targetMode.bottom - targetMode.top}
-                              : m_frameBufferSize);
-    }
+    // void toggleFullscreen()
+    // {
+    //     if (not m_wantsFullscreen.has_value())
+    //     {
+    //         return;
+    //     }
+    //
+    //     const bool shouldFullscreen = m_wantsFullscreen.value();
+    //
+    //     m_wantsFullscreen = {};
+    //
+    //     ComPtr<IDXGIOutput> output;
+    //     m_swapChain->GetContainingOutput(&output);
+    //
+    //     DXGI_OUTPUT_DESC desc;
+    //     output->GetDesc(&desc);
+    //     const auto& targetMode = desc.DesktopCoordinates; // 表示解像度取得
+    //
+    //     m_swapChain->SetFullscreenState(shouldFullscreen, nullptr);
+    //
+    //     recreateSwapChain(shouldFullscreen
+    //                           ? Size{targetMode.right - targetMode.left, targetMode.bottom - targetMode.top}
+    //                           : m_frameBufferSize);
+    // }
 
     void checkRecreateSwapchain()
     {
         std::optional<Size> newSize{};
 
         // フルスクリーン制御
+        if (m_wantsFullscreen)
         {
-            BOOL fullscreen;
-            m_swapChain->GetFullscreenState(&fullscreen, nullptr);
-            if (fullscreen != m_previousFullscreen)
-            {
-                newSize = m_frameBufferSize;
-            }
+            newSize = m_frameBufferSize;
 
-            m_previousFullscreen = fullscreen;
+            m_wantsFullscreen = {};
         }
 
         // リサイズのリクエスト対応

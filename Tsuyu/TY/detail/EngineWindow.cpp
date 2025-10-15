@@ -58,6 +58,10 @@ struct EngineWindowImpl
 
     std::wstring m_fullTitle{m_title};
 
+    bool m_fullscreen{false};
+
+    RECT m_rectBeforeFullscreen{};
+
     void Init()
     {
         m_className = getExecutableFileName();
@@ -157,6 +161,57 @@ struct EngineWindowImpl
         );
     }
 
+    void SetBorderlessFullscreen(bool enable)
+    {
+        m_fullscreen = enable;
+
+        const HWND hwnd = m_handle;
+
+        if (enable)
+        {
+            GetWindowRect(hwnd, &m_rectBeforeFullscreen);
+
+            MONITORINFO info = {sizeof(info)};
+            GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &info);
+
+            SetWindowLong(hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+
+            m_windowSize = {
+                info.rcMonitor.right - info.rcMonitor.left,
+                info.rcMonitor.bottom - info.rcMonitor.top
+            };
+
+            SetWindowPos(hwnd,
+                         HWND_TOP,
+                         info.rcMonitor.left,
+                         info.rcMonitor.top,
+                         m_windowSize.x,
+                         m_windowSize.y,
+                         SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+
+            EngineRenderContext::RequestFullscreen(true);
+        }
+        else // disable
+        {
+            SetWindowLong(hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+
+            m_windowSize = Size{
+                m_rectBeforeFullscreen.right - m_rectBeforeFullscreen.left,
+                m_rectBeforeFullscreen.bottom - m_rectBeforeFullscreen.top
+            };
+
+            SetWindowPos(hwnd,
+                         HWND_NOTOPMOST,
+                         m_rectBeforeFullscreen.left,
+                         m_rectBeforeFullscreen.top,
+                         m_windowSize.x,
+                         m_windowSize.y,
+                         SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+
+            EngineRenderContext::RequestFullscreen(false);
+        }
+    }
+
     void RefreshTitleBar()
     {
         RECT windowRect{}, clientRect{};
@@ -199,8 +254,7 @@ namespace
         case WM_SYSKEYDOWN:
             if (wParam == VK_RETURN && (GetKeyState(VK_MENU) & 0x8000))
             {
-                EngineRenderContext::RequestFullscreen(not EngineRenderContext::IsFullscreen());
-                return 0; // DXGI に渡さない
+                s_engineWindow.SetBorderlessFullscreen(not s_engineWindow.m_fullscreen);
             }
         }
 
