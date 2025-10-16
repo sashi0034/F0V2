@@ -36,7 +36,7 @@ namespace TY
 
     struct GraphicsSamplerOptions
     {
-        GraphicsFilterMode filter{GraphicsFilterMode::Nearest};
+        GraphicsFilterMode filter{GraphicsFilterMode::Linear};
         GraphicsAddressMode addressU{GraphicsAddressMode::Wrap};
         GraphicsAddressMode addressV{GraphicsAddressMode::Wrap};
         GraphicsAddressMode addressW{GraphicsAddressMode::Wrap};
