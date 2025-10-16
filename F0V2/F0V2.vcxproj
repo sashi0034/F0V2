@@ -154,6 +154,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <Content Include="asset\fsr1\fsr1_easu.hlsl" />
+    <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
+    <ClCompile Include="Demo\Demo_FSR1.cpp" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <ClCompile Include="Demo\Demo_Shadertoy.cpp" />
@@ -251,12 +254,15 @@
   <ItemGroup>
     <ClInclude Include="Asset0.h" />
     <ClInclude Include="Asset.generated.h" />
+    <Content Include="asset\fsr1\ffx_a.h" />
+    <Content Include="asset\fsr1\ffx_fsr1.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="CB\Lambert.h" />
     <ClInclude Include="CB\Skydome.h" />
     <ClInclude Include="ColorPalette.h" />
     <ClInclude Include="Demo\Demo_Shadertoy.h" />
     <ClInclude Include="Demo\Demo_ShadertoyPS.h" />
+    <ClInclude Include="Demo\Demo_FSR1.h" />
     <ClInclude Include="Editor\EditorScene.h" />
     <ClInclude Include="Editor\EditorState.h" />
     <ClInclude Include="Editor\EditorNodeTool.h" />

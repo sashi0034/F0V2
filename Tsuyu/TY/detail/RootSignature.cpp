@@ -214,7 +214,7 @@ namespace TY::detail
 
             samplerDesc.ShaderRegister = i;
 
-            samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // ピクセルシェーダからアクセス
+            samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
             samplerDescList.push_back(samplerDesc);
         }
