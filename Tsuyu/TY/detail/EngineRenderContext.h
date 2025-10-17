@@ -36,8 +36,6 @@ namespace TY::detail
 
         void Shutdown();
 
-        const RenderTarget& GetBackBuffer();
-
         [[nodiscard]]
         ID3D12Device* GetDevice();
 

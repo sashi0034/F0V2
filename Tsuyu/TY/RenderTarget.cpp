@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
 #include "RenderTarget.h"
 
-#include "AssertObject.h"
+#include "Logger.h"
+#include "RenderTargetTexture.h"
 #include "TextureDrawer.h"
-#include "detail/EngineCore.h"
 #include "detail/EngineRenderContext.h"
 
 using namespace TY;
@@ -16,9 +16,12 @@ namespace
 
 struct RenderTarget::Impl
 {
-    int m_bufferCount{};
+    bool m_valid{};
+
+    ColorF32 m_clearColor{1.0f, 0.0f, 1.0f, 1.0f};
     Size m_size{};
-    ColorF32 m_clearColor{};
+
+    RectF m_viewport{};
 
     D3D12_CPU_DESCRIPTOR_HANDLE m_lastRtvHandle{};
     D3D12_CPU_DESCRIPTOR_HANDLE m_lastDsvHandle{};
@@ -26,84 +29,51 @@ struct RenderTarget::Impl
     ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap{};
     ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap{};
 
-    Array<ComPtr<ID3D12Resource>> m_rtvResources{};
+    TextureHandle m_rtvResource{};
     ComPtr<ID3D12Resource> m_dsvResource{};
-
-    RectF m_viewport{};
 
     // RenderTargetParams m_params{};
 
-    Impl(const RenderTargetParams& params, IDXGISwapChain* swapChain = nullptr)
+    Impl(const RenderTargetParams& params)
     {
-        m_bufferCount = params.bufferCount;
-        m_size = params.size;
-        m_clearColor = params.clearColor;
+        const auto& rtv = params.rtv;
 
+        m_clearColor = params.clearColor;
+        m_size = rtv.size();
+
+        m_viewport.size = m_size;
+
+        m_rtvResource = params.rtv;
+
+        if (not CreateInternal(params))
+        {
+            return;
+        }
+
+        m_valid = true;
+    }
+
+    ~Impl()
+    {
+        EngineRenderContext::SafeDisposeRenderResource(m_rtvDescriptorHeap);
+        EngineRenderContext::SafeDisposeRenderResource(m_dsvDescriptorHeap);
+
+        // EngineRenderContext::SafeDisposeRenderResource(m_rtvResource);
+        EngineRenderContext::SafeDisposeRenderResource(m_dsvResource);
+    }
+
+    bool CreateInternal(const RenderTargetParams& params)
+    {
         const auto device = EngineRenderContext::GetDevice();
 
-        if (not swapChain)
-        {
-            // 通常のレンダーターゲット
-            m_viewport.size = params.size;
-
-            CD3DX12_RESOURCE_DESC resourceDesc{};
-            resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-            resourceDesc.Width = params.size.x;
-            resourceDesc.Height = params.size.y;
-            resourceDesc.DepthOrArraySize = 1;
-            resourceDesc.MipLevels = 1;
-            resourceDesc.Format = params.format;
-            resourceDesc.SampleDesc = {1, 0};
-            resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-
-            resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-            if (params.allowUav)
-            {
-                resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-            }
-
-            D3D12_CLEAR_VALUE clearValue{};
-            clearValue.Format = params.format;
-            clearValue.Color[0] = m_clearColor.r;
-            clearValue.Color[1] = m_clearColor.g;
-            clearValue.Color[2] = m_clearColor.b;
-            clearValue.Color[3] = m_clearColor.a;
-
-            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-
-            m_rtvResources.resize(params.bufferCount);
-            for (int i = 0; i < params.bufferCount; ++i)
-            {
-                AssertWin32{"failed to create commited resource for render target view"sv}
-                    | device->CreateCommittedResource(
-                        &heapProperties,
-                        D3D12_HEAP_FLAG_NONE,
-                        &resourceDesc,
-                        D3D12_RESOURCE_STATE_PRESENT,
-                        &clearValue,
-                        IID_PPV_ARGS(&m_rtvResources[i]));
-            }
-        }
-        else // バックバッファ
-        {
-            m_rtvResources.resize(params.bufferCount);
-            for (int i = 0; i < params.bufferCount; ++i)
-            {
-                AssertWin32{"failed to get buffer"sv}
-                    | swapChain->GetBuffer(i, IID_PPV_ARGS(&m_rtvResources[i]));
-            }
-        }
-
-        // -----------------------------------------------
-
         {
             CD3DX12_RESOURCE_DESC resourceDesc{};
             resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-            resourceDesc.Width = params.size.x;
-            resourceDesc.Height = params.size.y;
+            resourceDesc.Width = m_size.x;
+            resourceDesc.Height = m_size.y;
             resourceDesc.DepthOrArraySize = 1;
             resourceDesc.MipLevels = 1;
-            resourceDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            resourceDesc.Format = DXGI_FORMAT_D32_FLOAT; // TODO: Support stencil
             resourceDesc.SampleDesc = {1, 0};
             resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
             resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
@@ -115,14 +85,18 @@ struct RenderTarget::Impl
             clearValue.DepthStencil.Depth = 1.0f;
             clearValue.DepthStencil.Stencil = 0;
 
-            AssertWin32{"failed to create render target resource for deapth dencil buffer"sv}
-                | device->CreateCommittedResource(
+            if (const HRESULT hr = device->CreateCommittedResource(
                     &heapProperties,
                     D3D12_HEAP_FLAG_NONE,
                     &resourceDesc,
                     D3D12_RESOURCE_STATE_DEPTH_WRITE,
                     &clearValue,
-                    IID_PPV_ARGS(&m_dsvResource));
+                    IID_PPV_ARGS(m_dsvResource.ReleaseAndGetAddressOf()));
+                FAILED(hr))
+            {
+                LogError(std::format("RenderTarget: Failed to create depth stencil resource: {}", hr));
+                return false;
+            }
         }
 
         // -----------------------------------------------
@@ -130,29 +104,36 @@ struct RenderTarget::Impl
         {
             D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
             heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            heapDesc.NumDescriptors = params.bufferCount;
+            heapDesc.NumDescriptors = 1; // TODO: MRT
             heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-            AssertWin32{"failed to create descriptor heap"sv}
-                | device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_rtvDescriptorHeap));
+            if (const HRESULT hr = device->CreateDescriptorHeap(
+                    &heapDesc, IID_PPV_ARGS(m_rtvDescriptorHeap.ReleaseAndGetAddressOf()));
+                FAILED(hr))
+            {
+                LogError(std::format("RenderTarget: Failed to create descriptor heap: {}", hr));
+                return false;
+            }
 
             auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
-            for (int i = 0; i < params.bufferCount; ++i)
-            {
-                device->CreateRenderTargetView(
-                    m_rtvResources[i].Get(),
-                    nullptr,
-                    rtvHandle);
+            device->CreateRenderTargetView(
+                m_rtvResource.getResource(),
+                nullptr,
+                rtvHandle);
 
-                rtvHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-            }
+            rtvHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
             // -----------------------------------------------
 
             heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-            AssertWin32{"failed to create descriptor heap"sv}
-                | device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_dsvDescriptorHeap));
+            if (const HRESULT hr = device->CreateDescriptorHeap(
+                    &heapDesc, IID_PPV_ARGS(m_dsvDescriptorHeap.ReleaseAndGetAddressOf()));
+                FAILED(hr))
+            {
+                LogError(std::format("RenderTarget: Failed to create descriptor heap: {}", hr));
+                return false;
+            }
 
             const auto dsvHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
             device->CreateDepthStencilView(
@@ -160,6 +141,8 @@ struct RenderTarget::Impl
                 nullptr,
                 dsvHandle);
         }
+
+        return true;
     }
 
     void CommandSetViewportAndScissorsRect() const
@@ -185,19 +168,17 @@ struct RenderTarget::Impl
         commandList->RSSetScissorRects(1, &scissorRect);
     }
 
-    ScopedRenderTarget ScopedBind(int index)
+    ScopedRenderTarget ScopedBind()
     {
         const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
 
         const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_rtvResources[index].Get(),
+            m_rtvResource.getResource(),
             D3D12_RESOURCE_STATE_PRESENT,
             D3D12_RESOURCE_STATE_RENDER_TARGET);
         commandList->ResourceBarrier(1, &resourceBarrierDesc);
 
         auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-        rtvHandle.ptr +=
-            index * EngineRenderContext::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
         const auto dsvHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
         commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
@@ -211,19 +192,26 @@ struct RenderTarget::Impl
         CommandSetViewportAndScissorsRect();
 
         return ScopedRenderTarget{
-            [this, index, commandList]
+            [this, commandList]
             {
                 const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-                    m_rtvResources[index].Get(),
+                    m_rtvResource.getResource(),
                     D3D12_RESOURCE_STATE_RENDER_TARGET,
                     D3D12_RESOURCE_STATE_PRESENT);
                 commandList->ResourceBarrier(1, &resourceBarrierDesc);
 
-                AssertTrue{"RenderTarget::ScopedBind() is not balanced"sv}
-                    | s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl.get() == this;
+                if (s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl.get() != this)
+                {
+                    LogError("RenderTarget::ScopedBind() is not balanced");
+                }
+
                 s_renderTargetStack.pop_back();
 
-                if (s_renderTargetStack.empty()) return;
+                if (s_renderTargetStack.empty())
+                {
+                    return;
+                }
+
                 // -----------------------------------------------
 
                 const auto& prev = s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl;
@@ -236,44 +224,34 @@ struct RenderTarget::Impl
 
 namespace TY
 {
-    RenderTargetParams& RenderTargetParams::setBufferCount(int bufferCount_)
+    RenderTargetParams& RenderTargetParams::setRtvAndClearColor(const RenderTargetTexture& rtv_)
     {
-        bufferCount = bufferCount_;
+        rtv = rtv_;
+        clearColor = rtv_.clearColor();
         return *this;
     }
 
-    RenderTargetParams& RenderTargetParams::setSize(Size size_)
+    RenderTargetParams& RenderTargetParams::setRtvAndClearColor(const RtvParams& rtv_)
     {
-        size = size_;
-        return *this;
+        return setRtvAndClearColor(RenderTargetTexture(rtv_));
     }
 
-    RenderTargetParams& RenderTargetParams::setClearColor(const ColorF32& clearColor_)
+    RenderTargetParams& RenderTargetParams::setRtvAndClearColor_unsafe(
+        const TextureHandle& rtv_, const ColorF32& clearColor_)
     {
+        rtv = rtv_;
         clearColor = clearColor_;
-        return *this;
-    }
 
-    RenderTargetParams& RenderTargetParams::setFormat(GraphicsFormat format_)
-    {
-        format = format_;
-        return *this;
-    }
-
-    RenderTargetParams& RenderTargetParams::setAllowUav(bool allowUav_)
-    {
-        allowUav = allowUav_;
         return *this;
     }
 
     RenderTarget::RenderTarget(const RenderTargetParams& params)
         : p_impl(std::make_shared<Impl>(params))
     {
-    }
-
-    RenderTarget::RenderTarget(const RenderTargetParams& params, IDXGISwapChain* swapChain)
-        : p_impl(std::make_shared<Impl>(params, swapChain))
-    {
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+        }
     }
 
     bool RenderTarget::isEmpty() const
@@ -284,11 +262,6 @@ namespace TY
     size_t RenderTarget::unique_id() const
     {
         return p_impl ? reinterpret_cast<size_t>(p_impl.get()) : 0;
-    }
-
-    int RenderTarget::bufferCount() const
-    {
-        return p_impl ? p_impl->m_bufferCount : 0;
     }
 
     Size RenderTarget::size() const
@@ -306,48 +279,17 @@ namespace TY
         return p_impl ? p_impl->m_viewport : RectF{};
     }
 
-    ScopedRenderTarget RenderTarget::scopedBind(int index) const
+    ScopedRenderTarget RenderTarget::scopedBind() const
     {
         if (not p_impl) return ScopedRenderTarget{};
 
         s_renderTargetStack.push_back(*this);
-        return p_impl->ScopedBind(index);
+        return p_impl->ScopedBind();
     }
 
-    void RenderTarget::computeBarrierStart(int index) const
+    TextureHandle RenderTarget::asTexture() const
     {
-        if (not p_impl) return;
-
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
-
-        const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-            p_impl->m_rtvResources[index].Get(),
-            D3D12_RESOURCE_STATE_PRESENT,
-            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-        commandList->ResourceBarrier(1, &resourceBarrierDesc);
-    }
-
-    void RenderTarget::computeBarrierEnd(int index) const
-    {
-        if (not p_impl) return;
-
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
-
-        const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-            p_impl->m_rtvResources[index].Get(),
-            D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-            D3D12_RESOURCE_STATE_PRESENT);
-        commandList->ResourceBarrier(1, &resourceBarrierDesc);
-    }
-
-    TextureHandle RenderTarget::asTexture(int index) const
-    {
-        return TextureHandle(p_impl->m_rtvResources[index].Get());
-    }
-
-    UnorderedTextureHandle RenderTarget::asUnorderedTexture(int index) const
-    {
-        return UnorderedTextureHandle(p_impl->m_rtvResources[index].Get());
+        return p_impl->m_rtvResource;
     }
 
     RenderTarget RenderTarget::Current()

@@ -80,7 +80,7 @@ namespace
 
 struct Demo_Shadertoy_impl
 {
-    RenderTarget m_lowResolution{};
+    UnorderedRenderTargetTexture m_lowResolution{};
 
     TextureDrawer m_lowResolutionDrawer{};
 
@@ -91,21 +91,20 @@ struct Demo_Shadertoy_impl
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
         m_lowResolution =
-            RenderTargetParams()
+            RenderTargetTextureParams()
             .setSize(Scene::Size() * 0.5)
-            .setClearColor(ColorF32{0.0f, 1.0f})
-            .setAllowUav(true);
+            .setClearColor(ColorF32{0.0f, 1.0f});
 
         m_lowResolutionDrawer =
             TextureDrawerParams{}
-            .setTexture(m_lowResolution.asTexture())
+            .setTexture(m_lowResolution)
             .setShader(s_rsc->shader.default2d);
 
         m_csDispatcher =
             ComputeDispatcherParams{}
             .setCS(s_rsc->shader.shadertoy_cs)
             .setCbv({s_rsc->cb.shadertoy})
-            .setUav({m_lowResolution.asUnorderedTexture()});
+            .setUav({m_lowResolution});
     }
 
     // -----------------------------------------------

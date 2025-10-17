@@ -26,11 +26,10 @@ namespace
 
     void enableDebugLayer()
     {
-        ID3D12Debug* debugLayer = nullptr;
+        ComPtr<ID3D12Debug> debugLayer = nullptr;
         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugLayer))))
         {
             debugLayer->EnableDebugLayer();
-            debugLayer->Release();
         }
     }
 
@@ -60,7 +59,7 @@ struct EngineRenderContextImpl
 
     ComPtr<IDXGISwapChain4> m_swapChain{};
 
-    RenderTarget m_backBuffer{};
+    std::array<RenderTarget, EngineRenderContext::FrameBufferCount> m_backBuffers{};
     ScopedRenderTarget m_scopedBackBuffer{};
 
     Mat3x2 m_windowToFrameBuffer{};
@@ -182,14 +181,7 @@ struct EngineRenderContextImpl
         }
 
         // バックバッファ作成
-        m_backBuffer = RenderTarget{
-            {
-                .bufferCount = static_cast<int>(swapchainDesc.BufferCount),
-                .size = m_frameBufferSize,
-                .clearColor = m_clearColor,
-            },
-            m_swapChain.Get()
-        };
+        setupBackBuffers();
 
         // 共通コンスタントバッファの初期化
         m_sceneState3D = ConstantBuffer<SceneState3D_b0>{1};
@@ -202,14 +194,14 @@ struct EngineRenderContextImpl
         // リサイズ制御
         checkRecreateSwapchain();
 
-        m_backBuffer.setViewport(calculateViewportRect());
+        const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+        m_backBuffers[backBufferIndex].setViewport(calculateViewportRect());
 
         m_windowToFrameBuffer = calculateWindowToFrameBuffer();
         m_frameBufferToWindow = m_windowToFrameBuffer.inverse();
 
         // バックバッファを設定
-        const auto backBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
-        m_scopedBackBuffer = m_backBuffer.scopedBind(backBufferIndex);
+        m_scopedBackBuffer = m_backBuffers[backBufferIndex].scopedBind();
     }
 
     void Render()
@@ -283,6 +275,19 @@ struct EngineRenderContextImpl
     }
 
 private:
+    void setupBackBuffers()
+    {
+        for (int i = 0; i < EngineRenderContext::FrameBufferCount; ++i)
+        {
+            ComPtr<ID3D12Resource> backBuffer = nullptr;
+            m_swapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer));
+
+            m_backBuffers[i] =
+                RenderTargetParams{}
+                .setRtvAndClearColor_unsafe(backBuffer.Get(), m_clearColor);
+        }
+    }
+
     RectF calculateViewportRect() const
     {
         const auto windowSize = EngineWindow::GetSize();
@@ -388,9 +393,7 @@ private:
 
         m_drawCommandList.WaitLastFlush();
 
-        const int bufferCount = m_backBuffer.bufferCount();
-
-        m_backBuffer = {};
+        m_backBuffers = {};
 
         for (auto& rsc : m_disposedRenderResources)
         {
@@ -398,7 +401,7 @@ private:
         }
 
         if (const auto hr = m_swapChain->ResizeBuffers(
-                bufferCount,
+                EngineRenderContext::FrameBufferCount,
                 newSize.x,
                 newSize.y,
                 DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -411,14 +414,7 @@ private:
             return;
         }
 
-        m_backBuffer = RenderTarget{
-            {
-                .bufferCount = bufferCount,
-                .size = newSize,
-                .clearColor = m_clearColor,
-            },
-            m_swapChain.Get()
-        };
+        setupBackBuffers();
 
         m_frameBufferSize = newSize;
     }
@@ -450,11 +446,6 @@ namespace TY::detail
     {
         s_renderContext.OnShutdown();
         s_renderContext = {};
-    }
-
-    const RenderTarget& EngineRenderContext::GetBackBuffer()
-    {
-        return s_renderContext.m_backBuffer;
     }
 
     ID3D12Device* EngineRenderContext::GetDevice()

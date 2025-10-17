@@ -25,7 +25,7 @@ struct EngineImGuiImpl
 
         ImGui_ImplWin32_Init(EngineWindow::Handle());
 
-        const int framesInFlight = EngineRenderContext::GetBackBuffer().bufferCount();
+        constexpr int framesInFlight = EngineRenderContext::FrameBufferCount;
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
         srvHeapDesc.NumDescriptors = 1 * framesInFlight;
         srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;

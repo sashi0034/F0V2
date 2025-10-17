@@ -206,11 +206,11 @@ struct Demo_ShadowMap_impl
         for (int i = 0; i < cascadeShadowMapCount; ++i)
         {
             m_shadowMaps[i] = RenderTarget{
-                RenderTargetParams{
-                    .size = Size{2048, 2048},
-                    .clearColor = ColorF32{1.0f, 1.0f},
-                    .format = shadowMapFormat
-                }
+                RenderTargetParams()
+                .setRtvAndClearColor(RtvParams()
+                        .setSize(Size{2048, 2048})
+                        .setClearColor(ColorF32{1.0f, 1.0f})
+                        .setFormat(shadowMapFormat))
             };
         }
 

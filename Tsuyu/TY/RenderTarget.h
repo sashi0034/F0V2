@@ -1,30 +1,24 @@
 ﻿#pragma once
 #include "Color.h"
-#include "GraphicsOptions.h"
+#include "RenderTargetTexture.h"
 #include "ScopedDefer.h"
-#include "Shader.h"
 #include "TextureDrawer.h"
-#include "Vector2D.h"
 
 namespace TY
 {
+    using RtvParams = RenderTargetTextureParams;
+
     struct RenderTargetParams
     {
-        int bufferCount{1};
-        Size size;
-        ColorF32 clearColor;
-        GraphicsFormat format{DXGI_FORMAT_R8G8B8A8_UNORM};
-        bool allowUav{};
+        TextureHandle rtv{};
 
-        RenderTargetParams& setBufferCount(int bufferCount_);
+        ColorF32 clearColor{};
 
-        RenderTargetParams& setSize(Size size_);
+        RenderTargetParams& setRtvAndClearColor(const RenderTargetTexture& rtv_);
 
-        RenderTargetParams& setClearColor(const ColorF32& clearColor_);
+        RenderTargetParams& setRtvAndClearColor(const RtvParams& rtv_);
 
-        RenderTargetParams& setFormat(GraphicsFormat format_);
-
-        RenderTargetParams& setAllowUav(bool allowUav_);
+        RenderTargetParams& setRtvAndClearColor_unsafe(const TextureHandle& rtv_, const ColorF32& clearColor_);
     };
 
     class ScopedRenderTarget : public ScopedDefer
@@ -40,36 +34,25 @@ namespace TY
 
         RenderTarget(const RenderTargetParams& params);
 
-        /** @internal */
-        RenderTarget(const RenderTargetParams& params, IDXGISwapChain* swapChain);
-
+        [[nodiscard]]
         bool isEmpty() const;
 
-        size_t unique_id() const;
-
         [[nodiscard]]
-        int bufferCount() const;
+        size_t unique_id() const;
 
         [[nodiscard]]
         Size size() const;
 
         void setViewport(const RectF& viewport);
 
+        [[nodiscard]]
         RectF getViewport() const;
 
         [[nodiscard]]
-        ScopedRenderTarget scopedBind(int index = 0) const;
-
-        // TODO: Enhance
-        void computeBarrierStart(int index = 0) const;
-
-        void computeBarrierEnd(int index = 0) const;
+        ScopedRenderTarget scopedBind() const;
 
         [[nodiscard]]
-        TextureHandle asTexture(int index = 0) const;
-
-        [[nodiscard]]
-        UnorderedTextureHandle asUnorderedTexture(int index = 0) const;
+        TextureHandle asTexture() const;
 
         [[nodiscard]]
         static RenderTarget Current();

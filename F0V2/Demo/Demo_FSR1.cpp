@@ -79,11 +79,14 @@ struct Demo_FSR1_impl
     GraphicsShader m_default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
 
     // リソース
-    RenderTarget m_inputRT{{.size = Scene::Size() * 0.5, .clearColor = ColorF32{0.2f, 0.3f, 0.4f, 1.0f}}};
+    RenderTarget m_inputRT{
+        RenderTargetParams{}
+        .setRtvAndClearColor(RtvParams{}.setSize(Scene::Size() * 0.5).setClearColor(ColorF32{0.2f, 0.3f, 0.4f, 1.0f}))
+    };
 
-    RenderTarget m_upscaledTex{};
+    UnorderedRenderTargetTexture m_upscaledTex{};
 
-    RenderTarget m_sharpenedTex{};
+    UnorderedRenderTargetTexture m_sharpenedTex{};
 
     TextureDrawer m_upscalingDrawer{};
 
@@ -119,15 +122,13 @@ struct Demo_FSR1_impl
 
     Demo_FSR1_impl()
     {
-        m_upscaledTex = RenderTargetParams()
+        m_upscaledTex = RenderTargetTextureParams()
                         .setSize(Scene::Size())
-                        .setFormat(DXGI_FORMAT_R16G16B16A16_FLOAT)
-                        .setAllowUav(true);
+                        .setFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-        m_sharpenedTex = RenderTargetParams()
+        m_sharpenedTex = RenderTargetTextureParams()
                          .setSize(Scene::Size())
-                         .setFormat(DXGI_FORMAT_R16G16B16A16_FLOAT)
-                         .setAllowUav(true);
+                         .setFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
 
         // -----------------------------------------------
 
@@ -141,7 +142,7 @@ struct Demo_FSR1_impl
         m_upscalingDrawer = TextureDrawer{
             TextureDrawerParams{}
             .setShader(m_default2d)
-            .setTexture({m_sharpenedTex.asTexture()})
+            .setTexture(m_sharpenedTex)
         };
 
         m_easuDispatcher = ComputeDispatcher{
@@ -149,15 +150,15 @@ struct Demo_FSR1_impl
             .setCS(m_easuShader)
             .setCbv({m_easuCB})
             .setSrv({m_inputRT.asTexture()})
-            .setUav({{m_upscaledTex.asUnorderedTexture()}})
+            .setUav({m_upscaledTex})
         };
 
         m_rcasDispatcher = ComputeDispatcher{
             ComputeDispatcherParams{}
             .setCS(m_rcasShader)
             .setCbv({m_rcasCB})
-            .setSrv({{{m_upscaledTex.asTexture()}}})
-            .setUav({{{m_sharpenedTex.asUnorderedTexture()}}})
+            .setSrv({m_upscaledTex})
+            .setUav({m_sharpenedTex})
         };
 
         m_defaultScalingDrawer = TextureDrawer(TextureDrawerParams{}
