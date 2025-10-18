@@ -49,6 +49,8 @@ struct Player::Impl : GameObjectBase
             .setCbv10AndLater({GetRaceContextContent().cb.lambert});
 
         resetPhysicsState();
+
+        // TODO: Update 前の最初のフレームでカメラが設定されるようにする
     }
 
 private:

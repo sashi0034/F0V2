@@ -57,8 +57,6 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     void update() override
     {
-        m_children.updateEach();
-
         Graphics3D::SetViewMatrix(m_state.camera.viewMatrix());
 
         {
@@ -71,6 +69,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
             Graphics3D::SetProjectionMatrix(projectionMat);
         }
+
+        m_children.updateEach();
 
         m_state.cb.lambert->lightDirection = m_state.camera.worldMatrix().forward();
         m_state.cb.lambert->lightColor = Float3{1.0f, 1.0f, 1.0f};

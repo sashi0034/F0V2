@@ -10,6 +10,8 @@ namespace Editor
 
         void init();
 
+        void applyCamera();
+
         std::shared_ptr<ActorBase> asActor() const override;
 
     private:

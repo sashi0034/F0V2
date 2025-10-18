@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "SceneState_singleton.h"
+#include "SceneState3D_singleton.h"
 
 #include "TY/Mat4x4.h"
 #include "TY/Scene.h"
@@ -8,8 +8,14 @@ using namespace TY;
 
 struct SceneStateImpl
 {
-    std::vector<Mat4x4> m_worldMatStack{};
+    bool m_shouldRefresh{};
+
+    Array<Mat4x4> m_worldMatStack{};
+
     Mat4x4 m_viewMat{};
+
+    // TODO: worldToView には m_worldMatStack が適応されるようにする
+
     Mat4x4 m_projectionMat{};
 };
 
@@ -20,8 +26,20 @@ namespace
 
 namespace TY
 {
-    void SceneState_singleton::PushWorldMatrix(const Mat4x4& worldMatrix)
+    bool SceneState3D_singleton::ShouldRefresh()
     {
+        return s_sceneState.m_shouldRefresh;
+    }
+
+    void SceneState3D_singleton::OnRefreshed()
+    {
+        s_sceneState.m_shouldRefresh = false;
+    }
+
+    void SceneState3D_singleton::PushWorldMatrix(const Mat4x4& worldMatrix)
+    {
+        s_sceneState.m_shouldRefresh = true;
+
         if (s_sceneState.m_worldMatStack.empty())
         {
             s_sceneState.m_worldMatStack.push_back(worldMatrix);
@@ -32,19 +50,23 @@ namespace TY
         }
     }
 
-    void SceneState_singleton::PopWorldMatrix()
+    void SceneState3D_singleton::PopWorldMatrix()
     {
+        s_sceneState.m_shouldRefresh = true;
+
         assert(not s_sceneState.m_worldMatStack.empty());
         s_sceneState.m_worldMatStack.pop_back();
     }
 
-    [[nodiscard]] Mat4x4 SceneState_singleton::GetWorldMatrix()
+    [[nodiscard]] Mat4x4 SceneState3D_singleton::GetWorldMatrix()
     {
         return s_sceneState.m_worldMatStack.empty() ? Mat4x4::Identity() : s_sceneState.m_worldMatStack.back();
     }
 
-    Mat4x4 SceneState_singleton::ApplyWorldMatrix(const Mat4x4& matrix)
+    Mat4x4 SceneState3D_singleton::ApplyWorldMatrix(const Mat4x4& matrix)
     {
+        s_sceneState.m_shouldRefresh = true;
+
         if (s_sceneState.m_worldMatStack.empty())
         {
             return matrix;
@@ -55,33 +77,37 @@ namespace TY
         }
     }
 
-    void SceneState_singleton::SetViewMatrix(const Mat4x4& viewMatrix)
+    void SceneState3D_singleton::SetViewMatrix(const Mat4x4& viewMatrix)
     {
+        s_sceneState.m_shouldRefresh = true;
+
         s_sceneState.m_viewMat = viewMatrix;
     }
 
-    Mat4x4 SceneState_singleton::GetViewMatrix()
+    Mat4x4 SceneState3D_singleton::GetViewMatrix()
     {
         return s_sceneState.m_viewMat;
     }
 
-    void SceneState_singleton::SetProjectionMatrix(const Mat4x4& projectionMatrix)
+    void SceneState3D_singleton::SetProjectionMatrix(const Mat4x4& projectionMatrix)
     {
+        s_sceneState.m_shouldRefresh = true;
+
         s_sceneState.m_projectionMat = projectionMatrix;
     }
 
-    Mat4x4 SceneState_singleton::GetProjectionMatrix()
+    Mat4x4 SceneState3D_singleton::GetProjectionMatrix()
     {
         return s_sceneState.m_projectionMat;
     }
 
-    Mat4x4 SceneState_singleton::WorldToProjection()
+    Mat4x4 SceneState3D_singleton::WorldToProjection()
     {
         // TODO: キャッシュ
         return GetWorldMatrix() * s_sceneState.m_viewMat * s_sceneState.m_projectionMat;
     }
 
-    Mat4x4 SceneState_singleton::WorldToScreen()
+    Mat4x4 SceneState3D_singleton::WorldToScreen()
     {
         Mat4x4 m{};
         const float width = static_cast<float>(Scene::Size().x);

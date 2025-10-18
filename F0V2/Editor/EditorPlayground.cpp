@@ -139,6 +139,22 @@ struct EditorPlayground::Impl : ActorBase
         m_camera.reset(Float3{0.0f, 15.0f, 15.0f});
     }
 
+    void ApplyCamera()
+    {
+        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
+
+        {
+            m_projectionMat = Mat4x4::PerspectiveFov(
+                75.0_deg,
+                Scene::Size().horizontalAspectRatio(),
+                0.1f,
+                fovFarZ
+            );
+
+            Graphics3D::SetProjectionMatrix(m_projectionMat);
+        }
+    }
+
     void update() override
     {
         m_children.updateEach();
@@ -160,18 +176,7 @@ struct EditorPlayground::Impl : ActorBase
         g_editorState->lambert->lightColor = Float3{1.0f, 1.0f, 1.0f};
         g_editorState->lambert.upload();
 
-        Graphics3D::SetViewMatrix(m_camera.viewMatrix());
-
-        {
-            m_projectionMat = Mat4x4::PerspectiveFov(
-                75.0_deg,
-                Scene::Size().horizontalAspectRatio(),
-                0.1f,
-                fovFarZ
-            );
-
-            Graphics3D::SetProjectionMatrix(m_projectionMat);
-        }
+        ApplyCamera();
 
         // -----------------------------------------------
 
@@ -203,6 +208,11 @@ struct EditorPlayground::Impl : ActorBase
         }
     }
 
+    float orderPriority() const override
+    {
+        return 1000;
+    }
+
     void killed() override
     {
         m_children.killEach();
@@ -219,6 +229,11 @@ namespace Editor
     void EditorPlayground::init()
     {
         p_impl->init();
+    }
+
+    void EditorPlayground::applyCamera()
+    {
+        p_impl->ApplyCamera();
     }
 
     std::shared_ptr<ActorBase> EditorPlayground::asActor() const

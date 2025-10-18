@@ -8,7 +8,7 @@
 #include "EngineStateContext.h"
 #include "EngineWindow.h"
 #include "GpuMemoryUsage.h"
-#include "SceneState_singleton.h"
+#include "SceneState3D_singleton.h"
 #include "TY/ConstantBuffer.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
@@ -220,14 +220,6 @@ struct EngineRenderContextImpl
 
     void Render()
     {
-        // コンスタントバッファのアップロード
-        {
-            SceneState3D_b0 b{};
-            b.projectionMatrix = SceneState_singleton::GetProjectionMatrix();
-            b.viewMatrix = SceneState_singleton::GetViewMatrix();
-            m_sceneState3D.upload(b);
-        }
-
         // バックバッファ反映
         m_scopedBackBuffer.dispose();
 
@@ -278,6 +270,19 @@ struct EngineRenderContextImpl
         default:
             assert(false);
             return m_drawCommandList;
+        }
+    }
+
+    void RefreshSceneStateIfNeeded()
+    {
+        if (SceneState3D_singleton::ShouldRefresh())
+        {
+            SceneState3D_b0 b{};
+            b.projectionMatrix = SceneState3D_singleton::GetProjectionMatrix();
+            b.viewMatrix = SceneState3D_singleton::GetViewMatrix();
+            m_sceneState3D.upload(b);
+
+            SceneState3D_singleton::OnRefreshed();
         }
     }
 
@@ -512,6 +517,11 @@ namespace TY::detail
     Mat3x2 EngineRenderContext::FrameBufferToWindow()
     {
         return s_renderContext.m_frameBufferToWindow;
+    }
+
+    void EngineRenderContext::RefreshSceneStateIfNeeded()
+    {
+        s_renderContext.RefreshSceneStateIfNeeded();
     }
 
     ConstantBuffer<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()

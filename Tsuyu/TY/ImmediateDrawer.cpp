@@ -195,6 +195,8 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
 
     void Draw()
     {
+        EngineRenderContext::RefreshSceneStateIfNeeded();
+
         flushCurrentBuffer(m_stateManager.Current());
 
         for (; m_drawUnitIndex < m_bufferUnitList.logical_size(); ++m_drawUnitIndex)

@@ -3,8 +3,12 @@
 
 namespace TY
 {
-    namespace SceneState_singleton
+    namespace SceneState3D_singleton
     {
+        bool ShouldRefresh();
+
+        void OnRefreshed();
+
         void PushWorldMatrix(const Mat4x4& worldMatrix);
 
         void PopWorldMatrix();

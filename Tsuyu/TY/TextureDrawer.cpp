@@ -13,7 +13,7 @@
 #include "detail/EngineRenderContext.h"
 #include "detail/EngineStateContext.h"
 #include "detail/GraphicsPipelineState.h"
-#include "detail/SceneState_singleton.h"
+#include "detail/SceneState3D_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -141,10 +141,12 @@ struct TextureDrawer::Impl
 
     void Draw3D()
     {
+        EngineRenderContext::RefreshSceneStateIfNeeded();
+
         SceneState_b0 sceneState{};
-        sceneState.worldMat = SceneState_singleton::GetWorldMatrix().mat;
-        sceneState.viewMat = SceneState_singleton::GetViewMatrix().mat;
-        sceneState.projectionMat = SceneState_singleton::GetProjectionMatrix().mat;
+        sceneState.worldMat = SceneState3D_singleton::GetWorldMatrix().mat;
+        sceneState.viewMat = SceneState3D_singleton::GetViewMatrix().mat;
+        sceneState.projectionMat = SceneState3D_singleton::GetProjectionMatrix().mat;
         m_cb0.upload(sceneState);
 
         m_textureVertexData.Reset();

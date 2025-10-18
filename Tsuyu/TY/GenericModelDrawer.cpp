@@ -109,6 +109,8 @@ struct GenericModelDrawer::Impl
 
     void Draw() const
     {
+        EngineRenderContext::RefreshSceneStateIfNeeded();
+
         m_pso.commandSet();
 
         // カメラ行列設定

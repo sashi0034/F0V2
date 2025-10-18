@@ -61,6 +61,8 @@ namespace TY::detail
         [[nodiscard]]
         Mat3x2 FrameBufferToWindow();
 
+        void RefreshSceneStateIfNeeded();
+
         [[nodiscard]]
         ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
 

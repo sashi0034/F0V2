@@ -103,6 +103,8 @@ struct EditorScene::Impl : ActorBase
 
     void update() override
     {
+        m_debugPlayground.applyCamera();
+
         m_children.updateEach();
 
         // hierarchWindow(GlobalGameObjectHierarchy().list());
