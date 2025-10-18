@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "EngineEntryPoint.h"
 
-#include "EngineRenderContext.h"
 #include "Windows.h"
 #include "TY/Buffer3D.h"
 
@@ -13,19 +12,7 @@
 using namespace TY;
 using namespace TY::detail;
 
-namespace
-{
-    void reportLiveObjects(ID3D12Device* device)
-    {
-        ComPtr<ID3D12DebugDevice> debugDevice;
-        if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&debugDevice))))
-        {
-            debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL);
-        }
-    }
-}
-
-void Main();
+extern void Main();
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -58,11 +45,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     LogInfo.hr().writeln(L"message loop end");
 
-    ComPtr<ID3D12Device> device = EngineRenderContext::GetDevice();
-
     EngineCore::Shutdown();
-
-    reportLiveObjects(device.Get());
 
     LogInfo.hr().writeln(L"application end");
 

@@ -1,8 +1,8 @@
 ﻿#include "pch.h"
 #include "EngineRenderContext.h"
 
-#include <dxgi1_5.h>
 #include <dxgi1_6.h>
+#include <dxgidebug.h>
 
 #include "CommandList.h"
 #include "EngineStateContext.h"
@@ -30,6 +30,18 @@ namespace
         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugLayer))))
         {
             debugLayer->EnableDebugLayer();
+        }
+    }
+
+    void reportLiveObjects()
+    {
+        ComPtr<IDXGIDebug1> dxgiDebug;
+        if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
+        {
+            dxgiDebug->ReportLiveObjects(
+                DXGI_DEBUG_ALL,
+                DXGI_DEBUG_RLO_ALL
+            );
         }
     }
 
@@ -272,6 +284,8 @@ struct EngineRenderContextImpl
     void OnShutdown()
     {
         FlushAllCommand();
+
+        m_drawCommandList.WaitLastFlush();
     }
 
 private:
@@ -445,7 +459,11 @@ namespace TY::detail
     void EngineRenderContext::Shutdown()
     {
         s_renderContext.OnShutdown();
+
         s_renderContext = {};
+
+        // All COM objects should be released before this call
+        reportLiveObjects();
     }
 
     ID3D12Device* EngineRenderContext::GetDevice()
