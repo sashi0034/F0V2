@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "ConstantBuffer.h"
+#include "ConstantBufferArray.h"
 
 namespace TY
 {
@@ -33,18 +33,18 @@ namespace TY
             return &m_value;
         }
 
-        operator ConstantBuffer<T>&()
+        operator ConstantBufferArray<T>&()
         {
             return m_uploader;
         }
 
-        operator const ConstantBuffer<T>&() const
+        operator const ConstantBufferArray<T>&() const
         {
             return m_uploader;
         }
 
     private:
-        ConstantBuffer<T> m_uploader{1};
+        ConstantBufferArray<T> m_uploader{1};
         T m_value{};
     };
 }

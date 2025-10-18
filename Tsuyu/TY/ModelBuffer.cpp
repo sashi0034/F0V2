@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "ModelBuffer.h"
 
-#include "ConstantBuffer.h"
+#include "ConstantBufferArray.h"
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 
@@ -29,7 +29,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
 {
     ModelShapeBuffer m_shapeBuffer{};
 
-    ConstantBuffer<ModelMaterialParameters> m_materialCbv{Empty};
+    ConstantBufferArray<ModelMaterialParameters> m_materialCbv{Empty};
 
     Array<Array<ShaderResourceType>> m_materialSrv{};
 
@@ -47,7 +47,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
 
     void initializeMaterial(const Array<ModelMaterial>& materials)
     {
-        m_materialCbv = ConstantBuffer<ModelMaterialParameters>{
+        m_materialCbv = ConstantBufferArray<ModelMaterialParameters>{
             materials.map([](const ModelMaterial& material)
             {
                 return material.parameters;
@@ -77,7 +77,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
         return static_cast<int>(m_materialCbv.materialCount());
     }
 
-    [[nodiscard]] ConstantBufferImpl materialCbv() const override
+    [[nodiscard]] ConstantBufferArrayImpl materialCbv() const override
     {
         return m_materialCbv;
     }
@@ -124,7 +124,7 @@ namespace TY
         return p_impl->m_shapeBuffer;
     }
 
-    const ConstantBuffer<ModelMaterialParameters>& ModelBuffer::materialCbv() const
+    const ConstantBufferArray<ModelMaterialParameters>& ModelBuffer::materialCbv() const
     {
         return p_impl->m_materialCbv;
     }

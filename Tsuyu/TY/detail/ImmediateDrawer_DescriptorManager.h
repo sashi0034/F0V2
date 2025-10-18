@@ -21,7 +21,7 @@ namespace TY::ImmediateDrawer_detail
             DescriptorHeap descriptorHeap{};
             DescriptorTable table{};
 
-            ConstantBuffer<ImmediateDrawer_b1> cbv1{};
+            ConstantBufferArray<ImmediateDrawer_b1> cbv1{};
             Array<ImmediateDrawer_b1> cbv1_value{};
             int next_cbv1{};
 

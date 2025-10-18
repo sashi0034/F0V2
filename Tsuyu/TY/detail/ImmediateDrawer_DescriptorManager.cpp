@@ -15,7 +15,7 @@ namespace TY::ImmediateDrawer_detail
 
         auto&& cbv0 = EngineRenderContext::GetSceneState3D_CB0();
 
-        heap.cbv1 = ConstantBuffer<ImmediateDrawer_b1>(cbv1_capacity);
+        heap.cbv1 = ConstantBufferArray<ImmediateDrawer_b1>(cbv1_capacity);
         heap.cbv1_value.resize(cbv1_capacity);
 
         heap.keyResource = key;

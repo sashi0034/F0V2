@@ -26,7 +26,7 @@ struct GenericModelDrawer::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
-    ConstantBuffer<ModelState_b1> m_cb1{1};
+    ConstantBufferArray<ModelState_b1> m_cb1{1};
 
     int m_tableIndexofCbv10AndLater{-1};
 
@@ -165,7 +165,7 @@ namespace TY
         return *this;
     }
 
-    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferImpl>& cbv)
+    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferArrayImpl>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;

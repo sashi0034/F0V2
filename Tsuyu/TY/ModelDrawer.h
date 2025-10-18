@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "CbvSrvUav.h"
-#include "ConstantBuffer.h"
+#include "ConstantBufferArray.h"
 #include "GenericModelDrawer.h"
 #include "GraphicsOptions.h"
 #include "Mat4x4.h"
@@ -17,7 +17,7 @@ namespace TY
 
         GraphicsOptions options{GraphicsOptions::Default3D()};
 
-        Array<ConstantBufferImpl> cbv10AndLater{};
+        Array<ConstantBufferArrayImpl> cbv10AndLater{};
 
         Array<ShaderResourceType> srv10AndLater{};
 
@@ -31,7 +31,7 @@ namespace TY
 
         ModelDrawerParams& setOptions(const GraphicsOptions& options_);
 
-        ModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferImpl>& cbv);
+        ModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferArrayImpl>& cbv);
 
         ModelDrawerParams& setSrv10AndLater(const Array<ShaderResourceType>& srv);
     };

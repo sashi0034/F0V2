@@ -171,7 +171,7 @@ struct Demo_ShadowMap_impl
 
     ModelDrawer m_playerDrawer{};
     ModelDrawer m_playerShadowDrawer{};
-    ConstantBuffer<Mat4x4> m_playerShadowDrawerConstantBuffer{};
+    ConstantBufferArray<Mat4x4> m_playerShadowDrawerConstantBuffer{};
     Pose m_playerPose{};
 
     ModelDrawer m_mountainDrawer{};
@@ -247,7 +247,7 @@ struct Demo_ShadowMap_impl
             //     .setCB4(s_resource->shadowMap_cb)
             // };
 
-            m_playerShadowDrawerConstantBuffer = ConstantBuffer<Mat4x4>{};
+            m_playerShadowDrawerConstantBuffer = ConstantBufferArray<Mat4x4>{};
             m_playerShadowDrawer = ModelDrawer{
                 ModelDrawerParams{}
                 .setModel(s_resource->playerModel)

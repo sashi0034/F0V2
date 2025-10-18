@@ -3,14 +3,14 @@
 #include "DescriptorTable.h"
 #include "PipelineType.h"
 #include "TY/CbvSrvUav.h"
-#include "TY/ConstantBuffer.h"
+#include "TY/ConstantBufferArray.h"
 
 namespace TY::detail
 {
     struct CbvSrvUavSet
     {
         /// @remark [cbvCount], ConstantBuffer::count() = materialCount
-        Array<ConstantBufferImpl> cbv;
+        Array<ConstantBufferArrayImpl> cbv;
 
         /// @remark [materialCount][srvCount]
         Array<Array<ShaderResourceType>> srv;

@@ -144,9 +144,9 @@ namespace
             return 1; // Assuming a single material for the ocean
         }
 
-        ConstantBufferImpl materialCbv() const override
+        ConstantBufferArrayImpl materialCbv() const override
         {
-            return ConstantBufferImpl{1};
+            return ConstantBufferArrayImpl{1};
         }
 
         Array<Array<ShaderResourceType>> materialSrv() const override

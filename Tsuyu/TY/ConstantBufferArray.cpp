@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "ConstantBuffer.h"
+#include "ConstantBufferArray.h"
 
 #include "Logger.h"
 #include "BufferHandle.h"
@@ -134,7 +134,7 @@ namespace
     };
 }
 
-struct ConstantBufferImpl::Impl
+struct ConstantBufferArrayImpl::Impl
 {
     bool m_valid{};
 
@@ -240,7 +240,7 @@ struct ConstantBufferImpl::Impl
 
 namespace TY
 {
-    ConstantBufferImpl::ConstantBufferImpl(uint32_t sizeInBytes, uint32_t materialCount)
+    ConstantBufferArrayImpl::ConstantBufferArrayImpl(uint32_t sizeInBytes, uint32_t materialCount)
         : p_impl(std::make_shared<Impl>(sizeInBytes, materialCount))
     {
         if (not p_impl->m_valid)
@@ -249,32 +249,32 @@ namespace TY
         }
     }
 
-    bool ConstantBufferImpl::isEmpty() const
+    bool ConstantBufferArrayImpl::isEmpty() const
     {
         return not p_impl;
     }
 
-    void ConstantBufferImpl::upload(const void* data, uint32_t materialCount) const
+    void ConstantBufferArrayImpl::upload(const void* data, uint32_t materialCount) const
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount, CommandListType::Draw);
     }
 
-    uint32_t ConstantBufferImpl::materialCount() const
+    uint32_t ConstantBufferArrayImpl::materialCount() const
     {
         return p_impl ? p_impl->m_materialCount : 0;
     }
 
-    size_t ConstantBufferImpl::sizeInBytes() const
+    size_t ConstantBufferArrayImpl::sizeInBytes() const
     {
         return p_impl ? p_impl->m_sizeInBytes : 0;
     }
 
-    size_t ConstantBufferImpl::alignedSize() const
+    size_t ConstantBufferArrayImpl::alignedSize() const
     {
         return p_impl ? p_impl->m_alignedSize : 0;
     }
 
-    uint64_t ConstantBufferImpl::bufferLocation() const
+    uint64_t ConstantBufferArrayImpl::bufferLocation() const
     {
         return p_impl ? p_impl->m_bufferHandle.getResource()->GetGPUVirtualAddress() : 0;
     }

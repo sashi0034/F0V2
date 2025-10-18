@@ -6,14 +6,14 @@
 
 namespace TY
 {
-    class ConstantBufferImpl
+    class ConstantBufferArrayImpl
     {
     public:
-        ConstantBufferImpl(Empty_t)
+        ConstantBufferArrayImpl(Empty_t)
         {
         }
 
-        ConstantBufferImpl(uint32_t sizeInBytes, uint32_t materialCount = 1);
+        ConstantBufferArrayImpl(uint32_t sizeInBytes, uint32_t materialCount = 1);
 
         bool isEmpty() const;
 
@@ -33,42 +33,42 @@ namespace TY
     };
 
     template <typename T>
-    class ConstantBuffer : public ConstantBufferImpl
+    class ConstantBufferArray : public ConstantBufferArrayImpl
     {
     public:
         static constexpr uint32_t sizeInBytes = sizeof(T);
 
-        ConstantBuffer(Empty_t) : ConstantBufferImpl(Empty)
+        ConstantBufferArray(Empty_t) : ConstantBufferArrayImpl(Empty)
         {
         }
 
-        ConstantBuffer(int materialCount = 1) : ConstantBufferImpl(sizeInBytes, materialCount)
+        ConstantBufferArray(int materialCount = 1) : ConstantBufferArrayImpl(sizeInBytes, materialCount)
         {
         }
 
-        ConstantBuffer(const T& data) : ConstantBuffer(data.size())
+        ConstantBufferArray(const T& data) : ConstantBufferArray(data.size())
         {
             upload(data);
         }
 
-        ConstantBuffer(const Array<T>& data) : ConstantBuffer(data.size())
+        ConstantBufferArray(const Array<T>& data) : ConstantBufferArray(data.size())
         {
             upload(data);
         }
 
         void upload(const T& data) const
         {
-            ConstantBufferImpl::upload(&data, 1);
+            ConstantBufferArrayImpl::upload(&data, 1);
         }
 
         void upload(const Array<T>& data) const
         {
-            ConstantBufferImpl::upload(data.data(), data.size());
+            ConstantBufferArrayImpl::upload(data.data(), data.size());
         }
 
         void upload(std::span<const T> data) const
         {
-            ConstantBufferImpl::upload(data.data(), static_cast<uint32_t>(data.size()));
+            ConstantBufferArrayImpl::upload(data.data(), static_cast<uint32_t>(data.size()));
         }
     };
 }

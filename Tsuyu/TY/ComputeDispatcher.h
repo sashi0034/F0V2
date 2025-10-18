@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Array.h"
 #include "CbvSrvUav.h"
-#include "ConstantBuffer.h"
+#include "ConstantBufferArray.h"
 #include "Shader.h"
 
 namespace TY
@@ -10,7 +10,7 @@ namespace TY
     {
         ComputeShader cs{};
 
-        Array<ConstantBufferImpl> cbv{}; // from b0
+        Array<ConstantBufferArrayImpl> cbv{}; // from b0
 
         Array<ShaderResourceType> srv{}; // from t0
 
@@ -18,7 +18,7 @@ namespace TY
 
         ComputeDispatcherParams& setCS(const ComputeShader& cs_);
 
-        ComputeDispatcherParams& setCbv(const Array<ConstantBufferImpl>& cbv_);
+        ComputeDispatcherParams& setCbv(const Array<ConstantBufferArrayImpl>& cbv_);
 
         ComputeDispatcherParams& setSrv(const Array<ShaderResourceType>& srv_);
 

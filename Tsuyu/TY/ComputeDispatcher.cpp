@@ -57,7 +57,7 @@ namespace TY
         return *this;
     }
 
-    ComputeDispatcherParams& ComputeDispatcherParams::setCbv(const Array<ConstantBufferImpl>& cbv_)
+    ComputeDispatcherParams& ComputeDispatcherParams::setCbv(const Array<ConstantBufferArrayImpl>& cbv_)
     {
         cbv = cbv_;
         return *this;
