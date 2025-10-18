@@ -49,9 +49,9 @@ namespace
             return 1; // Assuming a single material for the shape
         }
 
-        ConstantBufferCore materialCbv() const override
+        ConstantBufferImpl materialCbv() const override
         {
-            return ConstantBufferCore{1};
+            return ConstantBufferImpl{1};
         }
 
         Array<Array<ShaderResourceType>> materialSrv() const override

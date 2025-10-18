@@ -134,7 +134,7 @@ namespace
     };
 }
 
-struct ConstantBufferCore::Impl
+struct ConstantBufferImpl::Impl
 {
     bool m_valid{};
 
@@ -240,7 +240,7 @@ struct ConstantBufferCore::Impl
 
 namespace TY
 {
-    ConstantBufferCore::ConstantBufferCore(uint32_t sizeInBytes, uint32_t materialCount)
+    ConstantBufferImpl::ConstantBufferImpl(uint32_t sizeInBytes, uint32_t materialCount)
         : p_impl(std::make_shared<Impl>(sizeInBytes, materialCount))
     {
         if (not p_impl->m_valid)
@@ -249,32 +249,32 @@ namespace TY
         }
     }
 
-    bool ConstantBufferCore::isEmpty() const
+    bool ConstantBufferImpl::isEmpty() const
     {
         return not p_impl;
     }
 
-    void ConstantBufferCore::upload(const void* data, uint32_t materialCount) const
+    void ConstantBufferImpl::upload(const void* data, uint32_t materialCount) const
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount, CommandListType::Draw);
     }
 
-    uint32_t ConstantBufferCore::materialCount() const
+    uint32_t ConstantBufferImpl::materialCount() const
     {
         return p_impl ? p_impl->m_materialCount : 0;
     }
 
-    size_t ConstantBufferCore::sizeInBytes() const
+    size_t ConstantBufferImpl::sizeInBytes() const
     {
         return p_impl ? p_impl->m_sizeInBytes : 0;
     }
 
-    size_t ConstantBufferCore::alignedSize() const
+    size_t ConstantBufferImpl::alignedSize() const
     {
         return p_impl ? p_impl->m_alignedSize : 0;
     }
 
-    uint64_t ConstantBufferCore::bufferLocation() const
+    uint64_t ConstantBufferImpl::bufferLocation() const
     {
         return p_impl ? p_impl->m_bufferHandle.getResource()->GetGPUVirtualAddress() : 0;
     }

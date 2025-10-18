@@ -17,7 +17,7 @@ namespace TY
 
         GraphicsOptions options{GraphicsOptions::Default3D()};
 
-        Array<ConstantBufferCore> cbv10AndLater{};
+        Array<ConstantBufferImpl> cbv10AndLater{};
 
         Array<ShaderResourceType> srv10AndLater{};
 
@@ -29,7 +29,7 @@ namespace TY
 
         GenericModelDrawerParams& setOptions(const GraphicsOptions& options_);
 
-        GenericModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferCore>& cbv);
+        GenericModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferImpl>& cbv);
 
         GenericModelDrawerParams& setSrv10AndLater(const Array<ShaderResourceType>& srv);
     };

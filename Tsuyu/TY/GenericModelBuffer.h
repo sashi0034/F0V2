@@ -29,7 +29,7 @@ namespace TY
 
         /// @remark size() = materialCount
         [[nodiscard]]
-        virtual ConstantBufferCore materialCbv() const = 0;
+        virtual ConstantBufferImpl materialCbv() const = 0;
 
         /// @remark [materialCount][textureCount]
         virtual Array<Array<ShaderResourceType>> materialSrv() const = 0;

@@ -6,14 +6,14 @@
 
 namespace TY
 {
-    class ConstantBufferCore
+    class ConstantBufferImpl
     {
     public:
-        ConstantBufferCore(Empty_t)
+        ConstantBufferImpl(Empty_t)
         {
         }
 
-        ConstantBufferCore(uint32_t sizeInBytes, uint32_t materialCount = 1);
+        ConstantBufferImpl(uint32_t sizeInBytes, uint32_t materialCount = 1);
 
         bool isEmpty() const;
 
@@ -33,16 +33,16 @@ namespace TY
     };
 
     template <typename T>
-    class ConstantBuffer : public ConstantBufferCore
+    class ConstantBuffer : public ConstantBufferImpl
     {
     public:
         static constexpr uint32_t sizeInBytes = sizeof(T);
 
-        ConstantBuffer(Empty_t) : ConstantBufferCore(Empty)
+        ConstantBuffer(Empty_t) : ConstantBufferImpl(Empty)
         {
         }
 
-        ConstantBuffer(int materialCount = 1) : ConstantBufferCore(sizeInBytes, materialCount)
+        ConstantBuffer(int materialCount = 1) : ConstantBufferImpl(sizeInBytes, materialCount)
         {
         }
 
@@ -58,17 +58,17 @@ namespace TY
 
         void upload(const T& data) const
         {
-            ConstantBufferCore::upload(&data, 1);
+            ConstantBufferImpl::upload(&data, 1);
         }
 
         void upload(const Array<T>& data) const
         {
-            ConstantBufferCore::upload(data.data(), data.size());
+            ConstantBufferImpl::upload(data.data(), data.size());
         }
 
         void upload(std::span<const T> data) const
         {
-            ConstantBufferCore::upload(data.data(), static_cast<uint32_t>(data.size()));
+            ConstantBufferImpl::upload(data.data(), static_cast<uint32_t>(data.size()));
         }
     };
 }

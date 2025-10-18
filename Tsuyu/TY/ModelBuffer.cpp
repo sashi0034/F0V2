@@ -77,7 +77,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
         return static_cast<int>(m_materialCbv.materialCount());
     }
 
-    [[nodiscard]] ConstantBufferCore materialCbv() const override
+    [[nodiscard]] ConstantBufferImpl materialCbv() const override
     {
         return m_materialCbv;
     }

@@ -10,7 +10,7 @@ namespace TY
     {
         ComputeShader cs{};
 
-        Array<ConstantBufferCore> cbv{}; // from b0
+        Array<ConstantBufferImpl> cbv{}; // from b0
 
         Array<ShaderResourceType> srv{}; // from t0
 
@@ -18,7 +18,7 @@ namespace TY
 
         ComputeDispatcherParams& setCS(const ComputeShader& cs_);
 
-        ComputeDispatcherParams& setCbv(const Array<ConstantBufferCore>& cbv_);
+        ComputeDispatcherParams& setCbv(const Array<ConstantBufferImpl>& cbv_);
 
         ComputeDispatcherParams& setSrv(const Array<ShaderResourceType>& srv_);
 

@@ -10,7 +10,7 @@ namespace TY::detail
     struct CbvSrvUavSet
     {
         /// @remark [cbvCount], ConstantBuffer::count() = materialCount
-        Array<ConstantBufferCore> cbv;
+        Array<ConstantBufferImpl> cbv;
 
         /// @remark [materialCount][srvCount]
         Array<Array<ShaderResourceType>> srv;
