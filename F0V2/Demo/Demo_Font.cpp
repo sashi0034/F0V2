@@ -208,7 +208,7 @@ struct Demo_Font_impl
 
         m_fontDrawer = TextureDrawer{
             TextureDrawerParams{}
-            .setTexture({m_fontBitmap.atlasTexture().getResource()})
+            .setTexture({m_fontBitmap.atlasTexture()})
             .setShader(m_shaders.default2d)
         };
     }

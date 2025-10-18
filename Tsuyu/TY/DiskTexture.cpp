@@ -14,12 +14,11 @@ struct DiskTexture::Impl
     DXGI_FORMAT m_format{};
     Size m_size{};
 
-    ComPtr<ID3D12Resource> m_finalBuffer{};
+    TextureHandle m_textureHandle{};
     ComPtr<ID3D12Resource> m_uploadBuffer{};
 
     ~Impl()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
         EngineRenderContext::SafeDisposeRenderResource(m_uploadBuffer);
     }
 
@@ -97,7 +96,7 @@ struct DiskTexture::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COPY_DEST, // コピー先として使用する
                 nullptr,
-                IID_PPV_ARGS(&m_finalBuffer)
+                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COPY_DEST))
             );
 
         // -----------------------------------------------
@@ -121,7 +120,7 @@ struct DiskTexture::Impl
         // アップロード用中間バッファからテクスチャバッファにコピー
         // アップロード用中間バッファにはフットプリントを指定し、テクスチャバッファにはインデックスを指定する
         D3D12_TEXTURE_COPY_LOCATION dstCopyLocation{};
-        dstCopyLocation.pResource = m_finalBuffer.Get();
+        dstCopyLocation.pResource = m_textureHandle.getResource();
         dstCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
         dstCopyLocation.SubresourceIndex = 0;
 
@@ -142,11 +141,7 @@ struct DiskTexture::Impl
 
         commandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
 
-        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_finalBuffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            D3D12_RESOURCE_STATE_COPY_SOURCE);
-        commandList->ResourceBarrier(1, &barrier);
+        m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_SOURCE);
 
         m_format = metadata.format;
 
@@ -163,6 +158,6 @@ namespace TY
 
     DiskTexture::operator TextureHandle() const
     {
-        return p_impl ? TextureHandle{p_impl->m_finalBuffer.Get()} : TextureHandle{};
+        return p_impl ? p_impl->m_textureHandle : TextureHandle{};
     }
 }

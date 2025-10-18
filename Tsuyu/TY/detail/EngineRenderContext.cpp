@@ -279,12 +279,12 @@ private:
     {
         for (int i = 0; i < EngineRenderContext::FrameBufferCount; ++i)
         {
-            ComPtr<ID3D12Resource> backBuffer = nullptr;
-            m_swapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer));
+            TextureHandle backBuffer{};
+            m_swapChain->GetBuffer(i, IID_PPV_ARGS(backBuffer.assignResourceAddress(D3D12_RESOURCE_STATE_PRESENT)));
 
             m_backBuffers[i] =
                 RenderTargetParams{}
-                .setRtvAndClearColor_unsafe(backBuffer.Get(), m_clearColor);
+                .setRtvAndClearColor_unsafe(backBuffer, m_clearColor);
         }
     }
 

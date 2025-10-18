@@ -14,7 +14,7 @@ struct DynamicTexture::Impl
     DXGI_FORMAT m_format{};
     Size m_size{};
 
-    ComPtr<ID3D12Resource> m_finalBuffer{};
+    TextureHandle m_textureHandle{};
 
     struct frame_resources
     {
@@ -53,14 +53,14 @@ struct DynamicTexture::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_finalBuffer));
+                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON)));
             FAILED(hr))
         {
             LogError(std::format("DynamicTexture: Failed to create m_finalBuffer: {}", static_cast<int>(hr)));
             return;
         }
 
-        m_finalBuffer->SetName(L"DynamicTexture::m_finalBuffer");
+        m_textureHandle.getResource()->SetName(L"DynamicTexture::m_finalBuffer");
 
         Upload(image);
 
@@ -78,8 +78,6 @@ struct DynamicTexture::Impl
 
             EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
-
-        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const ImageView& image)
@@ -98,7 +96,7 @@ struct DynamicTexture::Impl
 
         if (not frameResource.uploadBuffer)
         {
-            const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_finalBuffer.Get(), 0, 1);
+            const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_textureHandle.getResource(), 0, 1);
 
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
@@ -133,7 +131,7 @@ struct DynamicTexture::Impl
 
         ID3D12Device* device = EngineRenderContext::GetDevice();
 
-        const D3D12_RESOURCE_DESC desc = m_finalBuffer->GetDesc();
+        const D3D12_RESOURCE_DESC desc = m_textureHandle.getResource()->GetDesc();
         D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
         UINT numRows = 0; // TODO: Remove
         UINT64 rowSizeInBytes = 0;
@@ -168,7 +166,7 @@ struct DynamicTexture::Impl
         // uploadBuffer --> m_finalBuffer
 
         D3D12_TEXTURE_COPY_LOCATION dstCopyLocation{};
-        dstCopyLocation.pResource = m_finalBuffer.Get();
+        dstCopyLocation.pResource = m_textureHandle.getResource();
         dstCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
         dstCopyLocation.SubresourceIndex = 0;
 
@@ -177,7 +175,7 @@ struct DynamicTexture::Impl
         srcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
         srcCopyLocation.PlacedFootprint = footprint;
 
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Copy); // todo
 
         commandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
     }
@@ -209,6 +207,6 @@ namespace TY
 
     DynamicTexture::operator TextureHandle() const
     {
-        return p_impl ? TextureHandle{p_impl->m_finalBuffer.Get()} : TextureHandle{};
+        return p_impl ? p_impl->m_textureHandle : TextureHandle{};
     }
 }

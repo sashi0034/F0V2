@@ -172,11 +172,8 @@ struct RenderTarget::Impl
     {
         const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
 
-        const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_rtvResource.getResource(),
-            D3D12_RESOURCE_STATE_PRESENT,
-            D3D12_RESOURCE_STATE_RENDER_TARGET);
-        commandList->ResourceBarrier(1, &resourceBarrierDesc);
+        const auto previousResourceState = m_rtvResource.getResourceState();
+        m_rtvResource.transitionResourceState(D3D12_RESOURCE_STATE_RENDER_TARGET);
 
         auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
@@ -192,13 +189,9 @@ struct RenderTarget::Impl
         CommandSetViewportAndScissorsRect();
 
         return ScopedRenderTarget{
-            [this, commandList]
+            [this, commandList, previousResourceState]
             {
-                const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-                    m_rtvResource.getResource(),
-                    D3D12_RESOURCE_STATE_RENDER_TARGET,
-                    D3D12_RESOURCE_STATE_PRESENT);
-                commandList->ResourceBarrier(1, &resourceBarrierDesc);
+                m_rtvResource.transitionResourceState(previousResourceState);
 
                 if (s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl.get() != this)
                 {

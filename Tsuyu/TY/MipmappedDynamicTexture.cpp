@@ -15,7 +15,7 @@ struct MipmappedDynamicTexture::Impl
     Size m_size{};
 
     ComPtr<ID3D12Resource> m_uploadBuffer{};
-    ComPtr<ID3D12Resource> m_finalBuffer{};
+    TextureHandle m_textureHandle{};
 
     // struct frame_resources
     // {
@@ -54,8 +54,6 @@ struct MipmappedDynamicTexture::Impl
         // }
 
         EngineRenderContext::SafeDisposeRenderResource(m_uploadBuffer); // TODO
-
-        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     bool Create(const ImageView& image)
@@ -123,14 +121,14 @@ struct MipmappedDynamicTexture::Impl
                 &texDesc,
                 D3D12_RESOURCE_STATE_COPY_DEST, // 転送先
                 nullptr,
-                IID_PPV_ARGS(m_finalBuffer.ReleaseAndGetAddressOf()));
+                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COPY_DEST)));
             FAILED(hr))
         {
             LogError(std::format("MipmappedTexture: CreateCommittedResource failed: {}", static_cast<int>(hr)));
             return false;
         }
 
-        m_finalBuffer->SetName(L"MipmappedTexture::Texture");
+        m_textureHandle.getResource()->SetName(L"MipmappedTexture::Texture");
 
         // -----------------------------------------------
         // uploadBuffer --> m_finalBuffer
@@ -147,7 +145,7 @@ struct MipmappedDynamicTexture::Impl
         }
 
         const UINT64 uploadSize = GetRequiredIntermediateSize(
-            m_finalBuffer.Get(), 0, subresourceCount);
+            m_textureHandle.getResource(), 0, subresourceCount);
         CD3DX12_HEAP_PROPERTIES uploadHeap(D3D12_HEAP_TYPE_UPLOAD);
         auto uploadDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadSize);
 
@@ -169,15 +167,11 @@ struct MipmappedDynamicTexture::Impl
         // エンジンのコマンドリストに記録（実行・フェンス待ちはエンジン側ポリシーに従う）
         auto cmdList = EngineRenderContext::GetCommandList(CommandListType::Draw);
 
-        UpdateSubresources(cmdList, m_finalBuffer.Get(), m_uploadBuffer.Get(), 0, 0, subresourceCount,
+        UpdateSubresources(cmdList, m_textureHandle.getResource(), m_uploadBuffer.Get(), 0, 0, subresourceCount,
                            subresources.data());
 
         // 転送後：Pixel Shader から参照できる状態へ
-        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_finalBuffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-        cmdList->ResourceBarrier(1, &barrier);
+        m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
         return true;
     }
@@ -196,6 +190,6 @@ namespace TY
 
     MipmappedDynamicTexture::operator TextureHandle() const
     {
-        return p_impl ? TextureHandle{p_impl->m_finalBuffer.Get()} : TextureHandle{};
+        return p_impl ? p_impl->m_textureHandle : TextureHandle{};
     }
 }

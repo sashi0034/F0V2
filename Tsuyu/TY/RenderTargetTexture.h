@@ -38,9 +38,6 @@ namespace TY
         ColorF32 clearColor() const;
 
         [[nodiscard]]
-        ID3D12Resource* getResource() const;
-
-        [[nodiscard]]
         operator TextureHandle() const;
 
     protected:

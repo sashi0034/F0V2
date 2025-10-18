@@ -13,7 +13,7 @@ struct RenderTargetTexture::Impl
 
     RenderTargetTextureParams m_params{};
 
-    ComPtr<ID3D12Resource> m_resource{};
+    TextureHandle m_textureHandle{};
 
     Impl(const RenderTargetTextureParams& params, bool allowUav)
         : m_params(params)
@@ -50,21 +50,20 @@ struct RenderTargetTexture::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_PRESENT,
                 &clearValue,
-                IID_PPV_ARGS(m_resource.ReleaseAndGetAddressOf()));
+                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_PRESENT)));
             FAILED(hr))
         {
             LogError(std::format("RenderTargetTexture: Failed to create texture resource: {:08x}", hr));
             return;
         }
 
-        m_resource->SetName(L"RenderTargetTexture");
+        m_textureHandle.getResource()->SetName(L"RenderTargetTexture");
 
         m_valid = true;
     }
 
     ~Impl()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_resource);
     }
 };
 
@@ -112,14 +111,9 @@ namespace TY
         return p_impl ? p_impl->m_params.clearColor : ColorF32{0.0f, 0.0f, 0.0f, 0.0f};
     }
 
-    ID3D12Resource* RenderTargetTexture::getResource() const
-    {
-        return p_impl ? p_impl->m_resource.Get() : nullptr;
-    }
-
     RenderTargetTexture::operator TextureHandle() const
     {
-        return TextureHandle{p_impl->m_resource.Get()};
+        return p_impl ? p_impl->m_textureHandle : TextureHandle{};
     }
 
     UnorderedRenderTargetTexture::UnorderedRenderTargetTexture(const RenderTargetTextureParams& params)
@@ -135,28 +129,22 @@ namespace TY
 
     UnorderedRenderTargetTexture::operator UnorderedTextureHandle() const
     {
-        return UnorderedTextureHandle{p_impl->m_resource.Get()};
+        return p_impl ? UnorderedTextureHandle{p_impl->m_textureHandle} : UnorderedTextureHandle{};
     }
 
     void UnorderedRenderTargetTexture::computeBarrierStart() const
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
-
-        const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-            p_impl->m_resource.Get(),
-            D3D12_RESOURCE_STATE_PRESENT,
-            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-        commandList->ResourceBarrier(1, &resourceBarrierDesc);
+        if (p_impl)
+        {
+            p_impl->m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        }
     }
 
     void UnorderedRenderTargetTexture::computeBarrierEnd() const
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
-
-        const auto resourceBarrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-            p_impl->m_resource.Get(),
-            D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-            D3D12_RESOURCE_STATE_PRESENT);
-        commandList->ResourceBarrier(1, &resourceBarrierDesc);
+        if (p_impl)
+        {
+            p_impl->m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_PRESENT);
+        }
     }
 }
