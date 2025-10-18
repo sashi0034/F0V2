@@ -203,11 +203,6 @@ struct EditorPlayground::Impl : ActorBase
         }
     }
 
-    void draw() const override
-    {
-        m_children.drawEach();
-    }
-
     void killed() override
     {
         m_children.killEach();

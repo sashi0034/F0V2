@@ -26,7 +26,7 @@ void Main()
 
     InitImmediatePrintAddon();
 
-#if 1
+#if 0
     Demo_FSR1();
 #else
     using namespace TY;

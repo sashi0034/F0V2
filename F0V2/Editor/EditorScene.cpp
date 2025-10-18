@@ -108,11 +108,6 @@ struct EditorScene::Impl : ActorBase
         // hierarchWindow(GlobalGameObjectHierarchy().list());
     }
 
-    void draw() const override
-    {
-        m_children.drawEach();
-    }
-
     void killed() override
     {
         m_children.killEach();

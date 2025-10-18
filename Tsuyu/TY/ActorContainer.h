@@ -12,8 +12,6 @@ namespace TY
     public:
         void updateEach();
 
-        void drawEach() const;
-
         /// @brief アクターを破棄する
         /// @remarks UpdateEach の最中に呼び出された場合は、遅延実行される
         void killEach();

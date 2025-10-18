@@ -59,17 +59,6 @@ namespace TY
         }
     }
 
-    void ActorContainer::drawEach() const
-    {
-        // 描画処理
-        for (int i = 0; i < m_actorList.size(); ++i)
-        {
-            if (not m_actorList[i]->isAlive()) continue;
-
-            m_actorList[i]->draw();
-        }
-    }
-
     void ActorContainer::killEach()
     {
         if (m_iterating)
