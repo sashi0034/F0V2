@@ -110,7 +110,7 @@ struct TextureDrawer::Impl
 
     ComPtr<ID3D12Resource> m_constantBuffer{};
 
-    ConstantBufferArray<SceneState_b0> m_cb0{Empty};
+    ConstantBuffer<SceneState_b0> m_cb0{Empty};
 
     DescriptorHeap m_descriptorHeap{};
 
@@ -119,7 +119,7 @@ struct TextureDrawer::Impl
     {
         m_srv = TextureHandle{options.texture};
 
-        m_cb0 = ConstantBufferArray<SceneState_b0>{1};
+        m_cb0 = ConstantBuffer<SceneState_b0>{};
 
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,

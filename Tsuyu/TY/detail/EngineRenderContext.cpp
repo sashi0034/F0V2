@@ -8,6 +8,7 @@
 #include "EngineStateContext.h"
 #include "EngineWindow.h"
 #include "GpuMemoryUsage.h"
+#include "TY/ConstantBuffer.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
 
@@ -83,7 +84,7 @@ struct EngineRenderContextImpl
 
     std::optional<bool> m_wantsFullscreen{};
 
-    ConstantBufferArray<SceneState3D_b0> m_sceneState3D{Empty};
+    ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
 
     std::array<Array<RenderResource>, EngineRenderContext::FrameBufferCount> m_disposedRenderResources{};
 
@@ -196,7 +197,7 @@ struct EngineRenderContextImpl
         setupBackBuffers();
 
         // 共通コンスタントバッファの初期化
-        m_sceneState3D = ConstantBufferArray<SceneState3D_b0>{1};
+        m_sceneState3D = ConstantBuffer<SceneState3D_b0>{};
 
         m_valid = true;
     }
@@ -512,7 +513,7 @@ namespace TY::detail
         return s_renderContext.m_frameBufferToWindow;
     }
 
-    ConstantBufferArray<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
+    ConstantBuffer<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
     {
         return s_renderContext.m_sceneState3D;
     }

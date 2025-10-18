@@ -26,7 +26,7 @@ struct GenericModelDrawer::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
-    ConstantBufferArray<ModelState_b1> m_cb1{1};
+    ConstantBuffer<ModelState_b1> m_cb1{};
 
     int m_tableIndexofCbv10AndLater{-1};
 

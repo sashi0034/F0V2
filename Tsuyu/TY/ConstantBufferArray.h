@@ -13,11 +13,11 @@ namespace TY
         {
         }
 
-        ConstantBufferArrayImpl(uint32_t sizeInBytes, uint32_t materialCount = 1);
+        ConstantBufferArrayImpl(uint32_t sizeInBytes, uint32_t materialCount);
 
         bool isEmpty() const;
 
-        void upload(const void* data, uint32_t materialCount = 1) const;
+        void upload(const void* data, uint32_t materialCount) const;
 
         uint32_t materialCount() const;
 
@@ -42,7 +42,7 @@ namespace TY
         {
         }
 
-        ConstantBufferArray(int materialCount = 1) : ConstantBufferArrayImpl(sizeInBytes, materialCount)
+        ConstantBufferArray(int materialCount) : ConstantBufferArrayImpl(sizeInBytes, materialCount)
         {
         }
 

@@ -51,7 +51,7 @@ namespace
 
         ConstantBufferArrayImpl materialCbv() const override
         {
-            return ConstantBufferArrayImpl{1};
+            return ConstantBufferImpl{1};
         }
 
         Array<Array<ShaderResourceType>> materialSrv() const override

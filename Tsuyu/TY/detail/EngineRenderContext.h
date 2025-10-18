@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "CommandListManager.h"
 #include "PipelineType.h"
+#include "TY/ConstantBuffer.h"
 #include "TY/ConstantBufferArray.h"
 #include "TY/IGpuMemoryUsage.h"
 #include "TY/Mat3x2.h"
@@ -61,7 +62,7 @@ namespace TY::detail
         Mat3x2 FrameBufferToWindow();
 
         [[nodiscard]]
-        ConstantBufferArray<SceneState3D_b0> GetSceneState3D_CB0();
+        ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
 
         void SafeDisposeRenderResource(const RenderResource& renderResource);
 
