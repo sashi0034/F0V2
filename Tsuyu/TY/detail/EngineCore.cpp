@@ -133,8 +133,6 @@ struct EngineCoreImpl
 
         EngineWindow::Shutdown();
 
-        EngineRenderContext::Shutdown();
-
         EngineHotReloader::Shutdown();
 
         EnginePresetAsset::Shutdown();
@@ -144,6 +142,9 @@ struct EngineCoreImpl
         EngineImGui::Shutdown();
 
         EngineComponent::Shutdown();
+
+        // 他のリソースを全て解放してからレンダリングリソースを解放する
+        EngineRenderContext::Shutdown();
 
         // FIXME: 順序関係?
     }
