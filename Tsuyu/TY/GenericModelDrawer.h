@@ -45,8 +45,6 @@ namespace TY
 
         void draw() const;
 
-        void draw(int materialIndexOfCbv10AndLater) const;
-
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl;

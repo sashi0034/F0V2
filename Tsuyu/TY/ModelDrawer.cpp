@@ -85,9 +85,4 @@ namespace TY
     {
         m_impl.draw();
     }
-
-    void ModelDrawer::draw(int materialIndexOfCbv10AndLater) const
-    {
-        m_impl.draw(materialIndexOfCbv10AndLater);
-    }
 }

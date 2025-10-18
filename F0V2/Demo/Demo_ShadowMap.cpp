@@ -171,7 +171,7 @@ struct Demo_ShadowMap_impl
 
     ModelDrawer m_playerDrawer{};
     ModelDrawer m_playerShadowDrawer{};
-    ConstantBuffer<Mat4x4> m_playerShadowDrawerConstantBuffers{};
+    ConstantBuffer<Mat4x4> m_playerShadowDrawerConstantBuffer{};
     Pose m_playerPose{};
 
     ModelDrawer m_mountainDrawer{};
@@ -208,9 +208,9 @@ struct Demo_ShadowMap_impl
             m_shadowMaps[i] = RenderTarget{
                 RenderTargetParams()
                 .setRtvAndClearColor(RtvParams()
-                        .setSize(Size{2048, 2048})
-                        .setClearColor(ColorF32{1.0f, 1.0f})
-                        .setFormat(shadowMapFormat))
+                                     .setSize(Size{2048, 2048})
+                                     .setClearColor(ColorF32{1.0f, 1.0f})
+                                     .setFormat(shadowMapFormat))
             };
         }
 
@@ -247,13 +247,13 @@ struct Demo_ShadowMap_impl
             //     .setCB4(s_resource->shadowMap_cb)
             // };
 
-            m_playerShadowDrawerConstantBuffers = ConstantBuffer<Mat4x4>{cascadeShadowMapCount};
+            m_playerShadowDrawerConstantBuffer = ConstantBuffer<Mat4x4>{};
             m_playerShadowDrawer = ModelDrawer{
                 ModelDrawerParams{}
                 .setModel(s_resource->playerModel)
                 .setShader(s_resource->shadowMapCaster)
                 .setOptions(GraphicsOptions::Default3D().setRtvFormats({shadowMapFormat}))
-                .setCbv10AndLater({m_playerShadowDrawerConstantBuffers})
+                .setCbv10AndLater({m_playerShadowDrawerConstantBuffer})
             };
         }
 
@@ -341,15 +341,15 @@ struct Demo_ShadowMap_impl
         {
             updateCascadeShadowMapMatrix();
 
-            m_playerShadowDrawerConstantBuffers.upload({s_resource->shadowMap_cb->worldToShadowProjection});
-
             for (int i = 0; i < m_shadowMaps.size(); ++i)
             {
+                m_playerShadowDrawerConstantBuffer.upload(s_resource->shadowMap_cb->worldToShadowProjection[i]);
+
                 const auto rt = m_shadowMaps[i].scopedBind();
 
                 // 影の対象のオブジェクトを描画
                 {
-                    m_playerShadowDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw(i);
+                    m_playerShadowDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
                 }
             }
 

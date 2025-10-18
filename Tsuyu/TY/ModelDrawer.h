@@ -47,9 +47,6 @@ namespace TY
 
         void draw() const;
 
-        // TODO: 廃止
-        void draw(int materialIndexOfCbv10AndLater) const;
-
     private:
         GenericModelDrawer m_impl{};
     };

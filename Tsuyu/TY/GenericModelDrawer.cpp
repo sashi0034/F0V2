@@ -30,8 +30,6 @@ struct GenericModelDrawer::Impl
 
     int m_tableIndexofCbv10AndLater{-1};
 
-    int m_materialCountOfCbv10AndLater{};
-
     int m_tableIndexofSrv10AndLater{-1};
 
     Impl(const GenericModelDrawerParams& params)
@@ -70,20 +68,11 @@ struct GenericModelDrawer::Impl
         // 拡張 CBV 設定
         if (params.cbv10AndLater.size() > 0)
         {
-            m_materialCountOfCbv10AndLater = params.cbv10AndLater[0].materialCount();
+            m_tableIndexofCbv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-            if (m_materialCountOfCbv10AndLater <= 0)
-            {
-                LogError("GenericModelDrawer: cbv10AndLater[0] has no material count.");
-            }
-            else
-            {
-                m_tableIndexofCbv10AndLater = static_cast<int>(descriptorHeap.table.size());
-
-                descriptorHeap.table.push_back({params.cbv10AndLater.size(), 0, 0});
-                descriptorHeap.materialCounts.push_back(m_materialCountOfCbv10AndLater);
-                descriptorHeap.descriptors.push_back(CbvSrvUavSet{params.cbv10AndLater, {}, {}});
-            }
+            descriptorHeap.table.push_back({params.cbv10AndLater.size(), 0, 0});
+            descriptorHeap.materialCounts.push_back(1);
+            descriptorHeap.descriptors.push_back(CbvSrvUavSet{params.cbv10AndLater, {}, {}});
         }
 
         // 拡張 SRV 設定
@@ -118,7 +107,7 @@ struct GenericModelDrawer::Impl
         m_cb1.upload(b);
     }
 
-    void Draw(int materialIndexOfCbv10AndLater) const
+    void Draw() const
     {
         m_pso.commandSet();
 
@@ -130,25 +119,7 @@ struct GenericModelDrawer::Impl
         // 拡張 CBV セット
         if (m_tableIndexofCbv10AndLater >= 0)
         {
-            if (materialIndexOfCbv10AndLater >= m_materialCountOfCbv10AndLater)
-            {
-                LogError(std::format("GenericModelDrawer: materialIndexOfcbv10AndLater ({}) is out of range [0, {}]",
-                                     materialIndexOfCbv10AndLater, m_materialCountOfCbv10AndLater - 1));
-                materialIndexOfCbv10AndLater = m_materialCountOfCbv10AndLater - 1;
-            }
-
-            if (materialIndexOfCbv10AndLater >= 0)
-            {
-                m_descriptorHeap.commandSetGraphicsTable(
-                    m_tableIndexofCbv10AndLater, materialIndexOfCbv10AndLater);
-            }
-        }
-        else
-        {
-            if (materialIndexOfCbv10AndLater > 0)
-            {
-                LogError("GenericModelDrawer: materialIndexOfcbv10AndLater is set but cbv10AndLater is not defined.");
-            }
+            m_descriptorHeap.commandSetGraphicsTable(m_tableIndexofCbv10AndLater);
         }
 
         // 拡張 SRV セット
@@ -221,15 +192,7 @@ namespace TY
     {
         if (p_impl)
         {
-            p_impl->Draw(0);
-        }
-    }
-
-    void GenericModelDrawer::draw(int materialIndexOfCbv10AndLater) const
-    {
-        if (p_impl)
-        {
-            p_impl->Draw(materialIndexOfCbv10AndLater);
+            p_impl->Draw();
         }
     }
 }
