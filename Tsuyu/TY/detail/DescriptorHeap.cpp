@@ -161,7 +161,7 @@ namespace
             return false;
         }
 
-        const auto sr = params.descriptors[tableId].srv[srvId][materialId];
+        const auto sr = params.descriptors[tableId].srv[materialId][srvId];
         return createShaderResourceViewInternal(heapHandle, sr);
     }
 
