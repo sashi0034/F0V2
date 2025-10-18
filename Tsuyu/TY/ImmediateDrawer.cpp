@@ -82,11 +82,6 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         resetDrawState();
     }
 
-    void beforeFlush() override
-    {
-        m_descriptorManager.Upload();
-    }
-
     void afterPresent() override
     {
         resetDrawState();

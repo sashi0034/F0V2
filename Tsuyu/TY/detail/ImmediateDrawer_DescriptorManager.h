@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "ImmediateDrawer_Common.h"
+#include "TY/ConstantBufferWrapper.h"
 #include "TY/Mat3x2.h"
 
 namespace TY::ImmediateDrawer_detail
@@ -21,9 +22,7 @@ namespace TY::ImmediateDrawer_detail
             DescriptorHeap descriptorHeap{};
             DescriptorTable table{};
 
-            ConstantBufferArray<ImmediateDrawer_b1> cbv1{1};
-            Array<ImmediateDrawer_b1> cbv1_value{};
-            int next_cbv1{};
+            ConstantBufferWrapper<ImmediateDrawer_b1> cbv1{};
 
             /// @brief テクスチャといったリソースはそれぞれ別々のヒープごとを割り当てる。このような特殊リソースはこのクラスにまとめる
             struct key_type
@@ -36,11 +35,6 @@ namespace TY::ImmediateDrawer_detail
                 }
             } keyResource{};
 
-            bool isFull() const
-            {
-                return next_cbv1 >= cbv1.materialCount();
-            }
-
             void resetSrv0(const TextureHandle& srv)
             {
                 constexpr int tableId = 0;
@@ -50,14 +44,13 @@ namespace TY::ImmediateDrawer_detail
 
             static constexpr int DefaultCapacity = 4;
 
-            static heap_type Create(const key_type& key, int cbv1_capacity = DefaultCapacity);
+            static heap_type Create(const key_type& key);
         };
 
         /// @brief heap_type 配列中の要素を識別するためのクラス。SD_StateManager の状態変化の検知処理で使用する
         struct element_cursor
         {
             int heapIndex{-1};
-            int cb1_index{-1};
 
             bool isValid() const
             {
@@ -74,7 +67,7 @@ namespace TY::ImmediateDrawer_detail
 
         ID_DescriptorManager()
         {
-            pushBackNewHeap(heap_type::key_type{}, heap_type::DefaultCapacity);
+            pushBackNewHeap(heap_type::key_type{});
 
             Reset();
         }
@@ -82,8 +75,6 @@ namespace TY::ImmediateDrawer_detail
         void RequestTransform(const Mat3x2& transform);
 
         void RequestSrv0(const TextureHandle& srv);
-
-        void Upload() const;
 
         void Reset();
 
@@ -110,6 +101,6 @@ namespace TY::ImmediateDrawer_detail
 
         element_cursor fetchHeap(const heap_type::key_type& keyResource);
 
-        element_cursor pushBackNewHeap(const heap_type::key_type& keyResource, int cbv1_capacity);
+        element_cursor pushBackNewHeap(const heap_type::key_type& keyResource);
     };
 }

@@ -9,6 +9,8 @@ namespace TY::detail
 {
     struct CbvSrvUavSet
     {
+        // TODO: それぞれ配列をクラス派生したい
+
         /// @remark [cbvCount], ConstantBuffer::count() = materialCount
         Array<ConstantBufferArrayImpl> cbv;
 
@@ -33,6 +35,7 @@ namespace TY::detail
 
         DescriptorHeap(const DescriptorHeapParams& params);
 
+        // TODO: Rename to registerSrv (空の場合のみ登録可能)
         /// @remark このディスクリプタヒープを GPU が使用している最中に呼び出さないこと
         void resetSrv_unsafe(const ShaderResourceType& srv, int tableId, int srvId, int materialId = 0);
 
