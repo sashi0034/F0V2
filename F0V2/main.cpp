@@ -11,7 +11,6 @@
 #include "Demo/Demo_Intersection.h"
 #include "Demo/Demo_Font.h"
 #include "Demo/Demo_FSR1.h"
-#include "Demo/Demo_Gpgpu.h"
 #include "Demo/Demo_Ocean.h"
 #include "Demo/Demo_RenderTarget.h"
 #include "Demo/Demo_ShadowMap.h"

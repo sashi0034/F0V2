@@ -1,4 +1,5 @@
 ﻿#include "pch.h"
+#if 0 // TODO
 #include "Gpgpu.h"
 
 #include "ConstantBufferWrapper.h"
@@ -395,7 +396,8 @@ struct Gpgpu::Impl
 
             if (impl->m_tableIndexofCbv10AndLater != -1)
             {
-                impl->m_descriptorHeap.commandSetComputeTable(CommandListType::Compute, impl->m_tableIndexofCbv10AndLater);
+                impl->m_descriptorHeap.commandSetComputeTable(CommandListType::Compute,
+                                                              impl->m_tableIndexofCbv10AndLater);
             }
 
             const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
@@ -536,3 +538,5 @@ namespace TY
         }
     }
 }
+
+#endif

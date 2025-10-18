@@ -29,7 +29,7 @@ namespace TY::detail
 
     extern void InitializeGraphicsPipelineStateCacheComponent();
 
-    extern void InitGpgpuCacheComponent();
+    // extern void InitGpgpuCacheComponent();
 
     extern void InitImmediateDrawerComponent();
 
@@ -48,7 +48,7 @@ namespace
 
         InitializeGraphicsPipelineStateCacheComponent();
 
-        InitGpgpuCacheComponent();
+        // InitGpgpuCacheComponent();
 
         InitImmediateDrawerComponent();
 

@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿#if 0 // TODO
+
+#pragma once
 
 #include "Array.h"
 #include "ConstantBuffer.h"
@@ -56,3 +58,5 @@ namespace TY
         std::shared_ptr<Impl> p_impl;
     };
 }
+
+#endif // TODO
