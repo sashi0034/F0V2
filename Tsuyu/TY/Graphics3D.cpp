@@ -14,7 +14,7 @@ using namespace TY::detail;
 namespace
 {
     void drawInternal(
-        const VertexBufferCore& vertexBuffer,
+        const VertexBufferImpl& vertexBuffer,
         const IndexBuffer& indexBuffer,
         int indexCount,
         D3D12_PRIMITIVE_TOPOLOGY topology)
@@ -61,22 +61,22 @@ namespace TY
         return SceneState3D_singleton::WorldToScreen();
     }
 
-    void Graphics3D::DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer)
+    void Graphics3D::DrawTriangles(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer)
     {
         DrawTriangles(vertexBuffer, indexBuffer, indexBuffer.count());
     }
 
-    void Graphics3D::DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
+    void Graphics3D::DrawTriangles(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
     {
         drawInternal(vertexBuffer, indexBuffer, indexCount, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
-    void Graphics3D::DrawLines(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer)
+    void Graphics3D::DrawLines(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer)
     {
         DrawLines(vertexBuffer, indexBuffer, indexBuffer.count());
     }
 
-    void Graphics3D::DrawLines(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
+    void Graphics3D::DrawLines(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
     {
         drawInternal(vertexBuffer, indexBuffer, indexCount, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
     }

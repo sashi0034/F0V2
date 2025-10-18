@@ -4,14 +4,14 @@
 
 namespace TY
 {
-    class VertexBufferCore
+    class VertexBufferImpl
     {
     public:
-        VertexBufferCore(Empty_t empty)
+        VertexBufferImpl(Empty_t empty)
         {
         }
 
-        VertexBufferCore(int sizeInBytes, int strideInBytes);
+        VertexBufferImpl(int sizeInBytes, int strideInBytes);
 
         bool isEmpty() const;
 
@@ -31,14 +31,14 @@ namespace TY
     };
 
     template <typename Vertex>
-    class VertexBuffer : public VertexBufferCore
+    class VertexBuffer : public VertexBufferImpl
     {
     public:
-        VertexBuffer(Empty_t empty) : VertexBufferCore(empty)
+        VertexBuffer(Empty_t empty) : VertexBufferImpl(empty)
         {
         }
 
-        VertexBuffer(int count) : VertexBufferCore(count * sizeof(Vertex), sizeof(Vertex))
+        VertexBuffer(int count) : VertexBufferImpl(count * sizeof(Vertex), sizeof(Vertex))
         {
         }
 
@@ -47,6 +47,6 @@ namespace TY
             upload(data);
         }
 
-        void upload(const Array<Vertex>& data) { VertexBufferCore::upload(data.data(), data.size()); }
+        void upload(const Array<Vertex>& data) { VertexBufferImpl::upload(data.data(), data.size()); }
     };
 }

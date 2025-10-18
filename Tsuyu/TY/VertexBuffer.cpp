@@ -8,7 +8,7 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct VertexBufferCore::Impl
+struct VertexBufferImpl::Impl
 {
     bool m_valid{};
 
@@ -145,7 +145,7 @@ struct VertexBufferCore::Impl
 
 namespace TY
 {
-    VertexBufferCore::VertexBufferCore(int sizeInBytes, int strideInBytes) :
+    VertexBufferImpl::VertexBufferImpl(int sizeInBytes, int strideInBytes) :
         p_impl(std::make_shared<Impl>(sizeInBytes, strideInBytes))
     {
         if (not p_impl->m_valid)
@@ -154,34 +154,34 @@ namespace TY
         }
     }
 
-    bool VertexBufferCore::isEmpty() const
+    bool VertexBufferImpl::isEmpty() const
     {
         return p_impl == nullptr;
     }
 
-    int VertexBufferCore::count() const
+    int VertexBufferImpl::count() const
     {
         return p_impl ? p_impl->m_count : 0;
     }
 
-    size_t VertexBufferCore::size_in_bytes() const
+    size_t VertexBufferImpl::size_in_bytes() const
     {
         return p_impl ? p_impl->m_vertBufferView.SizeInBytes : 0;
     }
 
-    void VertexBufferCore::upload(const void* data)
+    void VertexBufferImpl::upload(const void* data)
     {
         if (not p_impl) return;
         p_impl->Upload(data, p_impl->m_vertBufferView.SizeInBytes);
     }
 
-    void VertexBufferCore::upload(const void* data, int count)
+    void VertexBufferImpl::upload(const void* data, int count)
     {
         if (not p_impl) return;
         p_impl->Upload(data, p_impl->m_vertBufferView.StrideInBytes * count);
     }
 
-    void VertexBufferCore::commandSet() const
+    void VertexBufferImpl::commandSet() const
     {
         if (not p_impl) return;
         p_impl->CommandSet();

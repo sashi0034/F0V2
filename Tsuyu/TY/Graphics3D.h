@@ -3,7 +3,7 @@
 
 namespace TY
 {
-    class VertexBufferCore;
+    class VertexBufferImpl;
     class IndexBuffer;
 
     namespace Graphics3D
@@ -16,12 +16,12 @@ namespace TY
 
         Mat4x4 WorldToScreen();
 
-        void DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer);
+        void DrawTriangles(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer);
 
-        void DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
+        void DrawTriangles(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
 
-        void DrawLines(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer);
+        void DrawLines(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer);
 
-        void DrawLines(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
+        void DrawLines(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
     }
 }
