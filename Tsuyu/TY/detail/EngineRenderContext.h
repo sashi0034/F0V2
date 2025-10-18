@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "CommandList.h"
+#include "CommandListManager.h"
 #include "PipelineType.h"
 #include "TY/ConstantBuffer.h"
 #include "TY/IGpuMemoryUsage.h"
@@ -40,10 +40,7 @@ namespace TY::detail
         ID3D12Device* GetDevice();
 
         [[nodiscard]]
-        ID3D12GraphicsCommandList* GetCommandList(CommandListType type);
-
-        [[nodiscard]]
-        ID3D12GraphicsCommandList* GetCommandList(PipelineType type);
+        ID3D12GraphicsCommandList* TargetCommandList();
 
         void FlushComputeCommandSync();
 

@@ -101,13 +101,13 @@ struct StructuredBuffer::Impl
         memcpy(frameResource.uploadDest, src, m_dataSize);
 
         // GPU へアップロード
-        const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);;
+        const auto copyCommandList = EngineRenderContext::TargetCommandList();;
         copyCommandList->CopyResource(m_finalBuffer.Get(), frameResource.uploadBuffer.Get());
 
         // CopyResource で COPY_DEST 状態になっている m_finalBuffer を、UNORDERED_ACCESS に移す
         if (m_writable)
         {
-            const auto computeCommandList = EngineRenderContext::GetCommandList(CommandListType::Compute);;
+            const auto computeCommandList = EngineRenderContext::TargetCommandList();;
             const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 m_finalBuffer.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
@@ -120,7 +120,7 @@ struct StructuredBuffer::Impl
     {
         assert(m_writable);;
 
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
+        const auto commandList = EngineRenderContext::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_finalBuffer.Get());
@@ -129,7 +129,7 @@ struct StructuredBuffer::Impl
 
     static void AfterDispatch(const Array<UnorderedStructuredBuffer>& list)
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
+        const auto commandList = EngineRenderContext::TargetCommandList();
 
         Array<D3D12_RESOURCE_BARRIER> barriers{};
         barriers.reserve(8);
@@ -151,7 +151,7 @@ struct StructuredBuffer::Impl
     {
         assert(m_writable);
 
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
+        const auto commandList = EngineRenderContext::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_finalBuffer.Get());
@@ -183,7 +183,7 @@ struct StructuredBuffer::Impl
 
     static void BeforeFlush(const Array<UnorderedStructuredBuffer>& list)
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Compute);
+        const auto commandList = EngineRenderContext::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         Array<D3D12_RESOURCE_BARRIER> barriers;

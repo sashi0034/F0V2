@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "Demo_RenderTarget.h"
 
-#include "TY/Buffer3D.h"
 #include "TY/DiskTexture.h"
 #include "TY/DynamicTexture.h"
 #include "TY/Graphics3D.h"

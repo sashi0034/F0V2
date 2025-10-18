@@ -36,14 +36,14 @@ struct ComputeDispatcher::Impl
         m_descriptorHeap = DescriptorHeap{descriptorHeap};
     }
 
-    void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ, PipelineType pipeline) const
+    void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const
     {
-        auto commandList = EngineRenderContext::GetCommandList(pipeline);
+        auto commandList = EngineRenderContext::TargetCommandList();
 
         m_pso.commandSet(CommandListType::Draw);
 
-        m_descriptorHeap.commandSet(CommandListType::Draw);
-        m_descriptorHeap.commandSetComputeTable(CommandListType::Draw, 0);
+        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSetComputeTable(0);
 
         commandList->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ); // TODO: グループ数を指定できるようにする
     }
@@ -82,6 +82,6 @@ namespace TY
 
     void ComputeDispatcher::dispatchToDraw(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const
     {
-        if (p_impl) p_impl->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ, PipelineType::Graphics);
+        if (p_impl) p_impl->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
     }
 }

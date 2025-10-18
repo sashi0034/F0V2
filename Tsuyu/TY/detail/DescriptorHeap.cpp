@@ -371,25 +371,25 @@ struct DescriptorHeap::Impl
         createUnorderedAccessViewInternal(heapHandle, uav);
     }
 
-    void CommandSet(CommandListType commandList) const
+    void CommandSet() const
     {
-        EngineRenderContext::GetCommandList(commandList)->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+        EngineRenderContext::TargetCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
-    void CommandSetGraphicsTable(CommandListType commandList, int tableId, int materialId) const
+    void CommandSetGraphicsTable(int tableId, int materialId) const
     {
         auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
-        EngineRenderContext::GetCommandList(commandList)->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+        EngineRenderContext::TargetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
     }
 
-    void CommandSetComputeTable(CommandListType commandList, int tableId, int materialId) const
+    void CommandSetComputeTable(int tableId, int materialId) const
     {
         auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
-        EngineRenderContext::GetCommandList(commandList)->SetComputeRootDescriptorTable(tableId, heapHandle);
+        EngineRenderContext::TargetCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
     }
 };
 
@@ -403,28 +403,28 @@ namespace TY::detail
         }
     }
 
-    void DescriptorHeap::resetSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
+    void DescriptorHeap::resetSrv_unsafe(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
     {
         if (p_impl) p_impl->ResetSRV(srv, tableId, srvId, materialId);
     }
 
-    void DescriptorHeap::resetUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
+    void DescriptorHeap::resetUav_unsafe(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
     {
         if (p_impl) p_impl->ResetUAV(uav, tableId, uavId, materialId);
     }
 
-    void DescriptorHeap::commandSet(CommandListType commandList) const
+    void DescriptorHeap::commandSet() const
     {
-        if (p_impl) p_impl->CommandSet(commandList);
+        if (p_impl) p_impl->CommandSet();
     }
 
-    void DescriptorHeap::commandSetGraphicsTable(CommandListType commandList, int tableId, int materialId) const
+    void DescriptorHeap::commandSetGraphicsTable(int tableId, int materialId) const
     {
-        if (p_impl) p_impl->CommandSetGraphicsTable(commandList, tableId, materialId);
+        if (p_impl) p_impl->CommandSetGraphicsTable(tableId, materialId);
     }
 
-    void DescriptorHeap::commandSetComputeTable(CommandListType commandList, int tableId, int materialId) const
+    void DescriptorHeap::commandSetComputeTable(int tableId, int materialId) const
     {
-        if (p_impl) p_impl->CommandSetComputeTable(commandList, tableId, materialId);
+        if (p_impl) p_impl->CommandSetComputeTable(tableId, materialId);
     }
 }

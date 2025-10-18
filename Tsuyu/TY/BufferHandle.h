@@ -4,16 +4,16 @@
 
 namespace TY
 {
-    class TextureHandle
+    class BufferHandle
     {
     public:
         [[nodiscard]]
-        TextureHandle(Empty_t)
+        BufferHandle(Empty_t)
         {
         }
 
         [[nodiscard]]
-        TextureHandle();
+        BufferHandle();
 
         [[nodiscard]]
         ID3D12Resource** assignResourceAddress(D3D12_RESOURCE_STATES initialResourceState);
@@ -21,12 +21,11 @@ namespace TY
         [[nodiscard]]
         bool isEmpty() const;
 
-        // TODO: Rename to unique_id
         [[nodiscard]]
-        size_t resource_id() const;
+        size_t unique_id() const;
 
         [[nodiscard]]
-        Size size() const;
+        size_t size() const;
 
         [[nodiscard]]
         ID3D12Resource* getResource() const;
@@ -36,25 +35,19 @@ namespace TY
 
         void transitionResourceState(D3D12_RESOURCE_STATES newState) const;
 
-        [[nodiscard]]
-        DXGI_FORMAT getFormat() const;
-
-        [[nodiscard]]
-        int mipCount() const;
-
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl;
 
-        friend class UnorderedTextureHandle;
+        friend class UnorderedBufferHandle;
     };
 
-    class UnorderedTextureHandle : public TextureHandle
+    class UnorderedBufferHandle : public BufferHandle
     {
     public:
-        using TextureHandle::TextureHandle;
+        using BufferHandle::BufferHandle;
 
         [[nodiscard]]
-        UnorderedTextureHandle(const TextureHandle& handle);
+        UnorderedBufferHandle(const BufferHandle& handle);
     };
 }

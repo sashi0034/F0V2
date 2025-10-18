@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "CommandList.h"
+#include "CommandListManager.h"
 #include "DescriptorTable.h"
 #include "PipelineType.h"
 #include "TY/CbvSrvUav.h"
@@ -33,15 +33,16 @@ namespace TY::detail
 
         DescriptorHeap(const DescriptorHeapParams& params);
 
-        void resetSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId = 0);
+        /// @remark このディスクリプタヒープを GPU が使用している最中に呼び出さないこと
+        void resetSrv_unsafe(const ShaderResourceType& srv, int tableId, int srvId, int materialId = 0);
 
-        void resetUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId = 0);
+        void resetUav_unsafe(const UnorderedAccessType& uav, int tableId, int uavId, int materialId = 0);
 
-        void commandSet(CommandListType commandList) const;
+        void commandSet() const;
 
-        void commandSetGraphicsTable(CommandListType commandList, int tableId, int materialId = 0) const;
+        void commandSetGraphicsTable(int tableId, int materialId = 0) const;
 
-        void commandSetComputeTable(CommandListType commandList, int tableId, int materialId = 0) const;
+        void commandSetComputeTable(int tableId, int materialId = 0) const;
 
     private:
         struct Impl;

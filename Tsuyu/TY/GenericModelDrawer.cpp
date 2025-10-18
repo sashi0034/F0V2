@@ -123,9 +123,9 @@ struct GenericModelDrawer::Impl
         m_pso.commandSet();
 
         // カメラ行列設定
-        m_descriptorHeap.commandSet(CommandListType::Draw);
-        m_descriptorHeap.commandSetGraphicsTable(CommandListType::Draw, 0);
-        m_descriptorHeap.commandSetGraphicsTable(CommandListType::Draw, 1);
+        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSetGraphicsTable(0);
+        m_descriptorHeap.commandSetGraphicsTable(1);
 
         // 拡張 CBV セット
         if (m_tableIndexofCbv10AndLater >= 0)
@@ -140,7 +140,7 @@ struct GenericModelDrawer::Impl
             if (materialIndexOfCbv10AndLater >= 0)
             {
                 m_descriptorHeap.commandSetGraphicsTable(
-                    CommandListType::Draw, m_tableIndexofCbv10AndLater, materialIndexOfCbv10AndLater);
+                    m_tableIndexofCbv10AndLater, materialIndexOfCbv10AndLater);
             }
         }
         else
@@ -154,14 +154,14 @@ struct GenericModelDrawer::Impl
         // 拡張 SRV セット
         if (m_tableIndexofSrv10AndLater >= 0)
         {
-            m_descriptorHeap.commandSetGraphicsTable(CommandListType::Draw, m_tableIndexofSrv10AndLater);
+            m_descriptorHeap.commandSetGraphicsTable(m_tableIndexofSrv10AndLater);
         }
 
         // 形状ごとに描画
         for (size_t shapeId = 0; shapeId < m_modelBuffer->materialCount(); ++shapeId)
         {
             const auto& shape = m_modelBuffer->shapeAt(shapeId);
-            m_descriptorHeap.commandSetGraphicsTable(CommandListType::Draw, 2, shape.materialIndex);
+            m_descriptorHeap.commandSetGraphicsTable(2, shape.materialIndex);
 
             Graphics3D::DrawTriangles(shape.vertexBuffer, shape.indexBuffer);
         }

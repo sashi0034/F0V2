@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "TextureHandle.h"
+#include "BufferHandle.h"
 
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
@@ -7,14 +7,14 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct TextureHandle::Impl
+struct BufferHandle::Impl
 {
-    ComPtr<ID3D12Resource> m_textureBuffer{};
+    ComPtr<ID3D12Resource> m_resourceBuffer{};
     D3D12_RESOURCE_STATES m_resourceState{D3D12_RESOURCE_STATE_COMMON};
 
     ~Impl()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_textureBuffer);
+        EngineRenderContext::SafeDisposeRenderResource(m_resourceBuffer);
     }
 
     void TransitionResourceState(D3D12_RESOURCE_STATES newState)
@@ -24,7 +24,7 @@ struct TextureHandle::Impl
             const auto commandList = EngineRenderContext::TargetCommandList();
 
             D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                m_textureBuffer.Get(),
+                m_resourceBuffer.Get(),
                 m_resourceState,
                 newState);
             commandList->ResourceBarrier(1, &barrier);
@@ -36,12 +36,12 @@ struct TextureHandle::Impl
 
 namespace TY
 {
-    TextureHandle::TextureHandle()
+    BufferHandle::BufferHandle()
         : p_impl(std::make_shared<Impl>())
     {
     }
 
-    ID3D12Resource** TextureHandle::assignResourceAddress(D3D12_RESOURCE_STATES initialResourceState)
+    ID3D12Resource** BufferHandle::assignResourceAddress(D3D12_RESOURCE_STATES initialResourceState)
     {
         if (not p_impl)
         {
@@ -49,54 +49,40 @@ namespace TY
         }
 
         p_impl->m_resourceState = initialResourceState;
-        return p_impl->m_textureBuffer.ReleaseAndGetAddressOf();
+        return p_impl->m_resourceBuffer.ReleaseAndGetAddressOf();
     }
 
-    bool TextureHandle::isEmpty() const
+    bool BufferHandle::isEmpty() const
     {
-        return p_impl == nullptr || p_impl->m_textureBuffer == nullptr;
+        return p_impl == nullptr || p_impl->m_resourceBuffer == nullptr;
     }
 
-    size_t TextureHandle::resource_id() const
+    size_t BufferHandle::unique_id() const
     {
-        return p_impl ? reinterpret_cast<size_t>(p_impl->m_textureBuffer.Get()) : 0;
+        return p_impl ? reinterpret_cast<size_t>(p_impl->m_resourceBuffer.Get()) : 0;
     }
 
-    Size TextureHandle::size() const
+    size_t BufferHandle::size() const
     {
-        if (not p_impl) return Size{};
-
-        const auto desc = p_impl->m_textureBuffer->GetDesc();
-
-        return Size{static_cast<int>(desc.Width), static_cast<int>(desc.Height)};
+        return p_impl && p_impl->m_resourceBuffer ? p_impl->m_resourceBuffer->GetDesc().Width : 0;
     }
 
-    ID3D12Resource* TextureHandle::getResource() const
+    ID3D12Resource* BufferHandle::getResource() const
     {
-        return p_impl ? p_impl->m_textureBuffer.Get() : nullptr;
+        return p_impl ? p_impl->m_resourceBuffer.Get() : nullptr;
     }
 
-    D3D12_RESOURCE_STATES TextureHandle::getResourceState() const
+    D3D12_RESOURCE_STATES BufferHandle::getResourceState() const
     {
         return p_impl ? p_impl->m_resourceState : D3D12_RESOURCE_STATE_COMMON;
     }
 
-    void TextureHandle::transitionResourceState(D3D12_RESOURCE_STATES newState) const
+    void BufferHandle::transitionResourceState(D3D12_RESOURCE_STATES newState) const
     {
         if (p_impl)
         {
             p_impl->TransitionResourceState(newState);
         }
-    }
-
-    DXGI_FORMAT TextureHandle::getFormat() const
-    {
-        return p_impl && p_impl->m_textureBuffer ? p_impl->m_textureBuffer->GetDesc().Format : DXGI_FORMAT_UNKNOWN;
-    }
-
-    int TextureHandle::mipCount() const
-    {
-        return p_impl && p_impl->m_textureBuffer ? static_cast<int>(p_impl->m_textureBuffer->GetDesc().MipLevels) : 0;
     }
 
     namespace
@@ -112,7 +98,7 @@ namespace TY
             if (not(desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS))
             {
                 LogError(
-                    "UnorderedTextureHandle: Resource is not created with D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS.");
+                    "UnorderedBufferHandle: Resource is not created with D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS.");
                 return false;
             }
 
@@ -120,7 +106,7 @@ namespace TY
         }
     }
 
-    UnorderedTextureHandle::UnorderedTextureHandle(const TextureHandle& handle)
+    UnorderedBufferHandle::UnorderedBufferHandle(const BufferHandle& handle)
     {
         if (not handle.isEmpty() && checkUnorderedAccess(handle.getResource()))
         {

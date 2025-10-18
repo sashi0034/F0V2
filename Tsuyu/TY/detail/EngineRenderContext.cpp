@@ -4,7 +4,7 @@
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
 
-#include "CommandList.h"
+#include "CommandListManager.h"
 #include "EngineStateContext.h"
 #include "EngineWindow.h"
 #include "GpuMemoryUsage.h"
@@ -65,9 +65,9 @@ struct EngineRenderContextImpl
 
     GpuMemoryUsage m_gpuMemoryUsage{};
 
-    CommandList m_drawCommandList{};
-    CommandList m_copyCommandList{};
-    CommandList m_computeCommandList{};
+    CommandListManager m_drawCommandList{};
+    // CommandList m_copyCommandList{};
+    // CommandList m_computeCommandList{};
 
     ComPtr<IDXGISwapChain4> m_swapChain{};
 
@@ -158,11 +158,11 @@ struct EngineRenderContextImpl
         m_gpuMemoryUsage = GpuMemoryUsage{m_dxgiFactory.Get(), m_device->GetAdapterLuid()};
 
         // コマンドリストの作成
-        m_drawCommandList = CommandList{CommandListType::Draw};
+        m_drawCommandList = CommandListManager{CommandListType::Draw};
 
-        m_copyCommandList = CommandList{CommandListType::Copy};
+        // m_copyCommandList = CommandList{CommandListType::Copy};
 
-        m_computeCommandList = CommandList{CommandListType::Compute};
+        // m_computeCommandList = CommandList{CommandListType::Compute};
 
         // スワップチェインの設定
         DXGI_SWAP_CHAIN_DESC1 swapchainDesc = {};
@@ -180,7 +180,7 @@ struct EngineRenderContextImpl
         // swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
         if (const auto hr = m_dxgiFactory->CreateSwapChainForHwnd(
-                m_drawCommandList.GetCommandQueue(),
+                m_drawCommandList.getCommandQueue(),
                 EngineWindow::Handle(),
                 &swapchainDesc,
                 nullptr,
@@ -230,7 +230,7 @@ struct EngineRenderContextImpl
         m_scopedBackBuffer.dispose();
 
         // コマンドリストの実行
-        FlushAllCommand();
+        SubmitCommand();
 
         // フリップ
         m_swapChain->Present(1, 0);
@@ -242,39 +242,37 @@ struct EngineRenderContextImpl
         return m_disposedRenderResources[index];
     }
 
-    void FlushComputeCommandSync()
+    // void FlushComputeCommandSync()
+    // {
+    //     m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
+    //     m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
+    //
+    //     m_flushTimestamp++;
+    //
+    //     CurrentDisposedRenderResources().clear();
+    //
+    //     m_computeCommandList.WaitLastFlush();
+    // }
+
+    void SubmitCommand()
     {
-        m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
-        m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
+        m_drawCommandList.closeAndAdvance();
 
         m_flushTimestamp++;
 
         CurrentDisposedRenderResources().clear();
-
-        m_computeCommandList.WaitLastFlush();
     }
 
-    void FlushAllCommand()
-    {
-        m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
-        m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
-        m_drawCommandList.CloseAndFlushAfter(m_copyCommandList);
-
-        m_flushTimestamp++;
-
-        CurrentDisposedRenderResources().clear();
-    }
-
-    CommandList& GetCommandList(CommandListType type)
+    CommandListManager& GetCommandList(CommandListType type)
     {
         switch (type)
         {
         case CommandListType::Draw:
             return m_drawCommandList;
-        case CommandListType::Copy:
-            return m_copyCommandList;
-        case CommandListType::Compute:
-            return m_computeCommandList;
+        // case CommandListType::Copy:
+        //     return m_copyCommandList;
+        // case CommandListType::Compute:
+        //     return m_computeCommandList;
         default:
             assert(false);
             return m_drawCommandList;
@@ -283,9 +281,9 @@ struct EngineRenderContextImpl
 
     void OnShutdown()
     {
-        FlushAllCommand();
+        SubmitCommand();
 
-        m_drawCommandList.WaitLastFlush();
+        m_drawCommandList.waitLastCommandList();
     }
 
 private:
@@ -403,9 +401,9 @@ private:
         assert(not m_scopedBackBuffer.isActive());
         assert(RenderTarget::Current().isEmpty());
 
-        FlushAllCommand();
+        SubmitCommand();
 
-        m_drawCommandList.WaitLastFlush();
+        m_drawCommandList.waitLastCommandList();
 
         m_backBuffers = {};
 
@@ -472,28 +470,14 @@ namespace TY::detail
         return s_renderContext.m_device.Get();
     }
 
-    ID3D12GraphicsCommandList* EngineRenderContext::GetCommandList(CommandListType type)
+    ID3D12GraphicsCommandList* EngineRenderContext::TargetCommandList()
     {
-        return s_renderContext.GetCommandList(type).GetCommandList();
-    }
-
-    ID3D12GraphicsCommandList* EngineRenderContext::GetCommandList(PipelineType type)
-    {
-        switch (type)
-        {
-        case PipelineType::Graphics:
-            return GetCommandList(CommandListType::Draw);
-        case PipelineType::Compute:
-            return GetCommandList(CommandListType::Compute);
-        }
-
-        assert(false);
-        return {};
+        return s_renderContext.m_drawCommandList.getCommandList(); // TODO: draw or compute
     }
 
     void EngineRenderContext::FlushComputeCommandSync()
     {
-        s_renderContext.FlushComputeCommandSync();
+        // s_renderContext.FlushComputeCommandSync();
     }
 
     void EngineRenderContext::RequestFrameBufferSize(Size frameBufferSize)

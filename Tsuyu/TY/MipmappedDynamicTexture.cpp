@@ -165,7 +165,7 @@ struct MipmappedDynamicTexture::Impl
         m_uploadBuffer->SetName(L"MipmappedTexture::Upload");
 
         // エンジンのコマンドリストに記録（実行・フェンス待ちはエンジン側ポリシーに従う）
-        auto cmdList = EngineRenderContext::GetCommandList(CommandListType::Draw);
+        auto cmdList = EngineRenderContext::TargetCommandList();
 
         UpdateSubresources(cmdList, m_textureHandle.getResource(), m_uploadBuffer.Get(), 0, 0, subresourceCount,
                            subresources.data());

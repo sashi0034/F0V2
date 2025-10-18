@@ -132,8 +132,8 @@ struct TextureDrawer::Impl
     {
         m_pso.commandSet();
 
-        m_descriptorHeap.commandSet(CommandListType::Draw);
-        m_descriptorHeap.commandSetGraphicsTable(CommandListType::Draw, 0);
+        m_descriptorHeap.commandSet();
+        m_descriptorHeap.commandSetGraphicsTable(0);
 
         Graphics3D::DrawTriangles(m_vertexBuffer, m_indexBuffer);
     }

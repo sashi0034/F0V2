@@ -18,7 +18,7 @@ namespace
         int indexCount,
         D3D12_PRIMITIVE_TOPOLOGY topology)
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
+        const auto commandList = EngineRenderContext::TargetCommandList();
 
         if (not vertexBuffer.isEmpty())
         {

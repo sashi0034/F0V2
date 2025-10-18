@@ -176,9 +176,9 @@
     <ClInclude Include="TY\IGpuMemoryUsage.h" />
     <ClInclude Include="TY\Periodic.h" />
     <ClInclude Include="TY\RenderTargetTexture.h" />
+    <ClInclude Include="TY\BufferHandle.h" />
     <ClInclude Include="TY\TextureHandle.h" />
     <ClInclude Include="TY\TriangleBvh.h" />
-    <ClInclude Include="TY\Buffer3D.h" />
     <ClInclude Include="TY\CbvSrvUav.h" />
     <ClInclude Include="TY\Color.h" />
     <ClInclude Include="TY\detail\EngineComponent.h" />
@@ -237,7 +237,7 @@
     <ClInclude Include="TY\GamepadInputState.h" />
     <ClInclude Include="TY\GamepadMapping.h" />
     <ClInclude Include="TY\SimpleCamera3D.h" />
-    <ClInclude Include="TY\detail\CommandList.h" />
+    <ClInclude Include="TY\detail\CommandListManager.h" />
     <ClInclude Include="TY\detail\DescriptorHeap.h" />
     <ClInclude Include="TY\detail\DescriptorTable.h" />
     <ClInclude Include="TY\detail\EngineCore.h" />
@@ -338,9 +338,9 @@
     <ClCompile Include="TY\MipmappedDynamicTexture.cpp" />
     <ClCompile Include="TY\Periodic.cpp" />
     <ClCompile Include="TY\RenderTargetTexture.cpp" />
+    <ClCompile Include="TY\BufferHandle.cpp" />
     <ClCompile Include="TY\TextureHandle.cpp" />
     <ClCompile Include="TY\TriangleBvh.cpp" />
-    <ClCompile Include="TY\Buffer3D.cpp" />
     <ClCompile Include="TY\Color.cpp" />
     <ClCompile Include="TY\detail\EngineComponent.cpp" />
     <ClCompile Include="TY\detail\FreeTypeContext.cpp" />
@@ -384,7 +384,7 @@
     <ClCompile Include="TY\Gamepad.cpp" />
     <ClCompile Include="TY\GamepadMapping.cpp" />
     <ClCompile Include="TY\SimpleCamera3D.cpp" />
-    <ClCompile Include="TY\detail\CommandList.cpp" />
+    <ClCompile Include="TY\detail\CommandListManager.cpp" />
     <ClCompile Include="TY\detail\DescriptorHeap.cpp" />
     <ClCompile Include="TY\detail\EngineCore.cpp" />
     <ClCompile Include="TY\detail\EngineEntryPoint.cpp" />

@@ -2,6 +2,7 @@
 #include "ConstantBuffer.h"
 
 #include "Logger.h"
+#include "BufferHandle.h"
 #include "Uncopyable.h"
 #include "Utils.h"
 #include "detail/EngineRenderContext.h"
@@ -141,9 +142,7 @@ struct ConstantBufferCore::Impl
     uint32_t m_materialCount;
     size_t m_alignedSize{};
 
-    ComPtr<ID3D12Resource> m_finalBuffer{};
-
-    D3D12_RESOURCE_STATES m_finalBufferState = D3D12_RESOURCE_STATE_COMMON;
+    BufferHandle m_bufferHandle{};
 
     using frame_resources = FrameResource;
 
@@ -166,21 +165,20 @@ struct ConstantBufferCore::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_finalBuffer));
+                IID_PPV_ARGS(m_bufferHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON)));
             FAILED(hr))
         {
             LogError.writeln("ConstantBuffer: Failed to create m_finalBuffer.");
             return;
         }
 
-        m_finalBuffer->SetName(L"ConstantBuffer::m_finalBuffer");
+        m_bufferHandle.getResource()->SetName(L"ConstantBuffer::m_bufferHandle");
 
         m_valid = true;
     }
 
     ~Impl()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const uint8_t* data, uint32_t count, CommandListType commandListType)
@@ -221,44 +219,22 @@ struct ConstantBufferCore::Impl
             dest += m_alignedSize;
         }
 
-        const auto commandList = EngineRenderContext::GetCommandList(commandListType);
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
-        changeFinalBufferState(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
-
-        commandList->CopyBufferRegion(
-            m_finalBuffer.Get(),
+        EngineRenderContext::TargetCommandList()->CopyBufferRegion(
+            m_bufferHandle.getResource(),
             0,
             frameResource.UploadBuffer(),
             uploadOffset,
             m_alignedSize * count);
 
-        if (commandListType == CommandListType::Draw)
-        {
-            changeFinalBufferState(commandList, D3D12_RESOURCE_STATE_GENERIC_READ);
-        }
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_GENERIC_READ);
 
         // if (previousUploadTimestamp == 0)
         // {
         //     // 初回実行時は即アンマップする
         //     frameResource.Unmap();
         // }
-    }
-
-private:
-    void changeFinalBufferState(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES newState)
-    {
-        if (m_finalBufferState == newState)
-        {
-            return;
-        }
-
-        const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_finalBuffer.Get(),
-            m_finalBufferState,
-            newState);
-        commandList->ResourceBarrier(1, &barrier);
-
-        m_finalBufferState = newState;
     }
 };
 
@@ -280,7 +256,7 @@ namespace TY
 
     void ConstantBufferCore::upload(const void* data, uint32_t materialCount) const
     {
-        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount, CommandListType::Copy);
+        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount, CommandListType::Draw);
     }
 
     void ConstantBufferCore::uploadToDraw(const void* data, uint32_t materialCount) const
@@ -305,6 +281,6 @@ namespace TY
 
     uint64_t ConstantBufferCore::bufferLocation() const
     {
-        return p_impl ? p_impl->m_finalBuffer->GetGPUVirtualAddress() : 0;
+        return p_impl ? p_impl->m_bufferHandle.getResource()->GetGPUVirtualAddress() : 0;
     }
 }

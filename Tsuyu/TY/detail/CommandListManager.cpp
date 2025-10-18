@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "CommandList.h"
+#include "CommandListManager.h"
 
 #include "EngineRenderContext.h"
 #include "TY/AssertObject.h"
@@ -16,10 +16,10 @@ namespace
         {
         case CommandListType::Draw:
             return D3D12_COMMAND_LIST_TYPE_DIRECT;
-        case CommandListType::Copy:
-            return D3D12_COMMAND_LIST_TYPE_COPY;
-        case CommandListType::Compute:
-            return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+            // case CommandListType::Copy:
+            //     return D3D12_COMMAND_LIST_TYPE_COPY;
+            // case CommandListType::Compute:
+            //     return D3D12_COMMAND_LIST_TYPE_COMPUTE;
         }
 
         assert(false);
@@ -27,7 +27,7 @@ namespace
     }
 }
 
-struct CommandList::Impl
+struct CommandListManager::Impl
 {
     bool m_valid{};
 
@@ -122,21 +122,22 @@ struct CommandList::Impl
         m_valid = true;
     }
 
-    void CloseAndFlush(const Impl* lastCommandList)
+    // void CloseAndFlush(const Impl* lastCommandList)
+    void CloseAndAdvance()
     {
         auto& currentResource = m_frameResources[m_frameResourceIndex];
 
         currentResource.commandList->Close();
 
-        if (lastCommandList)
-        {
-            const auto& previousFrameResource =
-                lastCommandList->m_frameResources[lastCommandList->previousFrameResourceIndex()];
-            if (previousFrameResource.needFence)
-            {
-                m_commandQueue->Wait(lastCommandList->m_fence.Get(), previousFrameResource.fenceValue);
-            }
-        }
+        // if (lastCommandList)
+        // {
+        //     const auto& previousFrameResource =
+        //         lastCommandList->m_frameResources[lastCommandList->previousFrameResourceIndex()];
+        //     if (previousFrameResource.needFence)
+        //     {
+        //         m_commandQueue->Wait(lastCommandList->m_fence.Get(), previousFrameResource.fenceValue);
+        //     }
+        // }
 
         ID3D12CommandList* commandLists[] = {currentResource.commandList.Get()};
         m_commandQueue->ExecuteCommandLists(1, commandLists);
@@ -191,7 +192,7 @@ private:
 
 namespace TY::detail
 {
-    CommandList::CommandList(CommandListType type) :
+    CommandListManager::CommandListManager(CommandListType type) :
         p_impl(std::make_shared<Impl>(type))
     {
         if (not p_impl->m_valid)
@@ -200,27 +201,27 @@ namespace TY::detail
         }
     }
 
-    void CommandList::CloseAndFlush()
+    void CommandListManager::closeAndAdvance()
     {
-        if (p_impl) p_impl->CloseAndFlush(nullptr);
+        if (p_impl) p_impl->CloseAndAdvance();
     }
 
-    void CommandList::CloseAndFlushAfter(const CommandList& lastCommandList)
-    {
-        if (p_impl) p_impl->CloseAndFlush(lastCommandList.p_impl.get());
-    }
+    // void CommandList::CloseAndFlushAfter(const CommandList& lastCommandList)
+    // {
+    //     if (p_impl) p_impl->CloseAndFlush(lastCommandList.p_impl.get());
+    // }
 
-    void CommandList::WaitLastFlush()
+    void CommandListManager::waitLastCommandList()
     {
         if (p_impl) { p_impl->WaitLastFlush(); }
     }
 
-    ID3D12GraphicsCommandList* CommandList::GetCommandList() const
+    ID3D12GraphicsCommandList* CommandListManager::getCommandList() const
     {
         return p_impl ? p_impl->m_frameResources[p_impl->m_frameResourceIndex].commandList.Get() : nullptr;
     }
 
-    ID3D12CommandQueue* CommandList::GetCommandQueue() const
+    ID3D12CommandQueue* CommandListManager::getCommandQueue() const
     {
         return p_impl ? p_impl->m_commandQueue.Get() : nullptr;
     }

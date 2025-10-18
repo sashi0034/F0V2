@@ -2,7 +2,6 @@
 #include "EngineEntryPoint.h"
 
 #include "Windows.h"
-#include "TY/Buffer3D.h"
 
 #include "TY/Logger.h"
 #include "TY/System.h"

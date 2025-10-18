@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "VertexBuffer.h"
 
+#include "BufferHandle.h"
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
 
@@ -13,7 +14,7 @@ struct VertexBufferCore::Impl
 
     D3D12_VERTEX_BUFFER_VIEW m_vertBufferView{};
 
-    ComPtr<ID3D12Resource> m_finalBuffer{};
+    BufferHandle m_bufferHandle{};
 
     int m_count{};
 
@@ -41,16 +42,16 @@ struct VertexBufferCore::Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_finalBuffer));
+                IID_PPV_ARGS(m_bufferHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON)));
             FAILED(hr))
         {
-            LogError.writeln("VertexBuffer: Failed to create m_finalBuffer");
+            LogError.writeln("VertexBuffer: Failed to create m_bufferHandle");
             return;
         }
 
-        m_finalBuffer->SetName(L"VertexBuffer::m_finalBuffer");
+        m_bufferHandle.getResource()->SetName(L"VertexBuffer::m_bufferHandle");
 
-        m_vertBufferView.BufferLocation = m_finalBuffer->GetGPUVirtualAddress();
+        m_vertBufferView.BufferLocation = m_bufferHandle.getResource()->GetGPUVirtualAddress();
         m_vertBufferView.SizeInBytes = sizeInBytes;
         m_vertBufferView.StrideInBytes = strideInBytes;
 
@@ -70,8 +71,6 @@ struct VertexBufferCore::Impl
 
             EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
-
-        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const void* data, size_t size)
@@ -118,13 +117,16 @@ struct VertexBufferCore::Impl
         uint8_t* dest = frameResource.dest;
         memcpy(dest, data, size);
 
-        const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
-        copyCommandList->CopyBufferRegion(
-            m_finalBuffer.Get(),
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
+
+        EngineRenderContext::TargetCommandList()->CopyBufferRegion(
+            m_bufferHandle.getResource(),
             0,
             frameResource.uploadBuffer.Get(),
             0,
             size);
+
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
         if (previousUploadTimestamp == 0)
         {
@@ -136,7 +138,7 @@ struct VertexBufferCore::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
+        const auto commandList = EngineRenderContext::TargetCommandList();
         commandList->IASetVertexBuffers(0, 1, &m_vertBufferView);
     }
 };

@@ -175,9 +175,13 @@ struct DynamicTexture::Impl
         srcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
         srcCopyLocation.PlacedFootprint = footprint;
 
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Copy); // todo
+        const auto commandList = EngineRenderContext::TargetCommandList();
+
+        m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
         commandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
+
+        m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_SOURCE); // FIXME?
     }
 };
 

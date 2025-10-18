@@ -19,6 +19,7 @@ namespace TY
 
         void upload(const void* data, uint32_t materialCount = 1) const;
 
+        // TODO: Remove this
         void uploadToDraw(const void* data, uint32_t materialCount = 1) const;
 
         uint32_t materialCount() const;

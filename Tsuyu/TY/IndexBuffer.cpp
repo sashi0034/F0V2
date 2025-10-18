@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "IndexBuffer.h"
 
+#include "BufferHandle.h"
 #include "Logger.h"
 #include "detail/EngineRenderContext.h"
 
@@ -30,7 +31,7 @@ struct IndexBuffer::Impl::Default : Impl
 {
     D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
 
-    ComPtr<ID3D12Resource> m_finalBuffer{};
+    BufferHandle m_bufferHandle{};
 
     struct frame_resources
     {
@@ -56,16 +57,16 @@ struct IndexBuffer::Impl::Default : Impl
                 &resourceDesc,
                 D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_finalBuffer));
+                IID_PPV_ARGS(m_bufferHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON)));
             FAILED(hr))
         {
             LogError.writeln(L"IndexBuffer: Failed to create buffer");
             return;
         }
 
-        m_finalBuffer->SetName(L"IndexBuffer::m_finalBuffer");
+        m_bufferHandle.getResource()->SetName(L"IndexBuffer::m_bufferHandle");
 
-        m_indexBufferView.BufferLocation = m_finalBuffer->GetGPUVirtualAddress();
+        m_indexBufferView.BufferLocation = m_bufferHandle.getResource()->GetGPUVirtualAddress();
         m_indexBufferView.SizeInBytes = resourceDesc.Width;
         m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
@@ -85,8 +86,6 @@ struct IndexBuffer::Impl::Default : Impl
 
             EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
-
-        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const Array<index_type>& indices) override
@@ -135,14 +134,16 @@ struct IndexBuffer::Impl::Default : Impl
 
         std::ranges::copy(indices, dest);
 
-        const auto copyCommandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
-        copyCommandList->CopyBufferRegion(
-            m_finalBuffer.Get(),
+        EngineRenderContext::TargetCommandList()->CopyBufferRegion(
+            m_bufferHandle.getResource(),
             0,
             frameResource.uploadBuffer.Get(),
             0,
             indices.size_in_bytes());
+
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_INDEX_BUFFER);
 
         if (previousUploadTimestamp == 0)
         {
@@ -154,7 +155,7 @@ struct IndexBuffer::Impl::Default : Impl
 
     void CommandSet() const override
     {
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
+        const auto commandList = EngineRenderContext::TargetCommandList();
         commandList->IASetIndexBuffer(&m_indexBufferView);
     }
 };
