@@ -56,11 +56,11 @@ struct DynamicTexture::Impl
                 IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON)));
             FAILED(hr))
         {
-            LogError(std::format("DynamicTexture: Failed to create m_finalBuffer: {}", static_cast<int>(hr)));
+            LogError(std::format("DynamicTexture: Failed to create m_textureHandle: {}", static_cast<int>(hr)));
             return;
         }
 
-        m_textureHandle.getResource()->SetName(L"DynamicTexture::m_finalBuffer");
+        m_textureHandle.getResource()->SetName(L"DynamicTexture::m_textureHandle");
 
         Upload(image);
 
@@ -163,7 +163,7 @@ struct DynamicTexture::Impl
         }
 
         // -----------------------------------------------
-        // uploadBuffer --> m_finalBuffer
+        // uploadBuffer --> m_textureHandle
 
         D3D12_TEXTURE_COPY_LOCATION dstCopyLocation{};
         dstCopyLocation.pResource = m_textureHandle.getResource();
