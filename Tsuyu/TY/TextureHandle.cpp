@@ -57,9 +57,9 @@ namespace TY
         return p_impl == nullptr || p_impl->m_textureBuffer == nullptr;
     }
 
-    size_t TextureHandle::resource_id() const
+    size_t TextureHandle::unique_id() const
     {
-        return p_impl ? reinterpret_cast<size_t>(p_impl->m_textureBuffer.Get()) : 0;
+        return p_impl ? reinterpret_cast<size_t>(p_impl.get()) : 0;
     }
 
     Size TextureHandle::size() const

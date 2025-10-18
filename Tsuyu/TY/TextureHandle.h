@@ -21,9 +21,8 @@ namespace TY
         [[nodiscard]]
         bool isEmpty() const;
 
-        // TODO: Rename to unique_id
         [[nodiscard]]
-        size_t resource_id() const;
+        size_t unique_id() const;
 
         [[nodiscard]]
         Size size() const;

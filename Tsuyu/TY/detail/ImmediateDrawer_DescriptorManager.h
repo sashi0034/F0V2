@@ -32,7 +32,7 @@ namespace TY::ImmediateDrawer_detail
 
                 bool operator ==(const key_type& other) const
                 {
-                    return srv0.resource_id() == other.srv0.resource_id();
+                    return srv0.unique_id() == other.srv0.unique_id();
                 }
             } keyResource{};
 
