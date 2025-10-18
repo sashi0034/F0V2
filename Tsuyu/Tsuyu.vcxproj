@@ -171,6 +171,7 @@
     <ClInclude Include="TY\ComputeDispatcher.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
+    <ClInclude Include="TY\detail\SceneState_singleton.h" />
     <ClInclude Include="TY\DiskTexture.h" />
     <ClInclude Include="TY\IndexedTriangle.h" />
     <ClInclude Include="TY\MipmappedDynamicTexture.h" />
@@ -336,6 +337,7 @@
     <ClCompile Include="TY\ComputeDispatcher.cpp" />
     <ClCompile Include="TY\ConstantBuffer.cpp" />
     <ClCompile Include="TY\detail\GpuMemoryUsage.cpp" />
+    <ClCompile Include="TY\detail\SceneState_singleton.cpp" />
     <ClCompile Include="TY\DiskTexture.cpp" />
     <ClCompile Include="TY\MipmappedDynamicTexture.cpp" />
     <ClCompile Include="TY\Periodic.cpp" />

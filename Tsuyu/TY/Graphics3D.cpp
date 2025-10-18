@@ -6,6 +6,7 @@
 #include "detail/EngineCore.h"
 #include "detail/EngineRenderContext.h"
 #include "detail/EngineStateContext.h"
+#include "detail/SceneState_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -42,22 +43,22 @@ namespace TY
 
     void Graphics3D::SetViewMatrix(const Mat4x4& viewMatrix)
     {
-        EngineStateContext::SetViewMatrix(viewMatrix);
+        SceneState_singleton::SetViewMatrix(viewMatrix);
     }
 
     void Graphics3D::SetProjectionMatrix(const Mat4x4& projectionMatrix)
     {
-        EngineStateContext::SetProjectionMatrix(projectionMatrix);
+        SceneState_singleton::SetProjectionMatrix(projectionMatrix);
     }
 
     Mat4x4 Graphics3D::WorldToProjection()
     {
-        return EngineStateContext::WorldToProjection();
+        return SceneState_singleton::WorldToProjection();
     }
 
     Mat4x4 Graphics3D::WorldToScreen()
     {
-        return EngineStateContext::WorldToScreen();
+        return SceneState_singleton::WorldToScreen();
     }
 
     void Graphics3D::DrawTriangles(const VertexBufferCore& vertexBuffer, const IndexBuffer& indexBuffer)

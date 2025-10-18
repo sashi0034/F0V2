@@ -8,6 +8,7 @@
 #include "EngineStateContext.h"
 #include "EngineWindow.h"
 #include "GpuMemoryUsage.h"
+#include "SceneState_singleton.h"
 #include "TY/ConstantBuffer.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
@@ -222,8 +223,8 @@ struct EngineRenderContextImpl
         // コンスタントバッファのアップロード
         {
             SceneState3D_b0 b{};
-            b.projectionMatrix = EngineStateContext::GetProjectionMatrix();
-            b.viewMatrix = EngineStateContext::GetViewMatrix();
+            b.projectionMatrix = SceneState_singleton::GetProjectionMatrix();
+            b.viewMatrix = SceneState_singleton::GetViewMatrix();
             m_sceneState3D.upload(b);
         }
 

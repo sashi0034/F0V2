@@ -13,6 +13,7 @@
 #include "detail/EngineRenderContext.h"
 #include "detail/EngineStateContext.h"
 #include "detail/GraphicsPipelineState.h"
+#include "detail/SceneState_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -141,9 +142,9 @@ struct TextureDrawer::Impl
     void Draw3D()
     {
         SceneState_b0 sceneState{};
-        sceneState.worldMat = EngineStateContext::GetWorldMatrix().mat;
-        sceneState.viewMat = EngineStateContext::GetViewMatrix().mat;
-        sceneState.projectionMat = EngineStateContext::GetProjectionMatrix().mat;
+        sceneState.worldMat = SceneState_singleton::GetWorldMatrix().mat;
+        sceneState.viewMat = SceneState_singleton::GetViewMatrix().mat;
+        sceneState.projectionMat = SceneState_singleton::GetProjectionMatrix().mat;
         m_cb0.upload(sceneState);
 
         m_textureVertexData.Reset();

@@ -2,6 +2,7 @@
 #include "Transformer3D.h"
 
 #include "detail/EngineStateContext.h"
+#include "detail/SceneState_singleton.h"
 
 namespace TY
 {
@@ -9,14 +10,14 @@ namespace TY
 
     Transformer3D::Transformer3D(const Mat4x4& localWorldMat) : m_active(true)
     {
-        EngineStateContext::PushWorldMatrix(localWorldMat);
+        SceneState_singleton::PushWorldMatrix(localWorldMat);
     }
 
     Transformer3D::~Transformer3D()
     {
         if (m_active)
         {
-            EngineStateContext::PopWorldMatrix();
+            SceneState_singleton::PopWorldMatrix();
         }
     }
 
