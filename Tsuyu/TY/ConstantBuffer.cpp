@@ -259,11 +259,6 @@ namespace TY
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount, CommandListType::Draw);
     }
 
-    void ConstantBufferCore::uploadToDraw(const void* data, uint32_t materialCount) const
-    {
-        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount, CommandListType::Draw);
-    }
-
     uint32_t ConstantBufferCore::materialCount() const
     {
         return p_impl ? p_impl->m_materialCount : 0;

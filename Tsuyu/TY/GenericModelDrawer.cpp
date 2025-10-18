@@ -115,7 +115,7 @@ struct GenericModelDrawer::Impl
     {
         ModelState_b1 b{};
         b.worldMatrix = worldMatrix;
-        m_cb1.uploadToDraw(b);
+        m_cb1.upload(b);
     }
 
     void Draw(int materialIndexOfCbv10AndLater) const
