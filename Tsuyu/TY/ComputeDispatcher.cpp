@@ -22,7 +22,7 @@ struct ComputeDispatcher::Impl
             },
             .materialCounts = {1},
             .descriptors = {
-                CbvSrvUavSet{params.cbv, params.srv.toColumnVector<>(), params.uav.toColumnVector<>()}
+                CbvSrvUavSet{params.cbv, {params.srv}, {params.uav}}
             }
         };
 

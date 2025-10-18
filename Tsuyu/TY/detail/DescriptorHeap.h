@@ -12,10 +12,10 @@ namespace TY::detail
         /// @remark [cbvCount], ConstantBuffer::count() = materialCount
         Array<ConstantBufferCore> cbv;
 
-        /// @remark [srvCount][materialCount]
+        /// @remark [materialCount][srvCount]
         Array<Array<ShaderResourceType>> srv;
 
-        /// @remark [uavCount][materialCount]
+        /// @remark [materialCount][uavCount]
         Array<Array<UnorderedAccessType>> uav;
     };
 

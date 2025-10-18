@@ -31,7 +31,7 @@ namespace TY
         [[nodiscard]]
         virtual ConstantBufferCore materialCbv() const = 0;
 
-        /// @remark [textureCount][materialCount]
+        /// @remark [materialCount][textureCount]
         virtual Array<Array<ShaderResourceType>> materialSrv() const = 0;
     };
 }

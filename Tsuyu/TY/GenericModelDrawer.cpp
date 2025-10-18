@@ -82,7 +82,7 @@ struct GenericModelDrawer::Impl
 
             descriptorHeap.table.push_back({0, params.srv10AndLater.size(), 0});
             descriptorHeap.materialCounts.push_back(1);
-            descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, params.srv10AndLater.toColumnVector(), {}});
+            descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, {params.srv10AndLater}, {}});
         }
 
         m_pso = GraphicsPipelineState{

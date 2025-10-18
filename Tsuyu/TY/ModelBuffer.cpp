@@ -54,10 +54,10 @@ struct ModelBuffer::Impl : IGenericModelBuffer
             })
         };
 
-        m_materialSrv.push_back(materials.map([](const ModelMaterial& material)
+        for (const ModelMaterial& material : materials)
         {
-            return ShaderResourceType(material.diffuseTexture);
-        }));
+            m_materialSrv.push_back({material.diffuseTexture});
+        }
 
         // TODO: Add another texture types if needed
     }

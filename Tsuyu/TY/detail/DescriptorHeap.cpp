@@ -152,17 +152,16 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& srArray = params.descriptors[tableId].srv[srvId];
-        if (srArray.size() != params.materialCounts[tableId])
+        if (params.descriptors[tableId].srv.size() != params.materialCounts[tableId])
         {
             LogError(std::format(
-                "DescriptorHeap: Shader resource elements count mismatch: {} != {}",
-                srArray.size(),
+                "DescriptorHeap: Shader resource elements count mismatch: {} != {}", // TODO: Fix message
+                params.descriptors[tableId].srv.size(),
                 params.materialCounts[tableId]));
             return false;
         }
 
-        const auto sr = srArray[materialId];
+        const auto sr = params.descriptors[tableId].srv[srvId][materialId];
         return createShaderResourceViewInternal(heapHandle, sr);
     }
 
@@ -221,18 +220,17 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& uaArray = params.descriptors[tableId].uav[uavId];
-        if (uaArray.size() != params.materialCounts[tableId])
+        if (params.descriptors[tableId].uav.size() != params.materialCounts[tableId])
         {
             LogError(std::format(
                 "DescriptorHeap: Unordered access elements count mismatch: {} != {}",
-                uaArray.size(),
+                params.descriptors[tableId].uav.size(),
                 params.materialCounts[tableId]));
             return false;
         }
 
-        const auto ua = uaArray[materialId];
-        return createUnorderedAccessViewInternal(heapHandle, ua);
+        const auto uav = params.descriptors[tableId].uav[materialId][uavId];
+        return createUnorderedAccessViewInternal(heapHandle, uav);
     }
 
     UINT getHandleIncrementalSize()
