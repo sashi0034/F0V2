@@ -57,7 +57,7 @@ struct RenderTargetTexture::Impl
             return;
         }
 
-        m_textureHandle.getResource()->SetName(L"RenderTargetTexture");
+        m_textureHandle.getResource()->SetName(L"RenderTargetTexture::m_textureHandle");
 
         m_valid = true;
     }

@@ -97,6 +97,8 @@ struct RenderTarget::Impl
                 LogError(std::format("RenderTarget: Failed to create depth stencil resource: {}", hr));
                 return false;
             }
+
+            m_dsvResource->SetName(L"RenderTarget::m_dsvResource");
         }
 
         // -----------------------------------------------

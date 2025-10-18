@@ -137,7 +137,9 @@ struct DiskTexture::Impl
             static_cast<UINT>(AlignedSize(rawImage->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
         srcCopyLocation.PlacedFootprint.Footprint.Format = rawImage->format;
 
-        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Copy);
+        const auto commandList = EngineRenderContext::GetCommandList(CommandListType::Draw);
+
+        m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
         commandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
 
