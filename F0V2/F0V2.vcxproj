@@ -156,7 +156,6 @@
     <ClCompile Include="Asset0.cpp" />
     <Content Include="asset\fsr1\fsr1_easu.hlsl" />
     <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
-    <ClCompile Include="Demo\Demo_FSR1.cpp" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <ClCompile Include="Demo\Demo_Shadertoy.cpp" />
@@ -261,7 +260,6 @@
     <ClInclude Include="ColorPalette.h" />
     <ClInclude Include="Demo\Demo_Shadertoy.h" />
     <ClInclude Include="Demo\Demo_ShadertoyPS.h" />
-    <ClInclude Include="Demo\Demo_FSR1.h" />
     <ClInclude Include="Editor\EditorScene.h" />
     <ClInclude Include="Editor\EditorState.h" />
     <ClInclude Include="Editor\EditorNodeTool.h" />
