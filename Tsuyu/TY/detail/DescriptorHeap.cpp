@@ -48,27 +48,31 @@ namespace
         if (params.descriptors[tableId].cbv.size() != params.table[tableId].cbvCount)
         {
             LogError(std::format(
-                "DescriptorHeap: Constant buffer count mismatch for table {}: {} != {}",
+                "DescriptorHeap: Constant buffer count mismatch for table[{}]: {} != {}",
                 tableId,
                 params.descriptors[tableId].cbv.size(),
                 params.table[tableId].cbvCount));
             return false;
         }
 
-        if (params.descriptors[tableId].srv.size() != params.table[tableId].srvCount)
+        // FIXME?
+        const int srvSize = params.descriptors[tableId].srv.empty() ? 0 : params.descriptors[tableId].srv[0].size();
+        if (srvSize != params.table[tableId].srvCount)
         {
             LogError(std::format(
-                "DescriptorHeap: Shader resource count mismatch for table {}: {} != {}",
+                "DescriptorHeap: Shader resource count mismatch for table[{}]: {} != {}",
                 tableId,
-                params.descriptors[tableId].srv.size(),
+                srvSize,
                 params.table[tableId].srvCount));
             return false;
         }
 
-        if (params.descriptors[tableId].uav.size() != params.table[tableId].uavCount)
+        // FIXME?
+        const int uavSize = params.descriptors[tableId].uav.empty() ? 0 : params.descriptors[tableId].uav[0].size();
+        if (uavSize != params.table[tableId].uavCount)
         {
             LogError(std::format(
-                "DescriptorHeap: Unordered access count mismatch for table {}: {} != {}",
+                "DescriptorHeap: Unordered access count mismatch for table[{}]: {} != {}",
                 tableId,
                 params.descriptors[tableId].uav.size(),
                 params.table[tableId].uavCount));
