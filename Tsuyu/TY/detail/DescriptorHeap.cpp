@@ -336,8 +336,18 @@ struct DescriptorHeap::Impl
         EngineRenderContext::SafeDisposeRenderResource(m_descriptorHeap);
     }
 
-    void ResetSRV(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
+    void RegisterSRV(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
     {
+        if (not m_descriptors[tableId].srv[materialId][srvId].isEmpty())
+        {
+            LogError(std::format(
+                "DescriptorHeap: SRV already exists at tableId={}, uavId={}, materialId={}",
+                tableId,
+                srvId,
+                materialId));
+            return;
+        }
+
         auto heapHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
@@ -353,8 +363,18 @@ struct DescriptorHeap::Impl
         createShaderResourceViewInternal(heapHandle, srv);
     }
 
-    void ResetUAV(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
+    void ReisterUAV(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
     {
+        if (not m_descriptors[tableId].uav[materialId][uavId].isEmpty())
+        {
+            LogError(std::format(
+                "DescriptorHeap: UAV already exists at tableId={}, uavId={}, materialId={}",
+                tableId,
+                uavId,
+                materialId));
+            return;
+        }
+
         auto heapHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
@@ -405,14 +425,14 @@ namespace TY::detail
         }
     }
 
-    void DescriptorHeap::resetSrv_unsafe(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
+    void DescriptorHeap::registerSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
     {
-        if (p_impl) p_impl->ResetSRV(srv, tableId, srvId, materialId);
+        if (p_impl) p_impl->RegisterSRV(srv, tableId, srvId, materialId);
     }
 
-    void DescriptorHeap::resetUav_unsafe(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
+    void DescriptorHeap::registerUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
     {
-        if (p_impl) p_impl->ResetUAV(uav, tableId, uavId, materialId);
+        if (p_impl) p_impl->ReisterUAV(uav, tableId, uavId, materialId);
     }
 
     void DescriptorHeap::commandSet() const

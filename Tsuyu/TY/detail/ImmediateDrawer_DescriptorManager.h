@@ -39,7 +39,7 @@ namespace TY::ImmediateDrawer_detail
             {
                 constexpr int tableId = 0;
                 keyResource.srv0 = srv;
-                descriptorHeap.resetSrv_unsafe(srv, tableId, 0);
+                descriptorHeap.registerSrv(srv, tableId, 0);
             }
 
             static constexpr int DefaultCapacity = 4;

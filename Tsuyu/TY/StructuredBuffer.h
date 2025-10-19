@@ -23,6 +23,8 @@ namespace TY
 
         StructuredBuffer(const UnorderedStructuredBufferParams& params);
 
+        bool isEmpty() const;
+
         void upload(const void* src);
 
         int elementCount() const;

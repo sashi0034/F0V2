@@ -357,6 +357,11 @@ namespace TY
         }
     }
 
+    bool StructuredBuffer::isEmpty() const
+    {
+        return not p_impl;
+    }
+
     void StructuredBuffer::upload(const void* src)
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(src));
