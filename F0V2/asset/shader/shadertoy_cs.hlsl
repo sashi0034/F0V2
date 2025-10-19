@@ -15,7 +15,38 @@ cbuffer Shadertoy_b10 : register(b0)
 {
     float2 g_screenResolution;
     float2 g_mousePosition;
+    float g_time;
 };
+
+// -----------------------------------------------
+
+float3x3 rotateAxis(float3 axis, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    float t = 1.0 - c;
+
+    float x = axis.x;
+    float y = axis.y;
+    float z = axis.z;
+
+    return float3x3(
+        t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+        t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+        t * x * z - s * y, t * y * z + s * x, t * z * z + c
+    );
+}
+
+float3x3 rotateY(float angle)
+{
+    float c = cos(angle);
+    float s = sin(angle);
+    return float3x3(
+        c, 0, s,
+        0, 1, 0,
+        -s, 0, c
+    );
+}
 
 // -----------------------------------------------
 
@@ -38,14 +69,56 @@ float sdfSphere(float3 p, float r)
     return length(p) - r;
 }
 
+float sdfBox(float3 p, float3 b)
+{
+    float3 d = abs(p) - b;
+    return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0);
+}
+
+float2x2 rotate(float a)
+{
+    float s = sin(a), c = cos(a);
+    return float2x2(c, s, -s, c);
+}
+
+float sdfTree(float3 p)
+{
+    float scale = 0.8;
+    float3 size = float3(0.1, 1.0, 0.1);
+    float d = sdfBox(p, size);
+    for (int i = 0; i < 7; i++)
+    {
+        float3 q = abs(p);
+        q.y -= size.y;
+        q.xy = mul(rotate(-0.5), q.xy);
+        d = min(d, sdfBox(p, size));
+        p = q;
+        size *= scale;
+    }
+
+    return d;
+}
+
 SdfAndMat scanSdf(float3 pos)
 {
     SdfAndMat result = emptySdfAndMat();
 
-    float dSphere = sdfSphere(pos - float3(0, 0, 0), 0.75);
-    if (dSphere < result.sdf)
+    // float dSphere = sdfSphere(pos - float3(0, 0, 0), 0.1);
+    // if (dSphere < result.sdf)
+    // {
+    //     result.sdf = dSphere;
+    //     result.mat = 1.0;
+    // }
+
+    float dTree;
     {
-        result.sdf = dSphere;
+        float3 p = pos - float3(0, 0, 10.0f);
+        dTree = sdfTree(p);
+    }
+
+    if (dTree < result.sdf)
+    {
+        result.sdf = dTree;
         result.mat = 1.0;
     }
 
@@ -68,7 +141,7 @@ struct RaycastResult
     SdfAndMat d;
 };
 
-RaycastResult scanRaycast(float3 pos, float3 dir)
+RaycastResult raycast(float3 pos, float3 dir)
 {
     RaycastResult r;
     r.pos = 0;
@@ -88,16 +161,21 @@ RaycastResult scanRaycast(float3 pos, float3 dir)
         t += d.sdf;
         if (t > MAX_DIST) break;
     }
+
     return r;
 }
 
-// Bayer 4x4 Dither Matrix
-static const float Dither4x4[4][4] = {
-    {0, 8, 2, 10},
-    {12, 4, 14, 6},
-    {3, 11, 1, 9},
-    {15, 7, 13, 5},
-};
+float4 rayMarch(float3 eyePos, float3 rayDir)
+{
+    float3 color = float3(0, 0, 0);
+    RaycastResult r = raycast(eyePos, rayDir);
+    if (r.d.mat > 0)
+    {
+        color = scanNormal(r.pos) * 0.5 + 0.5;
+    }
+
+    return float4(color, 1);
+}
 
 // -----------------------------------------------
 
@@ -110,40 +188,19 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
+    const float3x3 cameraMat = rotateY(g_time * 0.5);
+
     float2 screenPos2 = (float2(pixel) - g_screenResolution * 0.5) / g_screenResolution.y;
-    float3 screenPos3 = float3(screenPos2, 0.0);
-    float3 eyePos = float3(0, 0, -5);
-    float3 rayDir = normalize(screenPos3 - eyePos);
+    screenPos2 *= 1.5f;
+
+    float3 screenPos3 = float3(screenPos2, 1.0);
+    screenPos3 = mul(cameraMat, screenPos3);
+
+    const float3 eyePos = float3(0, 0, 0);
+
+    const float3 rayDir = normalize(screenPos3 - eyePos);
 
     // -----------------------------------------------
 
-    // マウスからライト方向を計算
-    float2 mousePos2 = (g_mousePosition - g_screenResolution * 0.5) / g_screenResolution.y;
-    float lightTheta = mousePos2.x * PI;
-    float lightPhi = mousePos2.y * PI;
-    float3 lightDir = float3(
-        cos(lightTheta) * cos(lightPhi),
-        sin(lightPhi),
-        sin(lightTheta) * cos(lightPhi)
-    );
-
-    // レイマーチ
-    RaycastResult r = scanRaycast(eyePos, rayDir);
-
-    float3 color = float3(0, 0.3, 1);
-    if (r.d.mat > 0)
-    {
-        float3 normal = scanNormal(r.pos);
-        float diff = max(dot(normal, lightDir), 0.0);
-
-        int2 pixelPos = int2(fmod(pixel.xy, 4.0));
-        float threshold = Dither4x4[pixelPos.y][pixelPos.x] / 16.0f;
-
-        if (diff >= threshold)
-        {
-            color = float3(1, 0.3, 0) * diff;
-        }
-    }
-
-    g_output[pixel] = float4(color, 1.0);
+    g_output[pixel] = rayMarch(eyePos, rayDir);
 }
