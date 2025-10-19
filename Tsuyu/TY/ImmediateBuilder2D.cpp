@@ -614,6 +614,37 @@ namespace TY
             return indexCount;
         }
 
+        index_type BuildTexture(BufferCreator& bufferCreator, const Immediate2D::Texture& texture)
+        {
+            constexpr int indexSize = rectIndexTable.size();
+            const auto buffer = bufferCreator.request(4, indexSize);
+            if (buffer.isEmpty())
+            {
+                return 0;
+            }
+
+            const auto& vertices = buffer.vertices;
+            const auto& indices = buffer.indices;
+
+            const Float2 drawSize = texture.texture.size() * texture.scale;
+            Float2 tl = texture.position;
+            tl = tl - drawSize * texture.pivot;
+
+            const Float2 br = tl + drawSize - Float2{1.0f, 1.0f};
+
+            vertices[0].set(tl, texture.uvRect.tl(), texture.color);
+            vertices[1].set({br.x, tl.y}, texture.uvRect.tr(), texture.color);
+            vertices[2].set({tl.x, br.y}, texture.uvRect.bl(), texture.color);
+            vertices[3].set(br, texture.uvRect.br(), texture.color);
+
+            for (int i = 0; i < rectIndexTable.size(); ++i)
+            {
+                indices[i] = buffer.indexOffset + rectIndexTable[i];
+            }
+
+            return indexSize;
+        }
+
         index_type BuildText(BufferCreator& bufferCreator, const Immediate2D::Text& text)
         {
             const int characterCount = text.text.size();

@@ -38,6 +38,8 @@ namespace TY
 
         index_type BuildCyclePath(BufferCreator& bufferCreator, const Immediate2D::CyclePath& cyclePath);
 
+        index_type BuildTexture(BufferCreator& bufferCreator, const Immediate2D::Texture& texture);
+
         index_type BuildText(BufferCreator& bufferCreator, const Immediate2D::Text& text);
 
         index_type BuildCachedText(BufferCreator& bufferCreator, const Immediate2D::CachedText& text);

@@ -22,6 +22,8 @@ namespace TY::ImmediateDrawer_detail
 
             PixelShader roundDot{ShaderPath2D, "PS_RoundDot"};
 
+            PixelShader texture{ShaderPath2D, "PS_Texture"};
+
             PixelShader bitmapFont{ShaderPath2D, "PS_BitmapFont"};
 
             PixelShader sdfFont{ShaderPath2D, "PS_SdfFont"};

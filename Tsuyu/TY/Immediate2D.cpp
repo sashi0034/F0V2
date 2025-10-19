@@ -173,6 +173,35 @@ namespace TY
         (void)activeImmediateDrawer().push(*this);
     }
 
+    Immediate2D::Texture::Texture(const TextureHandle& handle_)
+        : texture(handle_)
+    {
+    }
+
+    Immediate2D::Texture& Immediate2D::Texture::setPosition(const Float2& position_, Alignment9 alignment)
+    {
+        position = position_;
+        pivot = AlignmentToPivot(alignment);
+        return *this;
+    }
+
+    Immediate2D::Texture& Immediate2D::Texture::setScale(const Float2& scale_)
+    {
+        scale = scale_;
+        return *this;
+    }
+
+    Immediate2D::Texture& Immediate2D::Texture::resized(const Float2& size)
+    {
+        scale = size / texture.size().cast<Float2>();
+        return *this;
+    }
+
+    void Immediate2D::Texture::pushAuto()
+    {
+        (void)activeImmediateDrawer().push(*this);
+    }
+
     Immediate2D::Text::Text(const FontObject& font_, const std::u32string& text_)
     {
         font = font_;

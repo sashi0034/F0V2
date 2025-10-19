@@ -16,6 +16,7 @@
 #define A_CPU
 #include "asset/fsr1/ffx_a.h"
 #include "asset/fsr1/ffx_fsr1.h"
+#include "TY/ImmediateDrawer.h"
 
 using namespace TY;
 
@@ -88,8 +89,6 @@ struct Demo_FSR1_impl
 
     UnorderedRenderTargetTexture m_sharpenedTex{};
 
-    TextureDrawer m_upscalingDrawer{};
-
     struct EasuCB
     {
         std::array<uint32_t, 4> Const0{};
@@ -118,8 +117,6 @@ struct Demo_FSR1_impl
 
     ConstantBufferWrapper<Shadertoy_b10> m_toyCB{};
 
-    TextureDrawer m_defaultScalingDrawer{};
-
     Demo_FSR1_impl()
     {
         m_upscaledTex = RenderTargetTextureParams()
@@ -139,12 +136,6 @@ struct Demo_FSR1_impl
                       .setOptions(GraphicsOptions{})
                       .setCbv10AndLater({m_toyCB});
 
-        m_upscalingDrawer = TextureDrawer{
-            TextureDrawerParams{}
-            .setShader(m_default2d)
-            .setTexture(m_sharpenedTex)
-        };
-
         m_easuDispatcher = ComputeDispatcher{
             ComputeDispatcherParams{}
             .setCS(m_easuShader)
@@ -160,10 +151,6 @@ struct Demo_FSR1_impl
             .setSrv({m_upscaledTex})
             .setUav({m_sharpenedTex})
         };
-
-        m_defaultScalingDrawer = TextureDrawer(TextureDrawerParams{}
-                                               .setShader(m_default2d)
-                                               .setTexture({m_inputRT.asTexture()}));
     }
 
     void DispatchEasu()
@@ -218,15 +205,19 @@ struct Demo_FSR1_impl
         {
             DispatchEasu();
             DispatchRcas();
-            m_upscalingDrawer.as2D().resized(Scene::Size()).draw(Float2{});
+
+            Immediate2D::Texture(m_sharpenedTex)
+                .resized(Scene::Size())
+                .pushAuto();
         }
         else
         {
-            m_defaultScalingDrawer
-                .as2D()
+            Immediate2D::Texture(m_inputRT.asTexture())
                 .resized(Scene::Size())
-                .draw(Float2{});
+                .pushAuto();
         }
+
+        ImmediateDrawer().draw();
 
         ImGui::Begin("FSR1 Settings");
         ImGui::Checkbox("Enable FSR1", &s_fsrEnabled);

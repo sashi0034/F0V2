@@ -94,7 +94,11 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
     {
         constexpr double maxScaling = 1.0f; // TODO: Transformer の Matrix から取得
 
-        if (shape.isHolds<Immediate2D::Text>())
+        if (shape.isHolds<Immediate2D::Texture>())
+        {
+            m_descriptorManager.RequestSrv0(shape.get<Immediate2D::Texture>().texture);
+        }
+        else if (shape.isHolds<Immediate2D::Text>())
         {
             m_descriptorManager.RequestSrv0(shape.get<Immediate2D::Text>().font.atlasTexture());
         }
@@ -142,6 +146,12 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
             m_stateManager.RequestPixelShader(component->m_ps2d.shape);
             commitPendingState();
             ImmediateBuilder2D::BuildCyclePath(m_bufferCreator2D, shape.get<Immediate2D::CyclePath>());
+        }
+        else if (shape.isHolds<Immediate2D::Texture>())
+        {
+            m_stateManager.RequestPixelShader(component->m_ps2d.texture);
+            commitPendingState();
+            ImmediateBuilder2D::BuildTexture(m_bufferCreator2D, shape.get<Immediate2D::Texture>());
         }
         else if (shape.isHolds<Immediate2D::Text>())
         {

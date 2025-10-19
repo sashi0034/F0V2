@@ -129,6 +129,28 @@ namespace TY
             void pushAuto();
         };
 
+        struct Texture
+        {
+            TextureHandle texture;
+            Float2 position{};
+            Float2 pivot{};
+            Float2 scale{1.0f, 1.0f};
+            RectF uvRect{0.0f, 0.0f, 1.0f, 1.0f};
+            ColorF32 color{1.0};
+
+            Texture() = default;
+
+            Texture(const TextureHandle& handle_);
+
+            Texture& setPosition(const Float2& position_, Alignment9 alignment = Alignment9::TopLeft);
+
+            Texture& setScale(const Float2& scale_);
+
+            Texture& resized(const Float2& size);
+
+            void pushAuto();
+        };
+
         struct CachedText;
 
         struct Text
@@ -195,6 +217,7 @@ namespace TY
             SquareDotLine,
             Path,
             CyclePath,
+            Texture,
             Text,
             CachedText
         >;
