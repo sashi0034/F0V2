@@ -26,8 +26,8 @@ void Main()
 
     InitImmediatePrintAddon();
 
-#if 0
-    Demo_FSR1();
+#if 1
+    Demo_Shadertoy();
 #else
     using namespace TY;
 

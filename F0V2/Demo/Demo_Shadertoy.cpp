@@ -6,6 +6,7 @@
 
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/InlineComponent.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
@@ -13,6 +14,11 @@
 #include "TY/Scene.h"
 #include "TY/Shader.h"
 #include "TY/System.h"
+
+#define A_CPU
+#include "asset/fsr1/ffx_a.h"
+#include "asset/fsr1/ffx_fsr1.h"
+#include "TY/KeyboardInput.h"
 
 using namespace TY;
 
@@ -24,49 +30,28 @@ namespace
         Float2 g_mousePosition{};
     };
 
-    struct ToyModelBuffer : IGenericModelBuffer
+    struct EasuCB
     {
-        GenericModelShapeBufferElement m_shape{};
+        std::array<uint32_t, 4> Const0{};
+        std::array<uint32_t, 4> Const1{};
+        std::array<uint32_t, 4> Const2{};
+        std::array<uint32_t, 4> Const3{};
+    };
 
-        ToyModelBuffer()
-        {
-            m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder(6);
-        }
-
-        int shapeCount() const override
-        {
-            return 1; // Assuming a single shape
-        }
-
-        GenericModelShapeBufferElement shapeAt(int index) const override
-        {
-            return m_shape;
-        }
-
-        int materialCount() const override
-        {
-            return 1; // Assuming a single material for the shape
-        }
-
-        ConstantBufferArrayImpl materialCbv() const override
-        {
-            return ConstantBufferImpl{1};
-        }
-
-        Array<Array<ShaderResourceType>> materialSrv() const override
-        {
-            return {};
-        }
+    struct RcasCB
+    {
+        std::array<uint32_t, 4> Const0{};
     };
 
     struct Resource_Shadertoy : IInlineComponent
     {
         struct
         {
-            GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
-
             ComputeShader shadertoy_cs{ShaderParams::CS("asset/shader/shadertoy_cs.hlsl")};
+
+            ComputeShader fsr1_easu{ShaderParams::CS("asset/fsr1/fsr1_easu.hlsl")};
+
+            ComputeShader fsr1_rcas{ShaderParams::CS("asset/fsr1/fsr1_rcas.hlsl")};
         } shader;
 
         struct
@@ -76,15 +61,107 @@ namespace
     };
 
     InlineComponent<Resource_Shadertoy> s_rsc{};
+
+    class Fsr1Upscaler
+    {
+    public:
+        void Init(const TextureHandle& input, const Size& outputSize)
+        {
+            m_inputSize = input.size();
+
+            m_outputSize = outputSize;
+
+            m_easuTexture =
+                RenderTargetTextureParams()
+                .setSize(outputSize)
+                .setFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+            m_rcasTexture =
+                RenderTargetTextureParams()
+                .setSize(outputSize)
+                .setFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+            m_easuDispatcher = ComputeDispatcher{
+                ComputeDispatcherParams{}
+                .setCS(s_rsc->shader.fsr1_easu)
+                .setCbv({m_easuCB})
+                .setSrv({input})
+                .setUav({m_easuTexture})
+            };
+
+            m_rcasDispatcher = ComputeDispatcher{
+                ComputeDispatcherParams{}
+                .setCS(s_rsc->shader.fsr1_rcas)
+                .setCbv({m_rcasCB})
+                .setSrv({m_easuTexture})
+                .setUav({m_rcasTexture})
+            };
+        }
+
+        void Dispatch(float sharpnessAttenuation)
+        {
+            // EASU
+            {
+                EasuCB cb{};
+                FsrEasuCon(reinterpret_cast<AU1*>(&cb.Const0),
+                           reinterpret_cast<AU1*>(&cb.Const1),
+                           reinterpret_cast<AU1*>(&cb.Const2),
+                           reinterpret_cast<AU1*>(&cb.Const3),
+                           static_cast<AF1>(m_inputSize.x),
+                           static_cast<AF1>(m_inputSize.y),
+                           static_cast<AF1>(m_inputSize.x),
+                           static_cast<AF1>(m_inputSize.y),
+                           static_cast<AF1>(m_outputSize.x),
+                           static_cast<AF1>(m_outputSize.y));
+                m_easuCB.uploadValue(cb);
+
+                int groupsX = (Scene::Size().x + 15) / 16;
+                int groupsY = (Scene::Size().y + 15) / 16;
+                m_easuDispatcher.dispatch(groupsX, groupsY, 1);
+            }
+
+            // RCAS
+            {
+                RcasCB cb{};
+                FsrRcasCon(reinterpret_cast<AU1*>(&cb.Const0), sharpnessAttenuation);
+                m_rcasCB.uploadValue(cb);
+
+                int groupsX = (Scene::Size().x + 15) / 16;
+                int groupsY = (Scene::Size().y + 15) / 16;
+                m_rcasDispatcher.dispatch(groupsX, groupsY, 1);
+            }
+        }
+
+        TextureHandle OutputTexture() const
+        {
+            return m_rcasTexture;
+        }
+
+    private:
+        Size m_inputSize{};
+        Size m_outputSize{};
+
+        UnorderedRenderTargetTexture m_easuTexture{};
+        ConstantBufferWrapper<EasuCB> m_easuCB;
+        ComputeDispatcher m_easuDispatcher{};
+
+        UnorderedRenderTargetTexture m_rcasTexture{};
+        ConstantBufferWrapper<RcasCB> m_rcasCB;
+        ComputeDispatcher m_rcasDispatcher{};
+    };
 }
 
 struct Demo_Shadertoy_impl
 {
     UnorderedRenderTargetTexture m_lowResolution{};
+    ComputeDispatcher m_lowResolutionDispatcher{};
 
-    TextureDrawer m_lowResolutionDrawer{};
+    UnorderedRenderTargetTexture m_nativeResolution{};
+    ComputeDispatcher m_nativeResolutionDispatcher{};
 
-    ComputeDispatcher m_csDispatcher{};
+    // -----------------------------------------------
+
+    Fsr1Upscaler m_fsr1Upscaler{};
 
     Demo_Shadertoy_impl()
     {
@@ -95,39 +172,86 @@ struct Demo_Shadertoy_impl
             .setSize(Scene::Size() * 0.5)
             .setClearColor(ColorF32{0.0f, 1.0f});
 
-        m_lowResolutionDrawer =
-            TextureDrawerParams{}
-            .setTexture(m_lowResolution)
-            .setShader(s_rsc->shader.default2d);
+        m_nativeResolution =
+            RenderTargetTextureParams()
+            .setSize(Scene::Size())
+            .setClearColor(ColorF32{0.0f, 1.0f});
 
-        m_csDispatcher =
+        m_lowResolutionDispatcher =
             ComputeDispatcherParams{}
             .setCS(s_rsc->shader.shadertoy_cs)
             .setCbv({s_rsc->cb.shadertoy})
             .setUav({m_lowResolution});
+
+        m_nativeResolutionDispatcher =
+            ComputeDispatcherParams{}
+            .setCS(s_rsc->shader.shadertoy_cs)
+            .setCbv({s_rsc->cb.shadertoy})
+            .setUav({m_nativeResolution});
+
+        m_fsr1Upscaler.Init(m_lowResolution, Scene::Size());
     }
 
     // -----------------------------------------------
 
-    void draw3D()
+    void draw3D(const TextureHandle& texture, const ComputeDispatcher& dispatcher)
     {
-        const Float2 renderTargetSize = Float2{m_lowResolutionDrawer.size()};
-        s_rsc->cb.shadertoy->g_screenResolution = renderTargetSize;
-        s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (renderTargetSize / Scene::Size().cast<Float2>());
+        const Float2 textureSize = texture.size().cast<Float2>();
+        s_rsc->cb.shadertoy->g_screenResolution = textureSize;
+        s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (textureSize / Scene::Size().cast<Float2>());
         s_rsc->cb.shadertoy.upload();
 
-        const Size threadGroup = (renderTargetSize.asPoint() + Size{7, 7}) / 8;
-        m_csDispatcher.dispatch(threadGroup.x, threadGroup.y);
+        const Size threadGroup = (texture.size() + Size{7, 7}) / 8;
+        dispatcher.dispatch(threadGroup.x, threadGroup.y);
     }
 
     void Update()
     {
-        draw3D();
+        static bool s_nativeResolution = false;
+        static bool s_fsr1Enabled = true;
+        static float s_sharpnessAttenuation = 0.0f;
 
-        m_lowResolutionDrawer.as2D().resized(Scene::Size()).draw(Float2{});
+        if (s_nativeResolution)
+        {
+            draw3D(m_nativeResolution, m_nativeResolutionDispatcher);
+            Immediate2D::Texture(m_nativeResolution).resized(Scene::Size()).pushAuto();
+        }
+        else
+        {
+            draw3D(m_lowResolution, m_lowResolutionDispatcher);
 
+            if (s_fsr1Enabled)
+            {
+                m_fsr1Upscaler.Dispatch(s_sharpnessAttenuation);
+                Immediate2D::Texture(m_fsr1Upscaler.OutputTexture()).resized(Scene::Size()).pushAuto();
+            }
+            else
+            {
+                Immediate2D::Texture(m_lowResolution).resized(Scene::Size()).pushAuto();
+            }
+        }
+
+        ImmediateDrawer::Global().draw();
+
+        static bool s_showImgui{true};
+        if (KeySpace.down())
+        {
+            s_showImgui = not s_showImgui;
+        }
+
+        if (s_showImgui)
         {
             ImGui::Begin("System Settings");
+
+            ImGui::Checkbox("Native Resolution", &s_nativeResolution);
+
+            ImGui::BeginDisabled(s_nativeResolution);
+
+            ImGui::Checkbox("FSR1 Enabled", &s_fsr1Enabled);
+
+            ImGui::EndDisabled();
+
+            ImGui::Separator();
 
             static bool s_sleep{};;
             ImGui::Checkbox("Sleep", &s_sleep);
