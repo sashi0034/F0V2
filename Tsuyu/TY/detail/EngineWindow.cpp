@@ -60,7 +60,7 @@ struct EngineWindowImpl
 
     bool m_fullscreen{false};
 
-    RECT m_rectBeforeFullscreen{};
+    std::optional<RECT> m_rectBeforeFullscreen{};
 
     void Init()
     {
@@ -165,11 +165,24 @@ struct EngineWindowImpl
     {
         m_fullscreen = enable;
 
+        EngineRenderContext::RequestFullscreen(enable);
+
         const HWND hwnd = m_handle;
 
         if (enable)
         {
-            GetWindowRect(hwnd, &m_rectBeforeFullscreen);
+            if (EngineRenderContext::IsFullscreen())
+            {
+                // DXGI 側で制御された場合は何もしない
+                m_rectBeforeFullscreen = {};
+                return;
+            }
+
+            {
+                RECT rect;
+                GetWindowRect(hwnd, &rect);
+                m_rectBeforeFullscreen = rect;
+            }
 
             MONITORINFO info = {sizeof(info)};
             GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &info);
@@ -188,27 +201,31 @@ struct EngineWindowImpl
                          m_windowSize.x,
                          m_windowSize.y,
                          SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
-
-            EngineRenderContext::RequestFullscreen(true);
         }
         else // disable
         {
+            if (not m_rectBeforeFullscreen.has_value())
+            {
+                // DXGI 側で制御された場合は何もしない
+                return;
+            }
+
             SetWindowLong(hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
             m_windowSize = Size{
-                m_rectBeforeFullscreen.right - m_rectBeforeFullscreen.left,
-                m_rectBeforeFullscreen.bottom - m_rectBeforeFullscreen.top
+                m_rectBeforeFullscreen.value().right - m_rectBeforeFullscreen.value().left,
+                m_rectBeforeFullscreen.value().bottom - m_rectBeforeFullscreen.value().top
             };
 
             SetWindowPos(hwnd,
                          HWND_NOTOPMOST,
-                         m_rectBeforeFullscreen.left,
-                         m_rectBeforeFullscreen.top,
+                         m_rectBeforeFullscreen.value().left,
+                         m_rectBeforeFullscreen.value().top,
                          m_windowSize.x,
                          m_windowSize.y,
                          SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 
-            EngineRenderContext::RequestFullscreen(false);
+            m_rectBeforeFullscreen = {};
         }
     }
 

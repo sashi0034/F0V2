@@ -179,6 +179,7 @@ struct EngineRenderContextImpl
         swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+        swapchainDesc.Flags = 0;
         // swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
         if (const auto hr = m_dxgiFactory->CreateSwapChainForHwnd(
