@@ -131,20 +131,4 @@ namespace TY
     {
         return p_impl ? UnorderedTextureHandle{p_impl->m_textureHandle} : UnorderedTextureHandle{};
     }
-
-    void UnorderedRenderTargetTexture::computeBarrierStart() const
-    {
-        if (p_impl)
-        {
-            p_impl->m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-        }
-    }
-
-    void UnorderedRenderTargetTexture::computeBarrierEnd() const
-    {
-        if (p_impl)
-        {
-            p_impl->m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_PRESENT);
-        }
-    }
 }

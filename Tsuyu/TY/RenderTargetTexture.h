@@ -54,9 +54,5 @@ namespace TY
 
         [[nodiscard]]
         operator UnorderedTextureHandle() const;
-
-        void computeBarrierStart() const;
-
-        void computeBarrierEnd() const;
     };
 }

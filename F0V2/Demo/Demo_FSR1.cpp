@@ -181,13 +181,9 @@ struct Demo_FSR1_impl
                    static_cast<AF1>(Scene::Size().y));
         m_easuCB.uploadValue(cb);
 
-        m_upscaledTex.computeBarrierStart();
-
         int groupsX = (Scene::Size().x + 15) / 16;
         int groupsY = (Scene::Size().y + 15) / 16;
         m_easuDispatcher.dispatchToDraw(groupsX, groupsY, 1);
-
-        m_upscaledTex.computeBarrierEnd();
     }
 
     inline static float s_rcasAttenuation{};
@@ -198,13 +194,9 @@ struct Demo_FSR1_impl
         FsrRcasCon(reinterpret_cast<AU1*>(&cb.Const0), s_rcasAttenuation);
         m_rcasCB.uploadValue(cb);
 
-        m_sharpenedTex.computeBarrierStart();
-
         int groupsX = (Scene::Size().x + 15) / 16;
         int groupsY = (Scene::Size().y + 15) / 16;
         m_rcasDispatcher.dispatchToDraw(groupsX, groupsY, 1);
-
-        m_sharpenedTex.computeBarrierEnd();
     }
 
     void Update()

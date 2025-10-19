@@ -14,8 +14,12 @@ struct ComputeDispatcher::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
+    Array<UnorderedAccessType> m_uavList{};
+
     Impl(const ComputeDispatcherParams& params)
     {
+        m_uavList = params.uav;
+
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
                 {params.cbv.size(), params.srv.size(), params.uav.size()}
@@ -38,14 +42,36 @@ struct ComputeDispatcher::Impl
 
     void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const
     {
-        auto commandList = EngineRenderContext::TargetCommandList();
+        for (auto& uav : m_uavList)
+        {
+            if (uav.isHolds<UnorderedTextureHandle>())
+            {
+                uav.get<UnorderedTextureHandle>().transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            }
+            else
+            {
+                assert(false); // TODO
+            }
+        }
 
         m_pso.commandSet(CommandListType::Draw);
 
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetComputeTable(0);
 
-        commandList->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ); // TODO: グループ数を指定できるようにする
+        EngineRenderContext::TargetCommandList()->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+
+        for (auto& uav : m_uavList)
+        {
+            if (uav.isHolds<UnorderedTextureHandle>())
+            {
+                uav.get<UnorderedTextureHandle>().transitionResourceState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+            }
+            else
+            {
+                assert(false); // TODO
+            }
+        }
     }
 };
 
