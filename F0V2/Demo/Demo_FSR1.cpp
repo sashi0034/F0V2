@@ -56,7 +56,7 @@ namespace
 
         ConstantBufferArrayImpl materialCbv() const override
         {
-            return ConstantBufferImpl{1};
+            return {Empty};
         }
 
         Array<Array<ShaderResourceType>> materialSrv() const override
@@ -170,7 +170,7 @@ struct Demo_FSR1_impl
 
         int groupsX = (Scene::Size().x + 15) / 16;
         int groupsY = (Scene::Size().y + 15) / 16;
-        m_easuDispatcher.dispatchToDraw(groupsX, groupsY, 1);
+        m_easuDispatcher.dispatch(groupsX, groupsY, 1);
     }
 
     inline static float s_rcasAttenuation{};
@@ -183,7 +183,7 @@ struct Demo_FSR1_impl
 
         int groupsX = (Scene::Size().x + 15) / 16;
         int groupsY = (Scene::Size().y + 15) / 16;
-        m_rcasDispatcher.dispatchToDraw(groupsX, groupsY, 1);
+        m_rcasDispatcher.dispatch(groupsX, groupsY, 1);
     }
 
     void Update()

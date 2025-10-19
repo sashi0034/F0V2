@@ -32,7 +32,7 @@ namespace TY
 
         ComputeDispatcher(const ComputeDispatcherParams& params);
 
-        void dispatchToDraw(int threadGroupCountX, int threadGroupCountY = 1, int threadGroupCountZ = 1) const;
+        void dispatch(int threadGroupCountX, int threadGroupCountY = 1, int threadGroupCountZ = 1) const;
 
     private:
         struct Impl;

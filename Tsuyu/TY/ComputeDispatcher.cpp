@@ -106,7 +106,7 @@ namespace TY
     {
     }
 
-    void ComputeDispatcher::dispatchToDraw(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const
+    void ComputeDispatcher::dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const
     {
         if (p_impl) p_impl->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
     }

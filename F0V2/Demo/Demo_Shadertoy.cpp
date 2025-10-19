@@ -117,7 +117,7 @@ struct Demo_Shadertoy_impl
         s_rsc->cb.shadertoy.upload();
 
         const Size threadGroup = (renderTargetSize.asPoint() + Size{7, 7}) / 8;
-        m_csDispatcher.dispatchToDraw(threadGroup.x, threadGroup.y);
+        m_csDispatcher.dispatch(threadGroup.x, threadGroup.y);
     }
 
     void Update()
