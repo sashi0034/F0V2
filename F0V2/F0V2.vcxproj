@@ -158,6 +158,7 @@
     <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
+    <ClCompile Include="asset\shadertoy\simple.hlsl" />
     <ClCompile Include="Demo\Demo_Shadertoy.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
     <ClCompile Include="Editor\EditorNodeTool.cpp" />

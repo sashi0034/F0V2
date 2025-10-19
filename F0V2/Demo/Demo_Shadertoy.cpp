@@ -28,6 +28,7 @@ namespace
     {
         Float2 g_screenResolution{};
         Float2 g_mousePosition{};
+        float g_time{};
     };
 
     struct EasuCB
@@ -199,6 +200,7 @@ struct Demo_Shadertoy_impl
         const Float2 textureSize = texture.size().cast<Float2>();
         s_rsc->cb.shadertoy->g_screenResolution = textureSize;
         s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (textureSize / Scene::Size().cast<Float2>());
+        s_rsc->cb.shadertoy->g_time += System::DeltaTime();
         s_rsc->cb.shadertoy.upload();
 
         const Size threadGroup = (texture.size() + Size{7, 7}) / 8;
@@ -245,11 +247,15 @@ struct Demo_Shadertoy_impl
 
             ImGui::Checkbox("Native Resolution", &s_nativeResolution);
 
-            ImGui::BeginDisabled(s_nativeResolution);
+            {
+                ImGui::BeginDisabled(s_nativeResolution);
 
-            ImGui::Checkbox("FSR1 Enabled", &s_fsr1Enabled);
+                ImGui::Checkbox("FSR1 Enabled", &s_fsr1Enabled);
 
-            ImGui::EndDisabled();
+                ImGui::SliderFloat("Sharpness Attenuation", &s_sharpnessAttenuation, 0.0f, 4.0f);
+
+                ImGui::EndDisabled();
+            }
 
             ImGui::Separator();
 
