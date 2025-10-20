@@ -217,16 +217,16 @@ namespace
                 for (int s = 0; s < PipeEntryExitStrips; ++s)
                 {
                     const float s0_rate = static_cast<float>(s) / PipeEntryExitStrips;
-                    const float r1_rate = static_cast<float>(s + 1) / PipeEntryExitStrips;
+                    const float s1_rate = static_cast<float>(s + 1) / PipeEntryExitStrips;
                     FaceVertex l0, r0, l1, r1;
                     l0.pos = cap_l0.pos * (1 - s0_rate) + cap_l1.pos * s0_rate;
                     r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
-                    l1.pos = cap_l0.pos * (1 - r1_rate) + cap_l1.pos * r1_rate;
-                    r1.pos = cap_r0.pos * (1 - r1_rate) + cap_r1.pos * r1_rate;
+                    l1.pos = cap_l0.pos * (1 - s1_rate) + cap_l1.pos * s1_rate;
+                    r1.pos = cap_r0.pos * (1 - s1_rate) + cap_r1.pos * s1_rate;
                     l0.normal = (cap_l0.normal * (1 - s0_rate) + cap_l1.normal * s0_rate).normalized();
                     r0.normal = (cap_r0.normal * (1 - s0_rate) + cap_r1.normal * s0_rate).normalized();
-                    l1.normal = (cap_l0.normal * (1 - r1_rate) + cap_l1.normal * r1_rate).normalized();
-                    r1.normal = (cap_r0.normal * (1 - r1_rate) + cap_r1.normal * r1_rate).normalized();
+                    l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
+                    r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
                     pushFaces(
                         vertices, indices, v_offset, i_offset,
@@ -298,16 +298,16 @@ namespace
                 for (int s = 0; s < PipeEntryExitStrips; ++s)
                 {
                     const float s0_rate = static_cast<float>(s) / PipeEntryExitStrips;
-                    const float r1_rate = static_cast<float>(s + 1) / PipeEntryExitStrips;
+                    const float s1_rate = static_cast<float>(s + 1) / PipeEntryExitStrips;
                     FaceVertex l0, r0, l1, r1;
                     l0.pos = cap_l0.pos * (1 - s0_rate) + cap_l1.pos * s0_rate;
                     r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
-                    l1.pos = cap_l0.pos * (1 - r1_rate) + cap_l1.pos * r1_rate;
-                    r1.pos = cap_r0.pos * (1 - r1_rate) + cap_r1.pos * r1_rate;
+                    l1.pos = cap_l0.pos * (1 - s1_rate) + cap_l1.pos * s1_rate;
+                    r1.pos = cap_r0.pos * (1 - s1_rate) + cap_r1.pos * s1_rate;
                     l0.normal = (cap_l0.normal * (1 - s0_rate) + cap_l1.normal * s0_rate).normalized();
                     r0.normal = (cap_r0.normal * (1 - s0_rate) + cap_r1.normal * s0_rate).normalized();
-                    l1.normal = (cap_l0.normal * (1 - r1_rate) + cap_l1.normal * r1_rate).normalized();
-                    r1.normal = (cap_r0.normal * (1 - r1_rate) + cap_r1.normal * r1_rate).normalized();
+                    l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
+                    r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
                     pushFaces(
                         vertices, indices, v_offset, i_offset,
