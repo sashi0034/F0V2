@@ -4,6 +4,7 @@
 #include "TY/Grid.h"
 #include "TY/Intersects3D.h"
 #include "TY/Rect.h"
+#include "Util/ImmediatePrint.h"
 
 using namespace Race;
 
@@ -85,9 +86,17 @@ struct StageStaticCollider::Impl
         float bestDistSq = std::numeric_limits<float>::max();
         std::optional<std::pair<IndexedTriangle, CourseTriangleAttribute*>> bestTri{};
 
+#ifdef _DEBUG
+        int testCount{};
+#endif
+
         for (const int index : indices)
         {
             Array<IndexedTriangle> candidates = m_groundBvh[index].queryHitsAndMerge(ray.aabb());
+
+#ifdef _DEBUG
+            testCount += candidates.size();
+#endif
 
             for (const auto& tri : candidates)
             {
@@ -105,6 +114,12 @@ struct StageStaticCollider::Impl
                 }
             }
         }
+
+#ifdef _DEBUG
+        ImmediatePrint(
+            std::format("Test Triangles: {}", testCount),
+            Alignment9::BottomLeft);
+#endif
 
         if (bestTri.has_value())
         {

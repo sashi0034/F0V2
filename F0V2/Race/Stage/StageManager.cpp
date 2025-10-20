@@ -63,6 +63,7 @@ namespace
 
     // -----------------------------------------------
 
+    // TODO: StaticCollider の方に移動
     void drawBvh(
         const TriangleBvh::Node* node, Immediate3D::LineSet& lineSet, std::pair<int, int> targetRange, int nest = 0)
     {
