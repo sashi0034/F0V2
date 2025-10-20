@@ -52,7 +52,15 @@ namespace
         const float courseLength = GetRaceContext().stageManager().courseLength();
 
         // コース半分の距離分は一度に進めないと仮定し、その場合は逆走として扱う
-        return length < courseLength * 0.5f ? length : length - courseLength;
+        if (length > courseLength * 0.5f)
+        {
+            assert(
+                length - courseLength <= 0.0f &&
+                "evaluateTraveledDistance(): Invalid distance calculation exceeds course length");
+            return length - courseLength;
+        }
+
+        return length;
     }
 }
 
@@ -66,6 +74,7 @@ namespace Race
     LapProgress EvaluateLapProgress(const LapProgress& previousLap, const SegmentAndStrip& currentIndex)
     {
         LapProgress result{};
+        result.lapIndex = previousLap.lapIndex;
         result.segmentIndex = currentIndex.segmentIndex;
         result.stripIndex = currentIndex.stripIndex;
 
@@ -84,7 +93,7 @@ namespace Race
             {
                 if (previousLap.segmentIndex > currentIndex.segmentIndex)
                 {
-                    // 逆走
+                    // 周回完了
                     result.lapIndex = previousLap.lapIndex + 1;
                 }
             }

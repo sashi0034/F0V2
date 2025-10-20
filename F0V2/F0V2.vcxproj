@@ -154,6 +154,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <Content Include="asset\edit\.gitignore" />
     <Content Include="asset\fsr1\fsr1_easu.hlsl" />
     <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
@@ -317,7 +318,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="asset\edit\" />
+    <Folder Include="asset\edit\tmp\" />
     <Folder Include="asset\shadertoy\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
