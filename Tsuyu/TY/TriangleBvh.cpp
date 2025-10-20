@@ -15,7 +15,7 @@ class TriangleBvh::Internal
 public:
     static std::unique_ptr<Node> BuildNode(Array<IndexedTriangle> tris, int depth = 0)
     {
-        // AABBを計算
+        // AABB を計算
         Float3 min{FLT_MAX, FLT_MAX, FLT_MAX};
         Float3 max{-FLT_MAX, -FLT_MAX, -FLT_MAX};
         for (const auto& tri : tris)
@@ -84,13 +84,11 @@ public:
         QueryHits(*branch->right.get(), aabb, hits);
     }
 
-    template <typename T>
-    // using T = LineSegment3D; // for debug
-    static std::optional<IndexedTriangle> RayCast(const TriangleBvh& bvh, const T& ray)
+    static Array<IndexedTriangle> QueryHitsAndMerge(const TriangleBvh& bvh, const Aabb3D& aabb)
     {
-        Array<IndexedTriangle> candidates{};
+        Array<IndexedTriangle> candidates = {};
         candidates.reserve(64);
-        const auto hits = bvh.queryHits(ray.aabb());
+        const auto hits = bvh.queryHits(aabb);
         for (const auto& node : hits.list)
         {
             node.forEachTriangle([&](const IndexedTriangle& tri)
@@ -98,6 +96,15 @@ public:
                 candidates.push_back(tri);
             });
         }
+
+        return candidates;
+    }
+
+    template <typename T>
+    // using T = LineSegment3D; // for debug
+    static std::optional<IndexedTriangle> RayCast(const TriangleBvh& bvh, const T& ray)
+    {
+        Array<IndexedTriangle> candidates = QueryHitsAndMerge(bvh, ray.aabb());
 
         const Float3 startPoint = ray.p0;
 
@@ -182,7 +189,17 @@ namespace TY
         }
     }
 
-    const std::unique_ptr<TriangleBvh::Node>& TriangleBvh::root() const
+    Aabb3D TriangleBvh::aabb() const
+    {
+        if (not m_root)
+        {
+            return Aabb3D{};
+        }
+
+        return m_root->aabb();
+    }
+
+    const std::shared_ptr<TriangleBvh::Node>& TriangleBvh::root() const
     {
         return m_root;
     }
@@ -197,6 +214,11 @@ namespace TY
         NodeList result{};
         Internal::QueryHits(*m_root.get(), aabb, result.list);
         return result;
+    }
+
+    Array<IndexedTriangle> TriangleBvh::queryHitsAndMerge(const Aabb3D& aabb) const
+    {
+        return Internal::QueryHitsAndMerge(*this, aabb);
     }
 
     std::optional<IndexedTriangle> TriangleBvh::rayCast(const LineSegment3D& segment) const

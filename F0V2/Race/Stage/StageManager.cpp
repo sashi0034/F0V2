@@ -3,6 +3,7 @@
 
 #include "Asset.generated.h"
 #include "Asset0.h"
+#include "StageStaticCollider.h"
 #include "CB/Skydome.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
@@ -168,9 +169,8 @@ struct StageManager::Impl : GameObjectBase
     float m_courseLength{};
 
     int m_triangleCount{};
-    TriangleBvh m_staticBvh{};
 
-    Array<CourseTriangleAttribute> m_triangleAttributes{};
+    StageStaticCollider m_staticCollider{};
 
     void Init()
     {
@@ -203,11 +203,16 @@ struct StageManager::Impl : GameObjectBase
 
         // -----------------------------------------------
 
-        CoursePolygoneCollider collider{};
         m_courseLength = 0.0f;
+        m_triangleCount = 0;
+        Array<CoursePolygoneCollider> colliders{};
         for (const auto& segment : g_sharedState->courseSegments)
         {
-            const auto courseModel = BuildCourseModel(segment, &collider);
+            colliders.push_back({});
+            const auto courseModel = BuildCourseModel(segment, &colliders.back());
+
+            m_triangleCount += colliders.back().tris.size();
+
             m_courseDrawers.push_back(
                 ModelDrawerParams{}
                 .setModel(courseModel)
@@ -219,10 +224,8 @@ struct StageManager::Impl : GameObjectBase
 
         // -----------------------------------------------
 
-        m_triangleCount = collider.tris.size();
-        m_staticBvh = TriangleBvh{collider.tris};
-
-        m_triangleAttributes = std::move(collider.attributes);
+        m_staticCollider = StageStaticCollider();
+        m_staticCollider.build(colliders);
     }
 
 private:
@@ -281,13 +284,6 @@ private:
                 .pushAuto();
         }
 
-        {
-            Immediate3D::LineSet lineSet{};
-
-            drawBvh(m_staticBvh.root().get(), lineSet, s_visibleBvhRange);
-            lineSet.setColor(ColorF32{0.3f, 1, 0.3f}).pushAuto();
-        }
-
         ImmediateDrawer::Global().draw();
 
         debugUI();
@@ -299,15 +295,11 @@ private:
 
         ImGui::Text("Triangles Count: %d", m_triangleCount);
 
+        // TODO: StaticCollider の方に移動
         ImGui::DragIntRange2("Visible BVH Range", &s_visibleBvhRange.first, &s_visibleBvhRange.second, 0.1);
         if (ImGui::Button("Expand Visible BVH Range"))
         {
             s_visibleBvhRange.second++;
-        }
-
-        if (ImGui::Button("Print BVH Leaf Info to Console"))
-        {
-            printBvhLeaf(m_staticBvh.root().get());
         }
 
         ImGui::End();
@@ -342,26 +334,14 @@ namespace Race
         return p_impl->m_courseLength;
     }
 
-    TriangleBvh& StageManager::staticBvh()
+    StageStaticCollider& StageManager::stageStaticCollider()
     {
-        return p_impl->m_staticBvh;
+        return p_impl->m_staticCollider;
     }
 
-    const TriangleBvh& StageManager::staticBvh() const
+    const StageStaticCollider& StageManager::stageStaticCollider() const
     {
-        return p_impl->m_staticBvh;
-    }
-
-    const CourseTriangleAttribute& StageManager::fetchTriangleAttribute(uint64_t index) const
-    {
-        assert(index < p_impl->m_triangleAttributes.size());
-        if (index < p_impl->m_triangleAttributes.size())
-        {
-            return p_impl->m_triangleAttributes[index];
-        }
-
-        static constexpr CourseTriangleAttribute placeholder{};
-        return placeholder;
+        return p_impl->m_staticCollider;
     }
 
     Array<CourseSegment>& StageManager::courseSegments()

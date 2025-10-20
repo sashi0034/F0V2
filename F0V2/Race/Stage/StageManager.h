@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "StageStaticCollider.h"
 #include "Race/Common/CourseData.h"
 #include "Race/Common/CourseTriangleAttribute.h"
 #include "TY/TriangleBvh.h"
@@ -15,10 +16,8 @@ namespace Race
 
         float courseLength() const;
 
-        TriangleBvh& staticBvh();
-        const TriangleBvh& staticBvh() const;
-
-        const CourseTriangleAttribute& fetchTriangleAttribute(uint64_t index) const;
+        StageStaticCollider& stageStaticCollider();
+        const StageStaticCollider& stageStaticCollider() const;
 
         Array<CourseSegment>& courseSegments();
         const Array<CourseSegment>& courseSegments() const;

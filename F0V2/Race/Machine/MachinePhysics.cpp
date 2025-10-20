@@ -63,8 +63,8 @@ namespace
         // const auto moveTestCapsule = Capsule{fromPos, toPos, state.m_radius}; // FIXME?
         const auto moveTestRay = LineSegment3D{fromPos, toPos};
 
-        const auto hit = GetRaceContext().stageManager().staticBvh().rayCast(moveTestRay);
-        if (not hit.has_value())
+        const auto hitOpt = GetRaceContext().stageManager().stageStaticCollider().rayCast(moveTestRay);
+        if (not hitOpt.has_value())
         {
             // 衝突なし
             return {toPos, std::nullopt};
@@ -82,7 +82,10 @@ namespace
         //       / +   |
         //      /  +   |
         //     /---+---|
-        //     S   H    
+        //     S   H
+
+        const auto& tri = hitOpt.value().triangle;
+        const auto& attr = hitOpt.value().attribute;
 
         const Float3 S = fromPos;
         const Float3 T = toPos;
@@ -90,33 +93,32 @@ namespace
         // const Float3 H = S - plane.normal * distance;
 
         Float3 I;
-        if (const auto I_ = IntersectsAt(moveTestRay, hit->asPlane()))
+        if (const auto I_ = IntersectsAt(moveTestRay, tri.asPlane()))
         {
             I = *I_;
         }
         else
         {
             // 移動ベクトルが面を貫通していない場合
-            const auto plane = hit->asPlane();
+            const auto plane = tri.asPlane();
             I = plane.projection(T);
         }
 
-        const auto& a = GetRaceContext().stageManager().fetchTriangleAttribute(hit->id);
-        const auto bc = hit->getBarycentric(I);
+        const auto bc = tri.getBarycentric(I);
 
-        const std::array<Float3, 4> p_00_10_01_11 = TrianglePatternUtil::ArrangePoints_00_10_01_11(
-            hit->p0, hit->p1, hit->p2, a);
+        const std::array<Float3, 4> p_00_10_01_11 =
+            TrianglePatternUtil::ArrangePoints_00_10_01_11(tri.p0, tri.p1, tri.p2, attr);
         const std::array<Float2, 3> uvTable =
-            TrianglePatternUtil::GetUvTable(a.pattern);
+            TrianglePatternUtil::GetUvTable(attr.pattern);
         const Float2 normalUV =
             uvTable[0] * bc.w0 +
             uvTable[1] * bc.w1 +
             uvTable[2] * bc.w2;
 
-        Float3 normal = bilinear_00_10_01_11(a.normals_00_10_01_11, normalUV).normalized();
+        Float3 normal = bilinear_00_10_01_11(attr.normals_00_10_01_11, normalUV).normalized();
         if (normal.isZero())
         {
-            normal = hit->asPlane().normal;
+            normal = tri.asPlane().normal;
         }
 
         Float3 bilinearI = bilinear_00_10_01_11(p_00_10_01_11, normalUV);
@@ -126,7 +128,7 @@ namespace
         const Float3 U = bilinearI + normal * r; // TODO
 
         HitTri hitTri{};
-        hitTri.tri = *hit;
+        hitTri.tri = tri;
         hitTri.moveDistance = (U - S).length();
         hitTri.normal = normal;
         hitTri.surfaceToTriangle = I - U;

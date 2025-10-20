@@ -52,17 +52,26 @@ namespace TY
             void forEachTriangle(const std::function<void(const IndexedTriangle&)>& func) const;
         };
 
-        const std::unique_ptr<Node>& root() const;
+        [[nodiscard]]
+        Aabb3D aabb() const;
 
+        [[nodiscard]]
+        const std::shared_ptr<Node>& root() const;
+
+        [[nodiscard]]
         NodeList queryHits(const Aabb3D& aabb) const;
 
+        Array<IndexedTriangle> queryHitsAndMerge(const Aabb3D& aabb) const;
+
+        [[nodiscard]]
         std::optional<IndexedTriangle> rayCast(const LineSegment3D& segment) const;
 
+        [[nodiscard]]
         std::optional<IndexedTriangle> sphereCast(const Capsule& capsule) const;
 
     private:
         class Internal;
 
-        std::unique_ptr<Node> m_root;
+        std::shared_ptr<Node> m_root;
     };
 }
