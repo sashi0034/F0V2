@@ -25,7 +25,7 @@ void Main()
 
     InitImmediatePrintAddon();
 
-#if 1
+#if 0
     Demo_Shadertoy();
 #else
     using namespace TY;
