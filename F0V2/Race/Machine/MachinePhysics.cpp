@@ -15,8 +15,6 @@ namespace
 {
     constexpr float epsGround = 1e-2f;
 
-    constexpr float hoverHeight = 2.0f;
-
     struct HitTri
     {
         float moveDistance;
@@ -122,10 +120,6 @@ namespace
         }
 
         Float3 bilinearI = bilinear_00_10_01_11(p_00_10_01_11, normalUV);
-        if ((bilinearI - I).lengthSq() > hoverHeight * hoverHeight)
-        {
-            bilinearI = I + (bilinearI - I).normalized() * hoverHeight;
-        }
 
         const float r = state.m_radius + epsGround;
 
@@ -135,7 +129,7 @@ namespace
         hitTri.tri = *hit;
         hitTri.moveDistance = (U - S).length();
         hitTri.normal = normal;
-        hitTri.surfaceToTriangle = (I - U).normalized();
+        hitTri.surfaceToTriangle = I - U;
         return {U, hitTri};
     }
 
@@ -288,18 +282,16 @@ namespace
 
     void updateGroundedness(MachinePhysicsState& state)
     {
-        assert(state.m_radius < hoverHeight);
-
         state.m_upVector = state.m_surfaceNormal;
         if (state.m_upVector.isZero())
         {
             state.m_upVector = -state.m_gravity;
         }
 
-        Float3 vector = state.m_surfaceToTriangle * hoverHeight;
+        Float3 vector = state.m_surfaceToTriangle + state.m_surfaceToTriangle.normalized() * state.m_radius;
         if (vector.isZero())
         {
-            vector = -state.m_upVector * hoverHeight;
+            vector = -state.m_upVector * state.m_radius;
         }
 
         const Float3 fromPos = state.m_pose.position;

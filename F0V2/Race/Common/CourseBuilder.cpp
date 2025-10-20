@@ -82,8 +82,8 @@ namespace
 
             const Float3 N = l0.normal + r0.normal + l1.normal + r1.normal;
 
-            // 双曲面が三角形より下になるようにする
-            if (CD.dot(N) <= 0)
+            // 双曲面が二つの三角形の上側に張るようにする
+            if (CD.dot(N) >= 0)
             {
                 // 10-01 対角線
                 outCollider->tris.push_back(IndexedTriangle{p10, p01, p00, outCollider->attributes.size()});
