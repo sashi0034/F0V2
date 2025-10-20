@@ -59,21 +59,64 @@ namespace
 
         if (outCollider)
         {
-            const std::array normals_00_10_01_11{l0.normal, /* 10: */ r0.normal, /* 01: */ l1.normal, r1.normal};
+            const std::array normals_00_10_01_11{
+                /* 00: */ l0.normal, /* 10: */ r0.normal, /* 01: */ l1.normal, /* 11: */ r1.normal
+            };
 
-            outCollider->tris.push_back(IndexedTriangle{l1.pos, l0.pos, r1.pos, outCollider->attributes.size()});
-            outCollider->attributes.push_back(CourseTriangleAttribute{
-                CourseTriangleAttribute::Triangle_01_00_11,
-                normals_00_10_01_11,
-                r0.pos
-            });
+            // 01 +-----+ 11
+            //    |\    |
+            //    | \   |
+            //    |  C  |
+            //    | D \ |
+            //    |    \|
+            // 00 +-----+ 10
 
-            outCollider->tris.push_back(IndexedTriangle{r1.pos, l0.pos, r0.pos, outCollider->attributes.size()});
-            outCollider->attributes.push_back(CourseTriangleAttribute{
-                CourseTriangleAttribute::Triangle_11_00_10,
-                normals_00_10_01_11,
-                l1.pos
-            });
+            const Float3& p00 = l0.pos;
+            const Float3& p10 = r0.pos;
+            const Float3& p01 = l1.pos;
+            const Float3& p11 = r1.pos;
+
+            const Float3 C = (p10 + p01) * 0.5f;
+            const Float3 D = (p00 + p10 + p01 + p11) * 0.25f;
+            const Float3 CD = D - C;
+
+            const Float3 N = l0.normal + r0.normal + l1.normal + r1.normal;
+
+            // 双曲面が三角形より下になるようにする
+            if (CD.dot(N) <= 0)
+            {
+                // 10-01 対角線
+                outCollider->tris.push_back(IndexedTriangle{p10, p01, p00, outCollider->attributes.size()});
+                outCollider->attributes.push_back(CourseTriangleAttribute{
+                    CourseTriangleAttribute::Triangle_10_01_00,
+                    normals_00_10_01_11,
+                    p11
+                });
+
+                outCollider->tris.push_back(IndexedTriangle{p10, p11, p01, outCollider->attributes.size()});
+                outCollider->attributes.push_back(CourseTriangleAttribute{
+                    CourseTriangleAttribute::Triangle_10_11_01,
+                    normals_00_10_01_11,
+                    p00
+                });
+            }
+            else
+            {
+                // 00-11 対角線
+                outCollider->tris.push_back(IndexedTriangle{p00, p10, p11, outCollider->attributes.size()});
+                outCollider->attributes.push_back(CourseTriangleAttribute{
+                    CourseTriangleAttribute::Triangle_00_10_11,
+                    normals_00_10_01_11,
+                    p01
+                });
+
+                outCollider->tris.push_back(IndexedTriangle{p00, p11, p01, outCollider->attributes.size()});
+                outCollider->attributes.push_back(CourseTriangleAttribute{
+                    CourseTriangleAttribute::Triangle_00_11_01,
+                    normals_00_10_01_11,
+                    p10
+                });
+            }
         }
     }
 

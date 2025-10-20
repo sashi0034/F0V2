@@ -106,28 +106,14 @@ namespace
         const auto& a = GetRaceContext().stageManager().fetchTriangleAttribute(hit->id);
         const auto bc = hit->getBarycentric(I);
 
-        Float2 normalUV{};
-        std::array<Float3, 4> p_00_10_01_11;
-        if (a.pattern == CourseTriangleAttribute::Triangle_01_00_11)
-        {
-            normalUV = Float2{0, 1} * bc.w0 + Float2{0, 0} * bc.w1 + Float2{1, 1} * bc.w2;
-            p_00_10_01_11 = {
-                hit->p1,
-                a.p3,
-                hit->p0,
-                hit->p2
-            };
-        }
-        else // Triangle_11_00_10
-        {
-            normalUV = Float2{1, 1} * bc.w0 + Float2{0, 0} * bc.w1 + Float2{1, 0} * bc.w2;
-            p_00_10_01_11 = {
-                hit->p1,
-                hit->p2,
-                a.p3,
-                hit->p0
-            };
-        }
+        const std::array<Float3, 4> p_00_10_01_11 = TrianglePatternUtil::ArrangePoints_00_10_01_11(
+            hit->p0, hit->p1, hit->p2, a);
+        const std::array<Float2, 3> uvTable =
+            TrianglePatternUtil::GetUvTable(a.pattern);
+        const Float2 normalUV =
+            uvTable[0] * bc.w0 +
+            uvTable[1] * bc.w1 +
+            uvTable[2] * bc.w2;
 
         Float3 normal = bilinear_00_10_01_11(a.normals_00_10_01_11, normalUV).normalized();
         if (normal.isZero())

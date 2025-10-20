@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "TY/PrimitiveTypes3D.h"
+#include "TY/PrimitiveTypes3D.h"
 #include "TY/Vector3D.h"
 
 namespace Race
@@ -7,9 +9,16 @@ namespace Race
     {
         enum triangle_pattern : uint8_t
         {
-            Triangle_01_00_11,
-            Triangle_11_00_10,
+            // 00-11 対角線
+            Triangle_00_10_11,
+            Triangle_00_11_01,
+
+            // 10-01 対角線
+            Triangle_10_01_00,
+            Triangle_10_11_01,
         };
+
+        typedef uint8_t triangle_pattern_t;
 
         triangle_pattern pattern;
 
@@ -17,4 +26,16 @@ namespace Race
 
         Float3 p3;
     };
+
+    namespace TrianglePatternUtil
+    {
+        using pattern_t = CourseTriangleAttribute::triangle_pattern_t;
+
+        [[nodiscard]]
+        std::array<Float2, 3> GetUvTable(const pattern_t& pattern);
+
+        [[nodiscard]]
+        std::array<Float3, 4> ArrangePoints_00_10_01_11(
+            const Float3& p0, const Float3& p1, const Float3& p2, const CourseTriangleAttribute& attr);
+    }
 }
