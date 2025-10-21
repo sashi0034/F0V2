@@ -42,6 +42,25 @@ namespace TY
         return Plane3Points{p0, p1, p2};
     }
 
+    Triangle3D::barycentric_type Triangle3D::barycentric_type::clamped() const
+    {
+        auto [u, v, w] = *this;
+
+        u = std::clamp(u, 0.0f, 1.0f);
+        v = std::clamp(v, 0.0f, 1.0f);
+
+        float uv = u + v;
+        if (uv > 1.0f)
+        {
+            float inv = 1.0f / uv;
+            u *= inv;
+            v *= inv;
+        }
+
+        w = 1.0f - u - v;
+        return {u, v, w};
+    }
+
     Triangle3D::barycentric_type Triangle3D::getBarycentric(const Float3& p) const
     {
         const Float3 v1 = p1 - p0;

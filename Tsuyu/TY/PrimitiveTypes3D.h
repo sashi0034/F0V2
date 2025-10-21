@@ -65,6 +65,9 @@ namespace TY
         struct barycentric_type
         {
             float w0, w1, w2;
+
+            [[nodiscard]]
+            barycentric_type clamped() const;
         };
 
         [[nodiscard]]

@@ -66,7 +66,9 @@ struct StageStaticCollider::Impl
         }
     }
 
-    std::optional<hit_type> RayCast(const LineSegment3D& ray)
+    template <typename T>
+    // using T = LineSegment3D;
+    std::optional<hit_type> RayCast(const T& ray)
     {
         std::unordered_set<int> indices{};
         Rect region = mapRegionInStage(ray.aabb());
@@ -161,8 +163,13 @@ namespace Race
         p_impl->Build(std::move(coursePolygoneList));
     }
 
-    std::optional<StageStaticCollider::hit_type> StageStaticCollider::rayCast(const LineSegment3D& segment) const
+    std::optional<StageStaticCollider::hit_type> StageStaticCollider::rayCast(const LineSegment3D& ray) const
     {
-        return p_impl->RayCast(segment);
+        return p_impl->RayCast(ray);
+    }
+
+    std::optional<StageStaticCollider::hit_type> StageStaticCollider::sphereCast(const Capsule3D& ray) const
+    {
+        return p_impl->RayCast(ray);
     }
 }

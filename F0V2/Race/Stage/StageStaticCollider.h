@@ -20,7 +20,10 @@ namespace Race
         };
 
         [[nodiscard]]
-        std::optional<hit_type> rayCast(const LineSegment3D& segment) const;
+        std::optional<hit_type> rayCast(const LineSegment3D& ray) const;
+
+        [[nodiscard]]
+        std::optional<hit_type> sphereCast(const Capsule3D& ray) const;
 
     private:
         struct Impl;
