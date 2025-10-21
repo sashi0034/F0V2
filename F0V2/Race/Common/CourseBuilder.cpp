@@ -168,14 +168,14 @@ namespace
                 l1.pos, l0.pos, r1.pos, outCollider->gimmickAttrs.size()
             });
             outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
-                GimmickTriangleAttribute::kind_t::Wall
+                GimmickTriangleAttribute::kind_t::Barrier
             });
 
             outCollider->gimmickTris.push_back(IndexedTriangle{
                 r1.pos, l0.pos, r0.pos, outCollider->gimmickAttrs.size()
             });
             outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
-                GimmickTriangleAttribute::kind_t::Wall
+                GimmickTriangleAttribute::kind_t::Barrier
             });
         }
     }
@@ -256,7 +256,7 @@ namespace
             materials.push_back({
                 .name = "barrier",
                 .parameters = {
-                    .diffuse = Float3::One() * 1.0f
+                    .diffuse = Float3{0.97f, 0.53f, 0.00f}
                 }
             });
             shapes.push_back(ModelShape{std::move(gimmickVertices), std::move(gimmickIndices), 1});

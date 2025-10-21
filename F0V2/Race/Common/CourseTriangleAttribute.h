@@ -38,7 +38,7 @@ namespace Race
     {
         enum class kind_t : uint8_t
         {
-            Wall,
+            Barrier,
         };
 
         kind_t kind;

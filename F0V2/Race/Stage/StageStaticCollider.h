@@ -13,17 +13,23 @@ namespace Race
 
         void build(Array<CoursePolygoneCollider> coursePolygoneList);
 
-        struct hit_type
+        struct ground_hit
         {
             IndexedTriangle triangle;
             GroundTriangleAttribute attribute;
         };
 
-        [[nodiscard]]
-        std::optional<hit_type> rayCast(const LineSegment3D& ray) const;
+        struct gimmick_hit
+        {
+            IndexedTriangle triangle;
+            GimmickTriangleAttribute attribute;
+        };
 
         [[nodiscard]]
-        std::optional<hit_type> sphereCast(const Capsule3D& ray) const;
+        std::optional<ground_hit> rayCastGround(const LineSegment3D& ray) const;
+
+        [[nodiscard]]
+        Array<gimmick_hit> sphereCastGimmick(const Capsule3D& ray) const;
 
     private:
         struct Impl;

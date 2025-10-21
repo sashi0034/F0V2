@@ -24,6 +24,9 @@ struct StageStaticCollider::Impl
     Array<TriangleBvh> m_groundBvh{};
     Array<Array<GroundTriangleAttribute>> m_groundAttributes{};
 
+    Array<TriangleBvh> m_gimmickBvh{};
+    Array<Array<GimmickTriangleAttribute>> m_gimmickAttributes{};
+
     void Build(Array<CoursePolygoneCollider> coursePolygoneList)
     {
         if (coursePolygoneList.empty())
@@ -35,10 +38,14 @@ struct StageStaticCollider::Impl
         {
             m_groundBvh.push_back(TriangleBvh(coursePolygoneList[i].groundTris));
             m_groundAttributes.push_back(std::move(coursePolygoneList[i].groundAttrs));
+
+            m_gimmickBvh.push_back(TriangleBvh(coursePolygoneList[i].gimmickTris));
+            m_gimmickAttributes.push_back(std::move(coursePolygoneList[i].gimmickAttrs));
         }
 
         // -----------------------------------------------
 
+        // FIXME: m_gimmickBvh も考慮すべきかも
         m_stageAabb = m_groundBvh[0].aabb();
         for (const auto& bvh : m_groundBvh)
         {
@@ -66,22 +73,9 @@ struct StageStaticCollider::Impl
         }
     }
 
-    template <typename T>
-    // using T = LineSegment3D;
-    std::optional<hit_type> RayCast(const T& ray)
+    std::optional<ground_hit> RayCastGround(const LineSegment3D& ray)
     {
-        std::unordered_set<int> indices{};
-        Rect region = mapRegionInStage(ray.aabb());
-        for (int y = region.topY(); y < region.bottomY(); ++y)
-        {
-            for (int x = region.leftX(); x < region.rightX(); ++x)
-            {
-                for (int index : m_xzMap[{x, y}])
-                {
-                    indices.insert(index);
-                }
-            }
-        }
+        const std::unordered_set<int> indices = collectIndicesInRegion(ray.aabb());
 
         const Float3 startPoint = ray.p0;
 
@@ -119,13 +113,13 @@ struct StageStaticCollider::Impl
 
 #ifdef _DEBUG
         ImmediatePrint(
-            std::format("Test Triangles: {}", testCount),
+            std::format("RayCastGround(): testCount: {}", testCount),
             Alignment9::BottomLeft);
 #endif
 
         if (bestTri.has_value())
         {
-            return hit_type{
+            return ground_hit{
                 .triangle = bestTri->first,
                 .attribute = *(bestTri->second)
             };
@@ -134,6 +128,65 @@ struct StageStaticCollider::Impl
         {
             return std::nullopt;
         }
+    }
+
+    Array<gimmick_hit> SphereCastGimmick(const Capsule3D& ray)
+    {
+        const std::unordered_set<int> indices = collectIndicesInRegion(ray.aabb());
+
+        const Float3 startPoint = ray.p0;
+
+#ifdef _DEBUG
+        int testCount{};
+#endif
+
+        struct tmp_t
+        {
+            float distanceSq{};
+            IndexedTriangle tri;
+            GimmickTriangleAttribute* attr;
+        };
+
+        Array<tmp_t> tmp{};
+        for (const int index : indices)
+        {
+            Array<IndexedTriangle> candidates = m_gimmickBvh[index].queryHitsAndMerge(ray.aabb());
+
+#ifdef _DEBUG
+            testCount += candidates.size();
+#endif
+
+            for (const auto& tri : candidates)
+            {
+                if (Intersects(ray, tri))
+                {
+                    const float distanceSq = (tri.centroid() - startPoint).lengthSq();
+                    tmp.push_back({distanceSq, tri, &m_gimmickAttributes[index][tri.id]});
+                }
+            }
+        }
+
+#ifdef _DEBUG
+        ImmediatePrint(
+            std::format("SphereCastGimmick(): testCount: {}", testCount),
+            Alignment9::BottomLeft);
+#endif
+
+        std::ranges::sort(
+            tmp,
+            {},
+            &tmp_t::distanceSq);
+
+        Array<gimmick_hit> result{};
+        for (const auto& item : tmp)
+        {
+            result.push_back(gimmick_hit{
+                .triangle = item.tri,
+                .attribute = *item.attr
+            });
+        }
+
+        return result;
     }
 
 private:
@@ -149,6 +202,24 @@ private:
             Point{relativeMax.x - relativeMin.x + 1, relativeMax.y - relativeMin.y + 1}
         };
     }
+
+    std::unordered_set<int> collectIndicesInRegion(const Aabb3D& aabb)
+    {
+        std::unordered_set<int> indices;
+        Rect region = mapRegionInStage(aabb);
+        for (int y = region.topY(); y < region.bottomY(); ++y)
+        {
+            for (int x = region.leftX(); x < region.rightX(); ++x)
+            {
+                for (int index : m_xzMap[{x, y}])
+                {
+                    indices.insert(index);
+                }
+            }
+        }
+
+        return indices;
+    }
 };
 
 namespace Race
@@ -163,13 +234,13 @@ namespace Race
         p_impl->Build(std::move(coursePolygoneList));
     }
 
-    std::optional<StageStaticCollider::hit_type> StageStaticCollider::rayCast(const LineSegment3D& ray) const
+    std::optional<StageStaticCollider::ground_hit> StageStaticCollider::rayCastGround(const LineSegment3D& ray) const
     {
-        return p_impl->RayCast(ray);
+        return p_impl->RayCastGround(ray);
     }
 
-    std::optional<StageStaticCollider::hit_type> StageStaticCollider::sphereCast(const Capsule3D& ray) const
+    Array<StageStaticCollider::gimmick_hit> StageStaticCollider::sphereCastGimmick(const Capsule3D& ray) const
     {
-        return p_impl->RayCast(ray);
+        return p_impl->SphereCastGimmick(ray);
     }
 }
