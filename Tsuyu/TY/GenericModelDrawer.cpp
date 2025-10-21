@@ -42,12 +42,13 @@ struct GenericModelDrawer::Impl
         }
 
         auto materialSrv = m_modelBuffer->materialSrv();
+        const uint32_t srvCountPerMaterial = materialSrv.empty() ? 0 : materialSrv[0].size();
 
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
                 {1, 0, 0}, // [0]
                 {1, 0, 0}, // [1]
-                {1, materialSrv.size(), 0}, // [2]
+                {1, srvCountPerMaterial, 0}, // [2]
             },
             .materialCounts = {
                 1, // [0]

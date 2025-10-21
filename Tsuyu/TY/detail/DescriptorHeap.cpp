@@ -56,20 +56,22 @@ namespace
         }
 
         // FIXME?
-        const int srvSize = params.descriptors[tableId].srv.empty() ? 0 : params.descriptors[tableId].srv[0].size();
-        if (srvSize != params.table[tableId].srvCount)
+        const int srvCountPerMaterial =
+            params.descriptors[tableId].srv.empty() ? 0 : params.descriptors[tableId].srv[0].size();
+        if (srvCountPerMaterial != params.table[tableId].srvCount)
         {
             LogError(std::format(
                 "DescriptorHeap: Shader resource count mismatch for table[{}]: {} != {}",
                 tableId,
-                srvSize,
+                srvCountPerMaterial,
                 params.table[tableId].srvCount));
             return false;
         }
 
         // FIXME?
-        const int uavSize = params.descriptors[tableId].uav.empty() ? 0 : params.descriptors[tableId].uav[0].size();
-        if (uavSize != params.table[tableId].uavCount)
+        const int uavCountPerMaterial =
+            params.descriptors[tableId].uav.empty() ? 0 : params.descriptors[tableId].uav[0].size();
+        if (uavCountPerMaterial != params.table[tableId].uavCount)
         {
             LogError(std::format(
                 "DescriptorHeap: Unordered access count mismatch for table[{}]: {} != {}",
