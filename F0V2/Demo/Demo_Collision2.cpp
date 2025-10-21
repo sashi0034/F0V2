@@ -431,7 +431,7 @@ struct Demo_Collision2_impl
 
         m_capsuleObject.DebugUI();
 
-        Capsule testCapsule = Capsule::AlongY(
+        Capsule3D testCapsule = Capsule3D::AlongY(
             m_capsuleObject.m_pos, m_capsuleObject.m_height, m_capsuleObject.m_radius);
 
         m_triangleObject.m_drawer.draw();
@@ -584,7 +584,7 @@ private:
             return {toPos, {}};
         }
 
-        const auto moveTestCapsule = Capsule{fromPos, toPos, m_capsuleObject.m_radius};
+        const auto moveTestCapsule = Capsule3D{fromPos, toPos, m_capsuleObject.m_radius};
 
         HitTri hitTri{};
         hitTri.moveDistance = FLT_MAX;

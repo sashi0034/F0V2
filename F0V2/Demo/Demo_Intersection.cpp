@@ -341,7 +341,7 @@ struct Demo_Intersection_impl
 
         static int s_triOrQuad = 1;
 
-        Capsule testCapsule = Capsule::AlongY(
+        Capsule3D testCapsule = Capsule3D::AlongY(
             m_capsuleObject.m_pos, m_capsuleObject.m_height, m_capsuleObject.m_radius);
         bool intersectionTest = false;
         if (s_triOrQuad == 0)

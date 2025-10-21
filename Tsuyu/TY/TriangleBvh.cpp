@@ -231,7 +231,7 @@ namespace TY
         return Internal::RayCast(*this, segment);
     }
 
-    std::optional<IndexedTriangle> TriangleBvh::sphereCast(const Capsule& capsule) const
+    std::optional<IndexedTriangle> TriangleBvh::sphereCast(const Capsule3D& capsule) const
     {
         if (not m_root)
         {

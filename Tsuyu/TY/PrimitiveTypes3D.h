@@ -120,7 +120,7 @@ namespace TY
         float projectionParameter(const Float3& p) const;
     };
 
-    struct Capsule
+    struct Capsule3D
     {
         Float3 p0;
         Float3 p1;
@@ -129,6 +129,6 @@ namespace TY
         Aabb3D aabb() const;
 
         [[nodiscard]]
-        static Capsule AlongY(const Float3& center, float height, float radius);
+        static Capsule3D AlongY(const Float3& center, float height, float radius);
     };
 }

@@ -213,15 +213,15 @@ namespace TY
         return t;
     }
 
-    Aabb3D Capsule::aabb() const
+    Aabb3D Capsule3D::aabb() const
     {
         return LineSegment3D{p0, p1}.aabb().stretched(radius);
     }
 
-    Capsule Capsule::AlongY(const Float3& center, float height, float radius)
+    Capsule3D Capsule3D::AlongY(const Float3& center, float height, float radius)
     {
         const auto p1 = center + Float3(0, -height * 0.5, 0);
         const auto p2 = center + Float3(0, height * 0.5, 0);
-        return Capsule{p1, p2, radius};
+        return Capsule3D{p1, p2, radius};
     }
 }

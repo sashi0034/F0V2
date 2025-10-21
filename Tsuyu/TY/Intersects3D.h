@@ -62,17 +62,17 @@ namespace TY
 
     bool Intersects(const Triangle3D& tri, const LineSegment3D& segment);
 
-    bool Intersects(const Triangle3D& tri, const Capsule& capsule);
+    bool Intersects(const Triangle3D& tri, const Capsule3D& capsule);
 
     // -----------------------------------------------
     // Quad3D
 
-    bool Intersects(const Quad3D& quad, const Capsule& capsule);
+    bool Intersects(const Quad3D& quad, const Capsule3D& capsule);
 
     // -----------------------------------------------
     // Capsule
 
-    bool Intersects(const Capsule& capsule, const Triangle3D& tri);
+    bool Intersects(const Capsule3D& capsule, const Triangle3D& tri);
 
-    bool Intersects(const Capsule& capsule, const Quad3D& quad);
+    bool Intersects(const Capsule3D& capsule, const Quad3D& quad);
 }

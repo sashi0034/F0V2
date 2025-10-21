@@ -143,7 +143,7 @@ namespace
             return {toPos, std::nullopt};
         }
 
-        const auto moveTestCapsule = Capsule{fromPos, toPos, state.m_radius};
+        const auto moveTestCapsule = Capsule3D{fromPos, toPos, state.m_radius};
 
         const auto hit = GetRaceContext().stageManager().staticBvh().sphereCast(moveTestCapsule);
         if (not hit.has_value())

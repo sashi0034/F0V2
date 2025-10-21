@@ -330,7 +330,7 @@ struct Demo_Collision1_impl
 
         m_capsuleObject.DebugUI();
 
-        Capsule testCapsule = Capsule::AlongY(
+        Capsule3D testCapsule = Capsule3D::AlongY(
             m_capsuleObject.m_pos, m_capsuleObject.m_height, m_capsuleObject.m_radius);
 
         m_triangleObject.m_drawer.draw();
@@ -413,7 +413,7 @@ struct Demo_Collision1_impl
         // const auto moveTestCapsuleB =
         //     Capsule{previousPos + topOffset, newPos + topOffset, m_capsuleObject.m_radius};
         const auto moveTestCapsule =
-            Capsule{previousPos, newPos, m_capsuleObject.m_radius};
+            Capsule3D{previousPos, newPos, m_capsuleObject.m_radius};
 
         // if (Intersects(moveTestCapsule, m_triangleObject.m_tri) ||
         //     Intersects(moveTestCapsuleT, m_triangleObject.m_tri) ||

@@ -67,7 +67,7 @@ namespace TY
         std::optional<IndexedTriangle> rayCast(const LineSegment3D& segment) const;
 
         [[nodiscard]]
-        std::optional<IndexedTriangle> sphereCast(const Capsule& capsule) const;
+        std::optional<IndexedTriangle> sphereCast(const Capsule3D& capsule) const;
 
     private:
         class Internal;
