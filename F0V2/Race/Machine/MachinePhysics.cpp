@@ -45,12 +45,65 @@ namespace
         std::optional<HitTri> tri{};
     };
 
-    Float3 bilinear_00_10_01_11(const std::array<Float3, 4>& v, const Float2& uv)
+    Float3 bilinear_00_10_01_11(const std::array<Float3, 4>& p, const Float2& uv)
     {
-        return v[0] * (1 - uv.x) * (1 - uv.y) +
-            v[1] * uv.x * (1 - uv.y) +
-            v[2] * (1 - uv.x) * uv.y +
-            v[3] * uv.x * uv.y;
+        return p[0] * (1 - uv.x) * (1 - uv.y) +
+            p[1] * uv.x * (1 - uv.y) +
+            p[2] * (1 - uv.x) * uv.y +
+            p[3] * uv.x * uv.y;
+    }
+
+    Float3 bilinear_00_10_01_11(const std::array<Float3, 4>& p, float u, float v)
+    {
+        return bilinear_00_10_01_11(p, Float2{u, v});
+    }
+
+    Float2 newtonUV_00_10_01_11(const std::array<Float3, 4>& p_00_10_01_11, const Float3& p)
+    {
+        float u = 0.5f, v = 0.5f;
+        constexpr int maxIteration = 5;
+        for (int iter = 0; iter < maxIteration; ++iter)
+        {
+            // 現在の点
+            Float3 s = bilinear_00_10_01_11(p_00_10_01_11, u, v);
+
+            // 偏微分を数値的に求める (ヤコビアン)
+            constexpr float eps = 1e-4f;
+            Float3 su = (bilinear_00_10_01_11(p_00_10_01_11, u + eps, v) - s) * (1.0f / eps);
+            Float3 sv = (bilinear_00_10_01_11(p_00_10_01_11, u, v + eps) - s) * (1.0f / eps);
+
+            // 残差
+            Float3 r = s - p;
+
+            // 2x2 線形方程式を解いて (du, dv) 更新
+            float a = su.x * su.x + su.y * su.y + su.z * su.z;
+            float b = su.x * sv.x + su.y * sv.y + su.z * sv.z;
+            float c = b;
+            float d = sv.x * sv.x + sv.y * sv.y + sv.z * sv.z;
+            float det = a * d - b * c;
+            if (fabs(det) < 1e-8f)
+            {
+                break;
+            }
+
+            // su·r, sv·r
+            float ru = su.x * r.x + su.y * r.y + su.z * r.z;
+            float rv = sv.x * r.x + sv.y * r.y + sv.z * r.z;
+
+            // Δu, Δv を求める
+            float du = (-d * ru + b * rv) / det;
+            float dv = (c * ru - a * rv) / det;
+
+            u += du;
+            v += dv;
+
+            if (fabs(du) < 1e-5f && fabs(dv) < 1e-5f)
+            {
+                break;
+            }
+        }
+
+        return {u, v};
     }
 
     MoveResult tryMoveCapsulePosition(const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos)
@@ -104,16 +157,11 @@ namespace
             I = plane.projection(T);
         }
 
-        const auto bc = tri.getBarycentric(I);
+        // const auto bc = tri.getBarycentric(I);
 
         const std::array<Float3, 4> p_00_10_01_11 =
             TrianglePatternUtil::ArrangePoints_00_10_01_11(tri.p0, tri.p1, tri.p2, attr);
-        const std::array<Float2, 3> uvTable =
-            TrianglePatternUtil::GetUvTable(attr.pattern);
-        const Float2 normalUV =
-            uvTable[0] * bc.w0 +
-            uvTable[1] * bc.w1 +
-            uvTable[2] * bc.w2;
+        const Float2 normalUV = newtonUV_00_10_01_11(p_00_10_01_11, I);
 
         Float3 normal = bilinear_00_10_01_11(attr.normals_00_10_01_11, normalUV).normalized();
         if (normal.isZero())
