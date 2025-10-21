@@ -444,7 +444,8 @@ namespace
 
         const auto& nearestStrip = nearestSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
 
-        if (nearestStrip.style == CourseSegmentStyle::Road)
+        if (nearestStrip.style == CourseSegmentStyle::Road ||
+            nearestStrip.style == CourseSegmentStyle::BarrierRoad)
         {
             Float3 n = state.m_surfaceNormal; // TODO: m_surfaceNormal を使わずに計算する (絶対) 
             if (n.isZero())

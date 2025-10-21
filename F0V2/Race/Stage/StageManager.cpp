@@ -212,7 +212,7 @@ struct StageManager::Impl : GameObjectBase
             colliders.push_back({});
             const auto courseModel = BuildCourseModel(segment, &colliders.back());
 
-            m_triangleCount += colliders.back().tris.size();
+            m_triangleCount += colliders.back().groundTris.size();
 
             m_courseDrawers.push_back(
                 ModelDrawerParams{}

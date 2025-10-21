@@ -1,11 +1,9 @@
 ﻿#pragma once
-#include "TY/PrimitiveTypes3D.h"
-#include "TY/PrimitiveTypes3D.h"
 #include "TY/Vector3D.h"
 
 namespace Race
 {
-    struct CourseTriangleAttribute
+    struct GroundTriangleAttribute
     {
         enum triangle_pattern : uint8_t
         {
@@ -29,13 +27,20 @@ namespace Race
 
     namespace TrianglePatternUtil
     {
-        using pattern_t = CourseTriangleAttribute::triangle_pattern_t;
-
-        [[nodiscard]]
-        std::array<Float2, 3> GetUvTable(const pattern_t& pattern);
+        using pattern_t = GroundTriangleAttribute::triangle_pattern_t;
 
         [[nodiscard]]
         std::array<Float3, 4> ArrangePoints_00_10_01_11(
-            const Float3& p0, const Float3& p1, const Float3& p2, const CourseTriangleAttribute& attr);
+            const Float3& p0, const Float3& p1, const Float3& p2, const GroundTriangleAttribute& attr);
     }
+
+    struct GimmickTriangleAttribute
+    {
+        enum class kind_t : uint8_t
+        {
+            Wall,
+        };
+
+        kind_t kind;
+    };
 }

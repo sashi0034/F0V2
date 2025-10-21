@@ -16,7 +16,7 @@ namespace Race
         struct hit_type
         {
             IndexedTriangle triangle;
-            CourseTriangleAttribute attribute;
+            GroundTriangleAttribute attribute;
         };
 
         [[nodiscard]]

@@ -9,8 +9,11 @@ namespace Race
 {
     struct CoursePolygoneCollider
     {
-        Array<IndexedTriangle> tris{};
-        Array<CourseTriangleAttribute> attributes{};
+        Array<IndexedTriangle> groundTris{};
+        Array<GroundTriangleAttribute> groundAttrs{};
+
+        Array<IndexedTriangle> gimmickTris{};
+        Array<GimmickTriangleAttribute> gimmickAttrs{};
     };
 
     ModelBuffer BuildCourseModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider = nullptr);

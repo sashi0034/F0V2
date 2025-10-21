@@ -15,7 +15,7 @@ namespace
         Float3 normal{};
     };
 
-    void pushFaces(
+    void pushGroundFaces(
         Array<ModelVertex>& vertices,
         Array<uint16_t>& indices,
         int& v_offset,
@@ -86,16 +86,16 @@ namespace
             if (CD.dot(N) >= 0)
             {
                 // 10-01 対角線
-                outCollider->tris.push_back(IndexedTriangle{p10, p01, p00, outCollider->attributes.size()});
-                outCollider->attributes.push_back(CourseTriangleAttribute{
-                    CourseTriangleAttribute::Triangle_10_01_00,
+                outCollider->groundTris.push_back(IndexedTriangle{p10, p01, p00, outCollider->groundAttrs.size()});
+                outCollider->groundAttrs.push_back(GroundTriangleAttribute{
+                    GroundTriangleAttribute::Triangle_10_01_00,
                     normals_00_10_01_11,
                     p11
                 });
 
-                outCollider->tris.push_back(IndexedTriangle{p10, p11, p01, outCollider->attributes.size()});
-                outCollider->attributes.push_back(CourseTriangleAttribute{
-                    CourseTriangleAttribute::Triangle_10_11_01,
+                outCollider->groundTris.push_back(IndexedTriangle{p10, p11, p01, outCollider->groundAttrs.size()});
+                outCollider->groundAttrs.push_back(GroundTriangleAttribute{
+                    GroundTriangleAttribute::Triangle_10_11_01,
                     normals_00_10_01_11,
                     p00
                 });
@@ -103,16 +103,16 @@ namespace
             else
             {
                 // 00-11 対角線
-                outCollider->tris.push_back(IndexedTriangle{p00, p10, p11, outCollider->attributes.size()});
-                outCollider->attributes.push_back(CourseTriangleAttribute{
-                    CourseTriangleAttribute::Triangle_00_10_11,
+                outCollider->groundTris.push_back(IndexedTriangle{p00, p10, p11, outCollider->groundAttrs.size()});
+                outCollider->groundAttrs.push_back(GroundTriangleAttribute{
+                    GroundTriangleAttribute::Triangle_00_10_11,
                     normals_00_10_01_11,
                     p01
                 });
 
-                outCollider->tris.push_back(IndexedTriangle{p00, p11, p01, outCollider->attributes.size()});
-                outCollider->attributes.push_back(CourseTriangleAttribute{
-                    CourseTriangleAttribute::Triangle_00_11_01,
+                outCollider->groundTris.push_back(IndexedTriangle{p00, p11, p01, outCollider->groundAttrs.size()});
+                outCollider->groundAttrs.push_back(GroundTriangleAttribute{
+                    GroundTriangleAttribute::Triangle_00_11_01,
                     normals_00_10_01_11,
                     p10
                 });
@@ -120,12 +120,80 @@ namespace
         }
     }
 
+    void pushBarrierFaces(
+        Array<ModelVertex>& vertices,
+        Array<uint16_t>& indices,
+        int& v_offset,
+        int& i_offset,
+        const FaceVertex& l0,
+        const FaceVertex& r0,
+        const FaceVertex& l1,
+        const FaceVertex& r1,
+        CoursePolygoneCollider* outCollider = nullptr
+    )
+    {
+        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, Float2{}};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, Float2{1, 0}};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, Float2{0, 1}};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, Float2{1, 1}};
+
+        indices[i_offset] = v_offset;
+        indices[i_offset + 1] = v_offset + 2;
+        indices[i_offset + 2] = v_offset + 1;
+        indices[i_offset + 3] = v_offset + 1;
+        indices[i_offset + 4] = v_offset + 2;
+        indices[i_offset + 5] = v_offset + 3;
+
+        v_offset += 4;
+        i_offset += 6;
+
+        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, Float2{}};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, Float2{1, 0}};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, Float2{0, 1}};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, Float2{1, 1}};
+
+        indices[i_offset] = v_offset;
+        indices[i_offset + 1] = v_offset + 1;
+        indices[i_offset + 2] = v_offset + 2;
+        indices[i_offset + 3] = v_offset + 1;
+        indices[i_offset + 4] = v_offset + 3;
+        indices[i_offset + 5] = v_offset + 2;
+
+        v_offset += 4;
+        i_offset += 6;
+
+        if (outCollider)
+        {
+            outCollider->gimmickTris.push_back(IndexedTriangle{
+                l1.pos, l0.pos, r1.pos, outCollider->gimmickAttrs.size()
+            });
+            outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
+                GimmickTriangleAttribute::kind_t::Wall
+            });
+
+            outCollider->gimmickTris.push_back(IndexedTriangle{
+                r1.pos, l0.pos, r0.pos, outCollider->gimmickAttrs.size()
+            });
+            outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
+                GimmickTriangleAttribute::kind_t::Wall
+            });
+        }
+    }
+
     ModelBuffer buildRoadModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
-        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
-        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
-        int v_offset{};
-        int i_offset{};
+        Array<ModelVertex> groundVertices((segment.midwayStrips.size() - 1) * 8);
+        Array<uint16_t> groundIndices((segment.midwayStrips.size() - 1) * 12);
+        int groundVertexOffset{};
+        int groundIndexOffset{};
+
+        const bool hasBarrier = segment.style == CourseSegmentStyle::BarrierRoad;
+
+        Array<ModelVertex> gimmickVertices(hasBarrier ? (segment.midwayStrips.size() - 1) * 2 * 8 : 0);
+        Array<uint16_t> gimmickIndices(hasBarrier ? (segment.midwayStrips.size() - 1) * 2 * 12 : 0);
+        int gimmickVertexOffset{};
+        int gimmickIndexOffset{};
+
         for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
@@ -136,21 +204,65 @@ namespace
             const FaceVertex l1{s1.leftmost, s1.normal};
             const FaceVertex r1{s1.rightmost, s1.normal};
 
-            pushFaces(
-                vertices, indices, v_offset, i_offset,
+            pushGroundFaces(
+                groundVertices, groundIndices, groundVertexOffset, groundIndexOffset,
                 l0, r0, l1, r1,
                 outCollider);
+
+            if (hasBarrier)
+            {
+                constexpr float barrierHeight = 1.5;
+
+                const Float3 s0_l2r = (s0.rightmost - s0.leftmost).normalized();
+
+                const FaceVertex l0b{s0.leftmost, s0_l2r};
+                const FaceVertex l1b{s1.leftmost, s0_l2r};
+
+                const FaceVertex l0t{s0.leftmost + s0.normal * barrierHeight, s0_l2r};
+                const FaceVertex l1t{s1.leftmost + s0.normal * barrierHeight, s0_l2r};
+
+                const FaceVertex r0b{s0.rightmost, -s0_l2r};
+                const FaceVertex r1b{s1.rightmost, -s0_l2r};
+
+                const FaceVertex r0t{s0.rightmost + s0.normal * barrierHeight, -s0_l2r};
+                const FaceVertex r1t{s1.rightmost + s0.normal * barrierHeight, -s0_l2r};
+
+                pushBarrierFaces(
+                    gimmickVertices, gimmickIndices, gimmickVertexOffset, gimmickIndexOffset,
+                    l0b, l1b, l0t, l1t,
+                    outCollider);
+
+                pushBarrierFaces(
+                    gimmickVertices, gimmickIndices, gimmickVertexOffset, gimmickIndexOffset,
+                    r0b, r1b, r0t, r1t,
+                    outCollider);
+            }
         }
 
-        ModelMaterial material{};
-        material.name = "plain";
-        material.parameters.diffuse = Float3::One() * 0.5f;
-
-        ModelShapeBuffer shapeBuffer{
-            {ModelShape{std::move(vertices), std::move(indices), 0}}
+        Array<ModelMaterial> materials{};
+        materials.push_back({
+            .name = "plain",
+            .parameters = {
+                .diffuse = Float3::One() * 0.5f
+            }
+        });
+        Array<ModelShape> shapes{
+            ModelShape{std::move(groundVertices), std::move(groundIndices), 0}
         };
+
+        if (hasBarrier)
+        {
+            materials.push_back({
+                .name = "barrier",
+                .parameters = {
+                    .diffuse = Float3::One() * 1.0f
+                }
+            });
+            shapes.push_back(ModelShape{std::move(gimmickVertices), std::move(gimmickIndices), 1});
+        }
+
         ModelBuffer modelBuffer{
-            shapeBuffer, {material}
+            ModelShapeBuffer{std::move(shapes)}, std::move(materials)
         };
 
         return modelBuffer;
@@ -180,8 +292,8 @@ namespace
         Array<uint16_t> indices(
             (hasEntry + hasExit) * PipeEntryExitStrips * (halfSubdivision1 * 6 * 2) +
             (pipeStrips - 1) * (subdivision * 6 * 2));
-        int v_offset{};
-        int i_offset{};
+        int ground_v{};
+        int ground_i{};
 
         // -----------------------------------------------
 
@@ -228,8 +340,8 @@ namespace
                     l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
-                    pushFaces(
-                        vertices, indices, v_offset, i_offset,
+                    pushGroundFaces(
+                        vertices, indices, ground_v, ground_i,
                         l0, r0, l1, r1,
                         outCollider);
                 }
@@ -261,8 +373,8 @@ namespace
                 l1.normal = -n1s[i0];
                 r1.normal = -n1s[i1];
 
-                pushFaces(
-                    vertices, indices, v_offset, i_offset,
+                pushGroundFaces(
+                    vertices, indices, ground_v, ground_i,
                     l0, r0, l1, r1,
                     outCollider);
             }
@@ -309,8 +421,8 @@ namespace
                     l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
-                    pushFaces(
-                        vertices, indices, v_offset, i_offset,
+                    pushGroundFaces(
+                        vertices, indices, ground_v, ground_i,
                         l0, r0, l1, r1,
                         outCollider);
                 }
@@ -338,7 +450,8 @@ namespace Race
     {
         assert(segment.midwayStrips.size() > 0);
 
-        if (segment.style == CourseSegmentStyle::Road)
+        if (segment.style == CourseSegmentStyle::Road ||
+            segment.style == CourseSegmentStyle::BarrierRoad)
         {
             return buildRoadModel(segment, outCollider);
         }

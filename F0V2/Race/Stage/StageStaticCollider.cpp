@@ -22,7 +22,7 @@ struct StageStaticCollider::Impl
     Aabb3D m_stageAabb{};
 
     Array<TriangleBvh> m_groundBvh{};
-    Array<Array<CourseTriangleAttribute>> m_groundAttributes{};
+    Array<Array<GroundTriangleAttribute>> m_groundAttributes{};
 
     void Build(Array<CoursePolygoneCollider> coursePolygoneList)
     {
@@ -33,8 +33,8 @@ struct StageStaticCollider::Impl
 
         for (int i = 0; i < coursePolygoneList.size(); ++i)
         {
-            m_groundBvh.push_back(TriangleBvh(coursePolygoneList[i].tris));
-            m_groundAttributes.push_back(std::move(coursePolygoneList[i].attributes));
+            m_groundBvh.push_back(TriangleBvh(coursePolygoneList[i].groundTris));
+            m_groundAttributes.push_back(std::move(coursePolygoneList[i].groundAttrs));
         }
 
         // -----------------------------------------------
@@ -86,7 +86,7 @@ struct StageStaticCollider::Impl
         const Float3 startPoint = ray.p0;
 
         float bestDistSq = std::numeric_limits<float>::max();
-        std::optional<std::pair<IndexedTriangle, CourseTriangleAttribute*>> bestTri{};
+        std::optional<std::pair<IndexedTriangle, GroundTriangleAttribute*>> bestTri{};
 
 #ifdef _DEBUG
         int testCount{};
