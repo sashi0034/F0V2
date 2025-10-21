@@ -184,7 +184,7 @@ private:
             const float p2_roll = nodeList[i2].rollRadians();
             const float p3_roll = nodeList[i3].rollRadians();
 
-            const auto style = nodeList[i0].style;
+            const auto style = nodeList[i1].style;
 
             if (i >= m_segments.size() ||
                 m_segments[i].side_p0 != p0 ||
