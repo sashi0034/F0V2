@@ -8,13 +8,13 @@ namespace TY::ImmediateDrawer_detail
     class ID_DescriptorManager
     {
     public:
-        //                    --- heap_type [] ---
+        //                    +-- heap_type [] --+
         //                    |                  |
-        //                    |   ------------   |
+        //                    |   +----------+   |
         // element_cursor --> |   | key_type |   |
-        //                    |   ------------   |
+        //                    |   +----------+   |
         //                    |                  |
-        //                    --------------------
+        //                    +------------------+
 
         /// @brief 実際のリソースが格納されたヒープ
         struct heap_type
@@ -23,6 +23,8 @@ namespace TY::ImmediateDrawer_detail
             DescriptorTable table{};
 
             ConstantBufferWrapper<ImmediateDrawer_b1> cbv1{};
+
+            int timeToLive{0};
 
             /// @brief テクスチャといったリソースはそれぞれ別々のヒープごとを割り当てる。このような特殊リソースはこのクラスにまとめる
             struct key_type
@@ -65,28 +67,20 @@ namespace TY::ImmediateDrawer_detail
             bool operator !=(const element_cursor& other) const { return not(*this == other); }
         };
 
-        ID_DescriptorManager()
-        {
-            pushBackNewHeap(heap_type::key_type{});
-
-            Reset();
-        }
+        ID_DescriptorManager();
 
         void RequestTransform(const Mat3x2& transform);
 
         void RequestSrv0(const TextureHandle& srv);
 
-        void Reset();
+        void AfterPresent();
 
-        const element_cursor& CurrentCursor() const
-        {
-            return m_currentCursor;
-        }
+        // FIXME: API 洗練
+        void CommitCurrentHeap();
 
-        const heap_type& CurrentHeap() const
-        {
-            return m_heapList[m_currentCursor.heapIndex];
-        }
+        const element_cursor& CurrentCursor() const;
+
+        const heap_type& CurrentHeap() const;
 
         void CommandSet(const element_cursor& element) const;
 
@@ -94,10 +88,9 @@ namespace TY::ImmediateDrawer_detail
         Array<heap_type> m_heapList{};
         element_cursor m_currentCursor{};
 
-        heap_type& currentHeap()
-        {
-            return m_heapList[m_currentCursor.heapIndex];
-        }
+        void reset();
+
+        heap_type& currentHeap();
 
         element_cursor fetchHeap(const heap_type::key_type& keyResource);
 

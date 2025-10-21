@@ -105,6 +105,7 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
 
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
         m_descriptorManager.RequestTransform(transformMatrix);
+        m_descriptorManager.CommitCurrentHeap();
 
         m_stateManager.request2D();
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
@@ -175,6 +176,7 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
     {
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
         m_descriptorManager.RequestTransform(transformMatrix);
+        m_descriptorManager.CommitCurrentHeap();
 
         m_stateManager.request3D();
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
@@ -229,7 +231,7 @@ private:
         m_bufferCreator2D.clear();
         m_bufferCreator3D.clear();
         m_bufferUnitList.logical_resize(0);
-        m_descriptorManager.Reset();
+        m_descriptorManager.AfterPresent();
         m_stateManager.Reset(m_descriptorManager.CurrentHeap().table);
         m_drawUnitIndex = 0;
     }

@@ -5,6 +5,7 @@
 
 namespace
 {
+    constexpr int maxTimeToLive = 90;
 }
 
 namespace TY::ImmediateDrawer_detail
@@ -32,6 +33,11 @@ namespace TY::ImmediateDrawer_detail
         heap.table = std::move(descriptorTable);
 
         return heap;
+    }
+
+    ID_DescriptorManager::ID_DescriptorManager()
+    {
+        reset();
     }
 
     void ID_DescriptorManager::RequestTransform(const Mat3x2& transform)
@@ -74,9 +80,40 @@ namespace TY::ImmediateDrawer_detail
         m_currentCursor = fetchHeap(newKey);
     }
 
-    void ID_DescriptorManager::Reset()
+    void ID_DescriptorManager::AfterPresent()
     {
-        m_currentCursor = element_cursor{.heapIndex = 0,};
+        for (auto& heap : m_heapList)
+        {
+            if (heap.timeToLive > 0)
+            {
+                --heap.timeToLive;
+            }
+        }
+
+        for (int i = static_cast<int>(m_heapList.size()) - 1; i >= 0; --i)
+        {
+            if (m_heapList[i].timeToLive == 0)
+            {
+                m_heapList.erase(m_heapList.begin() + i);
+            }
+        }
+
+        reset();
+    }
+
+    void ID_DescriptorManager::CommitCurrentHeap()
+    {
+        currentHeap().timeToLive = maxTimeToLive;
+    }
+
+    const ID_DescriptorManager::element_cursor& ID_DescriptorManager::CurrentCursor() const
+    {
+        return m_currentCursor;
+    }
+
+    const ID_DescriptorManager::heap_type& ID_DescriptorManager::CurrentHeap() const
+    {
+        return m_heapList[m_currentCursor.heapIndex];
     }
 
     void ID_DescriptorManager::CommandSet(const element_cursor& element) const
@@ -84,6 +121,23 @@ namespace TY::ImmediateDrawer_detail
         auto& heap = m_heapList[element.heapIndex];
         heap.descriptorHeap.commandSet();
         heap.descriptorHeap.commandSetGraphicsTable(0);
+    }
+
+    void ID_DescriptorManager::reset()
+    {
+        if (m_heapList.empty())
+        {
+            pushBackNewHeap(heap_type::key_type{});
+        }
+
+        m_currentCursor = element_cursor{.heapIndex = 0,};
+
+        currentHeap().timeToLive = maxTimeToLive;
+    }
+
+    ID_DescriptorManager::heap_type& ID_DescriptorManager::currentHeap()
+    {
+        return m_heapList[m_currentCursor.heapIndex];
     }
 
     ID_DescriptorManager::element_cursor ID_DescriptorManager::fetchHeap(const heap_type::key_type& keyResource)
