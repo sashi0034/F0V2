@@ -211,21 +211,22 @@ namespace
 
             if (hasBarrier)
             {
-                constexpr float barrierHeight = 1.5;
+                constexpr float barrierHeight = 2.5f;
 
                 const Float3 s0_l2r = (s0.rightmost - s0.leftmost).normalized();
+                const Float3 s1_l2r = (s1.rightmost - s1.leftmost).normalized();
 
                 const FaceVertex l0b{s0.leftmost, s0_l2r};
-                const FaceVertex l1b{s1.leftmost, s0_l2r};
+                const FaceVertex l1b{s1.leftmost, s1_l2r};
 
                 const FaceVertex l0t{s0.leftmost + s0.normal * barrierHeight, s0_l2r};
-                const FaceVertex l1t{s1.leftmost + s0.normal * barrierHeight, s0_l2r};
+                const FaceVertex l1t{s1.leftmost + s1.normal * barrierHeight, s1_l2r};
 
                 const FaceVertex r0b{s0.rightmost, -s0_l2r};
-                const FaceVertex r1b{s1.rightmost, -s0_l2r};
+                const FaceVertex r1b{s1.rightmost, -s1_l2r};
 
                 const FaceVertex r0t{s0.rightmost + s0.normal * barrierHeight, -s0_l2r};
-                const FaceVertex r1t{s1.rightmost + s0.normal * barrierHeight, -s0_l2r};
+                const FaceVertex r1t{s1.rightmost + s1.normal * barrierHeight, -s1_l2r};
 
                 pushBarrierFaces(
                     gimmickVertices, gimmickIndices, gimmickVertexOffset, gimmickIndexOffset,
@@ -234,7 +235,7 @@ namespace
 
                 pushBarrierFaces(
                     gimmickVertices, gimmickIndices, gimmickVertexOffset, gimmickIndexOffset,
-                    r0b, r1b, r0t, r1t,
+                    r1b, r0b, r1t, r0t,
                     outCollider);
             }
         }
