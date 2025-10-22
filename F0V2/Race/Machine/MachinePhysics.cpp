@@ -313,6 +313,74 @@ namespace
 
     // -----------------------------------------------
 
+    void onHitGround(
+        Float3& newMoveVector,
+        MachinePhysicsState& state,
+        const MachinePhysicsProps& props,
+        const Float3& moveVector,
+        const Float3& fromPos,
+        const HitSurface& hit)
+    {
+        if (props.debug.drawHitTris)
+        {
+            hit.debugDraw();
+        }
+
+        // 法線の適応
+        const Float3 n = hit.normal;
+
+        state.m_surfaceNormal = n;
+        state.m_surfaceToTriangle = hit.surfaceToTriangle;
+
+        // 法線方向速度の除去
+        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
+
+        // 法線方向移動ベクトルの補正
+        const Float3 toPos = fromPos + moveVector;
+        const Float3 r = toPos - state.m_pose.position;
+        newMoveVector = r - n * r.dot(n);
+        if (newMoveVector.isZero())
+        {
+            return;
+        }
+
+        // 移動ベクトルの長さを残りの移動量に調節する
+        newMoveVector = newMoveVector.normalized() * Max(0.0f, moveVector.length() - hit.moveDistance);
+    }
+
+    void onHitBarrier(
+        Float3& newMoveVector,
+        MachinePhysicsState& state,
+        const MachinePhysicsProps& props,
+        const Float3& moveVector,
+        const Float3& fromPos,
+        const HitTri& hitTri)
+    {
+        if (props.debug.drawHitTris)
+        {
+            hitTri.debugDraw();
+        }
+
+        // state.m_surfaceNormal = {};
+        // state.m_surfaceToTriangle = {};
+
+        const Float3 n = hitTri.normal;
+        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
+
+        // 法線方向移動ベクトルの補正
+        const Float3 toPos = fromPos + moveVector;
+        const Float3 r = toPos - state.m_pose.position;
+        newMoveVector = r - n * r.dot(n);
+        if (newMoveVector.isZero())
+        {
+            return;
+        }
+
+        // 移動ベクトルの長さを残りの移動量に調節する
+        newMoveVector =
+            newMoveVector.normalized() * Max(0.0f, moveVector.length() - hitTri.moveDistance);
+    }
+
     void updateCapsulePosition(
         MachinePhysicsState& state,
         const MachinePhysicsProps& props,
@@ -338,36 +406,17 @@ namespace
             const auto gimmickResult = checkGimmickHit(state, fromPos, fromPos + moveVector2);
             if (gimmickResult.pushback.has_value())
             {
+                // Barrier の押し戻し処理
                 const auto& pushback = *gimmickResult.pushback;
-
-                if (props.debug.drawHitTris)
-                {
-                    pushback.hitTri.debugDraw();
-                }
-
-                // 押し戻し処理
                 state.m_pose.position = pushback.newPos;
 
-                // TODO: 実装の整理
-
-                // state.m_surfaceNormal = {};
-                // state.m_surfaceToTriangle = {};
-
-                const Float3 n = pushback.hitTri.normal;
-                state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
-
-                // 法線方向移動ベクトルの補正
-                const Float3 r = toPos - state.m_pose.position;
-                Float3 newMoveVector = r - n * r.dot(n);
-                if (newMoveVector.isZero())
-                {
-                    return;
-                }
-
-                // 移動ベクトルの長さを残りの移動量に調節する
-                newMoveVector =
-                    newMoveVector.normalized() * Max(0.0f, moveVector.length() - pushback.hitTri.moveDistance);
-
+                Float3 newMoveVector{};
+                onHitBarrier(newMoveVector,
+                             state,
+                             props,
+                             moveVector,
+                             fromPos,
+                             pushback.hitTri);
                 if (nest < maxNest)
                 {
                     updateCapsulePosition(state, props, state.m_pose.position, newMoveVector, nest + 1);
@@ -380,33 +429,16 @@ namespace
 
         if (hitOpt.has_value())
         {
-            const auto& hit = *hitOpt;
+            // Ground の押し戻し処理
+            const auto& hitSurface = *hitOpt;
 
-            if (props.debug.drawHitTris)
-            {
-                hit.debugDraw();
-            }
-
-            // 法線の適応
-            const Float3 n = hit.normal;
-
-            state.m_surfaceNormal = n;
-            state.m_surfaceToTriangle = hit.surfaceToTriangle;
-
-            // 法線方向速度の除去
-            state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
-
-            // 法線方向移動ベクトルの補正
-            const Float3 r = toPos - state.m_pose.position;
-            Float3 newMoveVector = r - n * r.dot(n);
-            if (newMoveVector.isZero())
-            {
-                return;
-            }
-
-            // 移動ベクトルの長さを残りの移動量に調節する
-            newMoveVector = newMoveVector.normalized() * Max(0.0f, moveVector.length() - hitOpt->moveDistance);
-
+            Float3 newMoveVector{};
+            onHitGround(newMoveVector,
+                        state,
+                        props,
+                        moveVector,
+                        fromPos,
+                        hitSurface);
             if (nest < maxNest)
             {
                 updateCapsulePosition(state, props, state.m_pose.position, newMoveVector, nest + 1);
