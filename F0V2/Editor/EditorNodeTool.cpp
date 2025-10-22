@@ -8,6 +8,7 @@
 #include "EditorState.h"
 #include "Race/Common/CourseModelBuilder.h"
 #include "Race/Common/CourseData.h"
+#include "Race/Common/CourseSegmentBuilder.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
@@ -165,153 +166,7 @@ private:
 
     void buildSegmentsIfNeeded()
     {
-        auto& nodeList = g_editorState->course.nodes;
-        Array<int> rebuildIndexes{};
-        for (int i = 0; i < nodeList.size(); ++i)
-        {
-            int i0 = Modulo<int>(i - 1, nodeList.size());
-            int i1 = i;
-            int i2 = Modulo<int>(i + 1, nodeList.size());
-            int i3 = Modulo<int>(i + 2, nodeList.size());
-
-            const Float3& p0 = nodeList[i0].pos;
-            const Float3& p1 = nodeList[i1].pos;
-            const Float3& p2 = nodeList[i2].pos;
-            const Float3& p3 = nodeList[i3].pos;
-
-            const float p0_roll = nodeList[i0].rollRadians();
-            const float p1_roll = nodeList[i1].rollRadians();
-            const float p2_roll = nodeList[i2].rollRadians();
-            const float p3_roll = nodeList[i3].rollRadians();
-
-            const auto style = nodeList[i1].style;
-
-            if (i >= m_segments.size() ||
-                m_segments[i].side_p0 != p0 ||
-                m_segments[i].p1 != p1 ||
-                m_segments[i].p2 != p2 ||
-                m_segments[i].side_p3 != p3 ||
-                m_segments[i].side_p0_roll != p0_roll ||
-                m_segments[i].p1_roll != p1_roll ||
-                m_segments[i].p2_roll != p2_roll ||
-                m_segments[i].side_p3_roll != p3_roll ||
-                m_segments[i].style != style)
-            {
-                if (i >= m_segments.size())
-                {
-                    m_segments.push_back({});
-                }
-
-                auto& segment = m_segments[i];
-                segment.side_p0_roll = p0_roll;
-                segment.p1 = p1;
-                segment.p2 = p2;
-                segment.side_p3_roll = p3_roll;
-
-                segment.side_p0 = p0;
-                segment.p1_roll = p1_roll;
-                segment.p2_roll = p2_roll;
-                segment.side_p3 = p3;
-
-                segment.style = style;
-
-                rebuildIndexes.push_back(i0);
-                rebuildIndexes.push_back(i1);
-                rebuildIndexes.push_back(i2);
-                rebuildIndexes.push_back(i3);
-            }
-        }
-
-        std::ranges::sort(rebuildIndexes);
-
-        // 重複を除去
-        {
-            auto last = std::ranges::unique(rebuildIndexes);
-            rebuildIndexes.erase(last.begin(), last.end());
-        }
-
-        while (m_segments.size() > nodeList.size())
-        {
-            m_segments.pop_back();
-        }
-
-        // -----------------------------------------------
-
-        // 変更があった CourseSegment の線分に対して面を構築する
-        for (const auto i : rebuildIndexes)
-        {
-            const auto& priorSegment = m_segments[Modulo<int>(i - 1, m_segments.size())];
-            const auto& nextSegment = m_segments[(i + 1) % m_segments.size()];
-
-            auto& segment = m_segments[i];
-            segment.midwayStrips.clear();
-
-            const int samplesPerSegment = (segment.p2 - segment.p1).length() / 5.0f;
-            const auto midwayPositions = GenerateCatmullRomPoints(
-                segment.side_p0, segment.p1, segment.p2, segment.side_p3, samplesPerSegment);
-            const auto midwayRolls = GenerateCatmullRomAngles(
-                segment.side_p0_roll, segment.p1_roll, segment.p2_roll, segment.side_p3_roll, samplesPerSegment);
-
-            for (int m = 0; m < midwayPositions.size() - 1 /* 終端は除外 */; ++m)
-            {
-                CourseStrip strip{};
-                strip.center = midwayPositions[m];
-
-                const float roll = midwayRolls[m];
-
-                auto nextPosition = midwayPositions[m + 1];
-                strip.toNext = nextPosition - strip.center;
-                strip.lengthToNext = strip.toNext.length();
-
-                {
-                    const Float3 n = strip.toNext.cross(Float3(0, 1, 0));
-                    strip.normal = n.cross(strip.toNext); // 鉛直上ベクトルと進行方向に垂直なベクトル
-
-                    const auto q = Quaternion(strip.toNext.normalized(), roll);
-                    strip.normal = q.rotate(strip.normal).normalized();
-                }
-
-                auto right = strip.toNext.cross(strip.normal).normalized();
-                float width = 12.5f; // TODO
-                strip.leftmost = strip.center - right * width;
-                strip.rightmost = strip.center + right * width;
-
-                strip.style = segment.style;
-
-                if (strip.style == CourseSegmentStyle::Pipe)
-                {
-                    if (priorSegment.style != CourseSegmentStyle::Pipe &&
-                        m < PipeEntryExitStrips)
-                    {
-                        // 入口
-                        strip.style = CourseSegmentStyle::Road;
-                    }
-                    else if (nextSegment.style != CourseSegmentStyle::Pipe &&
-                        m >= midwayPositions.size() - PipeEntryExitStrips)
-                    {
-                        // 出口
-                        strip.style = CourseSegmentStyle::Road;
-                    }
-                }
-
-                if (strip.style == CourseSegmentStyle::Pipe)
-                {
-                    // トンネル頂点の計算
-                    for (int t = 0; t < PipeSubdivision; ++t)
-                    {
-                        // 円周上の方向ベクトルを計算
-                        const float angle =
-                            Math::HalfPiF - (0.5 + static_cast<float>(t) / PipeSubdivision) * Math::TwoPi_v<float>;
-                        const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
-                        strip.pipe.ringVectors[t] = dir;
-                    }
-                }
-
-                segment.midwayStrips.push_back(strip);
-            }
-
-            // 終端部分は次のセクションで行う
-        }
+        const auto rebuildIndexes = BuildCourseSegmentIfNeeded(m_segments, g_editorState->course.nodes);
 
         if (m_courseDrawers.size() != m_segments.size())
         {
@@ -320,22 +175,7 @@ private:
 
         for (const auto i : rebuildIndexes)
         {
-            auto& segment = m_segments[i];
-
-            // 終端部分の追加
-            {
-                // TODO: バグ修正
-                auto& segment1 = m_segments[(i + 1) % m_segments.size()];
-                segment.midwayStrips.push_back(segment1.midwayStrips[0]);
-            }
-
-            segment.totalLength = 0.0f;
-            for (int m = 0; m < segment.midwayStrips.size(); ++m)
-            {
-                segment.totalLength += segment.midwayStrips[m].lengthToNext;
-            }
-
-            const auto modelBuffer = BuildCourseModel(segment);
+            const auto modelBuffer = BuildCourseModel(m_segments[i]);
             m_courseDrawers[i] =
                 ModelDrawerParams{}
                 .setModel(modelBuffer)

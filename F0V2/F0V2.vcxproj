@@ -168,6 +168,7 @@
     <ClCompile Include="Race\Common\CourseModelBuilder.cpp" />
     <ClCompile Include="Race\Common\CourseConstants.cpp" />
     <ClCompile Include="Race\Common\CourseData.cpp" />
+    <ClCompile Include="Race\Common\CourseSegmentBuilder.cpp" />
     <ClCompile Include="Race\Common\CourseTriangleAttribute.cpp" />
     <ClCompile Include="Race\Common\RaceSharedState.cpp" />
     <ClCompile Include="Race\Machine\LapProgress.cpp" />
@@ -272,6 +273,7 @@
     <ClInclude Include="Race\Common\CourseModelBuilder.h" />
     <ClInclude Include="Race\Common\CourseConstants.h" />
     <ClInclude Include="Race\Common\CourseData.h" />
+    <ClInclude Include="Race\Common\CourseSegmentBuilder.h" />
     <ClInclude Include="Race\Common\CourseTriangleAttribute.h" />
     <ClInclude Include="Race\Common\RaceSharedState.h" />
     <ClInclude Include="Race\IRaceContext.h" />
