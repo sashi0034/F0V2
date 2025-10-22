@@ -44,7 +44,8 @@ namespace Race
                 segments[i].p1_roll != p1_roll ||
                 segments[i].p2_roll != p2_roll ||
                 segments[i].side_p3_roll != p3_roll ||
-                segments[i].style != style)
+                segments[i].style != style ||
+                segments[i].gimmicks != nodeList[i1].gimmicks)
             {
                 if (i >= segments.size())
                 {
@@ -63,6 +64,8 @@ namespace Race
                 segment.side_p3 = p3;
 
                 segment.style = style;
+
+                segment.gimmicks = nodeList[i1].gimmicks;
 
                 rebuildIndexes.push_back(i0);
                 rebuildIndexes.push_back(i1);

@@ -234,31 +234,28 @@ private:
                 nodeList[i].style = static_cast<CourseSegmentStyle>(style);
             }
 
-            if (ImGui::CollapsingHeader(std::format("Gimmicks##{}", i).c_str()))
+            if (ImGui::Button(std::format("Add Gimmick##{}", i).c_str()))
             {
-                for (int g = 0; g < nodeList[i].gimmicks.size(); ++g)
+                nodeList[i].gimmicks.push_back(CourseGimmickKind::BoostPad_C);
+            }
+
+            for (int g = 0; g < nodeList[i].gimmicks.size(); ++g)
+            {
+                int gimmick = static_cast<int>(nodeList[i].gimmicks[g]);
+                if (ImGui::Combo(std::format("Gimmick [{}]##{}", g, i).c_str(),
+                                 &gimmick,
+                                 GetEnumCStrList<CourseGimmickKind>().data(),
+                                 static_cast<int>(CourseGimmickKind::Max)))
                 {
-                    int gimmick = static_cast<int>(nodeList[i].gimmicks[g]);
-                    if (ImGui::Combo(std::format("Gimmick [{}]##{}", g, i).c_str(),
-                                     &gimmick,
-                                     GetEnumCStrList<CourseGimmickKind>().data(),
-                                     static_cast<int>(CourseGimmickKind::Max)))
-                    {
-                        nodeList[i].gimmicks[g] = static_cast<CourseGimmickKind>(gimmick);
-                    }
-
-                    ImGui::SameLine();
-
-                    if (ImGui::Button(std::format("Delete [{}]##gimmicks{}", g, i).c_str()))
-                    {
-                        nodeList[i].gimmicks.erase(nodeList[i].gimmicks.begin() + g);
-                        break;
-                    }
+                    nodeList[i].gimmicks[g] = static_cast<CourseGimmickKind>(gimmick);
                 }
 
-                if (ImGui::Button(std::format("Add Gimmick##{}", i).c_str()))
+                ImGui::SameLine();
+
+                if (ImGui::Button(std::format("Delete [{}]##gimmicks{}", g, i).c_str()))
                 {
-                    nodeList[i].gimmicks.push_back(CourseGimmickKind::BoostPad_C);
+                    nodeList[i].gimmicks.erase(nodeList[i].gimmicks.begin() + g);
+                    break;
                 }
             }
         }

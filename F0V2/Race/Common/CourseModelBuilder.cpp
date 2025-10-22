@@ -443,20 +443,81 @@ namespace
 
     // -----------------------------------------------
 
-    void buildJumpPad(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildBoostPad_Road(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
+        constexpr float padElevation = 0.5f;
+        constexpr float padLength = 10.0f;
+
+        const int s0_index = segment.midwayStrips.size() / 2 - 1;
+        if (not InRange<int>(s0_index, 0, segment.midwayStrips.size() - 2))
+        {
+            return;
+        }
+
+        auto& s0 = segment.midwayStrips[s0_index];
+        auto& s1 = segment.midwayStrips[s0_index + 1];
+
+        const float padWidth = (s0.rightmost - s0.leftmost).length() / 3.0f;
+
+        const Float3 center = (s0.center + s1.center) * 0.5f + (s0.normal + s1.normal) * 0.5f * padElevation;
+        const Float3 normal = (s0.normal + s1.normal).normalized();
+        const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
+        const Float3 toForward = normal.cross(toRight).normalized();
+
+        const FaceVertex l0{
+            center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex r0{
+            center + toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex l1{
+            center - toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex r1{
+            center + toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
+            normal
+        };
+
+        Array<ModelVertex> vertices(8);
+        Array<uint16_t> indices(12);
+        int v_offset{};
+        int i_offset{};
+
+        pushGimmickFaces(
+            vertices, indices, v_offset, i_offset,
+            l0, r0, l1, r1,
+            GimmickTriangleAttribute::kind_t::BoostPad,
+            outCollider);
+
+        model.shapes.push_back(ModelShape{
+            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+        });
+        model.materials.push_back({
+            .name = "boost_pad",
+            .parameters = {
+                .diffuse = Float3{0.63, 0.03, 1}
+            }
+        });
     }
 
-    void buildGimmicks(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildGimmickModel(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         for (const auto& gimmick : segment.gimmicks)
         {
             switch (gimmick)
             {
-            case CourseGimmickKind::JumpPad_C:
-                buildJumpPad(segment, outCollider);
+            case CourseGimmickKind::BoostPad_C:
+                if (segment.style == CourseSegmentStyle::Road ||
+                    segment.style == CourseSegmentStyle::BarrierRoad)
+                {
+                    buildBoostPad_Road(model, segment, outCollider);
+                }
                 break;
             default:
+                assert(false && "buildGimmickModel(): gimmick kind is not supported.");
                 break;
             }
         }
@@ -485,6 +546,8 @@ namespace Race
             assert(false && "BuildCourseModel(): segment.style is not supported.");
             return {};
         }
+
+        buildGimmickModel(model, segment, outCollider);
 
         return model;
     }
