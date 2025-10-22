@@ -64,7 +64,7 @@ namespace
     Float2 gaussNewton_00_10_01_11(const std::array<Float3, 4>& p_00_10_01_11, const Float3& p)
     {
         float u = 0.5f, v = 0.5f;
-        constexpr int maxIteration = 5;
+        constexpr int maxIteration = 10;
         for (int iter = 0; iter < maxIteration; ++iter)
         {
             // 現在の点
