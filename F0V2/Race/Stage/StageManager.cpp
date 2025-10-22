@@ -66,7 +66,8 @@ namespace
 
     // TODO: StaticCollider の方に移動
     void drawBvh(
-        const TriangleBvh::Node* node, Immediate3D::LineSet& lineSet, std::pair<int, int> targetRange, int nest = 0)
+        const TriangleBvh::NodeReference& node, Immediate3D::LineSet& lineSet, std::pair<int, int> targetRange,
+        int nest = 0)
     {
         if (not node)
         {
@@ -80,18 +81,19 @@ namespace
 
         if (targetRange.first <= nest)
         {
-            lineSet.appendAabb(node->aabb());
+            lineSet.appendAabb(node.aabb());
         }
 
-        if (const auto* branch = node->asBranch())
+        if (const auto branch = node.asBranch())
         {
-            drawBvh(branch->left.get(), lineSet, targetRange, nest + 1);
-            drawBvh(branch->right.get(), lineSet, targetRange, nest + 1);
+            drawBvh(branch.left(), lineSet, targetRange, nest + 1);
+            drawBvh(branch.right(), lineSet, targetRange, nest + 1);
         }
     }
 
     void drawLeafAabb(
-        const TriangleBvh::Node* node, Immediate3D::LineSet& lineSet, int targetIndex, int* currentIndex = nullptr)
+        const TriangleBvh::NodeReference& node, Immediate3D::LineSet& lineSet, int targetIndex,
+        int* currentIndex = nullptr)
     {
         if (not node)
         {
@@ -105,11 +107,11 @@ namespace
             currentIndex = currentIndexPtr.get();
         }
 
-        if (const auto* leaf = node->asLeaf())
+        if (const auto leaf = node.asLeaf())
         {
             if (*currentIndex == targetIndex)
             {
-                lineSet.appendAabb(node->aabb());
+                lineSet.appendAabb(node.aabb());
             }
 
             ++(*currentIndex);
@@ -117,14 +119,14 @@ namespace
             return;
         }
 
-        if (const auto* branch = node->asBranch())
+        if (const auto branch = node.asBranch())
         {
-            drawLeafAabb(branch->left.get(), lineSet, targetIndex, currentIndex);
-            drawLeafAabb(branch->right.get(), lineSet, targetIndex, currentIndex);
+            drawLeafAabb(branch.left(), lineSet, targetIndex, currentIndex);
+            drawLeafAabb(branch.right(), lineSet, targetIndex, currentIndex);
         }
     }
 
-    void printBvhLeaf(const TriangleBvh::Node* node, int nest = 0)
+    void printBvhLeaf(const TriangleBvh::NodeReference& node, int nest = 0)
     {
         if (nest == 0)
         {
@@ -136,17 +138,17 @@ namespace
             return;
         }
 
-        if (const auto* leaf = node->asLeaf())
+        if (const auto leaf = node.asLeaf())
         {
-            std::cout << std::format("[{}] tris: {}, aabb-volume: {}\n", nest, leaf->tris.size(), leaf->aabb.volume());
+            std::cout << std::format("[{}] tris: {}, aabb-volume: {}\n", nest, leaf.triCount(), leaf.aabb().volume());
 
             return;
         }
 
-        if (const auto* branch = node->asBranch())
+        if (const auto branch = node.asBranch())
         {
-            printBvhLeaf(branch->left.get(), nest + 1);
-            printBvhLeaf(branch->right.get(), nest + 1);
+            printBvhLeaf(branch.left(), nest + 1);
+            printBvhLeaf(branch.right(), nest + 1);
         }
 
         if (nest == 0)

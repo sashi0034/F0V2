@@ -8,6 +8,18 @@ namespace
 
 namespace TY
 {
+    Aabb3D Triangle3D::aabb() const
+    {
+        Aabb3D box{p0, p0};
+
+        box.min = MinVector3(box.min, p1);
+        box.min = MinVector3(box.min, p2);
+
+        box.max = MaxVector3(box.max, p1);
+        box.max = MaxVector3(box.max, p2);
+        return box;
+    }
+
     Triangle3D Triangle3D::movedBy(const Float3& v) const
     {
         return Triangle3D{p0 + v, p1 + v, p2 + v};

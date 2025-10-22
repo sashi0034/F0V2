@@ -36,10 +36,10 @@ struct StageStaticCollider::Impl
 
         for (int i = 0; i < coursePolygoneList.size(); ++i)
         {
-            m_groundBvh.push_back(TriangleBvh(coursePolygoneList[i].groundTris));
+            m_groundBvh.push_back(std::move(TriangleBvh(coursePolygoneList[i].groundTris)));
             m_groundAttributes.push_back(std::move(coursePolygoneList[i].groundAttrs));
 
-            m_gimmickBvh.push_back(TriangleBvh(coursePolygoneList[i].gimmickTris));
+            m_gimmickBvh.push_back(std::move(TriangleBvh(coursePolygoneList[i].gimmickTris)));
             m_gimmickAttributes.push_back(std::move(coursePolygoneList[i].gimmickAttrs));
         }
 

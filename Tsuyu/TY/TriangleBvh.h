@@ -8,46 +8,70 @@ namespace TY
 {
     class TriangleBvh
     {
+        struct Impl;
+
     public:
         TriangleBvh() = default;
 
-        TriangleBvh(const Array<IndexedTriangle>& tris);
+        explicit TriangleBvh(const Array<IndexedTriangle>& tris);
 
-        struct Node;
-
-        struct Branch
+        struct Node
         {
             Aabb3D aabb{};
-            std::unique_ptr<Node> left{};
-            std::unique_ptr<Node> right{};
+            uint32_t leftIndex{};
+            uint32_t rightIndex{};
+            uint32_t triOffset{};
+            uint32_t triCount{};
+            bool isLeaf{};
 
-            explicit Branch(const Aabb3D& aabb, std::unique_ptr<Node> left, std::unique_ptr<Node> right);
+            bool isBranch() const
+            {
+                return not isLeaf;
+            }
+
+            void forEachTriangle(const std::function<void(const IndexedTriangle&)>& func, const Impl* p_impl) const;
         };
 
-        struct Leaf
+        struct BranchNodeReference;
+
+        struct LeafNodeReference;
+
+        struct NodeReference
         {
-            Aabb3D aabb{};
-            Array<IndexedTriangle> tris{};
+            const Node* node{};
+            std::shared_ptr<Impl> p_impl{};
 
-            explicit Leaf(const Aabb3D& aabb, const Array<IndexedTriangle>& tris);
-        };
+            operator bool() const;
 
-        struct Node : Variant<Branch, Leaf>
-        {
-            using Variant::Variant;
-
-            const Leaf* asLeaf() const;
-
-            const Branch* asBranch() const;
-
+            [[nodiscard]]
             Aabb3D aabb() const;
 
-            void forEachTriangle(const std::function<void(const IndexedTriangle&)>& func) const;
+            [[nodiscard]]
+            BranchNodeReference asBranch() const;
+
+            [[nodiscard]]
+            LeafNodeReference asLeaf() const;
+        };
+
+        struct BranchNodeReference : NodeReference
+        {
+            [[nodiscard]]
+            NodeReference left() const;
+
+            [[nodiscard]]
+            NodeReference right() const;
+        };
+
+        struct LeafNodeReference : NodeReference
+        {
+            [[nodiscard]]
+            size_t triCount() const;
         };
 
         struct NodeList
         {
             Array<Node> list{};
+            std::shared_ptr<Impl> p_impl{};
 
             void forEachTriangle(const std::function<void(const IndexedTriangle&)>& func) const;
         };
@@ -56,7 +80,7 @@ namespace TY
         Aabb3D aabb() const;
 
         [[nodiscard]]
-        const std::shared_ptr<Node>& root() const;
+        NodeReference root() const;
 
         [[nodiscard]]
         NodeList queryHits(const Aabb3D& aabb) const;
@@ -70,8 +94,6 @@ namespace TY
         std::optional<IndexedTriangle> sphereCast(const Capsule3D& capsule) const;
 
     private:
-        class Internal;
-
-        std::shared_ptr<Node> m_root;
+        std::shared_ptr<Impl> p_impl;
     };
 }
