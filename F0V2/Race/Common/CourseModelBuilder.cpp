@@ -120,7 +120,7 @@ namespace
         }
     }
 
-    void pushBarrierFaces(
+    void pushGimmickFaces(
         Array<ModelVertex>& vertices,
         Array<uint16_t>& indices,
         int& v_offset,
@@ -129,6 +129,7 @@ namespace
         const FaceVertex& r0,
         const FaceVertex& l1,
         const FaceVertex& r1,
+        GimmickTriangleAttribute::kind_t gimmick,
         CoursePolygoneCollider* outCollider = nullptr
     )
     {
@@ -168,19 +169,20 @@ namespace
                 l1.pos, l0.pos, r1.pos, outCollider->gimmickAttrs.size()
             });
             outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
-                GimmickTriangleAttribute::kind_t::Barrier
+                gimmick
             });
 
             outCollider->gimmickTris.push_back(IndexedTriangle{
                 r1.pos, l0.pos, r0.pos, outCollider->gimmickAttrs.size()
             });
             outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
-                GimmickTriangleAttribute::kind_t::Barrier
+                gimmick
             });
         }
     }
 
-    ModelBuffer buildRoadModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildRoadModel(
+        ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         Array<ModelVertex> groundVertices((segment.midwayStrips.size() - 1) * 8);
         Array<uint16_t> groundIndices((segment.midwayStrips.size() - 1) * 12);
@@ -228,48 +230,46 @@ namespace
                 const FaceVertex r0t{s0.rightmost + s0.normal * barrierHeight, -s0_l2r};
                 const FaceVertex r1t{s1.rightmost + s1.normal * barrierHeight, -s1_l2r};
 
-                pushBarrierFaces(
+                pushGimmickFaces(
                     gimmickVertices, gimmickIndices, gimmickVertexOffset, gimmickIndexOffset,
                     l0b, l1b, l0t, l1t,
+                    GimmickTriangleAttribute::kind_t::Barrier,
                     outCollider);
 
-                pushBarrierFaces(
+                pushGimmickFaces(
                     gimmickVertices, gimmickIndices, gimmickVertexOffset, gimmickIndexOffset,
                     r1b, r0b, r1t, r0t,
+                    GimmickTriangleAttribute::kind_t::Barrier,
                     outCollider);
             }
         }
 
-        Array<ModelMaterial> materials{};
-        materials.push_back({
+        model.shapes.push_back(ModelShape{
+            std::move(groundVertices), std::move(groundIndices), static_cast<uint16_t>(model.materials.size())
+        });
+        model.materials.push_back({
             .name = "plain",
             .parameters = {
                 .diffuse = Float3::One() * 0.5f
             }
         });
-        Array<ModelShape> shapes{
-            ModelShape{std::move(groundVertices), std::move(groundIndices), 0}
-        };
 
         if (hasBarrier)
         {
-            materials.push_back({
+            model.shapes.push_back(ModelShape{
+                std::move(gimmickVertices), std::move(gimmickIndices), static_cast<uint16_t>(model.materials.size())
+            });
+            model.materials.push_back({
                 .name = "barrier",
                 .parameters = {
                     .diffuse = Float3{0.97f, 0.53f, 0.00f}
                 }
             });
-            shapes.push_back(ModelShape{std::move(gimmickVertices), std::move(gimmickIndices), 1});
         }
-
-        ModelBuffer modelBuffer{
-            ModelShapeBuffer{std::move(shapes)}, std::move(materials)
-        };
-
-        return modelBuffer;
     }
 
-    ModelBuffer buildPipeModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildPipeModel(
+        ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         // TODO: 終端部分の調整
 
@@ -430,18 +430,36 @@ namespace
             }
         }
 
-        ModelMaterial material{};
-        material.name = "plain";
-        material.parameters.diffuse = Float3::One() * 0.5f;
+        model.shapes.push_back(
+            ModelShape{std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())}
+        );
+        model.materials.push_back({
+            .name = "plain",
+            .parameters = {
+                .diffuse = Float3::One() * 0.5f
+            }
+        });
+    }
 
-        ModelShapeBuffer shapeBuffer{
-            {ModelShape{std::move(vertices), std::move(indices), 0}}
-        };
-        ModelBuffer modelBuffer{
-            shapeBuffer, {material}
-        };
+    // -----------------------------------------------
 
-        return modelBuffer;
+    void buildJumpPad(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    {
+    }
+
+    void buildGimmicks(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    {
+        for (const auto& gimmick : segment.gimmicks)
+        {
+            switch (gimmick)
+            {
+            case CourseGimmickKind::JumpPad_C:
+                buildJumpPad(segment, outCollider);
+                break;
+            default:
+                break;
+            }
+        }
     }
 }
 
@@ -451,19 +469,23 @@ namespace Race
     {
         assert(segment.midwayStrips.size() > 0);
 
+        ModelData model{};
+
         if (segment.style == CourseSegmentStyle::Road ||
             segment.style == CourseSegmentStyle::BarrierRoad)
         {
-            return buildRoadModel(segment, outCollider);
+            buildRoadModel(model, segment, outCollider);
         }
         else if (segment.style == CourseSegmentStyle::Pipe)
         {
-            return buildPipeModel(segment, outCollider);
+            buildPipeModel(model, segment, outCollider);
         }
         else
         {
-            assert(false);
+            assert(false && "BuildCourseModel(): segment.style is not supported.");
             return {};
         }
+
+        return model;
     }
 }

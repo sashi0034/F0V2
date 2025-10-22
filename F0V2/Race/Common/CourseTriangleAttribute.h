@@ -39,6 +39,8 @@ namespace Race
         enum class kind_t : uint8_t
         {
             Barrier,
+            BoostPad,
+            JumpPad,
         };
 
         kind_t kind;
