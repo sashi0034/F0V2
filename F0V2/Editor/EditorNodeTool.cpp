@@ -236,7 +236,7 @@ private:
 
             if (ImGui::Button(std::format("Add Gimmick##{}", i).c_str()))
             {
-                nodeList[i].gimmicks.push_back(CourseGimmickKind::BoostPad_C);
+                nodeList[i].gimmicks.push_back({});
             }
 
             for (int g = 0; g < nodeList[i].gimmicks.size(); ++g)

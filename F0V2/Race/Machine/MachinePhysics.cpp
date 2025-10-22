@@ -279,7 +279,8 @@ namespace
     struct GimmickResult
     {
         std::optional<PushbackResult> pushback{};
-        int boostPad{};
+        bool boostPad{};
+        bool jumpPad{};
     };
 
     GimmickResult checkGimmickHit(
@@ -305,7 +306,11 @@ namespace
                 return result;
             }
             case GimmickTriangleAttribute::kind_t::BoostPad: {
-                result.boostPad += 1;
+                result.boostPad = true;
+                break;
+            }
+            case GimmickTriangleAttribute::kind_t::JumpPad: {
+                result.jumpPad = true;
                 break;
             }
             default:
@@ -414,6 +419,15 @@ namespace
             {
                 // Boost 発生
                 state.m_additionalBoost = 1.0f;
+            }
+
+            if (gimmickResult.jumpPad > 0.0f)
+            {
+                // Jump 発生
+                state.m_velocity = -state.m_gravity * 50.0; // TODO: 現在の速度に応じてジャンプ量を決める
+
+                state.m_surfaceNormal = {};
+                state.m_surfaceToTriangle = {};
             }
 
             if (gimmickResult.pushback.has_value())
