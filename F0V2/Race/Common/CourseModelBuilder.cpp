@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "CourseBuilder.h"
+#include "CourseModelBuilder.h"
 
 #include "CourseConstants.h"
 #include "TY/Quaternion.h"

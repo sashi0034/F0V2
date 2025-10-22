@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Race/Common/CourseBuilder.h"
+#include "Race/Common/CourseModelBuilder.h"
 #include "Race/Common/CourseTriangleAttribute.h"
 #include "TY/Array.h"
 #include "TY/IndexedTriangle.h"
