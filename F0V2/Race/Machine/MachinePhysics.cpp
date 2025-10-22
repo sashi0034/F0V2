@@ -15,6 +15,20 @@ namespace
 {
     constexpr float epsGround = 1e-2f;
 
+    void debugDrawTriangle(const IndexedTriangle& tri, const Float3 normal)
+    {
+        const auto triCenter = tri.centroid();
+        Immediate3D::Line{
+                triCenter,
+                triCenter + normal * 10
+            }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f})
+             .pushAuto();
+        Immediate3D::LineSet{}
+            .appendTriangle(tri.movedBy(tri.getNormal() * 0.1f))
+            .setColor(ColorF32{1.0f, 1.0f, 0.5f})
+            .pushAuto();
+    }
+
     struct HitSurface
     {
         float moveDistance;
@@ -24,16 +38,7 @@ namespace
 
         void debugDraw() const
         {
-            const auto triCenter = tri.centroid();
-            Immediate3D::Line{
-                    triCenter,
-                    triCenter + normal * 10
-                }.setColor(ColorF32{1.0f, 0.0f, 1.0f}, ColorF32{0.5f, 0, 0.5f})
-                 .pushAuto();
-            Immediate3D::LineSet{}
-                .appendTriangle(tri.movedBy(tri.getNormal() * 0.1f))
-                .setColor(ColorF32{1.0f, 1.0f, 0.5f})
-                .pushAuto();
+            debugDrawTriangle(tri, normal);
         }
     };
 
@@ -188,6 +193,11 @@ namespace
         float moveDistance;
         IndexedTriangle tri;
         Float3 normal;
+
+        void debugDraw() const
+        {
+            debugDrawTriangle(tri, normal);
+        }
     };
 
     struct PushbackResult
@@ -329,6 +339,11 @@ namespace
             if (gimmickResult.pushback.has_value())
             {
                 const auto& pushback = *gimmickResult.pushback;
+
+                if (props.debug.drawHitTris)
+                {
+                    pushback.hitTri.debugDraw();
+                }
 
                 // 押し戻し処理
                 state.m_pose.position = pushback.newPos;
