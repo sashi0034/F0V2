@@ -13,6 +13,13 @@ namespace Race
         Max // end marker
     };
 
+    enum class CourseGimmickKind : uint8_t
+    {
+        BoostPad_C,
+        JumpPad_C,
+        Max // end marker
+    };
+
     struct CourseStrip
     {
         Float3 center{};
@@ -45,7 +52,10 @@ namespace Race
 
         CourseSegmentStyle style{};
 
+        Array<CourseGimmickKind> gimmicks{};
+
         Array<CourseStrip> midwayStrips{};
+
         float totalLength{};
     };
 
@@ -54,6 +64,7 @@ namespace Race
         Float3 pos{};
         int roll{}; // degrees
         CourseSegmentStyle style{};
+        Array<CourseGimmickKind> gimmicks{};
 
         float rollRadians() const;
     };

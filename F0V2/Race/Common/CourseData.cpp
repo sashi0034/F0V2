@@ -45,6 +45,22 @@ namespace Race
                                 .value_or(CourseSegmentStyle{});
                         }
 
+                        if (auto* gimmickArr = (*nodeTbl)["gimmicks"].as_array())
+                        {
+                            for (auto&& gimmickVal : *gimmickArr)
+                            {
+                                if (auto* gimmickStr = gimmickVal.as_string())
+                                {
+                                    auto gimmickOpt =
+                                        Util::GetEnumValueByName<CourseGimmickKind>(gimmickStr->get());
+                                    if (gimmickOpt.has_value())
+                                    {
+                                        node.gimmicks.push_back(gimmickOpt.value());
+                                    }
+                                }
+                            }
+                        }
+
                         result.nodes.push_back(node);
                     }
                 }
@@ -74,6 +90,20 @@ namespace Race
             nodeTbl.insert("pos", std::move(posArr));
             nodeTbl.insert("roll", node.roll);
             nodeTbl.insert("style", Util::GetEnumName(node.style));
+
+            {
+                auto gimmicks = node.gimmicks;
+                std::ranges::sort(gimmicks);
+                gimmicks.erase(std::ranges::unique(gimmicks).begin(), gimmicks.end());
+
+                auto gimmickArr = toml::array{};
+                for (const auto& gimmick : gimmicks)
+                {
+                    gimmickArr.push_back(Util::GetEnumName(gimmick));
+                }
+
+                nodeTbl.insert("gimmicks", std::move(gimmickArr));
+            }
 
             nodesArr.push_back(std::move(nodeTbl));
         }

@@ -393,6 +393,34 @@ private:
             {
                 nodeList[i].style = static_cast<CourseSegmentStyle>(style);
             }
+
+            if (ImGui::CollapsingHeader(std::format("Gimmicks##{}", i).c_str()))
+            {
+                for (int g = 0; g < nodeList[i].gimmicks.size(); ++g)
+                {
+                    int gimmick = static_cast<int>(nodeList[i].gimmicks[g]);
+                    if (ImGui::Combo(std::format("Gimmick [{}]##{}", g, i).c_str(),
+                                     &gimmick,
+                                     GetEnumCStrList<CourseGimmickKind>().data(),
+                                     static_cast<int>(CourseGimmickKind::Max)))
+                    {
+                        nodeList[i].gimmicks[g] = static_cast<CourseGimmickKind>(gimmick);
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button(std::format("Delete [{}]##gimmicks{}", g, i).c_str()))
+                    {
+                        nodeList[i].gimmicks.erase(nodeList[i].gimmicks.begin() + g);
+                        break;
+                    }
+                }
+
+                if (ImGui::Button(std::format("Add Gimmick##{}", i).c_str()))
+                {
+                    nodeList[i].gimmicks.push_back(CourseGimmickKind::BoostPad_C);
+                }
+            }
         }
 
         for (auto it = removeIndex.rbegin(); it != removeIndex.rend(); ++it)
