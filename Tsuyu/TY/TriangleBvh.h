@@ -70,7 +70,7 @@ namespace TY
 
         struct NodeList
         {
-            Array<Node> list{};
+            Array<const Node*> list{};
             std::shared_ptr<Impl> p_impl{};
 
             void forEachTriangle(const std::function<void(const IndexedTriangle&)>& func) const;

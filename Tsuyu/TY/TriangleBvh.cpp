@@ -91,7 +91,7 @@ struct TriangleBvh::Impl
         return nodeIndex;
     }
 
-    void QueryHits(const Aabb3D& aabb, Array<Node>& outHits) const
+    void QueryHits(const Aabb3D& aabb, Array<const Node*>& outHits) const
     {
         if (m_nodes.empty())
         {
@@ -114,7 +114,7 @@ struct TriangleBvh::Impl
 
             if (node.isLeaf)
             {
-                outHits.push_back(node);
+                outHits.push_back(&node);
             }
             else
             {
@@ -265,7 +265,7 @@ namespace TY
     {
         for (const auto& node : list)
         {
-            node.forEachTriangle(func, p_impl.get());
+            node->forEachTriangle(func, p_impl.get());
         }
     }
 
