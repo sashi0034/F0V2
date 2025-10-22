@@ -16,6 +16,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/ImmediateDrawer.h"
+#include "TY/MipmappedDynamicTexture.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 
@@ -23,7 +24,7 @@ using namespace Race;
 
 namespace
 {
-    DynamicTexture makeGroundPlane(
+    MipmappedDynamicTexture makeGroundPlane(
         const Size& size, int lineSpacing, const UnifiedColor& lineColor, const UnifiedColor& backColor)
     {
         Image image{size, backColor};

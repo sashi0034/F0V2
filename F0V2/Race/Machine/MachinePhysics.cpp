@@ -56,7 +56,7 @@ namespace
         return bilinear_00_10_01_11(p, Float2{u, v});
     }
 
-    Float2 newtonUV_00_10_01_11(const std::array<Float3, 4>& p_00_10_01_11, const Float3& p)
+    Float2 gaussNewton_00_10_01_11(const std::array<Float3, 4>& p_00_10_01_11, const Float3& p)
     {
         float u = 0.5f, v = 0.5f;
         constexpr int maxIteration = 5;
@@ -159,7 +159,7 @@ namespace
 
         const std::array<Float3, 4> p_00_10_01_11 =
             TrianglePatternUtil::ArrangePoints_00_10_01_11(tri.p0, tri.p1, tri.p2, attr);
-        const Float2 normalUV = newtonUV_00_10_01_11(p_00_10_01_11, I);
+        const Float2 normalUV = gaussNewton_00_10_01_11(p_00_10_01_11, I);
 
         Float3 normal = bilinear_00_10_01_11(attr.normals_00_10_01_11, normalUV).normalized();
         if (normal.isZero())
@@ -291,7 +291,7 @@ namespace
             {
             case GimmickTriangleAttribute::kind_t::Barrier: {
                 result.pushback = pushbackFromTriangle(state, fromPos, toPos, hit.triangle);
-                break;
+                return result;
             }
             default:
                 assert(false && "tryMoveGimmickPosition(): Unsupported gimmick triangle kind");
@@ -335,8 +335,8 @@ namespace
 
                 // TODO: 実装の整理
 
-                state.m_surfaceNormal = {};
-                state.m_surfaceToTriangle = {};
+                // state.m_surfaceNormal = {};
+                // state.m_surfaceToTriangle = {};
 
                 const Float3 n = pushback.hitTri.normal;
                 state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
@@ -356,6 +356,7 @@ namespace
                 if (nest < maxNest)
                 {
                     updateCapsulePosition(state, props, state.m_pose.position, newMoveVector, nest + 1);
+                    return;
                 }
             }
         }
@@ -394,6 +395,7 @@ namespace
             if (nest < maxNest)
             {
                 updateCapsulePosition(state, props, state.m_pose.position, newMoveVector, nest + 1);
+                return;
             }
         }
     }
