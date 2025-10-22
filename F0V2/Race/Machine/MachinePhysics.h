@@ -24,6 +24,8 @@ namespace Race
 
         Float3 m_surfaceToTriangle{};
 
+        float m_additionalBoost{};
+
         LapProgress m_lapProgress{};
 
         Float3 rightVector() const;

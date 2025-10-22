@@ -279,6 +279,7 @@ namespace
     struct GimmickResult
     {
         std::optional<PushbackResult> pushback{};
+        int boostPad{};
     };
 
     GimmickResult checkGimmickHit(
@@ -302,6 +303,10 @@ namespace
             case GimmickTriangleAttribute::kind_t::Barrier: {
                 result.pushback = pushbackFromTriangle(state, fromPos, toPos, hit.triangle);
                 return result;
+            }
+            case GimmickTriangleAttribute::kind_t::BoostPad: {
+                result.boostPad += 1;
+                break;
             }
             default:
                 assert(false && "tryMoveGimmickPosition(): Unsupported gimmick triangle kind");
@@ -404,6 +409,13 @@ namespace
             const Float3 moveVector2 = moveVector * resultMoveVector.dot(moveVector) / moveVector.lengthSq();
 
             const auto gimmickResult = checkGimmickHit(state, fromPos, fromPos + moveVector2);
+
+            if (gimmickResult.boostPad > 0.0f)
+            {
+                // Boost 発生
+                state.m_additionalBoost = 1.0f;
+            }
+
             if (gimmickResult.pushback.has_value())
             {
                 // Barrier の押し戻し処理
@@ -637,6 +649,14 @@ namespace Race
             state.m_velocity = state.m_velocity.normalized() * maxSpeed;
         }
 
+        // ブースト処理
+        if (state.m_additionalBoost > 0.0f)
+        {
+            state.m_velocity += state.m_forwardVector * 100.0f * Min(1.0f, state.m_additionalBoost) * InGameDeltaTime();
+
+            state.m_additionalBoost = Max<float>(0.0f, state.m_additionalBoost - InGameDeltaTime());
+        }
+
         // 移動処理
         {
             Float3 moveVector = state.m_velocity * InGameDeltaTime();
@@ -698,6 +718,11 @@ namespace Race
         }
 
         state.m_forwardVector = state.m_forwardVector.normalized();
+
+        if (state.m_additionalBoost > 0.0f)
+        {
+            ImmediatePrint("<<< BOOST >>>", Alignment9::MiddleCenter);
+        }
 
         ImmediatePrint(
             std::format("Pos: {:.02f}, {:.02f}, {:.02f}", state.m_pose.position.x, state.m_pose.position.y,
