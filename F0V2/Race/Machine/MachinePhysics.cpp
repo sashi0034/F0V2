@@ -566,13 +566,7 @@ namespace
         if (nearestStrip.style == CourseSegmentStyle::Road ||
             nearestStrip.style == CourseSegmentStyle::BarrierRoad)
         {
-            Float3 n = state.m_surfaceNormal; // TODO: m_surfaceNormal を使わずに計算する (絶対) 
-            if (n.isZero())
-            {
-                n = nearestStrip.normal;
-            }
-
-            return -n;
+            return -nearestStrip.normal;
         }
         else if (nearestStrip.style == CourseSegmentStyle::Pipe)
         {
