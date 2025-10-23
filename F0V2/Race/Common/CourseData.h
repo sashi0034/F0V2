@@ -9,6 +9,7 @@ namespace Race
     {
         Road,
         Pipe,
+        Cylinder,
         Max // end marker
     };
 

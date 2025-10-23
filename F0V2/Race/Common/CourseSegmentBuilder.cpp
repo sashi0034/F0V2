@@ -104,6 +104,7 @@ namespace Race
             const auto midwayRolls = Util::GenerateCatmullRomAngles(
                 segment.side_p0_roll, segment.p1_roll, segment.p2_roll, segment.side_p3_roll, samplesPerSegment);
 
+            // midwayPositions ごとに strip を構築
             for (int m = 0; m < midwayPositions.size() - 1 /* 終端は除外 */; ++m)
             {
                 CourseStrip strip{};
@@ -128,6 +129,32 @@ namespace Race
                 strip.leftmost = strip.center - right * width;
                 strip.rightmost = strip.center + right * width;
 
+                if (segment.style == CourseSegmentStyle::Pipe)
+                {
+                    for (int t = 0; t < PipeSubdivision; ++t)
+                    {
+                        // 円周上の方向ベクトルを計算
+                        const float angle =
+                            Math::HalfPiF - (0.5 + static_cast<float>(t) / PipeSubdivision) * Math::TwoPi_v<float>;
+                        const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
+                        strip.pipe.ringVectors[t] = dir;
+                    }
+                }
+                else if (segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    for (int t = 0; t < CylinderSubdivision; ++t)
+                    {
+                        // 円周上の方向ベクトルを計算
+                        const float angle =
+                            (0.5 + static_cast<float>(t) / CylinderSubdivision) * Math::TwoPi_v<float>;
+                        const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
+                        strip.pipe.ringVectors[t] = dir;
+                    }
+                }
+
+                // -----------------------------------------------
+                // <-- strip.style
+
                 strip.style = segment.style;
 
                 if (strip.style == CourseSegmentStyle::Pipe)
@@ -145,19 +172,24 @@ namespace Race
                         strip.style = CourseSegmentStyle::Road;
                     }
                 }
-
-                if (strip.style == CourseSegmentStyle::Pipe)
+                else if (strip.style == CourseSegmentStyle::Cylinder)
                 {
-                    // トンネル頂点の計算
-                    for (int t = 0; t < PipeSubdivision; ++t)
+                    if (priorSegment.style != CourseSegmentStyle::Cylinder &&
+                        m < 1)
                     {
-                        // 円周上の方向ベクトルを計算
-                        const float angle =
-                            Math::HalfPiF - (0.5 + static_cast<float>(t) / PipeSubdivision) * Math::TwoPi_v<float>;
-                        const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
-                        strip.pipe.ringVectors[t] = dir;
+                        // 入口
+                        strip.style = CourseSegmentStyle::Road;
+                    }
+                    else if (nextSegment.style != CourseSegmentStyle::Cylinder &&
+                        m >= midwayPositions.size() - 1)
+                    {
+                        // 出口
+                        strip.style = CourseSegmentStyle::Road;
                     }
                 }
+
+                // --> strip.style
+                // -----------------------------------------------
 
                 segment.midwayStrips.push_back(strip);
             }

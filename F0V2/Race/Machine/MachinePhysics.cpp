@@ -585,42 +585,19 @@ namespace
         }
         else if (nearestStrip.style == CourseSegmentStyle::Pipe)
         {
-            if (nearestStrip.pipe.ringVectors[0].isZero())
-            {
-                // FIXME
-                return -nearestStrip.normal;
-            }
+            assert(not nearestStrip.pipe.ringVectors[0].isZero());
 
-            // トンネル内の重力
-
-            // 連続的に計算
             const auto line = Line3D::FromPoints(nearestStrip.center, nearestStrip.center + nearestStrip.toNext);
-
             const Float3 p = line.projectPoint(position);
             return (position - p).normalized();
+        }
+        else if (nearestStrip.style == CourseSegmentStyle::Cylinder)
+        {
+            assert(not nearestStrip.pipe.ringVectors[0].isZero());
 
-            // 離散的に計算
-            // const auto& ringVectors = nearestStrip.pipe.ringVectors;
-            // std::array<Float3, PipeSubdivision> ringPoints{}; // リング上の仮点
-            // for (int i = 0; i < PipeSubdivision; ++i)
-            // {
-            //     const Float3 dir = ringVectors[i] + ringVectors[(i + 1) % PipeSubdivision];
-            //     ringPoints[i] = nearestStrip.center + dir;
-            // }
-            //
-            // float minDistSq = FLT_MAX;
-            // int minIndex{};
-            // for (int i = 0; i < PipeSubdivision; ++i)
-            // {
-            //     const float distSq = DistanceSq(position, ringPoints[i]);
-            //     if (distSq < minDistSq)
-            //     {
-            //         minDistSq = distSq;
-            //         minIndex = i;
-            //     }
-            // }
-            //
-            // return (ringPoints[minIndex] - nearestStrip.center).normalized();
+            const auto line = Line3D::FromPoints(nearestStrip.center, nearestStrip.center + nearestStrip.toNext);
+            const Float3 p = line.projectPoint(position);
+            return (p - position).normalized();
         }
 
         assert(false);

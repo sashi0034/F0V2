@@ -305,7 +305,7 @@ namespace
             std::array<Float3, subdivision> n0s = s0.pipe.ringVectors;
             std::array<Float3, subdivision> n1s = s1.pipe.ringVectors;
 
-            // 表面
+            // 円周上の面作成
             for (int i0 = 0; i0 < subdivision; ++i0)
             {
                 const int i1 = (i0 + 1) % subdivision;
@@ -377,6 +377,132 @@ namespace
                 }
             }
         }
+
+        model.shapes.push_back(
+            ModelShape{std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())}
+        );
+        model.materials.push_back({
+            .name = "plain",
+            .parameters = {
+                .diffuse = Float3::One() * 0.5f
+            }
+        });
+    }
+
+    void buildCylinderModel(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    {
+        constexpr int subdivision = CylinderSubdivision;
+
+        const int hasEntry = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
+            segment.midwayStrips[0].style != CourseSegmentStyle::Cylinder;
+
+        const bool hasExit = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
+            segment.midwayStrips[segment.midwayStrips.size() - 1].style != CourseSegmentStyle::Cylinder;
+
+        // -----------------------------------------------
+
+        Array<ModelVertex> vertices(
+            // (hasEntry + hasExit) * CylinderEntryExitStrips * (halfSubdivision1 * 4 * 2) +
+            (segment.midwayStrips.size() - 1) * (subdivision * 4 * 2));
+        Array<uint16_t> indices(
+            // (hasEntry + hasExit) * CylinderEntryExitStrips * (halfSubdivision1 * 6 * 2) +
+            (segment.midwayStrips.size() - 1) * (subdivision * 6 * 2));
+        int v_offset{};
+        int i_offset{};
+
+        // -----------------------------------------------
+
+        // if (hasEntry)
+        // {
+        //     for (int s = 0; s < CylinderEntryExitStrips - 1; ++s)
+        //     {
+        //         auto& s0 = segment.midwayStrips[s];
+        //         auto& s1 = segment.midwayStrips[s + 1];
+        //
+        //         const FaceVertex l0{s0.leftmost, s0.normal};
+        //         const FaceVertex r0{s0.rightmost, s0.normal};
+        //         const FaceVertex l1{s1.leftmost, s1.normal};
+        //         const FaceVertex r1{s1.rightmost, s1.normal};
+        //
+        //         pushGroundFaces(
+        //             vertices, indices, v_offset, i_offset,
+        //             l0, r0, l1, r1,
+        //             outCollider);
+        //     }
+        // }
+
+        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
+        {
+            auto& s0 = segment.midwayStrips[m];
+            auto& s1 = segment.midwayStrips[m + 1];
+
+            std::array<Float3, subdivision> n0s = s0.pipe.ringVectors;
+            std::array<Float3, subdivision> n1s = s1.pipe.ringVectors;
+
+            constexpr float baseRadius = 15.0f;
+
+            const auto getRadius = [&](int m_) -> float
+            {
+                float radius = baseRadius;
+                if (hasEntry && m_ < CylinderEntryExitStrips)
+                {
+                    radius *= static_cast<float>(m_) / CylinderEntryExitStrips;
+                }
+                else if (hasExit && m_ >= segment.midwayStrips.size() - 1 - CylinderEntryExitStrips)
+                {
+                    radius *= static_cast<float>(segment.midwayStrips.size() - 1 - m_) / CylinderEntryExitStrips;
+                }
+
+                return radius;
+            };
+
+            const float radius0 = getRadius(m);
+            const float radius1 = getRadius(m + 1);
+
+            // 円周上の面作成
+            for (int i0 = 0; i0 < subdivision; ++i0)
+            {
+                const int i1 = (i0 + 1) % subdivision;
+
+                FaceVertex l0, r0, l1, r1;
+
+                l0.pos = s0.center + n0s[i0] * radius0;
+                r0.pos = s0.center + n0s[i1] * radius0;
+                l1.pos = s1.center + n1s[i0] * radius1;
+                r1.pos = s1.center + n1s[i1] * radius1;
+
+                l0.normal = n0s[i0];
+                r0.normal = n0s[i1];
+                l1.normal = n1s[i0];
+                r1.normal = n1s[i1];
+
+                pushGroundFaces(
+                    vertices, indices, v_offset, i_offset,
+                    l0, r0, l1, r1,
+                    outCollider);
+            }
+        }
+
+        // if (hasExit)
+        // {
+        //     for (int s = segment.midwayStrips.size() - 1 - PipeEntryExitStrips;
+        //          s < segment.midwayStrips.size() - 1;
+        //          ++s)
+        //     {
+        //         auto& s0 = segment.midwayStrips[s];
+        //         auto& s1 = segment.midwayStrips[s + 1];
+        //
+        //         const FaceVertex l0{s0.leftmost, s0.normal};
+        //         const FaceVertex r0{s0.rightmost, s0.normal};
+        //         const FaceVertex l1{s1.leftmost, s1.normal};
+        //         const FaceVertex r1{s1.rightmost, s1.normal};
+        //
+        //         pushGroundFaces(
+        //             vertices, indices, v_offset, i_offset,
+        //             l0, r0, l1, r1,
+        //             outCollider);
+        //     }
+        // }
 
         model.shapes.push_back(
             ModelShape{std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())}
@@ -610,6 +736,10 @@ namespace Race
         else if (segment.style == CourseSegmentStyle::Pipe)
         {
             buildPipeModel(model, segment, outCollider);
+        }
+        else if (segment.style == CourseSegmentStyle::Cylinder)
+        {
+            buildCylinderModel(model, segment, outCollider);
         }
         else
         {
