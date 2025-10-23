@@ -579,8 +579,7 @@ namespace
 
         const auto& nearestStrip = nearestSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
 
-        if (nearestStrip.style == CourseSegmentStyle::Road ||
-            nearestStrip.style == CourseSegmentStyle::BarrierRoad)
+        if (nearestStrip.style == CourseSegmentStyle::Road)
         {
             return -nearestStrip.normal;
         }

@@ -184,17 +184,10 @@ namespace
     void buildRoadModel(
         ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
-        Array<ModelVertex> groundVertices((segment.midwayStrips.size() - 1) * 8);
-        Array<uint16_t> groundIndices((segment.midwayStrips.size() - 1) * 12);
-        int groundVertexOffset{};
-        int groundIndexOffset{};
-
-        const bool hasBarrier = segment.style == CourseSegmentStyle::BarrierRoad;
-
-        Array<ModelVertex> gimmickVertices(hasBarrier ? (segment.midwayStrips.size() - 1) * 2 * 8 : 0);
-        Array<uint16_t> gimmickIndices(hasBarrier ? (segment.midwayStrips.size() - 1) * 2 * 12 : 0);
-        int gimmickVertexOffset{};
-        int gimmickIndexOffset{};
+        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
+        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
+        int v_offset{};
+        int i_offset{};
 
         for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
         {
@@ -207,45 +200,13 @@ namespace
             const FaceVertex r1{s1.rightmost, s1.normal};
 
             pushGroundFaces(
-                groundVertices, groundIndices, groundVertexOffset, groundIndexOffset,
+                vertices, indices, v_offset, i_offset,
                 l0, r0, l1, r1,
                 outCollider);
-
-            if (hasBarrier)
-            {
-                constexpr float barrierHeight = 2.5f;
-
-                const Float3 s0_l2r = (s0.rightmost - s0.leftmost).normalized();
-                const Float3 s1_l2r = (s1.rightmost - s1.leftmost).normalized();
-
-                const FaceVertex l0b{s0.leftmost, s0_l2r};
-                const FaceVertex l1b{s1.leftmost, s1_l2r};
-
-                const FaceVertex l0t{s0.leftmost + s0.normal * barrierHeight, s0_l2r};
-                const FaceVertex l1t{s1.leftmost + s1.normal * barrierHeight, s1_l2r};
-
-                const FaceVertex r0b{s0.rightmost, -s0_l2r};
-                const FaceVertex r1b{s1.rightmost, -s1_l2r};
-
-                const FaceVertex r0t{s0.rightmost + s0.normal * barrierHeight, -s0_l2r};
-                const FaceVertex r1t{s1.rightmost + s1.normal * barrierHeight, -s1_l2r};
-
-                pushGimmickFaces(
-                    gimmickVertices, gimmickIndices, gimmickVertexOffset, gimmickIndexOffset,
-                    l0b, l1b, l0t, l1t,
-                    GimmickTriangleAttribute::kind_t::Barrier,
-                    outCollider);
-
-                pushGimmickFaces(
-                    gimmickVertices, gimmickIndices, gimmickVertexOffset, gimmickIndexOffset,
-                    r1b, r0b, r1t, r0t,
-                    GimmickTriangleAttribute::kind_t::Barrier,
-                    outCollider);
-            }
         }
 
         model.shapes.push_back(ModelShape{
-            std::move(groundVertices), std::move(groundIndices), static_cast<uint16_t>(model.materials.size())
+            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
         });
         model.materials.push_back({
             .name = "plain",
@@ -253,19 +214,6 @@ namespace
                 .diffuse = Float3::One() * 0.5f
             }
         });
-
-        if (hasBarrier)
-        {
-            model.shapes.push_back(ModelShape{
-                std::move(gimmickVertices), std::move(gimmickIndices), static_cast<uint16_t>(model.materials.size())
-            });
-            model.materials.push_back({
-                .name = "barrier",
-                .parameters = {
-                    .diffuse = Float3{0.97f, 0.53f, 0.00f}
-                }
-            });
-        }
     }
 
     void buildPipeModel(
@@ -293,8 +241,8 @@ namespace
         Array<uint16_t> indices(
             (hasEntry + hasExit) * PipeEntryExitStrips * (halfSubdivision1 * 6 * 2) +
             (pipeStrips - 1) * (subdivision * 6 * 2));
-        int ground_v{};
-        int ground_i{};
+        int v_offset{};
+        int i_offset{};
 
         // -----------------------------------------------
 
@@ -342,7 +290,7 @@ namespace
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
                     pushGroundFaces(
-                        vertices, indices, ground_v, ground_i,
+                        vertices, indices, v_offset, i_offset,
                         l0, r0, l1, r1,
                         outCollider);
                 }
@@ -375,7 +323,7 @@ namespace
                 r1.normal = -n1s[i1];
 
                 pushGroundFaces(
-                    vertices, indices, ground_v, ground_i,
+                    vertices, indices, v_offset, i_offset,
                     l0, r0, l1, r1,
                     outCollider);
             }
@@ -423,7 +371,7 @@ namespace
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
                     pushGroundFaces(
-                        vertices, indices, ground_v, ground_i,
+                        vertices, indices, v_offset, i_offset,
                         l0, r0, l1, r1,
                         outCollider);
                 }
@@ -442,6 +390,58 @@ namespace
     }
 
     // -----------------------------------------------
+
+    void buildBarrier_Road(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    {
+        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 2 * 8);
+        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 2 * 12);
+        int v_offset{};
+        int i_offset{};
+
+        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
+        {
+            auto& s0 = segment.midwayStrips[m];
+            auto& s1 = segment.midwayStrips[m + 1];
+
+            constexpr float barrierHeight = 2.5f;
+
+            const Float3 s0_l2r = (s0.rightmost - s0.leftmost).normalized();
+            const Float3 s1_l2r = (s1.rightmost - s1.leftmost).normalized();
+
+            const FaceVertex l0b{s0.leftmost, s0_l2r};
+            const FaceVertex l1b{s1.leftmost, s1_l2r};
+
+            const FaceVertex l0t{s0.leftmost + s0.normal * barrierHeight, s0_l2r};
+            const FaceVertex l1t{s1.leftmost + s1.normal * barrierHeight, s1_l2r};
+
+            const FaceVertex r0b{s0.rightmost, -s0_l2r};
+            const FaceVertex r1b{s1.rightmost, -s1_l2r};
+
+            const FaceVertex r0t{s0.rightmost + s0.normal * barrierHeight, -s0_l2r};
+            const FaceVertex r1t{s1.rightmost + s1.normal * barrierHeight, -s1_l2r};
+
+            pushGimmickFaces(
+                vertices, indices, v_offset, i_offset,
+                l0b, l1b, l0t, l1t,
+                GimmickTriangleAttribute::kind_t::Barrier,
+                outCollider);
+            pushGimmickFaces(
+                vertices, indices, v_offset, i_offset,
+                r1b, r0b, r1t, r0t,
+                GimmickTriangleAttribute::kind_t::Barrier,
+                outCollider);
+        }
+
+        model.shapes.push_back(ModelShape{
+            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+        });
+        model.materials.push_back({
+            .name = "barrier",
+            .parameters = {
+                .diffuse = Float3{0.97f, 0.53f, 0.00f}
+            }
+        });
+    }
 
     void buildBoostPad_Road(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
@@ -569,16 +569,20 @@ namespace
         {
             switch (gimmick)
             {
+            case CourseGimmickKind::Barrier:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildBarrier_Road(model, segment, outCollider);
+                }
+                break;
             case CourseGimmickKind::BoostPad_C:
-                if (segment.style == CourseSegmentStyle::Road ||
-                    segment.style == CourseSegmentStyle::BarrierRoad)
+                if (segment.style == CourseSegmentStyle::Road)
                 {
                     buildBoostPad_Road(model, segment, outCollider);
                 }
                 break;
             case CourseGimmickKind::JumpPad_C:
-                if (segment.style == CourseSegmentStyle::Road ||
-                    segment.style == CourseSegmentStyle::BarrierRoad)
+                if (segment.style == CourseSegmentStyle::Road)
                 {
                     buildJumpPad_Road(model, segment, outCollider);
                 }
@@ -599,8 +603,7 @@ namespace Race
 
         ModelData model{};
 
-        if (segment.style == CourseSegmentStyle::Road ||
-            segment.style == CourseSegmentStyle::BarrierRoad)
+        if (segment.style == CourseSegmentStyle::Road)
         {
             buildRoadModel(model, segment, outCollider);
         }

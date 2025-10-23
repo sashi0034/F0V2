@@ -8,13 +8,13 @@ namespace Race
     enum class CourseSegmentStyle : uint8_t
     {
         Road,
-        BarrierRoad, // TODO: Gimmick 化
         Pipe,
         Max // end marker
     };
 
     enum class CourseGimmickKind : uint8_t
     {
+        Barrier,
         BoostPad_C,
         JumpPad_C,
         Max // end marker
