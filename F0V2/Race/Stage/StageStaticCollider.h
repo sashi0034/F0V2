@@ -17,6 +17,7 @@ namespace Race
         {
             IndexedTriangle triangle;
             GroundTriangleAttribute attribute;
+            Float3 hitPosition;
         };
 
         struct gimmick_hit

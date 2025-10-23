@@ -54,15 +54,36 @@ struct Player::Impl : GameObjectBase
     }
 
 private:
+    Float3 computeEyePosition() const
+    {
+        const Float3 forwardVector = m_physicsState.m_forwardVector;
+
+        const Float3 orign = m_physicsState.m_pose.position - forwardVector.normalized() * 0.1f;
+
+        constexpr float cameraBackward = 15.0f;
+        constexpr float cameraHeight = 5.0f;
+
+        const Float3 optimalEyePos =
+            orign - forwardVector.normalized() * cameraBackward + m_cameraUp * cameraHeight;
+
+        const auto ray = LineSegment3D{orign, optimalEyePos};
+        const auto hit =
+            GetRaceContext().stageManager().stageStaticCollider().rayCastGround(ray);
+        if (hit.has_value())
+        {
+            // 地面にカメラが遮られているなら、その面に垂線の足をおろしてカメラ位置とする
+            const Float3 H = hit->triangle.asPlane().projection(optimalEyePos);
+            return H;
+        }
+
+        return optimalEyePos;
+    }
+
     void update() override
     {
         m_drawer.uploadWorldMatrix(m_physicsState.m_pose.getMatrix()).draw();
 
-        const Float3 forwardVector = m_physicsState.m_forwardVector;
-
-        Float3 eyePos = m_physicsState.m_pose.position;
-        eyePos += -forwardVector.normalized() * 15.0f;
-        eyePos += m_cameraUp * 5.0f;
+        Float3 eyePos = computeEyePosition();
 
         // for (const float dt : StandardStep_60Hz())
         // {

@@ -78,7 +78,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         ImGui::Begin("Race Scene");
 
-        ImGui::Text("This is a combat scene.");
+        ImGui::Text("This is a race scene.");
 
         ImGui::End();
     }

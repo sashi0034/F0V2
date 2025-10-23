@@ -81,6 +81,7 @@ struct StageStaticCollider::Impl
 
         float bestDistSq = std::numeric_limits<float>::max();
         std::optional<std::pair<IndexedTriangle, GroundTriangleAttribute*>> bestTri{};
+        Float3 hitPosition{};
 
 #ifdef _DEBUG
         int testCount{};
@@ -103,10 +104,11 @@ struct StageStaticCollider::Impl
                     continue;
                 }
 
-                if (Intersects(ray, tri))
+                if (const auto hitPosition_ = IntersectsAt(ray, tri))
                 {
                     bestTri = {tri, &m_groundAttributes[index][tri.id]};
                     bestDistSq = distSq;
+                    hitPosition = *hitPosition_;
                 }
             }
         }
@@ -121,7 +123,8 @@ struct StageStaticCollider::Impl
         {
             return ground_hit{
                 .triangle = bestTri->first,
-                .attribute = *(bestTri->second)
+                .attribute = *(bestTri->second),
+                .hitPosition = hitPosition
             };
         }
         else

@@ -144,21 +144,11 @@ namespace
         const auto& attr = hitOpt.value().attribute;
 
         const Float3 S = fromPos;
-        const Float3 T = toPos;
+        // const Float3 T = toPos;
 
         // const Float3 H = S - plane.normal * distance;
 
-        Float3 I;
-        if (const auto I_ = IntersectsAt(moveTestRay, tri.asPlane()))
-        {
-            I = *I_;
-        }
-        else
-        {
-            // 移動ベクトルが面を貫通していない場合
-            const auto plane = tri.asPlane();
-            I = plane.projection(T);
-        }
+        Float3 I = hitOpt.value().hitPosition;
 
         // const auto bc = tri.getBarycentric(I);
 
