@@ -20,6 +20,8 @@ namespace
 
 struct GenericModelDrawer::Impl
 {
+    bool m_valid{};
+
     std::shared_ptr<IGenericModelBuffer> m_modelBuffer{};
 
     GraphicsPipelineState m_pso{};
@@ -99,6 +101,8 @@ struct GenericModelDrawer::Impl
         m_descriptorHeap = DescriptorHeap(descriptorHeap);
 
         UploadWorldMatrix(Mat4x4::Identity());
+
+        m_valid = true;
     }
 
     void UploadWorldMatrix(const Mat4x4& worldMatrix) const
@@ -183,6 +187,10 @@ namespace TY
     GenericModelDrawer::GenericModelDrawer(const GenericModelDrawerParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
+        if (not p_impl->m_valid)
+        {
+            p_impl.reset();
+        }
     }
 
     const GenericModelDrawer& GenericModelDrawer::uploadWorldMatrix(const Mat4x4& worldMatrix) const

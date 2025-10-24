@@ -214,14 +214,20 @@ struct StageManager::Impl : GameObjectBase
         {
             colliders.push_back({});
             const auto courseModel = BuildCourseModel(segment, &colliders.back());
+            if (courseModel.isEmpty())
+            {
+                m_courseDrawers.push_back({});
+            }
+            else
+            {
+                m_courseDrawers.push_back(
+                    ModelDrawerParams{}
+                    .setModel(courseModel)
+                    .setShader(Asset_shader::lambert)
+                    .setCbv10AndLater({GetRaceContextContent().cb.lambert}));
+            }
 
             m_triangleCount += colliders.back().groundTris.size();
-
-            m_courseDrawers.push_back(
-                ModelDrawerParams{}
-                .setModel(courseModel)
-                .setShader(Asset_shader::lambert)
-                .setCbv10AndLater({GetRaceContextContent().cb.lambert}));
 
             m_courseLength += segment.totalLength;
         }

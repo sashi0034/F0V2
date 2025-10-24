@@ -110,13 +110,19 @@ namespace TY
     }
 
     ModelBuffer::ModelBuffer(const ModelData& modelData)
-        : p_impl(std::make_shared<Impl>(modelData))
     {
+        if (modelData.shapes.size() > 0)
+        {
+            p_impl = std::make_shared<Impl>(modelData);
+        }
     }
 
     ModelBuffer::ModelBuffer(const ModelShapeBuffer& shapes, const Array<ModelMaterial>& materials)
-        : p_impl(std::make_shared<Impl>(shapes, materials))
     {
+        if (shapes.shapes().size() > 0)
+        {
+            p_impl = std::make_shared<Impl>(shapes, materials);
+        }
     }
 
     bool ModelBuffer::isEmpty() const

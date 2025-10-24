@@ -176,11 +176,18 @@ private:
         for (const auto i : rebuildIndexes)
         {
             const auto modelBuffer = BuildCourseModel(m_segments[i]);
-            m_courseDrawers[i] =
-                ModelDrawerParams{}
-                .setModel(modelBuffer)
-                .setShader(Asset_shader::lambert)
-                .setCbv10AndLater({g_editorState->lambert});
+            if (modelBuffer.isEmpty())
+            {
+                m_courseDrawers[i] = {};
+            }
+            else
+            {
+                m_courseDrawers[i] =
+                    ModelDrawerParams{}
+                    .setModel(modelBuffer)
+                    .setShader(Asset_shader::lambert)
+                    .setCbv10AndLater({g_editorState->lambert});
+            }
         }
     }
 
