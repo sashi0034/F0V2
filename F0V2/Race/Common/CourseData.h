@@ -10,6 +10,7 @@ namespace Race
         Road,
         Pipe,
         Cylinder,
+        Gap,
         Max // end marker
     };
 

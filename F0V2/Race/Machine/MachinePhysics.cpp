@@ -579,11 +579,7 @@ namespace
 
         const auto& nearestStrip = nearestSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
 
-        if (nearestStrip.style == CourseSegmentStyle::Road)
-        {
-            return -nearestStrip.normal;
-        }
-        else if (nearestStrip.style == CourseSegmentStyle::Pipe)
+        if (nearestStrip.style == CourseSegmentStyle::Pipe)
         {
             assert(not nearestStrip.pipe.ringVectors[0].isZero());
 
@@ -599,9 +595,10 @@ namespace
             const Float3 p = line.projectPoint(position);
             return (p - position).normalized();
         }
-
-        assert(false);
-        return {};
+        else
+        {
+            return -nearestStrip.normal;
+        }
     }
 }
 

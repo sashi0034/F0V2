@@ -119,6 +119,11 @@ namespace TY
     {
     }
 
+    bool ModelBuffer::isEmpty() const
+    {
+        return not p_impl;
+    }
+
     const ModelShapeBuffer& ModelBuffer::shapeBuffer() const
     {
         return p_impl->m_shapeBuffer;

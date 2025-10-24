@@ -824,6 +824,10 @@ namespace Race
         {
             buildCylinderModel(model, segment, outCollider);
         }
+        else if (segment.style == CourseSegmentStyle::Gap)
+        {
+            // Nothing
+        }
         else
         {
             assert(false && "BuildCourseModel(): segment.style is not supported.");

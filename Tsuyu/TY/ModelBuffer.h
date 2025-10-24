@@ -38,6 +38,8 @@ namespace TY
 
         ModelBuffer(const ModelShapeBuffer& shapes, const Array<ModelMaterial>& materials);
 
+        bool isEmpty() const;
+
         const ModelShapeBuffer& shapeBuffer() const;
 
         const ConstantBufferArray<ModelMaterialParameters>& materialCbv() const;
