@@ -24,8 +24,7 @@ namespace
         const FaceVertex& r0,
         const FaceVertex& l1,
         const FaceVertex& r1,
-        CoursePolygoneCollider* outCollider = nullptr
-    )
+        CoursePolygoneCollider* outCollider = nullptr)
     {
         vertices[v_offset] = ModelVertex{l1.pos, l1.normal, Float2{}};
         vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, Float2{1, 0}};

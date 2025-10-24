@@ -759,7 +759,7 @@ namespace Race
         );
 
         const Quaternion targetRotation =
-            Quaternion::FromUnitVectors(Float3{0, 1, 0}, state.m_upVector); // TODO: pitch
+            Quaternion::FromUnitVectors(Float3{0, 0, 1}, state.m_forwardVector); // TODO: pitch
 
         // 滑らかに回転
         for (const auto dt : StandardStep_60Hz())

@@ -54,36 +54,39 @@ struct Player::Impl : GameObjectBase
     }
 
 private:
-    Float3 computeEyePosition() const
+    void computeEyeAndTarget(Float3& outEye, Float3& outTarget) const
     {
         const Float3 forwardVector = m_physicsState.m_forwardVector;
 
-        const Float3 orign = m_physicsState.m_pose.position - forwardVector.normalized() * 0.1f;
+        outTarget = m_physicsState.m_pose.position + m_physicsState.m_upVector * 5.0f;
 
-        constexpr float cameraBackward = 15.0f;
+        constexpr float cameraBackward = 10.0f;
         constexpr float cameraHeight = 5.0f;
 
         const Float3 optimalEyePos =
-            orign - forwardVector.normalized() * cameraBackward + m_cameraUp * cameraHeight;
+            outTarget - forwardVector.normalized() * cameraBackward + m_cameraUp * cameraHeight;
 
-        const auto ray = LineSegment3D{orign, optimalEyePos};
+        const auto ray = LineSegment3D{outTarget, optimalEyePos};
         const auto hit =
             GetRaceContext().stageManager().stageStaticCollider().rayCastGround(ray);
         if (hit.has_value())
         {
             // 地面にカメラが遮られているなら、その面に垂線の足をおろしてカメラ位置とする
             const Float3 H = hit->triangle.asPlane().projection(optimalEyePos);
-            return H;
+            outEye = H;
+            return;
         }
 
-        return optimalEyePos;
+        outEye = optimalEyePos;
     }
 
     void update() override
     {
-        m_drawer.uploadWorldMatrix(m_physicsState.m_pose.getMatrix()).draw();
+        static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
+        m_drawer.uploadWorldMatrix(localRotation * m_physicsState.m_pose.getMatrix()).draw();
 
-        Float3 eyePos = computeEyePosition();
+        Float3 eyePos, targetPos;
+        computeEyeAndTarget(eyePos, targetPos);
 
         // for (const float dt : StandardStep_60Hz())
         // {
@@ -95,7 +98,7 @@ private:
         if (s_fixedCameraUp) m_cameraUp = Float3{0, 1, 0};
 #endif
 
-        GetRaceContextContent().camera.set(eyePos, m_physicsState.m_pose.position, m_cameraUp);
+        GetRaceContextContent().camera.set(eyePos, targetPos, m_cameraUp);
 
         m_physicsProps.hasAccelInput = KeyUp.pressed();
 

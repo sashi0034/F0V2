@@ -172,6 +172,7 @@
     <ClCompile Include="Race\Common\CourseTriangleAttribute.cpp" />
     <ClCompile Include="Race\Common\RaceSharedState.cpp" />
     <ClCompile Include="Race\Machine\LapProgress.cpp" />
+    <ClCompile Include="Race\Machine\MachineModelBuilder.cpp" />
     <ClCompile Include="Race\Machine\MachinePhysics.cpp" />
     <ClCompile Include="Race\Player\Player.cpp" />
     <ClCompile Include="Race\Stage\StageStaticCollider.cpp" />
@@ -278,6 +279,7 @@
     <ClInclude Include="Race\Common\RaceSharedState.h" />
     <ClInclude Include="Race\IRaceContext.h" />
     <ClInclude Include="Race\Machine\LapProgress.h" />
+    <ClInclude Include="Race\Machine\MachineModelBuilder.h" />
     <ClInclude Include="Race\Machine\MachinePhysics.h" />
     <ClInclude Include="Race\Player\Player.h" />
     <ClInclude Include="Race\RaceContextContent.h" />
