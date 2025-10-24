@@ -569,35 +569,64 @@ namespace
         }
     }
 
-    Float3 calculateGravity(const MachinePhysicsState& state, const SegmentAndStrip& nearestSegmentAndStrip)
+    Float3 calculateGravity(const MachinePhysicsState& state, const SegmentAndStrip& targetSegmentAndStrip)
     {
         const Float3& position = state.m_pose.position;
 
         const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
 
-        const auto& nearestSegment = courseSegments[nearestSegmentAndStrip.segmentIndex];
+        const auto& targetSegment = courseSegments[targetSegmentAndStrip.segmentIndex];
 
-        const auto& nearestStrip = nearestSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
+        const auto& targetStrip = targetSegment.midwayStrips[targetSegmentAndStrip.stripIndex];
 
-        if (nearestStrip.style == CourseSegmentStyle::Pipe)
+        if (targetStrip.style == CourseSegmentStyle::Pipe)
         {
-            assert(not nearestStrip.pipe.ringVectors[0].isZero());
+            assert(not targetStrip.pipe.ringVectors[0].isZero());
 
-            const auto line = Line3D::FromPoints(nearestStrip.center, nearestStrip.center + nearestStrip.toNext);
+            const auto line = Line3D::FromPoints(targetStrip.center, targetStrip.center + targetStrip.toNext);
             const Float3 p = line.projectPoint(position);
             return (position - p).normalized();
         }
-        else if (nearestStrip.style == CourseSegmentStyle::Cylinder)
+        else if (targetStrip.style == CourseSegmentStyle::Cylinder)
         {
-            assert(not nearestStrip.pipe.ringVectors[0].isZero());
+            assert(not targetStrip.pipe.ringVectors[0].isZero());
 
-            const auto line = Line3D::FromPoints(nearestStrip.center, nearestStrip.center + nearestStrip.toNext);
+            const auto line = Line3D::FromPoints(targetStrip.center, targetStrip.center + targetStrip.toNext);
             const Float3 p = line.projectPoint(position);
             return (p - position).normalized();
         }
+        else if (targetStrip.style == CourseSegmentStyle::Gap)
+        {
+            int fromIndex = targetSegmentAndStrip.segmentIndex;
+            int toIndex = targetSegmentAndStrip.segmentIndex;
+            for (;;)
+            {
+                fromIndex = Modulo<int>(fromIndex - 1, courseSegments.size());
+                if (courseSegments[fromIndex].style != CourseSegmentStyle::Gap || fromIndex == toIndex)
+                {
+                    break;
+                }
+            }
+
+            for (;;)
+            {
+                toIndex = Modulo<int>(toIndex + 1, courseSegments.size());
+                if (courseSegments[toIndex].style != CourseSegmentStyle::Gap || toIndex == fromIndex)
+                {
+                    break;
+                }
+            }
+
+            const auto from = courseSegments[fromIndex];
+            const auto to = courseSegments[toIndex];
+
+            const auto line = LineSegment3D(from.p2, to.p1);
+            const float t = line.projectionParameter(position);
+            return -(from.midwayStrips.back().normal * t + to.midwayStrips.front().normal * (1 - t)).normalized();
+        }
         else
         {
-            return -nearestStrip.normal;
+            return -targetStrip.normal;
         }
     }
 }
