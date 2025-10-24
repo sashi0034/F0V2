@@ -52,6 +52,16 @@ namespace Race
         float p2_roll; // radians
         float side_p3_roll; // radians
 
+        float side_leftWidth0;
+        float leftWidth1;
+        float leftWidth2;
+        float side_leftWidth3;
+
+        float side_rightWidth0;
+        float rightWidth1;
+        float rightWidth2;
+        float side_rightWidth3;
+
         CourseSegmentStyle style{};
 
         Array<CourseGimmickKind> gimmicks{};
@@ -65,10 +75,19 @@ namespace Race
     {
         Float3 pos{};
         int roll{}; // degrees
+        int width{};
+        int centerOffset{};
         CourseSegmentStyle style{};
         Array<CourseGimmickKind> gimmicks{};
 
+        [[nodiscard]]
         float rollRadians() const;
+
+        [[nodiscard]]
+        float leftWidth() const;
+
+        [[nodiscard]]
+        float rightWidth() const;
     };
 
     struct CourseData

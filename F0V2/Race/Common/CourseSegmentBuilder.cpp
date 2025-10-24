@@ -33,6 +33,16 @@ namespace Race
             const float p2_roll = nodeList[i2].rollRadians();
             const float p3_roll = nodeList[i3].rollRadians();
 
+            const float p0_leftWidth = nodeList[i0].leftWidth();
+            const float p1_leftWidth = nodeList[i1].leftWidth();
+            const float p2_leftWidth = nodeList[i2].leftWidth();
+            const float p3_leftWidth = nodeList[i3].leftWidth();
+
+            const float p0_rightWidth = nodeList[i0].rightWidth();
+            const float p1_rightWidth = nodeList[i1].rightWidth();
+            const float p2_rightWidth = nodeList[i2].rightWidth();
+            const float p3_rightWidth = nodeList[i3].rightWidth();
+
             const auto style = nodeList[i1].style;
 
             if (i >= segments.size() ||
@@ -44,6 +54,14 @@ namespace Race
                 segments[i].p1_roll != p1_roll ||
                 segments[i].p2_roll != p2_roll ||
                 segments[i].side_p3_roll != p3_roll ||
+                segments[i].side_leftWidth0 != p0_leftWidth ||
+                segments[i].leftWidth1 != p1_leftWidth ||
+                segments[i].leftWidth2 != p2_leftWidth ||
+                segments[i].side_leftWidth3 != p3_leftWidth ||
+                segments[i].side_rightWidth0 != p0_rightWidth ||
+                segments[i].rightWidth1 != p1_rightWidth ||
+                segments[i].rightWidth2 != p2_rightWidth ||
+                segments[i].side_rightWidth3 != p3_rightWidth ||
                 segments[i].style != style ||
                 segments[i].gimmicks != nodeList[i1].gimmicks)
             {
@@ -62,6 +80,16 @@ namespace Race
                 segment.p1_roll = p1_roll;
                 segment.p2_roll = p2_roll;
                 segment.side_p3 = p3;
+
+                segment.side_leftWidth0 = p0_leftWidth;
+                segment.leftWidth1 = p1_leftWidth;
+                segment.leftWidth2 = p2_leftWidth;
+                segment.side_leftWidth3 = p3_rightWidth;
+
+                segment.side_rightWidth0 = p0_rightWidth;
+                segment.rightWidth1 = p1_rightWidth;
+                segment.rightWidth2 = p2_rightWidth;
+                segment.side_rightWidth3 = p3_rightWidth;
 
                 segment.style = style;
 
@@ -103,6 +131,12 @@ namespace Race
                 segment.side_p0, segment.p1, segment.p2, segment.side_p3, samplesPerSegment);
             const auto midwayRolls = Util::GenerateCatmullRomAngles(
                 segment.side_p0_roll, segment.p1_roll, segment.p2_roll, segment.side_p3_roll, samplesPerSegment);
+            const auto midwayLeftWidths = Util::GenerateCatmullRomValues(
+                segment.side_leftWidth0, segment.leftWidth1, segment.leftWidth2, segment.side_leftWidth3,
+                samplesPerSegment);
+            const auto midwayRightWidths = Util::GenerateCatmullRomValues(
+                segment.side_rightWidth0, segment.rightWidth1, segment.rightWidth2, segment.side_rightWidth3,
+                samplesPerSegment);
 
             // midwayPositions ごとに strip を構築
             for (int m = 0; m < midwayPositions.size() - 1 /* 終端は除外 */; ++m)
@@ -124,10 +158,9 @@ namespace Race
                     strip.normal = q.rotate(strip.normal).normalized();
                 }
 
-                auto right = strip.toNext.cross(strip.normal).normalized();
-                float width = 12.5f; // TODO
-                strip.leftmost = strip.center - right * width;
-                strip.rightmost = strip.center + right * width;
+                const auto right = strip.toNext.cross(strip.normal).normalized();
+                strip.leftmost = strip.center - right * midwayLeftWidths[m];
+                strip.rightmost = strip.center + right * midwayRightWidths[m];
 
                 if (segment.style == CourseSegmentStyle::Pipe)
                 {

@@ -234,6 +234,17 @@ private:
                 nodeList[i].roll = std::clamp(nodeList[i].roll, -180, 180);
             }
 
+            if (ImGui::InputInt(std::format("Width##{}", i).c_str(), &nodeList[i].width, 5, 15))
+            {
+                nodeList[i].width = std::clamp(nodeList[i].width, 0, 250);
+                nodeList[i].centerOffset = std::clamp(nodeList[i].centerOffset, -nodeList[i].width, nodeList[i].width);
+            }
+
+            if (ImGui::InputInt(std::format("CenterOffset#{}", i).c_str(), &nodeList[i].centerOffset, 5, 15))
+            {
+                nodeList[i].centerOffset = std::clamp(nodeList[i].centerOffset, -nodeList[i].width, nodeList[i].width);
+            }
+
             int style = static_cast<int>(nodeList[i].style);
             if (ImGui::Combo(std::format("Style##{}", i).c_str(),
                              &style,
@@ -266,6 +277,13 @@ private:
                     nodeList[i].gimmicks.erase(nodeList[i].gimmicks.begin() + g);
                     break;
                 }
+            }
+
+            if (i < nodeList.size() - 1)
+            {
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
             }
         }
 

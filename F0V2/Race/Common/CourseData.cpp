@@ -11,6 +11,16 @@ namespace Race
         return Math::ToRadians(static_cast<float>(roll));
     }
 
+    float CourseNode::leftWidth() const
+    {
+        return static_cast<float>(width) * 0.5f + static_cast<float>(centerOffset);
+    }
+
+    float CourseNode::rightWidth() const
+    {
+        return static_cast<float>(width) - leftWidth();
+    }
+
     CourseData LoadCourseData(const std::string& filepath)
     {
         CourseData result;
@@ -31,13 +41,17 @@ namespace Race
                         {
                             if (posArr->size() == 3)
                             {
-                                node.pos.x = static_cast<float>((*posArr)[0].value_or(0.0));
-                                node.pos.y = static_cast<float>((*posArr)[1].value_or(0.0));
-                                node.pos.z = static_cast<float>((*posArr)[2].value_or(0.0));
+                                node.pos.x = (*posArr)[0].value_or(0.0f);
+                                node.pos.y = (*posArr)[1].value_or(0.0f);
+                                node.pos.z = (*posArr)[2].value_or(0.0f);
                             }
                         }
 
-                        node.roll = static_cast<float>((*nodeTbl)["roll"].value_or(0.0));
+                        node.roll = (*nodeTbl)["roll"].value_or(0.0f);
+
+                        node.width = (*nodeTbl)["width"].value_or(50.0f);
+
+                        node.centerOffset = (*nodeTbl)["centerOffset"].value_or(0.0f);
 
                         if (auto* styleStr = (*nodeTbl)["style"].as_string())
                         {
@@ -89,6 +103,8 @@ namespace Race
 
             nodeTbl.insert("pos", std::move(posArr));
             nodeTbl.insert("roll", node.roll);
+            nodeTbl.insert("width", node.width);
+            nodeTbl.insert("centerOffset", node.centerOffset);
             nodeTbl.insert("style", Util::GetEnumName(node.style));
 
             {

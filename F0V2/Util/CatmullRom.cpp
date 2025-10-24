@@ -1,6 +1,34 @@
 ﻿#include "pch.h"
 #include "CatmullRom.h"
 
+float Util::CatmullRomValue(float p0, float p1, float p2, float p3, float t)
+{
+    float t2 = t * t;
+    float t3 = t2 * t;
+
+    return (p1 * 2.0f +
+        (p2 - p0) * t +
+        (p0 * 2.0f - p1 * 5.0f + p2 * 4.0f - p3) * t2 +
+        (-p0 + p1 * 3.0f - p2 * 3.0f + p3) * t3) * 0.5f;
+}
+
+Array<float> Util::GenerateCatmullRomValues(float p0, float p1, float p2, float p3, int samplesPerSegment)
+{
+    Array<float> result;
+
+    result.push_back(p1);
+
+    for (int j = 1; j < samplesPerSegment; ++j)
+    {
+        float t = static_cast<float>(j) / samplesPerSegment;
+        result.push_back(CatmullRomValue(p0, p1, p2, p3, t));
+    }
+
+    result.push_back(p2);
+
+    return result;
+}
+
 Float3 Util::CatmullRomPoint(const Float3& p0, const Float3& p1, const Float3& p2, const Float3& p3, float t)
 {
     float t2 = t * t;
