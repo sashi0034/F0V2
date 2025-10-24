@@ -177,7 +177,7 @@ namespace TY
         }
 
         template <Arithmetic Arithmetic>
-        inline constexpr int Square(const Arithmetic x) noexcept
+        inline constexpr Arithmetic Square(const Arithmetic x) noexcept
         {
             return x * x;
         }
