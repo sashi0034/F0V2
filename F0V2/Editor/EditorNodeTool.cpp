@@ -188,6 +188,8 @@ private:
     {
         ImGui::Begin("Node Tool");
 
+        ImGui::BeginChild("list_region", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() * 4), true);
+
         Array<int> removeIndex{};
         auto& nodeList = g_editorState->course.nodes;
         for (int i = 0; i < nodeList.size(); i++)
@@ -267,6 +269,8 @@ private:
                 nodeList.erase(nodeList.begin() + *it);
             }
         }
+
+        ImGui::EndChild();
 
         ImGui::SeparatorText("Operations");
 
