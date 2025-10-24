@@ -465,14 +465,28 @@ namespace
 
     // -----------------------------------------------
 
-    void updateGroundedness(MachinePhysicsState& state)
+    Float3 updateUpVector(const MachinePhysicsState& state)
     {
-        state.m_upVector = state.m_surfaceNormal;
-        if (state.m_upVector.isZero())
+        Float3 upVector = state.m_upVector;
+        if (state.m_surfaceNormal.isZero())
         {
-            state.m_upVector = -state.m_gravity;
+            // 空中にいるときは滑らかに重力方向へ m_upVector を調整
+            for (const auto dt : StandardStep_60Hz())
+            {
+                upVector = state.m_upVector.slerp(-state.m_gravity, dt * 5.0f);
+            }
+        }
+        else
+        {
+            // 地面接触時はその地面の m_surfaceNormal を m_upVector に設定
+            upVector = state.m_surfaceNormal;
         }
 
+        return upVector;
+    }
+
+    void updateGroundContact(MachinePhysicsState& state)
+    {
         Float3 vector = state.m_surfaceToTriangle + state.m_surfaceToTriangle.normalized() * state.m_radius;
         if (vector.isZero())
         {
@@ -504,8 +518,6 @@ namespace
         {
             state.m_surfaceNormal = {};
         }
-
-        // std::cout << "groundedness: " << state.m_groundedness << std::endl;
     }
 
     // -----------------------------------------------
@@ -672,8 +684,6 @@ namespace Race
             updateCapsulePosition(state, props, state.m_pose.position, moveVector);
         }
 
-        // ImmediatePrint(std::format("groundedness: {:.2f}", state.m_groundedness), Alignment9::BottomCenter);
-
         const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
 
         const auto nearestSegmentAndStrip = findNearestSegmentAndStrip(courseSegments, state.m_pose.position);
@@ -761,7 +771,9 @@ namespace Race
             // state.m_actualSurfaceNormal = state.m_actualSurfaceNormal.slerp(-gravity, 1.0f * InGameDeltaTime());
         }
 
-        updateGroundedness(state);
+        state.m_upVector = updateUpVector(state);
+
+        updateGroundContact(state);
 
         // 速度の減衰
         for (const auto dt : StandardStep_60Hz())
