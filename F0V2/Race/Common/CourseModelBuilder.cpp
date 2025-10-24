@@ -392,8 +392,7 @@ namespace
     void buildCylinderModel(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         constexpr int subdivision = CylinderSubdivision;
-        constexpr int halfSubdivision0 = subdivision / 2;
-        constexpr int halfSubdivision1 = halfSubdivision0 + 1;
+        constexpr int entryExitSubdivision = CylinderSubdivision * 2;
 
         const int hasEntry = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
             segment.midwayStrips[0].style != CourseSegmentStyle::Cylinder;
@@ -407,10 +406,10 @@ namespace
         // -----------------------------------------------
 
         Array<ModelVertex> vertices(
-            (hasEntry + hasExit) * CylinderEntryExitStrips * (halfSubdivision1 * 4 * 2) +
+            (hasEntry + hasExit) * CylinderEntryExitStrips * (entryExitSubdivision * 4 * 2) +
             (cylinderStrips - 1) * (subdivision * 4 * 2));
         Array<uint16_t> indices(
-            (hasEntry + hasExit) * CylinderEntryExitStrips * (halfSubdivision1 * 6 * 2) +
+            (hasEntry + hasExit) * CylinderEntryExitStrips * (entryExitSubdivision * 6 * 2) +
             (cylinderStrips - 1) * (subdivision * 6 * 2));
         int v_offset{};
         int i_offset{};
@@ -429,11 +428,14 @@ namespace
             auto& s1 = segment.midwayStrips[CylinderEntryExitStrips];
             assert(s1.style == CourseSegmentStyle::Cylinder);
 
-            for (int i0 = 0; i0 < halfSubdivision1 - 1; ++i0)
+            const Float3 n = s0.normal;
+            const Float3 axis = (s1.center - s0.center).normalized();
+
+            for (int i0 = 0; i0 < entryExitSubdivision - 1; ++i0)
             {
                 const int i1 = i0 + 1;
-                const float t0 = static_cast<float>(i0) / (halfSubdivision1 - 1);
-                const float t1 = static_cast<float>(i1) / (halfSubdivision1 - 1);
+                const float t0 = static_cast<float>(i0) / (entryExitSubdivision - 1);
+                const float t1 = static_cast<float>(i1) / (entryExitSubdivision - 1);
 
                 FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
 
@@ -442,11 +444,14 @@ namespace
                 cap_l0.normal = s0.normal;
                 cap_r0.normal = s0.normal;
 
-                const auto& ringVectors = s1.pipe.ringVectors;
-                cap_l1.pos = s1.center + ringVectors[i0] * outerEntryExitRadius;
-                cap_r1.pos = s1.center + ringVectors[i1] * outerEntryExitRadius;
-                cap_l1.normal = -ringVectors[i0];
-                cap_r1.normal = -ringVectors[i1];
+                const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
+                const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
+                const Float3 v0 = Quaternion(axis, angle0).rotate(n);
+                const Float3 v1 = Quaternion(axis, angle1).rotate(n);
+                cap_l1.pos = s1.center + v0 * outerEntryExitRadius;
+                cap_r1.pos = s1.center + v1 * outerEntryExitRadius;
+                cap_l1.normal = -v0;
+                cap_r1.normal = -v1;
 
                 for (int s = 0; s < CylinderEntryExitStrips; ++s)
                 {
@@ -488,11 +493,13 @@ namespace
                 float radius = baseRadius;
                 if (hasEntry && m_ < innerEntryExitStrips)
                 {
-                    radius *= static_cast<float>(m_) / innerEntryExitStrips;
+                    radius *= ( // std::sqrtf(
+                        1.0f - Math::Square(1.0f - static_cast<float>(m_) / innerEntryExitStrips));
                 }
                 else if (hasExit && m_ >= cylinderStrips - 1 - innerEntryExitStrips)
                 {
-                    radius *= static_cast<float>(cylinderStrips - 1 - m_) / innerEntryExitStrips;
+                    radius *= ( // std::sqrtf(
+                        1.0f - Math::Square(1.0f - static_cast<float>(cylinderStrips - 1 - m_) / innerEntryExitStrips));
                 }
 
                 return radius;
@@ -533,19 +540,25 @@ namespace
             auto& s1 = segment.midwayStrips[segment.midwayStrips.size() - 1];
             assert(s1.style != CourseSegmentStyle::Cylinder);
 
-            for (int i0 = 0; i0 < halfSubdivision1 - 1; ++i0)
+            const Float3 n = s1.normal;
+            const Float3 axis = (s1.center - s0.center).normalized();
+
+            for (int i0 = 0; i0 < entryExitSubdivision - 1; ++i0)
             {
                 const int i1 = i0 + 1;
-                const float t0 = static_cast<float>(i0) / (halfSubdivision1 - 1);
-                const float t1 = static_cast<float>(i1) / (halfSubdivision1 - 1);
+                const float t0 = static_cast<float>(i0) / (entryExitSubdivision - 1);
+                const float t1 = static_cast<float>(i1) / (entryExitSubdivision - 1);
 
                 FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
 
-                const auto& ringVectors = s0.pipe.ringVectors;
-                cap_l0.pos = s0.center + ringVectors[i0] * outerEntryExitRadius;
-                cap_r0.pos = s0.center + ringVectors[i1] * outerEntryExitRadius;
-                cap_l0.normal = -ringVectors[i0];
-                cap_r0.normal = -ringVectors[i1];
+                const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
+                const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
+                const Float3 v0 = Quaternion(axis, angle0).rotate(n);
+                const Float3 v1 = Quaternion(axis, angle1).rotate(n);
+                cap_l0.pos = s0.center + v0 * outerEntryExitRadius;
+                cap_r0.pos = s0.center + v1 * outerEntryExitRadius;
+                cap_l0.normal = -v0;
+                cap_r0.normal = -v1;
 
                 cap_l1.pos = s1.leftmost * (1 - t0) + s1.rightmost * t0;
                 cap_r1.pos = s1.leftmost * (1 - t1) + s1.rightmost * t1;
