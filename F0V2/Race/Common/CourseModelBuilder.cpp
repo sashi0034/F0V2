@@ -392,6 +392,8 @@ namespace
     void buildCylinderModel(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         constexpr int subdivision = CylinderSubdivision;
+        constexpr int halfSubdivision0 = subdivision / 2;
+        constexpr int halfSubdivision1 = halfSubdivision0 + 1;
 
         const int hasEntry = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
             segment.midwayStrips[0].style != CourseSegmentStyle::Cylinder;
@@ -399,39 +401,76 @@ namespace
         const bool hasExit = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
             segment.midwayStrips[segment.midwayStrips.size() - 1].style != CourseSegmentStyle::Cylinder;
 
+        constexpr int innerEntryExitStrips = CylinderEntryExitStrips / 2;
+        const int cylinderStrips = segment.midwayStrips.size() - (hasEntry + hasExit) * innerEntryExitStrips;
+
         // -----------------------------------------------
 
         Array<ModelVertex> vertices(
-            // (hasEntry + hasExit) * CylinderEntryExitStrips * (halfSubdivision1 * 4 * 2) +
-            (segment.midwayStrips.size() - 1) * (subdivision * 4 * 2));
+            (hasEntry + hasExit) * CylinderEntryExitStrips * (halfSubdivision1 * 4 * 2) +
+            (cylinderStrips - 1) * (subdivision * 4 * 2));
         Array<uint16_t> indices(
-            // (hasEntry + hasExit) * CylinderEntryExitStrips * (halfSubdivision1 * 6 * 2) +
-            (segment.midwayStrips.size() - 1) * (subdivision * 6 * 2));
+            (hasEntry + hasExit) * CylinderEntryExitStrips * (halfSubdivision1 * 6 * 2) +
+            (cylinderStrips - 1) * (subdivision * 6 * 2));
         int v_offset{};
         int i_offset{};
 
         // -----------------------------------------------
 
-        // if (hasEntry)
-        // {
-        //     for (int s = 0; s < CylinderEntryExitStrips - 1; ++s)
-        //     {
-        //         auto& s0 = segment.midwayStrips[s];
-        //         auto& s1 = segment.midwayStrips[s + 1];
-        //
-        //         const FaceVertex l0{s0.leftmost, s0.normal};
-        //         const FaceVertex r0{s0.rightmost, s0.normal};
-        //         const FaceVertex l1{s1.leftmost, s1.normal};
-        //         const FaceVertex r1{s1.rightmost, s1.normal};
-        //
-        //         pushGroundFaces(
-        //             vertices, indices, v_offset, i_offset,
-        //             l0, r0, l1, r1,
-        //             outCollider);
-        //     }
-        // }
+        constexpr float baseRadius = 15.0f;
 
-        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
+        constexpr float outerEntryExitRadius = baseRadius * 3.0f;
+
+        if (hasEntry)
+        {
+            auto& s0 = segment.midwayStrips[0];
+            assert(s0.style != CourseSegmentStyle::Cylinder);
+
+            auto& s1 = segment.midwayStrips[CylinderEntryExitStrips];
+            assert(s1.style == CourseSegmentStyle::Cylinder);
+
+            for (int i0 = 0; i0 < halfSubdivision1 - 1; ++i0)
+            {
+                const int i1 = i0 + 1;
+                const float t0 = static_cast<float>(i0) / (halfSubdivision1 - 1);
+                const float t1 = static_cast<float>(i1) / (halfSubdivision1 - 1);
+
+                FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
+
+                cap_l0.pos = s0.leftmost * (1 - t0) + s0.rightmost * t0;
+                cap_r0.pos = s0.leftmost * (1 - t1) + s0.rightmost * t1;
+                cap_l0.normal = s0.normal;
+                cap_r0.normal = s0.normal;
+
+                const auto& ringVectors = s1.pipe.ringVectors;
+                cap_l1.pos = s1.center + ringVectors[i0] * outerEntryExitRadius;
+                cap_r1.pos = s1.center + ringVectors[i1] * outerEntryExitRadius;
+                cap_l1.normal = -ringVectors[i0];
+                cap_r1.normal = -ringVectors[i1];
+
+                for (int s = 0; s < CylinderEntryExitStrips; ++s)
+                {
+                    const float s0_rate = static_cast<float>(s) / CylinderEntryExitStrips;
+                    const float s1_rate = static_cast<float>(s + 1) / CylinderEntryExitStrips;
+                    FaceVertex l0, r0, l1, r1;
+                    l0.pos = cap_l0.pos * (1 - s0_rate) + cap_l1.pos * s0_rate;
+                    r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
+                    l1.pos = cap_l0.pos * (1 - s1_rate) + cap_l1.pos * s1_rate;
+                    r1.pos = cap_r0.pos * (1 - s1_rate) + cap_r1.pos * s1_rate;
+                    l0.normal = (cap_l0.normal * (1 - s0_rate) + cap_l1.normal * s0_rate).normalized();
+                    r0.normal = (cap_r0.normal * (1 - s0_rate) + cap_r1.normal * s0_rate).normalized();
+                    l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
+                    r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
+
+                    pushGroundFaces(
+                        vertices, indices, v_offset, i_offset,
+                        l0, r0, l1, r1,
+                        outCollider);
+                }
+            }
+        }
+
+        for (int m = hasEntry * innerEntryExitStrips; m < hasEntry * innerEntryExitStrips + cylinderStrips - 1; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];
@@ -439,18 +478,21 @@ namespace
             std::array<Float3, subdivision> n0s = s0.pipe.ringVectors;
             std::array<Float3, subdivision> n1s = s1.pipe.ringVectors;
 
-            constexpr float baseRadius = 15.0f;
-
             const auto getRadius = [&](int m_) -> float
             {
-                float radius = baseRadius;
-                if (hasEntry && m_ < CylinderEntryExitStrips)
+                if (hasEntry)
                 {
-                    radius *= static_cast<float>(m_) / CylinderEntryExitStrips;
+                    m_ -= innerEntryExitStrips;
                 }
-                else if (hasExit && m_ >= segment.midwayStrips.size() - 1 - CylinderEntryExitStrips)
+
+                float radius = baseRadius;
+                if (hasEntry && m_ < innerEntryExitStrips)
                 {
-                    radius *= static_cast<float>(segment.midwayStrips.size() - 1 - m_) / CylinderEntryExitStrips;
+                    radius *= static_cast<float>(m_) / innerEntryExitStrips;
+                }
+                else if (hasExit && m_ >= cylinderStrips - 1 - innerEntryExitStrips)
+                {
+                    radius *= static_cast<float>(cylinderStrips - 1 - m_) / innerEntryExitStrips;
                 }
 
                 return radius;
@@ -462,7 +504,7 @@ namespace
             // 円周上の面作成
             for (int i0 = 0; i0 < subdivision; ++i0)
             {
-                const int i1 = (i0 + 1) % subdivision;
+                const int i1 = (i0 - 1 + subdivision) % subdivision;
 
                 FaceVertex l0, r0, l1, r1;
 
@@ -483,26 +525,54 @@ namespace
             }
         }
 
-        // if (hasExit)
-        // {
-        //     for (int s = segment.midwayStrips.size() - 1 - PipeEntryExitStrips;
-        //          s < segment.midwayStrips.size() - 1;
-        //          ++s)
-        //     {
-        //         auto& s0 = segment.midwayStrips[s];
-        //         auto& s1 = segment.midwayStrips[s + 1];
-        //
-        //         const FaceVertex l0{s0.leftmost, s0.normal};
-        //         const FaceVertex r0{s0.rightmost, s0.normal};
-        //         const FaceVertex l1{s1.leftmost, s1.normal};
-        //         const FaceVertex r1{s1.rightmost, s1.normal};
-        //
-        //         pushGroundFaces(
-        //             vertices, indices, v_offset, i_offset,
-        //             l0, r0, l1, r1,
-        //             outCollider);
-        //     }
-        // }
+        if (hasExit)
+        {
+            auto& s0 = segment.midwayStrips[segment.midwayStrips.size() - 1 - CylinderEntryExitStrips];
+            assert(s0.style == CourseSegmentStyle::Cylinder);
+
+            auto& s1 = segment.midwayStrips[segment.midwayStrips.size() - 1];
+            assert(s1.style != CourseSegmentStyle::Cylinder);
+
+            for (int i0 = 0; i0 < halfSubdivision1 - 1; ++i0)
+            {
+                const int i1 = i0 + 1;
+                const float t0 = static_cast<float>(i0) / (halfSubdivision1 - 1);
+                const float t1 = static_cast<float>(i1) / (halfSubdivision1 - 1);
+
+                FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
+
+                const auto& ringVectors = s0.pipe.ringVectors;
+                cap_l0.pos = s0.center + ringVectors[i0] * outerEntryExitRadius;
+                cap_r0.pos = s0.center + ringVectors[i1] * outerEntryExitRadius;
+                cap_l0.normal = -ringVectors[i0];
+                cap_r0.normal = -ringVectors[i1];
+
+                cap_l1.pos = s1.leftmost * (1 - t0) + s1.rightmost * t0;
+                cap_r1.pos = s1.leftmost * (1 - t1) + s1.rightmost * t1;
+                cap_l1.normal = s1.normal;
+                cap_r1.normal = s1.normal;
+
+                for (int s = 0; s < CylinderEntryExitStrips; ++s)
+                {
+                    const float s0_rate = static_cast<float>(s) / CylinderEntryExitStrips;
+                    const float s1_rate = static_cast<float>(s + 1) / CylinderEntryExitStrips;
+                    FaceVertex l0, r0, l1, r1;
+                    l0.pos = cap_l0.pos * (1 - s0_rate) + cap_l1.pos * s0_rate;
+                    r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
+                    l1.pos = cap_l0.pos * (1 - s1_rate) + cap_l1.pos * s1_rate;
+                    r1.pos = cap_r0.pos * (1 - s1_rate) + cap_r1.pos * s1_rate;
+                    l0.normal = (cap_l0.normal * (1 - s0_rate) + cap_l1.normal * s0_rate).normalized();
+                    r0.normal = (cap_r0.normal * (1 - s0_rate) + cap_r1.normal * s0_rate).normalized();
+                    l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
+                    r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
+
+                    pushGroundFaces(
+                        vertices, indices, v_offset, i_offset,
+                        l0, r0, l1, r1,
+                        outCollider);
+                }
+            }
+        }
 
         model.shapes.push_back(
             ModelShape{std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())}

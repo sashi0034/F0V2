@@ -146,7 +146,7 @@ namespace Race
                     {
                         // 円周上の方向ベクトルを計算
                         const float angle =
-                            (0.5 + static_cast<float>(t) / CylinderSubdivision) * Math::TwoPi_v<float>;
+                            Math::HalfPiF - (0.5 + static_cast<float>(t) / CylinderSubdivision) * Math::TwoPi_v<float>;
                         const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
                         strip.pipe.ringVectors[t] = dir;
                     }
@@ -175,13 +175,13 @@ namespace Race
                 else if (strip.style == CourseSegmentStyle::Cylinder)
                 {
                     if (priorSegment.style != CourseSegmentStyle::Cylinder &&
-                        m < 1)
+                        m < CylinderEntryExitStrips / 2)
                     {
                         // 入口
                         strip.style = CourseSegmentStyle::Road;
                     }
                     else if (nextSegment.style != CourseSegmentStyle::Cylinder &&
-                        m >= midwayPositions.size() - 1)
+                        m >= midwayPositions.size() - CylinderEntryExitStrips / 2)
                     {
                         // 出口
                         strip.style = CourseSegmentStyle::Road;
