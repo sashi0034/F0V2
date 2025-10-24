@@ -63,7 +63,7 @@ namespace Util_ImmediatePrint
         Addon::Register<ImmediatePrintAddon>("ImmediatePrint");
     }
 
-    void ImmediatePrint(const std::string& message, Alignment9 align)
+    void ImmediatePrint(std::string_view message, Alignment9 align)
     {
         ImmediatePrint(ToUtf32(message), align);
     }

@@ -3,13 +3,13 @@
 
 namespace TY
 {
-    std::wstring ToUtf16(const std::string& str);
+    std::wstring ToUtf16(std::string_view str);
 
-    std::string ToUtf8(const std::wstring& wstr);
+    std::string ToUtf8(std::wstring_view wstr);
 
-    std::u32string ToUtf32(const std::string& str);
+    std::u32string ToUtf32(std::string_view str);
 
-    std::u32string ToUtf32(const std::wstring& wstr);
+    std::u32string ToUtf32(std::wstring_view wstr);
 
     std::wstring StringifyBlob(ID3DBlob* blob);
 

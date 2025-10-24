@@ -5,16 +5,16 @@
 
 namespace TY
 {
-    std::wstring ToUtf16(const std::string& str)
+    std::wstring ToUtf16(std::string_view str)
     {
         // Get the required buffer size for the wide string
-        int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+        int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), -1, nullptr, 0);
 
         // Create a buffer to hold the wide string
         std::wstring wstr(size_needed, 0);
 
         // Perform the conversion
-        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, wstr.data(), size_needed);
+        MultiByteToWideChar(CP_UTF8, 0, str.data(), -1, wstr.data(), size_needed);
 
         // Remove the null terminator added by MultiByteToWideChar
         wstr.resize(size_needed - 1);
@@ -22,16 +22,16 @@ namespace TY
         return wstr;
     }
 
-    std::string ToUtf8(const std::wstring& wstr)
+    std::string ToUtf8(std::wstring_view wstr)
     {
         // Get the required buffer size for the UTF-8 string (including null terminator)
-        int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.data(), -1, nullptr, 0, nullptr, nullptr);
 
         // Create a buffer to hold the UTF-8 string
         std::string str(size_needed, 0);
 
         // Perform the conversion from UTF-16 to UTF-8
-        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], size_needed, nullptr, nullptr);
+        WideCharToMultiByte(CP_UTF8, 0, wstr.data(), -1, &str[0], size_needed, nullptr, nullptr);
 
         // Remove the null terminator added by WideCharToMultiByte
         str.resize(size_needed - 1);
@@ -44,7 +44,12 @@ namespace TY
         inline constexpr char32_t k_replacementChar = U'\uFFFD';
     }
 
-    std::u32string ToUtf32(const std::string& str)
+    // std::u32string ToUtf32(const std::string& str)
+    // {
+    //     return ToUtf32(std::string_view{str});
+    // }
+
+    std::u32string ToUtf32(std::string_view str)
     {
         // UTF-8 decoder with validation. Errors -> U+FFFD.
         std::u32string out;
@@ -133,7 +138,12 @@ namespace TY
         return out;
     }
 
-    std::u32string ToUtf32(const std::wstring& wstr)
+    // std::u32string ToUtf32(const std::wstring& wstr)
+    // {
+    //     return ToUtf32(std::wstring_view{wstr.data(), wstr.size()});
+    // }
+
+    std::u32string ToUtf32(std::wstring_view wstr)
     {
         // Portable: wchar_t could be 16-bit (Windows, UTF-16) or 32-bit (Linux, UTF-32)
         std::u32string result;
