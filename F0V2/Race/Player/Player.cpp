@@ -85,21 +85,6 @@ private:
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
         m_drawer.uploadWorldMatrix(localRotation * m_physicsState.m_pose.getMatrix()).draw();
 
-        Float3 eyePos, targetPos;
-        computeEyeAndTarget(eyePos, targetPos);
-
-        // for (const float dt : StandardStep_60Hz())
-        // {
-        //     m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, dt);
-        // }
-        m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, InGameDeltaTime() * 5.0f);
-
-#ifdef _DEBUG
-        if (s_fixedCameraUp) m_cameraUp = Float3{0, 1, 0};
-#endif
-
-        GetRaceContextContent().camera.set(eyePos, targetPos, m_cameraUp);
-
         m_physicsProps.hasAccelInput = KeyUp.pressed();
 
         m_physicsProps.debug.drawHitTris = true;
@@ -124,9 +109,26 @@ private:
             UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
         }
 
-        ImmediateDrawer::Global().draw();
+        // -----------------------------------------------
+        // 次のフレームの camera を決定 --> [次フレーム] 前フレームの camera 適応 & 前フレームの Player 描画
+
+        Float3 eyePos, targetPos;
+        computeEyeAndTarget(eyePos, targetPos);
+
+        for (const float dt : StandardStep_60Hz())
+        {
+            m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, dt * 5.0f);
+        }
+
+#ifdef _DEBUG
+        if (s_fixedCameraUp) m_cameraUp = Float3{0, 1, 0};
+#endif
+
+        GetRaceContextContent().camera.set(eyePos, targetPos, m_cameraUp);
 
         // -----------------------------------------------
+
+        ImmediateDrawer::Global().draw();
 
         debugUI();
     }
