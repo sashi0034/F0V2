@@ -411,10 +411,11 @@ namespace
                 state.m_additionalBoost = 1.0f;
             }
 
-            if (gimmickResult.jumpPad > 0.0f)
+            if (gimmickResult.jumpPad > 0.0f && not state.m_surfaceNormal.isZero())
             {
                 // Jump 発生
-                state.m_velocity = -state.m_gravity * 50.0; // TODO: 現在の速度に応じてジャンプ量を決める
+                state.m_velocity = state.m_velocity - state.m_gravity * state.m_gravity.dot(state.m_velocity);
+                state.m_velocity = state.m_velocity - state.m_gravity * 50.0;
 
                 state.m_surfaceNormal = {};
                 state.m_surfaceToTriangle = {};
