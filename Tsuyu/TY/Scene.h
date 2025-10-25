@@ -8,12 +8,19 @@ namespace TY
     {
         void RequestResize(Size size);
 
-        [[nodiscard]] TY::Size Size();
+        [[nodiscard]]
+        TY::Size Size();
 
-        [[nodiscard]] Point Center();
+        [[nodiscard]]
+        TY::SizeF SizeF();
 
-        [[nodiscard]] TY::Rect Rect();
+        [[nodiscard]]
+        Point Center();
 
-        [[nodiscard]] TY::RectF RectF();
+        [[nodiscard]]
+        TY::Rect Rect();
+
+        [[nodiscard]]
+        TY::RectF RectF();
     }
 }

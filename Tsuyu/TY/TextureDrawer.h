@@ -48,6 +48,7 @@ namespace TY
         }
     };
 
+    // TODO: Remove this?
     class TextureDrawer
     {
         friend struct TextureDrawable2D;
@@ -83,8 +84,8 @@ namespace TY
 
         TextureDrawable2D& resized(Float2 size);
 
-        void draw(const Vec2& position) const;
+        void draw(const Float2& position) const;
 
-        void drawAt(const Vec2& center) const;
+        void drawAt(const Float2& center) const;
     };
 }

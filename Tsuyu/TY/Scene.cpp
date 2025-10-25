@@ -18,6 +18,11 @@ namespace TY
         return EngineRenderContext::FrameBufferSize();
     }
 
+    TY::SizeF Scene::SizeF()
+    {
+        return EngineRenderContext::FrameBufferSize();
+    }
+
     Point Scene::Center()
     {
         return Size() / 2;

@@ -156,7 +156,7 @@ struct TextureDrawer::Impl
     }
 
     // 2D
-    void Draw(const Vec2& position, const TextureDrawable2D& drawable)
+    void Draw(const Float2& position, const TextureDrawable2D& drawable)
     {
         const auto mat3x2 = Mat3x2::Screen(RenderTarget::Current().size());
         const auto region = RectF{position, m_srv.size() * drawable.scaling};
@@ -168,7 +168,7 @@ struct TextureDrawer::Impl
         DrawInternal();
     }
 
-    void DrawAt(const Vec2 center, const TextureDrawable2D& drawable)
+    void DrawAt(const Float2 center, const TextureDrawable2D& drawable)
     {
         const auto size = m_srv.size() * drawable.scaling;
         const auto tl = center - size.cast<double>() / 2.0;
@@ -243,7 +243,7 @@ namespace TY
         return *this;
     }
 
-    void TextureDrawable2D::draw(const Vec2& position) const
+    void TextureDrawable2D::draw(const Float2& position) const
     {
         if (texture.p_impl)
         {
@@ -251,7 +251,7 @@ namespace TY
         }
     }
 
-    void TextureDrawable2D::drawAt(const Vec2& center) const
+    void TextureDrawable2D::drawAt(const Float2& center) const
     {
         if (texture.p_impl)
         {
