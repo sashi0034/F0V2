@@ -642,6 +642,22 @@ namespace
             return -targetStrip.normal;
         }
     }
+
+    void applyInputAccel(MachinePhysicsState& state, const MachinePhysicsProps& props)
+    {
+        assert(props.input.accel);
+
+        const float currentVelocity = state.m_velocity.length();
+        const float targetVelocity = props.targetVelocity;
+
+        float dv = targetVelocity - currentVelocity;
+        dv = Max(dv, 0.1f);
+
+        float rate = props.accelFactor;
+        rate = Max(rate, Min(1.0f / rate, currentVelocity / (rate * targetVelocity)));
+
+        state.m_velocity += state.m_forwardVector * dv * rate * InGameDeltaTime();
+    }
 }
 
 namespace Race
@@ -657,18 +673,9 @@ namespace Race
         Float3 gravity = state.m_gravity; // TODO: 地面方向の成分を除去
         state.m_velocity += gravity * 50.0f * InGameDeltaTime();
 
-        if (props.hasAccelInput)
+        if (props.input.accel)
         {
-            const float currentVelocity = state.m_velocity.length();
-            const float targetVelocity = props.targetVelocity;
-
-            float dv = targetVelocity - currentVelocity;
-            dv = Max(dv, 0.1f);
-
-            float rate = props.accelerationRate;
-            rate = Max(rate, Min(1.0f / rate, currentVelocity / (rate * targetVelocity)));
-
-            state.m_velocity += state.m_forwardVector * dv * rate * InGameDeltaTime();
+            applyInputAccel(state, props);
         }
 
         constexpr float maxVelocity = 500.0f;
@@ -730,13 +737,23 @@ namespace Race
         // -----------------------------------------------
         // m_forwardVector
 
-        state.m_forwardVector = state.m_forwardVector - state.m_upVector * state.m_upVector.dot(state.m_forwardVector);
+        if (props.input.rightHandling != 0.0f)
+        {
+            const float forwardVelocity =
+                Abs(state.m_velocity.dot(state.m_forwardVector) / state.m_forwardVector.length());
+            const float steeringRate = Math::Clamp(forwardVelocity / 10.0f, 0.1f, 1.0f); // TODO: 調整
+            state.m_forwardVector +=
+                state.rightVector() * props.input.rightHandling * steeringRate * InGameDeltaTime();
+        }
+
+        state.m_forwardVector =
+            state.m_forwardVector - state.m_upVector * state.m_upVector.dot(state.m_forwardVector);
 
         if (state.m_forwardVector.isZero())
         {
             state.m_forwardVector = Mat4x4{state.m_pose.rotation}.forward();
-            state.m_forwardVector = state.m_forwardVector - state.m_upVector * state.m_upVector.dot(
-                state.m_forwardVector);
+            state.m_forwardVector =
+                state.m_forwardVector - state.m_upVector * state.m_upVector.dot(state.m_forwardVector);
 
             if (state.m_forwardVector.isZero())
             {

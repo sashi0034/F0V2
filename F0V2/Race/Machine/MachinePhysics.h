@@ -33,11 +33,16 @@ namespace Race
 
     struct MachinePhysicsProps
     {
-        bool hasAccelInput{};
+        struct
+        {
+            bool accel{};
+
+            float rightHandling{}; // [-1.0f, 1.0f]
+        } input{};
 
         float targetVelocity{};
 
-        float accelerationRate{};
+        float accelFactor{};
 
         bool debugPrint{};
     };

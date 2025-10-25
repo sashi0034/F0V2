@@ -89,16 +89,12 @@ private:
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
         m_drawer.uploadWorldMatrix(localRotation * m_physicsState.m_pose.getMatrix()).draw();
 
-        m_physicsProps.hasAccelInput = KeyUp.pressed();
+        m_physicsProps.input.accel = KeyUp.pressed();
+
+        m_physicsProps.input.rightHandling =
+            (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
 
         m_physicsProps.debugPrint = true;
-
-        {
-            float rotateInput = (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
-
-            // TODO: 修正
-            m_physicsState.m_forwardVector += m_physicsState.rightVector() * rotateInput * InGameDeltaTime();
-        }
 
 #ifdef _DEBUG
         if (s_stopMove)
@@ -156,7 +152,7 @@ private:
     {
         m_physicsProps.targetVelocity = 100.0f;
 
-        m_physicsProps.accelerationRate = 1.0f;
+        m_physicsProps.accelFactor = 1.0f;
     }
 
     void debugUI()
@@ -235,7 +231,7 @@ private:
 
         ImGui::DragFloat("Max Velocity", &m_physicsProps.targetVelocity);
 
-        ImGui::DragFloat("Acceleration Rate", &m_physicsProps.accelerationRate, 0.01f);
+        ImGui::DragFloat("Acceleration Rate", &m_physicsProps.accelFactor, 0.01f);
 
         if (ImGui::Button("Reset Physics State"))
         {
