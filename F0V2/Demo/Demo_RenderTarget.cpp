@@ -49,7 +49,7 @@ void Demo_RenderTarget()
 
     Mat4x4 worldMat = Mat4x4::Identity().rotatedY(45.0_deg);
 
-    const Mat4x4 viewMat = Mat4x4::LookAt(Vec3{0, 0, -5}, Vec3{0, 0, 0}, Vec3{0, 1, 0});
+    const Mat4x4 viewMat = Mat4x4::LookAt(Float3{0, 0, -5}, Float3{0, 0, 0}, Float3{0, 1, 0});
 
     const Mat4x4 projectionMat = Mat4x4::PerspectiveFov(
         90.0_deg,

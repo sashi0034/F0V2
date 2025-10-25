@@ -87,7 +87,7 @@ private:
 
         m_physicsProps.hasAccelInput = KeyUp.pressed();
 
-        m_physicsProps.debug.drawHitTris = true;
+        m_physicsProps.debugPrint = true;
 
         {
             float rotateInput = (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);

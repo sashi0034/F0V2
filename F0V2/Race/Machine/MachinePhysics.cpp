@@ -321,7 +321,7 @@ namespace
         const Float3& fromPos,
         const HitSurface& hit)
     {
-        if (props.debug.drawHitTris)
+        if (props.debugPrint)
         {
             hit.debugDraw();
         }
@@ -356,7 +356,7 @@ namespace
         const Float3& fromPos,
         const HitTri& hitTri)
     {
-        if (props.debug.drawHitTris)
+        if (props.debugPrint)
         {
             hitTri.debugDraw();
         }
@@ -707,7 +707,7 @@ namespace Race
             state.m_gravity = Float3(0, -1, 0);
 #endif
 
-            if (props.debug.drawHitTris)
+            if (props.debugPrint)
             {
                 Immediate3D::Line{
                         state.m_pose.position,
@@ -718,6 +718,7 @@ namespace Race
         }
 
         // -----------------------------------------------
+        // m_forwardVector
 
         state.m_forwardVector = state.m_forwardVector - state.m_upVector * state.m_upVector.dot(state.m_forwardVector);
 
@@ -735,28 +736,20 @@ namespace Race
 
         state.m_forwardVector = state.m_forwardVector.normalized();
 
-        if (state.m_additionalBoost > 0.0f)
+        // -----------------------------------------------
+
+        if (props.debugPrint)
         {
-            ImmediatePrint("<<< BOOST >>>", Alignment9::MiddleCenter);
+            if (state.m_additionalBoost > 0.0f)
+            {
+                ImmediatePrint_MiddleCenter("<<< BOOST >>>");
+            }
+
+            ImmediatePrint_MiddleCenter("position: {:.02f}", state.m_pose.position);
+            ImmediatePrint_MiddleCenter("m_forwardVector: {:.02f}", state.m_forwardVector);
+            ImmediatePrint_MiddleCenter("m_upVector: {:.02f}", state.m_upVector);
+            ImmediatePrint_MiddleCenter("m_gravity: {:.02f}", state.m_gravity);
         }
-
-        ImmediatePrint(
-            std::format("Pos: {:.02f}, {:.02f}, {:.02f}", state.m_pose.position.x, state.m_pose.position.y,
-                        state.m_pose.position.z), Alignment9::MiddleCenter);
-
-        ImmediatePrint(
-            std::format("Forward: {:.02f}, {:.02f}, {:.02f}",
-                        state.m_forwardVector.x, state.m_forwardVector.y, state.m_forwardVector.z),
-            Alignment9::MiddleCenter);
-
-        ImmediatePrint(
-            std::format("Up: {:.02f}, {:.02f}, {:.02f}", state.m_upVector.x, state.m_upVector.y, state.m_upVector.z),
-            Alignment9::MiddleCenter);
-
-        ImmediatePrint(
-            std::format("Gravity: {:.02f}, {:.02f}, {:.02f}", state.m_gravity.x, state.m_gravity.y, state.m_gravity.z),
-            Alignment9::MiddleCenter
-        );
 
         const Quaternion targetRotation =
             Quaternion::FromUnitVectors(Float3{0, 0, 1}, state.m_forwardVector); // TODO: pitch
@@ -765,10 +758,6 @@ namespace Race
         for (const auto dt : StandardStep_60Hz())
         {
             state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 10.0f * dt);
-
-            // 空中にいるとき、滑らかに重力方向に向いていくようにする
-            // TODO: 空中判定
-            // state.m_actualSurfaceNormal = state.m_actualSurfaceNormal.slerp(-gravity, 1.0f * InGameDeltaTime());
         }
 
         state.m_upVector = updateUpVector(state);

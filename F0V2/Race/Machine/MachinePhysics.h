@@ -35,10 +35,7 @@ namespace Race
     {
         bool hasAccelInput{};
 
-        struct
-        {
-            bool drawHitTris{};
-        } debug;
+        bool debugPrint{};
     };
 
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);
