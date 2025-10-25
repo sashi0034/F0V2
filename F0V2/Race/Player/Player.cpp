@@ -51,7 +51,8 @@ struct Player::Impl : GameObjectBase
             .setShader(Asset_shader::lambert)
             .setCbv10AndLater({GetRaceContextContent().cb.lambert});
 
-        resetPhysics();
+        resetPhysicsState();
+        resetPhysicsProps();
 
         // TODO: Update 前の最初のフレームでカメラが設定されるようにする
     }
@@ -144,13 +145,16 @@ private:
         debugUI();
     }
 
-    void resetPhysics()
+    void resetPhysicsState()
     {
         m_physicsState = {};
 
         m_physicsState.m_pose.position = GetRaceContext().stageManager().courseSegments()[0].p1 + Float3{0, 5, 0};
+    }
 
-        m_physicsProps.maxVelocity = 100.0f;
+    void resetPhysicsProps()
+    {
+        m_physicsProps.targetVelocity = 100.0f;
 
         m_physicsProps.accelerationRate = 1.0f;
     }
@@ -229,13 +233,13 @@ private:
 
         ImGui::Separator();
 
-        ImGui::DragFloat("Max Velocity", &m_physicsProps.maxVelocity);
+        ImGui::DragFloat("Max Velocity", &m_physicsProps.targetVelocity);
 
         ImGui::DragFloat("Acceleration Rate", &m_physicsProps.accelerationRate, 0.01f);
 
         if (ImGui::Button("Reset Physics State"))
         {
-            resetPhysics();
+            resetPhysicsState();
         }
 
         ImGui::End();

@@ -661,17 +661,16 @@ namespace Race
         {
             for (const float dt : StandardStep_60Hz())
             {
-                // TODO: maxVelocity を超えた場合の挙動を改善
-                const float dv = Max(0.0f, props.maxVelocity - state.m_velocity.length()) *
-                    (1.0f - std::expf(-props.accelerationRate * dt));
-                state.m_velocity += state.m_forwardVector * dv;
+                const float dv = props.targetVelocity - state.m_velocity.length();
+                const float a = Max(1.0f, dv) * (1.0f - std::expf(-props.accelerationRate * dt));
+                state.m_velocity += state.m_forwardVector * a;
             }
         }
 
-        const float maxSpeed = 100.0f;
-        if (state.m_velocity.lengthSq() > Math::Square(maxSpeed))
+        constexpr float maxVelocity = 500.0f;
+        if (state.m_velocity.lengthSq() > Math::Square(maxVelocity))
         {
-            state.m_velocity = state.m_velocity.normalized() * maxSpeed;
+            state.m_velocity = state.m_velocity.normalized() * maxVelocity;
         }
 
         // ブースト処理
