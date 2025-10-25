@@ -132,7 +132,7 @@ private:
         // -----------------------------------------------
 
         // スピードメーター
-        Immediate2D_Text::RocknRoll_Sdf(ToUtf32(std::format("{:.1f} km/h", m_physicsState.m_velocity.length() * 10.0f)))
+        Immediate2D_Text::ZXProto_Sdf(ToUtf32(std::format("{:.1f} km/h", m_physicsState.m_velocity.length() * 10.0f)))
             .setPosition(Scene::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
             .setSize(28.0f)
             .pushAuto();
