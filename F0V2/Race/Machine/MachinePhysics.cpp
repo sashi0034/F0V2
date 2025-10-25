@@ -696,7 +696,13 @@ namespace Race
         {
             Float3 moveVector = state.m_velocity * InGameDeltaTime();
 
-            // moveVector += -state.m_upVector * gravity * 10.0f * InGameDeltaTime(); // 常に微小量の力で地面方向に押し付ける
+            if (props.input.driftTrigger != 0)
+            {
+                // ドリフト操作
+                const float forwardVelocity = state.m_velocity.dot(state.m_forwardVector);
+                const float slideAmount = Min(10.0f, 0.3f * forwardVelocity);
+                moveVector += state.rightVector() * props.input.driftTrigger * slideAmount * InGameDeltaTime();
+            }
 
             updateCapsulePosition(state, props, state.m_pose.position, moveVector);
         }
@@ -739,9 +745,9 @@ namespace Race
 
         if (props.input.rightHandling != 0.0f)
         {
-            const float forwardVelocity =
-                Abs(state.m_velocity.dot(state.m_forwardVector) / state.m_forwardVector.length());
-            const float steeringRate = Math::Clamp(forwardVelocity / 10.0f, 0.1f, 1.0f); // TODO: 調整
+            // 左ジョイスティック操作
+            const float forwardVelocity = Abs(state.m_velocity.dot(state.m_forwardVector));
+            const float steeringRate = Math::Clamp(forwardVelocity / 10.0f, 0.5f, 1.0f); // TODO: 調整
             state.m_forwardVector +=
                 state.rightVector() * props.input.rightHandling * steeringRate * InGameDeltaTime();
         }

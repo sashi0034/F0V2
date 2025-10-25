@@ -94,6 +94,9 @@ private:
         m_physicsProps.input.rightHandling =
             (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
 
+        m_physicsProps.input.driftTrigger =
+            (KeyLeft.pressed() ? -1 : (KeyRight.pressed() ? 1 : 0));
+
         m_physicsProps.debugPrint = true;
 
 #ifdef _DEBUG

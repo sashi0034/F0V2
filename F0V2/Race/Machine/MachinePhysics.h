@@ -38,6 +38,8 @@ namespace Race
             bool accel{};
 
             float rightHandling{}; // [-1.0f, 1.0f]
+
+            int driftTrigger{}; // -1, 0, 1
         } input{};
 
         float targetVelocity{};
