@@ -15,11 +15,15 @@ namespace
 
         SdfFont m_MPlus1_Sdf_font{};
 
+        SdfFont m_RocknRoll_Sdf_font{};
+
         Asset0State()
         {
             const std::string rocknRollPath = "asset/font/RocknRoll/RocknRollOne-Regular.ttf";
 
             m_RocknRoll_24_bitmap = BitmapFont(rocknRollPath, 24);
+
+            m_RocknRoll_Sdf_font = SdfFont(rocknRollPath, 48);
 
             // -----------------------------------------------
 
@@ -57,6 +61,11 @@ namespace Asset0
     {
         return s_asset0state->m_MPlus1_Sdf_font;
     }
+
+    SdfFont RocknRoll_Sdf()
+    {
+        return s_asset0state->m_RocknRoll_Sdf_font;
+    }
 }
 
 namespace Immediate2D_Text
@@ -79,5 +88,10 @@ namespace Immediate2D_Text
     Immediate2D::Text MPlus1_Sdf(const std::u32string& text)
     {
         return Immediate2D::Text(Asset0::MPlus1_Sdf(), text);
+    }
+
+    Immediate2D::Text RocknRoll_Sdf(const std::u32string& text)
+    {
+        return Immediate2D::Text(Asset0::RocknRoll_Sdf(), text);
     }
 }
