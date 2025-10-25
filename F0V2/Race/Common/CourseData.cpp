@@ -21,6 +21,13 @@ namespace Race
         return static_cast<float>(width) - leftWidth();
     }
 
+    CourseNode CourseNode::Default()
+    {
+        return CourseNode{
+            .width = 50,
+        };
+    }
+
     CourseData LoadCourseData(const std::string& filepath)
     {
         CourseData result;
@@ -49,7 +56,7 @@ namespace Race
 
                         node.roll = (*nodeTbl)["roll"].value_or(0.0f);
 
-                        node.width = (*nodeTbl)["width"].value_or(50.0f);
+                        node.width = (*nodeTbl)["width"].value_or(CourseNode::Default().width);
 
                         node.centerOffset = (*nodeTbl)["centerOffset"].value_or(0.0f);
 

@@ -301,8 +301,8 @@ private:
 
         if (ImGui::Button("Add Node"))
         {
-            auto firstElement = nodeList.empty() ? CourseNode{} : nodeList.front();
-            auto lastElement = nodeList.empty() ? CourseNode{} : nodeList.back();
+            auto firstElement = nodeList.empty() ? CourseNode::Default() : nodeList.front();
+            auto lastElement = nodeList.empty() ? CourseNode::Default() : nodeList.back();
             lastElement.pos = (lastElement.pos + firstElement.pos) * 0.5f;
             nodeList.push_back(lastElement);
         }

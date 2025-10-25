@@ -88,6 +88,9 @@ namespace Race
 
         [[nodiscard]]
         float rightWidth() const;
+
+        [[nodiscard]]
+        static CourseNode Default();
     };
 
     struct CourseData
