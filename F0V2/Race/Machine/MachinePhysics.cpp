@@ -658,7 +658,13 @@ namespace Race
 
         if (props.hasAccelInput)
         {
-            state.m_velocity += state.m_forwardVector * 50.0f * InGameDeltaTime();
+            for (const float dt : StandardStep_60Hz())
+            {
+                // TODO: maxVelocity を超えた場合の挙動を改善
+                const float dv = Max(0.0f, props.maxVelocity - state.m_velocity.length()) *
+                    (1.0f - std::expf(-props.accelerationRate * dt));
+                state.m_velocity += state.m_forwardVector * dv;
+            }
         }
 
         const float maxSpeed = 100.0f;

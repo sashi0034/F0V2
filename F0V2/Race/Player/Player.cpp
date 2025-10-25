@@ -2,6 +2,7 @@
 #include "Player.h"
 
 #include "Asset.generated.h"
+#include "Asset0.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
 #include "Race/Machine/MachinePhysics.h"
@@ -13,6 +14,8 @@
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/ImmediateDrawer.h"
+#include "TY/Scene.h"
+#include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/Pose.h"
 
@@ -48,7 +51,7 @@ struct Player::Impl : GameObjectBase
             .setShader(Asset_shader::lambert)
             .setCbv10AndLater({GetRaceContextContent().cb.lambert});
 
-        resetPhysicsState();
+        resetPhysics();
 
         // TODO: Update 前の最初のフレームでカメラが設定されるようにする
     }
@@ -128,16 +131,28 @@ private:
 
         // -----------------------------------------------
 
+        // スピードメーター
+        Immediate2D_Text::MPlus1_Sdf(ToUtf32(std::format("{:.1f} km/h", m_physicsState.m_velocity.length() * 10.0f)))
+            .setPosition(Scene::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
+            .setSize(28.0f)
+            .pushAuto();
+
+        // -----------------------------------------------
+
         ImmediateDrawer::Global().draw();
 
         debugUI();
     }
 
-    void resetPhysicsState()
+    void resetPhysics()
     {
         m_physicsState = {};
 
         m_physicsState.m_pose.position = GetRaceContext().stageManager().courseSegments()[0].p1 + Float3{0, 5, 0};
+
+        m_physicsProps.maxVelocity = 100.0f;
+
+        m_physicsProps.accelerationRate = 1.0f;
     }
 
     void debugUI()
@@ -214,9 +229,13 @@ private:
 
         ImGui::Separator();
 
+        ImGui::DragFloat("Max Velocity", &m_physicsProps.maxVelocity);
+
+        ImGui::DragFloat("Acceleration Rate", &m_physicsProps.accelerationRate, 0.01f);
+
         if (ImGui::Button("Reset Physics State"))
         {
-            resetPhysicsState();
+            resetPhysics();
         }
 
         ImGui::End();

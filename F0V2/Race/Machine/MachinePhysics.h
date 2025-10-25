@@ -35,6 +35,10 @@ namespace Race
     {
         bool hasAccelInput{};
 
+        float maxVelocity{};
+
+        float accelerationRate{};
+
         bool debugPrint{};
     };
 
