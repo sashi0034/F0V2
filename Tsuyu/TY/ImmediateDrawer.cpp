@@ -102,13 +102,23 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
         {
             m_descriptorManager.RequestSrv0(shape.get<Immediate2D::Text>().font.atlasTexture());
         }
+        else if (shape.isHolds<Immediate2D::CachedText>())
+        {
+            m_descriptorManager.RequestSrv0(shape.get<Immediate2D::CachedText>().font.atlasTexture());
+        }
+
+        // -----------------------------------------------
 
         const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
         m_descriptorManager.RequestTransform(transformMatrix);
         m_descriptorManager.CommitCurrentHeap();
 
+        // -----------------------------------------------
+
         m_stateManager.request2D();
         m_stateManager.RequestDescriptor(m_descriptorManager.CurrentCursor(), m_descriptorManager.CurrentHeap().table);
+
+        // -----------------------------------------------
 
         auto&& component = ImmediateDrawerComponent::Instance;
         if (shape.isHolds<Immediate2D::Rect>())
