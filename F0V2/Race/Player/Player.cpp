@@ -14,6 +14,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/ImmediateDrawer.h"
+#include "TY/Palette.h"
 #include "TY/Scene.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
@@ -38,6 +39,8 @@ struct Player::Impl : GameObjectBase
     MachinePhysicsProps m_physicsProps{};
 
     Float3 m_cameraUp{0, 1, 0};
+
+    float m_maxDurability{1000.0f};
 
     void Init()
     {
@@ -131,15 +134,7 @@ private:
 
         // -----------------------------------------------
 
-        // スピードメーター
-        Immediate2D_Text::ZXProto_Sdf(ToUtf32(std::format("{:.1f} km/h", m_physicsState.m_velocity.length() * 10.0f)))
-            .setPosition(Scene::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
-            .setSize(28.0f)
-            .pushAuto();
-
-        // -----------------------------------------------
-
-        ImmediateDrawer::Global().draw();
+        drawUI();
 
         debugUI();
     }
@@ -149,6 +144,8 @@ private:
         m_physicsState = {};
 
         m_physicsState.m_pose.position = GetRaceContext().stageManager().courseSegments()[0].p1 + Float3{0, 5, 0};
+
+        m_physicsState.m_durability = m_maxDurability;
     }
 
     void resetPhysicsProps()
@@ -244,7 +241,39 @@ private:
         ImGui::End();
     }
 
-    // -----------------------------------------------
+    void drawUI() const
+    {
+        // スピードメーター
+        Immediate2D_Text::ZXProto_Sdf(ToUtf32(std::format("{:.1f} km/h", m_physicsState.m_velocity.length() * 10.0f)))
+            .setPosition(Scene::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
+            .setSize(28.0f)
+            .pushAuto();
+
+        // -----------------------------------------------
+        // 耐久値バー
+        {
+            const float barRate = InRange(m_physicsState.m_durability / m_maxDurability, 0.0f, 1.0f);
+            const Float2 bottomLeft = Scene::RectF().bl().movedBy(40.0f, -160.0f);
+            constexpr SizeF barSize{320.0f, 12.0f};
+            Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
+                .setColor(ColorF32{0.1f})
+                .pushAuto();
+            Immediate2D::RoundRect{
+                    RectF{bottomLeft, Alignment9::BottomLeft, barSize.withX(barSize.x * barRate)}.stretched(-0.5f)
+                }
+                .setColor(Palette::GoldenRod)
+                .pushAuto();
+            Immediate2D_Text::RocknRoll_Sdf(ToUtf32("{}", static_cast<int>(m_physicsState.m_durability)))
+                .setSize(20.0f)
+                .setPosition(bottomLeft.movedBy(barSize.x, -barSize.y - 4.0f), Alignment9::BottomRight)
+                .setColor(Palette::LightSteelBlue)
+                .pushAuto();
+        }
+
+        // -----------------------------------------------
+
+        ImmediateDrawer::Global().draw();
+    }
 
     void killed() override
     {

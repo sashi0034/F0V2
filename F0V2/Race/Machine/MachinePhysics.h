@@ -28,6 +28,8 @@ namespace Race
 
         float m_additionalBoost{};
 
+        float m_durability{};
+
         LapProgress m_lapProgress{};
 
         Float3 rightVector() const;

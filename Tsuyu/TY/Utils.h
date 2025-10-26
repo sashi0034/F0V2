@@ -11,6 +11,18 @@ namespace TY
 
     std::u32string ToUtf32(std::wstring_view wstr);
 
+    template <class... Args>
+    std::u32string ToUtf32(std::format_string<Args...> fmt, Args&&... args)
+    {
+        return ToUtf32(std::format(fmt, std::forward<Args>(args)...));
+    }
+
+    template <class... Args>
+    std::u32string ToUtf32(std::wformat_string<Args...> fmt, Args&&... args)
+    {
+        return ToUtf32(std::format(fmt, std::forward<Args>(args)...));
+    }
+
     std::wstring StringifyBlob(ID3DBlob* blob);
 
     /// @brief アライメントに揃えたサイズを取得する
