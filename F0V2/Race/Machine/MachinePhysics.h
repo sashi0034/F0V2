@@ -26,7 +26,9 @@ namespace Race
 
         float m_driftOffset{};
 
-        float m_additionalBoost{};
+        float m_manualBoost{};
+
+        float m_passiveBoost{};
 
         float m_durability{};
 
@@ -39,7 +41,9 @@ namespace Race
     {
         struct
         {
-            bool accel{};
+            bool accelPressed{};
+
+            bool boostRequested{};
 
             float rightHandling{}; // [-1.0f, 1.0f]
 

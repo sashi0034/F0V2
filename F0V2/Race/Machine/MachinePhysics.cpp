@@ -415,7 +415,7 @@ namespace
             if (gimmickResult.boostPad > 0.0f)
             {
                 // Boost 発生
-                state.m_additionalBoost = 1.0f;
+                state.m_passiveBoost = 1.0f;
             }
 
             if (gimmickResult.jumpPad > 0.0f && not state.m_surfaceNormal.isZero())
@@ -652,7 +652,7 @@ namespace
 
     void applyInputAccel(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
-        assert(props.input.accel);
+        assert(props.input.accelPressed);
 
         const float currentVelocity = state.m_velocity.length();
         const float targetVelocity = props.targetVelocity;
@@ -680,9 +680,15 @@ namespace Race
         Float3 gravity = state.m_gravity; // TODO: 地面方向の成分を除去
         state.m_velocity += gravity * 50.0f * InGameDeltaTime();
 
-        if (props.input.accel)
+        if (props.input.accelPressed)
         {
             applyInputAccel(state, props);
+        }
+
+        if (props.input.boostRequested && state.m_manualBoost < 0.5f)
+        {
+            state.m_manualBoost = 1.0f;
+            decreaseDurability(state, 800.0f);
         }
 
         constexpr float maxVelocity = 500.0f;
@@ -692,11 +698,18 @@ namespace Race
         }
 
         // ブースト処理
-        if (state.m_additionalBoost > 0.0f)
+        if (state.m_manualBoost > 0.0f)
         {
-            state.m_velocity += state.m_forwardVector * 100.0f * Min(1.0f, state.m_additionalBoost) * InGameDeltaTime();
+            state.m_velocity += state.m_forwardVector * 150.0f * Min(1.0f, state.m_manualBoost) * InGameDeltaTime();
 
-            state.m_additionalBoost = Max<float>(0.0f, state.m_additionalBoost - InGameDeltaTime());
+            state.m_manualBoost = Max<float>(0.0f, state.m_manualBoost - InGameDeltaTime());
+        }
+
+        if (state.m_passiveBoost > 0.0f)
+        {
+            state.m_velocity += state.m_forwardVector * 100.0f * Min(1.0f, state.m_passiveBoost) * InGameDeltaTime();
+
+            state.m_passiveBoost = Max<float>(0.0f, state.m_passiveBoost - InGameDeltaTime());
         }
 
         // ドリフト操作
@@ -831,7 +844,7 @@ namespace Race
 
         if (props.debugPrint)
         {
-            if (state.m_additionalBoost > 0.0f)
+            if (state.m_passiveBoost > 0.0f)
             {
                 ImmediatePrint_MiddleCenter("<<< BOOST >>>");
             }
