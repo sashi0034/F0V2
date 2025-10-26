@@ -761,12 +761,12 @@ namespace Race
         }
 
         // -----------------------------------------------
-        // m_forwardVector
 
         for (const float dt : StandardStep_60Hz())
         {
             // 左ジョイスティック操作
             const float rightHandling = props.input.rightHandling;
+            float rightShift;
             if (state.m_driftOffset != 0.0f)
             {
                 float r = rightHandling * std::sqrtf(Abs(state.m_driftOffset)) * Math::Sign(state.m_driftOffset);
@@ -778,8 +778,8 @@ namespace Race
                 }
                 else
                 {
-                    constexpr float k = 0.5f; // TODO: マシンごとのパラメータにする
-                    r = boundaryR + k * r;
+                    constexpr float driftFactor = 0.5f; // TODO: マシンごとのパラメータにする
+                    r = boundaryR + driftFactor * r;
                 }
 
                 r *= Math::Sign(state.m_driftOffset);
@@ -788,13 +788,20 @@ namespace Race
                 state.m_velocity = state.m_velocity + state.rightVector() * r;
                 state.m_velocity = state.m_velocity.normalized() * velocityLength;
 
-                state.m_forwardVector += state.rightVector() * r * dt;
+                rightShift = r;
             }
             else
             {
-                state.m_forwardVector += state.rightVector() * rightHandling * dt;
+                rightShift = rightHandling;
             }
+
+            constexpr float steeringSensitivity = 0.015f;
+            state.m_forwardVector += state.rightVector() * rightShift * steeringSensitivity;
+            state.m_forwardVector = state.m_forwardVector.normalized();
         }
+
+        // -----------------------------------------------
+        // m_forwardVector
 
         state.m_forwardVector =
             state.m_forwardVector - state.m_upVector * state.m_upVector.dot(state.m_forwardVector);
