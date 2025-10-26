@@ -40,7 +40,7 @@ struct Player::Impl : GameObjectBase
 
     Float3 m_cameraUp{0, 1, 0};
 
-    float m_maxDurability{1000.0f};
+    float m_maxDurability{5000.0f};
 
     void Init()
     {
@@ -252,7 +252,7 @@ private:
         // -----------------------------------------------
         // 耐久値バー
         {
-            const float barRate = InRange(m_physicsState.m_durability / m_maxDurability, 0.0f, 1.0f);
+            const float barRate = Math::Clamp(m_physicsState.m_durability / m_maxDurability, 0.0f, 1.0f);
             const Float2 bottomLeft = Scene::RectF().bl().movedBy(40.0f, -160.0f);
             constexpr SizeF barSize{320.0f, 12.0f};
             Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}

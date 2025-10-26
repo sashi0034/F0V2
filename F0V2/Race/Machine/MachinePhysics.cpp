@@ -348,6 +348,11 @@ namespace
         newMoveVector = newMoveVector.normalized() * Max(0.0f, moveVector.length() - hit.moveDistance);
     }
 
+    void decreaseDurability(MachinePhysicsState& state, float value)
+    {
+        state.m_durability = Max(0.0f, state.m_durability - value);
+    }
+
     void onHitBarrier(
         Float3& newMoveVector,
         MachinePhysicsState& state,
@@ -360,6 +365,8 @@ namespace
         {
             hitTri.debugDraw();
         }
+
+        decreaseDurability(state, 5.0f);
 
         // state.m_surfaceNormal = {};
         // state.m_surfaceToTriangle = {};
