@@ -89,7 +89,7 @@ private:
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
         m_drawer.uploadWorldMatrix(localRotation * m_physicsState.m_pose.getMatrix()).draw();
 
-        m_physicsProps.input.accel = KeyUp.pressed();
+        m_physicsProps.input.accel = KeyLShift.pressed();
 
         m_physicsProps.input.rightHandling =
             (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
