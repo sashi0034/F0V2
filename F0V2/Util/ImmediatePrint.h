@@ -12,6 +12,12 @@ inline namespace Util_ImmediatePrint
     // -----------------------------------------------
 
     template <class... Args>
+    void ImmediatePrint(std::format_string<Args...> fmt, Args&&... args)
+    {
+        ImmediatePrint(std::format(fmt, std::forward<Args>(args)...), Alignment9::TopLeft);
+    }
+
+    template <class... Args>
     void ImmediatePrint_TopLeft(std::format_string<Args...> fmt, Args&&... args)
     {
         ImmediatePrint(std::format(fmt, std::forward<Args>(args)...), Alignment9::TopLeft);

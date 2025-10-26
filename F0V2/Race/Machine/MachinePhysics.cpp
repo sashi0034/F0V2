@@ -692,17 +692,37 @@ namespace Race
             state.m_additionalBoost = Max<float>(0.0f, state.m_additionalBoost - InGameDeltaTime());
         }
 
+        // ドリフト操作
+        if (props.input.driftTrigger != 0)
+        {
+            state.m_driftOffset += static_cast<float>(props.input.driftTrigger) * InGameDeltaTime();
+            constexpr float maxSlipOffset = 5.0f;
+            if (Abs(state.m_driftOffset) > maxSlipOffset)
+            {
+                state.m_driftOffset = maxSlipOffset * Math::Sign(state.m_driftOffset);
+            }
+        }
+
+        if (Math::Sign(props.input.driftTrigger) != Math::Sign(state.m_driftOffset))
+        {
+            // ドリフト量を減らす
+            const float delta = 10.0f * InGameDeltaTime();
+            if (Abs(state.m_driftOffset) < delta)
+            {
+                state.m_driftOffset = 0.0f;
+            }
+            else
+            {
+                state.m_driftOffset -= delta * Math::Sign(state.m_driftOffset);
+            }
+        }
+
+        Float3 slippedForwardVector = state.m_forwardVector + state.rightVector() * state.m_driftOffset;
+        slippedForwardVector = slippedForwardVector.normalized();
+
         // 移動処理
         {
             Float3 moveVector = state.m_velocity * InGameDeltaTime();
-
-            if (props.input.driftTrigger != 0)
-            {
-                // ドリフト操作
-                const float forwardVelocity = state.m_velocity.dot(state.m_forwardVector);
-                const float slideAmount = Min(10.0f, 0.3f * forwardVelocity);
-                moveVector += state.rightVector() * props.input.driftTrigger * slideAmount * InGameDeltaTime();
-            }
 
             updateCapsulePosition(state, props, state.m_pose.position, moveVector);
         }
@@ -743,13 +763,37 @@ namespace Race
         // -----------------------------------------------
         // m_forwardVector
 
-        if (props.input.rightHandling != 0.0f)
+        for (const float dt : StandardStep_60Hz())
         {
             // 左ジョイスティック操作
-            const float forwardVelocity = Abs(state.m_velocity.dot(state.m_forwardVector));
-            const float steeringRate = Math::Clamp(forwardVelocity / 10.0f, 0.5f, 1.0f); // TODO: 調整
-            state.m_forwardVector +=
-                state.rightVector() * props.input.rightHandling * steeringRate * InGameDeltaTime();
+            const float rightHandling = props.input.rightHandling;
+            if (state.m_driftOffset != 0.0f)
+            {
+                float r = rightHandling * std::sqrtf(Abs(state.m_driftOffset)) * Math::Sign(state.m_driftOffset);
+                constexpr float boundaryR = 0.5f;
+                if (r < 0.0f)
+                {
+                    // r = boundaryR - boundaryR * (1.0f - 1.0f / (1.0f + r * r));
+                    r = boundaryR / (1.0f - r);
+                }
+                else
+                {
+                    constexpr float k = 0.5f; // TODO: マシンごとのパラメータにする
+                    r = boundaryR + k * r;
+                }
+
+                r *= Math::Sign(state.m_driftOffset);
+
+                const float velocityLength = state.m_velocity.length();
+                state.m_velocity = state.m_velocity + state.rightVector() * r;
+                state.m_velocity = state.m_velocity.normalized() * velocityLength;
+
+                state.m_forwardVector += state.rightVector() * r * dt;
+            }
+            else
+            {
+                state.m_forwardVector += state.rightVector() * rightHandling * dt;
+            }
         }
 
         state.m_forwardVector =
@@ -785,7 +829,7 @@ namespace Race
         }
 
         const Quaternion targetRotation =
-            Quaternion::FromUnitVectors(Float3{0, 0, 1}, state.m_forwardVector); // TODO: pitch
+            Quaternion::FromUnitVectors(Float3{0, 0, 1}, slippedForwardVector); // TODO: pitch
 
         // 滑らかに回転
         for (const auto dt : StandardStep_60Hz())
