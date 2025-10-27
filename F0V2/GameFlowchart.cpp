@@ -33,7 +33,7 @@ namespace
             await.waitForTrue([this, &editor]()
             {
 #if defined(_DEBUG)
-                if (not GM::g_debugService.editorEnabled)
+                if (not g_debugService.editorEnabled)
                 {
                     return true;
                 }
@@ -58,7 +58,7 @@ namespace
             await.waitForTrue([this, &race]()
             {
 #if defined(_DEBUG)
-                if (GM::g_debugService.editorEnabled)
+                if (g_debugService.editorEnabled)
                 {
                     return true;
                 }
@@ -146,7 +146,7 @@ private:
 
         if (ImGui::Button("Toggle Editor"))
         {
-            GM::g_debugService.editorEnabled = not GM::g_debugService.editorEnabled;
+            g_debugService.editorEnabled = not g_debugService.editorEnabled;
         }
 
         ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
@@ -155,13 +155,13 @@ private:
 
         ImGui::SeparatorText("g_debugService");
 
-        ImGui::Checkbox("editorEnabled", &GM::g_debugService.editorEnabled);
+        ImGui::Checkbox("editorEnabled", &g_debugService.editorEnabled);
 
-        ImGui::SliderFloat("cameraSpeed", &GM::g_debugService.cameraSpeed, 1.0f, 10.0f);
+        ImGui::SliderFloat("cameraSpeed", &g_debugService.cameraSpeed, 1.0f, 10.0f);
 
-        ImGui::InputInt("monitorMachineId", &GM::g_debugService.monitorMachineId);
+        ImGui::InputInt("monitorMachineId", &g_debugService.monitorMachineId);
 
-        ImGui::Checkbox("diablePlayerInput", &GM::g_debugService.disablePlayerInput);
+        ImGui::Checkbox("diablePlayerInput", &g_debugService.disablePlayerInput);
 
         ImGui::End();
     }

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace GM
+inline namespace GM_inline
 {
     struct DebugService
     {

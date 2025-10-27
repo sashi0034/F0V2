@@ -134,7 +134,7 @@ private:
             (KeyLeft.pressed() ? -1 : (KeyRight.pressed() ? 1 : 0));
 
 #if defined(_DEBUG)
-        if (GM::g_debugService.disablePlayerInput)
+        if (g_debugService.disablePlayerInput)
         {
             input = {};
         }

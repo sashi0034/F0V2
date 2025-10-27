@@ -323,7 +323,7 @@ namespace
         const HitSurface& hit)
     {
 #if defined(_DEBUG)
-        if (props.machineId == GM::g_debugService.monitorMachineId)
+        if (props.machineId == g_debugService.monitorMachineId)
         {
             hit.debugDraw();
         }
@@ -365,7 +365,7 @@ namespace
         const HitTri& hitTri)
     {
 #if defined(_DEBUG)
-        if (props.machineId == GM::g_debugService.monitorMachineId)
+        if (props.machineId == g_debugService.monitorMachineId)
         {
             hitTri.debugDraw();
         }
@@ -767,7 +767,7 @@ namespace Race
 #endif
 
 #if defined(_DEBUG)
-            if (props.machineId == GM::g_debugService.monitorMachineId)
+            if (props.machineId == g_debugService.monitorMachineId)
             {
                 Immediate3D::Line{
 
@@ -842,7 +842,7 @@ namespace Race
         // -----------------------------------------------
 
 #if defined(_DEBUG)
-        if (props.machineId == GM::g_debugService.monitorMachineId)
+        if (props.machineId == g_debugService.monitorMachineId)
         {
             ImmediatePrint_TopCenter(
                 "[{}] Lap: {}, Segment: {}, Strip: {}",

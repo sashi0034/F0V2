@@ -161,7 +161,7 @@ struct EditorPlayground::Impl : ActorBase
         if (not ImGui::IsAnyItemActive())
         {
             Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);
-            moveVector *= GM::g_debugService.cameraSpeed;
+            moveVector *= g_debugService.cameraSpeed;
 
             const Float2 rotateVector = Mouse::Drag(MouseM) * Float2{1, -1} * 5.0f;
             m_camera.transform(System::DeltaTime(), moveVector, rotateVector);

@@ -34,12 +34,12 @@ struct RaceCameraController::Impl
         debugUI();
 
 #if defined(_DEBUG)
-        GM::g_debugService.disablePlayerInput = s_useDebugCamera;
+        g_debugService.disablePlayerInput = s_useDebugCamera;
 
         if (s_useDebugCamera)
         {
             Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);
-            moveVector *= GM::g_debugService.cameraSpeed;
+            moveVector *= g_debugService.cameraSpeed;
 
             const Float2 rotateVector = Mouse::Drag(MouseM) * Float2{1, -1} * 5.0f;
             s_debugCamera.transform(System::DeltaTime(), moveVector, rotateVector);
@@ -54,7 +54,7 @@ struct RaceCameraController::Impl
 
         int machineId = 0;
 #if defined(_DEBUG)
-        machineId = GM::g_debugService.monitorMachineId;
+        machineId = g_debugService.monitorMachineId;
 #endif
         const auto& machine = GetRaceContext().getMachine(machineId);
 
