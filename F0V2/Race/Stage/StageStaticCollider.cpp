@@ -83,7 +83,7 @@ struct StageStaticCollider::Impl
         std::optional<std::pair<IndexedTriangle, GroundTriangleAttribute*>> bestTri{};
         Float3 hitPosition{};
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
         int testCount{};
 #endif
 
@@ -91,7 +91,7 @@ struct StageStaticCollider::Impl
         {
             Array<IndexedTriangle> candidates = m_groundBvh[index].queryHitsAndMerge(ray.aabb());
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
             testCount += candidates.size();
 #endif
 
@@ -113,7 +113,7 @@ struct StageStaticCollider::Impl
             }
         }
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
         ImmediatePrint(
             std::format("RayCastGround(): testCount: {}", testCount),
             Alignment9::BottomLeft);
@@ -139,7 +139,7 @@ struct StageStaticCollider::Impl
 
         const Float3 startPoint = ray.p0;
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
         int testCount{};
 #endif
 
@@ -155,7 +155,7 @@ struct StageStaticCollider::Impl
         {
             Array<IndexedTriangle> candidates = m_gimmickBvh[index].queryHitsAndMerge(ray.aabb());
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
             testCount += candidates.size();
 #endif
 
@@ -169,7 +169,7 @@ struct StageStaticCollider::Impl
             }
         }
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
         ImmediatePrint(
             std::format("SphereCastGimmick(): testCount: {}", testCount),
             Alignment9::BottomLeft);

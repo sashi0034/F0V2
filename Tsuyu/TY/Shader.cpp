@@ -115,7 +115,7 @@ namespace TY
     VertexShader::VertexShader(const ShaderParams& params)
         : p_impl{std::make_shared<Shader_impl>(params, "vs_5_0"sv)}
     {
-#ifdef _DEBUG
+#if defined(_DEBUG)
         EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
 #endif
     }
@@ -144,7 +144,7 @@ namespace TY
     PixelShader::PixelShader(const ShaderParams& params)
         : p_impl{std::make_shared<Shader_impl>(params, "ps_5_0"sv)}
     {
-#ifdef _DEBUG
+#if defined(_DEBUG)
         EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
 #endif
     }
@@ -195,7 +195,7 @@ namespace TY
     ComputeShader::ComputeShader(const ShaderParams& params)
         : p_impl(std::make_shared<Shader_impl>(params, "cs_5_0"sv))
     {
-#ifdef _DEBUG
+#if defined(_DEBUG)
         EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
 #endif
     }

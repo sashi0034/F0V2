@@ -350,7 +350,7 @@ public:
 
             auto impl = std::make_shared<Impl>(params);
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
             EngineHotReloader::TrackAsset(
                 impl, {impl->m_params.shader.ps.timestamp(), impl->m_params.shader.vs.timestamp()});
 #endif

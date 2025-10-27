@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
 namespace TY
 {
     void InitLivePPAddon();

@@ -28,7 +28,7 @@ using namespace Race;
 
 namespace
 {
-#ifdef _DEBUG
+#if defined(_DEBUG)
     bool s_stopMove{};
 #endif
 }
@@ -131,7 +131,7 @@ private:
         m_machine.props.input.driftTrigger =
             (KeyLeft.pressed() ? -1 : (KeyRight.pressed() ? 1 : 0));
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
         if (s_stopMove)
         {
             auto previousState = m_machine.state;

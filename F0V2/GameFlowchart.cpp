@@ -32,7 +32,7 @@ namespace
 
             await.waitForTrue([this, &editor]()
             {
-#ifdef _DEBUG
+#if defined(_DEBUG)
                 if (not GM::g_debugService.editorEnabled)
                 {
                     return true;
@@ -57,7 +57,7 @@ namespace
 
             await.waitForTrue([this, &race]()
             {
-#ifdef _DEBUG
+#if defined(_DEBUG)
                 if (GM::g_debugService.editorEnabled)
                 {
                     return true;

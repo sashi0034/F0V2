@@ -88,7 +88,7 @@ namespace TY::detail
     ComputePipelineState::ComputePipelineState(const ComputePipelineStateParams& params)
         : p_impl(std::make_shared<Impl>(params))
     {
-#ifdef _DEBUG
+#if defined(_DEBUG)
         EngineHotReloader::TrackAsset(
             p_impl, {p_impl->m_params.computeShader.timestamp()});
 #endif

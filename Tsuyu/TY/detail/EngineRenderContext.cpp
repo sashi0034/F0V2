@@ -94,7 +94,7 @@ struct EngineRenderContextImpl
 
     void Init()
     {
-#ifdef _DEBUG
+#if defined(_DEBUG)
         enableDebugLayer();
 #endif
 

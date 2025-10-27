@@ -23,7 +23,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // -----------------------------------------------
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
     Main();
 #else
     try

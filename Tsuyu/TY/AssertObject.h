@@ -11,7 +11,7 @@ namespace TY
     {
         std::string_view errorMessage;
         int index{};
-#ifdef _DEBUG
+#if defined(_DEBUG)
         std::source_location location{};
 
         AssertObject(

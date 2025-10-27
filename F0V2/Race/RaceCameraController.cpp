@@ -31,7 +31,7 @@ struct RaceCameraController::Impl
 
     void Update()
     {
-#ifdef _DEBUG
+#if defined(_DEBUG)
         if (s_useDebugCamera)
         {
             Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);
@@ -64,7 +64,7 @@ struct RaceCameraController::Impl
         Float3 eyePos, targetPos;
         computeEyeAndTarget(machine, eyePos, targetPos);
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
         if (s_fixedCameraUp)
         {
             m_cameraUp = Float3{0, 1, 0};
