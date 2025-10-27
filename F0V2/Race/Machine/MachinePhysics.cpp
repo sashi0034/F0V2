@@ -12,6 +12,8 @@
 
 using namespace Race;
 
+#define DEBUG_DRAW_LINES
+
 namespace
 {
     constexpr float epsGround = 1e-2f;
@@ -322,11 +324,8 @@ namespace
         const Float3& fromPos,
         const HitSurface& hit)
     {
-#if defined(_DEBUG)
-        if (props.machineId == g_debugService.monitorMachineId)
-        {
-            hit.debugDraw();
-        }
+#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
+        hit.debugDraw();
 #endif
 
         // 法線の適応
@@ -364,11 +363,8 @@ namespace
         const Float3& fromPos,
         const HitTri& hitTri)
     {
-#if defined(_DEBUG)
-        if (props.machineId == g_debugService.monitorMachineId)
-        {
-            hitTri.debugDraw();
-        }
+#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
+        hitTri.debugDraw();
 #endif
 
         decreaseDurability(state, 5.0f);
@@ -512,11 +508,13 @@ namespace
         const auto [newPos, hitOpt] = moveOnGround(state, fromPos, toPos);
         if (hitOpt.has_value())
         {
-            Immediate3D::Line{fromPos - vector * 10, toPos}.setColor(ColorF32{1.0f, 1, 0}).pushAuto();
-
             const auto& hit = *hitOpt;
 
+#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
+            Immediate3D::Line{fromPos - vector * 10, toPos}.setColor(ColorF32{1.0f, 1, 0}).pushAuto();
+
             hit.debugDraw();
+#endif
 
             state.m_pose.position = newPos;
 
@@ -766,16 +764,13 @@ namespace Race
             state.m_gravity = Float3(0, -1, 0);
 #endif
 
-#if defined(_DEBUG)
-            if (props.machineId == g_debugService.monitorMachineId)
-            {
-                Immediate3D::Line{
+#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
+            Immediate3D::Line{
 
-                        state.m_pose.position,
-                        state.m_pose.position - state.m_gravity * 10
-                    }.setColor(ColorF32{0.3f, 0.0f, 0.3f}, ColorF32{0.1f, 0, 0.1f})
-                     .pushAuto();
-            }
+                    state.m_pose.position,
+                    state.m_pose.position - state.m_gravity * 10
+                }.setColor(ColorF32{0.3f, 0.0f, 0.3f}, ColorF32{0.1f, 0, 0.1f})
+                 .pushAuto();
 #endif
         }
 
