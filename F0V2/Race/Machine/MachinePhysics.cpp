@@ -754,7 +754,15 @@ namespace Race
 
         const auto nearestSegmentAndStrip = findNearestSegmentAndStrip(courseSegments, state.m_pose.position);
 
-        state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, nearestSegmentAndStrip);
+        // ラップ更新
+        {
+            state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, nearestSegmentAndStrip);
+
+            if (state.m_reachedLapProgress.isLessThan(state.m_lapProgress))
+            {
+                state.m_reachedLapProgress = state.m_lapProgress;
+            }
+        }
 
         // 現在位置における重力方向を計算
         {

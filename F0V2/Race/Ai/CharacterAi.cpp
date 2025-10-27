@@ -9,6 +9,7 @@
 #include "Race/Machine/MachinePhysics.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Palette.h"
 #include "TY/PrimitiveModel3D.h"
@@ -59,6 +60,10 @@ private:
         m_machine.props.input = UpdateCharacterAiLogic(m_logicState, m_machine);
 
         UpdateMachinePhysicsState(m_machine.state, m_machine.props);
+
+        ImmediateDrawer::Global().draw();
+
+        debugUI();
     }
 
     void resetPhysicsState()
@@ -77,6 +82,20 @@ private:
         m_machine.props.peakVelocity = 100.0f;
 
         m_machine.props.accelFactor = 1.0f;
+    }
+
+    void debugUI()
+    {
+        ImGui::Begin("Character AI");
+
+        if (ImGui::Button("Reset"))
+        {
+            resetPhysicsState();
+            resetPhysicsProps();
+            m_logicState = {};
+        }
+
+        ImGui::End();
     }
 
     void killed() override

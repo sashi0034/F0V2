@@ -34,6 +34,8 @@ namespace Race
 
         LapProgress m_lapProgress{};
 
+        LapProgress m_reachedLapProgress{};
+
         Float3 rightVector() const;
     };
 

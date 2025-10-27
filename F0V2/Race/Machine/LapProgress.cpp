@@ -66,9 +66,21 @@ namespace
 
 namespace Race
 {
+    LapProgress::LapProgress(int lapIndex_, int segmentIndex_, int stripIndex_)
+        : lapIndex(lapIndex_), segmentIndex(segmentIndex_), stripIndex(stripIndex_)
+    {
+    }
+
     SegmentAndStrip LapProgress::segmentAndStrip() const
     {
         return {segmentIndex, stripIndex};
+    }
+
+    bool LapProgress::isLessThan(LapProgress other) const
+    {
+        return lapIndex < other.lapIndex
+            || (lapIndex == other.lapIndex && segmentIndex < other.segmentIndex)
+            || (lapIndex == other.lapIndex && segmentIndex == other.segmentIndex && stripIndex < other.stripIndex);
     }
 
     LapProgress EvaluateLapProgress(const LapProgress& previousLap, const SegmentAndStrip& currentIndex)

@@ -20,11 +20,18 @@ namespace Race
             auto& segment = segments[s];
             for (int m = 0; m < segment.midwayStrips.size(); ++m)
             {
-                const auto nextPos = segment.midwayStrips[m].center;;
-                if (state.nodes.empty() || (nextPos - state.nodes.back().pos).lengthSq() > Math::Square(10.0f))
+                const auto& strip = segment.midwayStrips[m];
+
+                const bool isFirst = state.nodes.empty();
+                const bool isLast = s == segments.size() - 1 && m == segment.midwayStrips.size() - 1;
+
+                if (isFirst ||
+                    isLast ||
+                    (strip.center - state.nodes.back().position).lengthSq() > Math::Square(50.0f))
                 {
                     SpatialWaypoint waypoint;
-                    waypoint.pos = nextPos;
+                    waypoint.position = strip.center;
+                    waypoint.normal = strip.normal;
                     waypoint.segmentIndex = s;
                     waypoint.stripIndex = m;
                     state.nodes.push_back(waypoint);

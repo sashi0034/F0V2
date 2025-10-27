@@ -5,8 +5,10 @@ namespace Race
 {
     struct CharacterAiLogicState
     {
-        MachinePhysicsProps::input_t input;
+        int m_targetWaypointIndex{};
     };
 
-    MachinePhysicsProps::input_t UpdateCharacterAiLogic(CharacterAiLogicState& state, const MachinePhysicsUnit& machine);
+    MachinePhysicsProps::input_t UpdateCharacterAiLogic(
+        CharacterAiLogicState& state,
+        const MachinePhysicsUnit& machine);
 }

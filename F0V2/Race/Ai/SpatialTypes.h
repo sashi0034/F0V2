@@ -5,7 +5,8 @@ namespace Race
 {
     struct SpatialWaypoint
     {
-        Float3 pos;
+        Float3 position;
+        Float3 normal{};
         int segmentIndex{};
         int stripIndex{};
     };
