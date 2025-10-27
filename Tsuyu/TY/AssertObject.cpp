@@ -12,7 +12,7 @@ namespace
 
 namespace TY
 {
-#if _DEBUG
+#if defined(_DEBUG)
     AssertObject::AssertObject(std::string_view errorMessage, const std::source_location& location) :
         errorMessage(errorMessage),
         location(location)
@@ -29,7 +29,7 @@ namespace TY
     {
         const std::string errorWithId =
             std::string{errorMessage} + " (" + std::to_string(index) + ")";
-#if _DEBUG
+#if defined(_DEBUG)
         const auto message = ToUtf16(errorWithId);
         const auto filename = ToUtf16(location.file_name());
         const std::wstring output =

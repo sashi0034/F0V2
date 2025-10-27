@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "LivePPAddon.h"
 
-#if _DEBUG
+#if defined(_DEBUG)
 
 // include the API for Windows, 64-bit, C++
 #include "../LivePP/API/x64/LPP_API_x64_CPP.h"
