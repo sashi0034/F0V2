@@ -165,6 +165,7 @@
     <ClCompile Include="Editor\EditorPlayground.cpp" />
     <ClCompile Include="GameFlowchart.cpp" />
     <ClCompile Include="GM\DebugService.cpp" />
+    <ClCompile Include="Race\Ai\CharacterAi.cpp" />
     <ClCompile Include="Race\Common\CourseModelBuilder.cpp" />
     <ClCompile Include="Race\Common\CourseConstants.cpp" />
     <ClCompile Include="Race\Common\CourseData.cpp" />
@@ -215,6 +216,8 @@
     <Content Include="Editor\Editor_template.cpp.txt" />
     <Content Include="Editor\Editor_template.h.txt" />
     <Content Include="Race\.gitignore" />
+    <Content Include="Race\Ai\Ai_template.cpp.txt" />
+    <Content Include="Race\Ai\Ai_template.h.txt" />
     <Content Include="Race\Player\Player_template.cpp.txt" />
     <Content Include="Race\Player\Player_template.h.txt" />
     <Content Include="Race\Stage\Stage_template.cpp.txt" />
@@ -271,6 +274,7 @@
     <ClInclude Include="Editor\EditorPlayground.h" />
     <ClInclude Include="GameFlowchart.h" />
     <ClInclude Include="GM\DebugService.h" />
+    <ClInclude Include="Race\Ai\CharacterAi.h" />
     <ClInclude Include="Race\Common\CourseModelBuilder.h" />
     <ClInclude Include="Race\Common\CourseConstants.h" />
     <ClInclude Include="Race\Common\CourseData.h" />

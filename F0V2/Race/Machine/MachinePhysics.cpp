@@ -655,7 +655,7 @@ namespace
         assert(props.input.accelPressed);
 
         const float currentVelocity = state.m_velocity.length();
-        const float targetVelocity = props.targetVelocity;
+        const float targetVelocity = props.peakVelocity;
 
         float dv = targetVelocity - currentVelocity;
         dv = Max(dv, 0.1f);

@@ -22,6 +22,8 @@ namespace Race
         Array<CourseSegment>& courseSegments();
         const Array<CourseSegment>& courseSegments() const;
 
+        Float3 startPosition() const;
+
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 
     private:

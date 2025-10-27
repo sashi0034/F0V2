@@ -364,6 +364,11 @@ namespace Race
         return g_sharedState->courseSegments;
     }
 
+    Float3 StageManager::startPosition() const
+    {
+        return g_sharedState->courseSegments[0].p1 + g_sharedState->courseSegments[0].midwayStrips[0].normal * 5.0f;
+    }
+
     std::shared_ptr<GameObjectBase> StageManager::asGameObject() const
     {
         return p_impl;

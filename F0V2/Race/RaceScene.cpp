@@ -3,6 +3,7 @@
 
 #include "IRaceContext.h"
 #include "RaceContextContent.h"
+#include "Ai/CharacterAi.h"
 #include "Common/RaceSharedState.h"
 #include "Player/Player.h"
 #include "Stage/StageManager.h"
@@ -30,6 +31,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     Player m_player{};
 
+    Array<CharacterAi> m_characterAiList{};
+
     Impl(bool context)
     {
         if (context)
@@ -53,6 +56,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         m_player = m_children.birth(Player());
         m_player.init();
+
+        m_characterAiList.push_back(m_children.birth(CharacterAi()));
+        m_characterAiList.back().init();
     }
 
     void update() override

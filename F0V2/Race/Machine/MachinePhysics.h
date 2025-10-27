@@ -50,7 +50,9 @@ namespace Race
             int driftTrigger{}; // -1, 0, 1
         } input{};
 
-        float targetVelocity{};
+        float maxDurability{5000.0f};
+
+        float peakVelocity{};
 
         float accelFactor{};
 

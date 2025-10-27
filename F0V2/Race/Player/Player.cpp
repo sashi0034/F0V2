@@ -40,12 +40,10 @@ struct Player::Impl : GameObjectBase
 
     Float3 m_cameraUp{0, 1, 0};
 
-    float m_maxDurability{5000.0f};
-
     void Init()
     {
         ModelBuffer model = ModelBuffer{
-            PrimitiveModel3D::Capsule(m_physicsState.m_radius, m_physicsState.m_height, ColorF32{0.5f, 0.7f, 1.0f})
+            PrimitiveModel3D::Capsule(m_physicsState.m_radius, m_physicsState.m_height, Palette::CornflowerBlue)
         };
 
         m_drawer =
@@ -145,14 +143,14 @@ private:
     {
         m_physicsState = {};
 
-        m_physicsState.m_pose.position = GetRaceContext().stageManager().courseSegments()[0].p1 + Float3{0, 5, 0};
+        m_physicsState.m_pose.position = GetRaceContext().stageManager().startPosition();
 
-        m_physicsState.m_durability = m_maxDurability;
+        m_physicsState.m_durability = m_physicsProps.maxDurability;
     }
 
     void resetPhysicsProps()
     {
-        m_physicsProps.targetVelocity = 100.0f;
+        m_physicsProps.peakVelocity = 100.0f;
 
         m_physicsProps.accelFactor = 1.0f;
     }
@@ -231,7 +229,7 @@ private:
 
         ImGui::Separator();
 
-        ImGui::DragFloat("Max Velocity", &m_physicsProps.targetVelocity);
+        ImGui::DragFloat("Max Velocity", &m_physicsProps.peakVelocity);
 
         ImGui::DragFloat("Acceleration Rate", &m_physicsProps.accelFactor, 0.01f);
 
@@ -254,7 +252,7 @@ private:
         // -----------------------------------------------
         // 耐久値バー
         {
-            const float barRate = Math::Clamp(m_physicsState.m_durability / m_maxDurability, 0.0f, 1.0f);
+            const float barRate = Math::Clamp(m_physicsState.m_durability / m_physicsProps.maxDurability, 0.0f, 1.0f);
             const Float2 bottomLeft = Scene::RectF().bl().movedBy(40.0f, -160.0f);
             constexpr SizeF barSize{320.0f, 12.0f};
             Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
