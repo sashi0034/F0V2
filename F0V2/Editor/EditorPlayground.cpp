@@ -199,8 +199,6 @@ struct EditorPlayground::Impl : ActorBase
                 ResetCamera();
             }
 
-            ImGui::SliderFloat("Camera Speed", &GM::g_debugService.cameraSpeed, 1.0f, 10.0f);
-
             ImGui::End();
         }
     }

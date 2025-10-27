@@ -139,11 +139,7 @@ private:
         ImGui::Begin("System Window");
 
         static bool s_sleep{};;
-        ImGui::Checkbox("Sleep", &s_sleep);
-
-        ImGui::Checkbox("Editor Enabled", &GM::g_debugService.editorEnabled);
-
-        if (s_sleep)
+        if (ImGui::Checkbox("Sleep", &s_sleep); s_sleep)
         {
             System::Sleep(500);
         }
@@ -151,6 +147,12 @@ private:
         ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
 
         ImGui::Text("Mouse Position: (%.2f, %.2f)", Mouse::PosF().x, Mouse::PosF().y);
+
+        ImGui::SeparatorText("g_debugService");
+
+        ImGui::Checkbox("editorEnabled", &GM::g_debugService.editorEnabled);
+
+        ImGui::SliderFloat("cameraSpeed", &GM::g_debugService.cameraSpeed, 1.0f, 10.0f);
 
         ImGui::End();
     }
