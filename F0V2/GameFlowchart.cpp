@@ -144,6 +144,11 @@ private:
             System::Sleep(500);
         }
 
+        if (ImGui::Button("Toggle Editor"))
+        {
+            GM::g_debugService.editorEnabled = not GM::g_debugService.editorEnabled;
+        }
+
         ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
 
         ImGui::Text("Mouse Position: (%.2f, %.2f)", Mouse::PosF().x, Mouse::PosF().y);
@@ -153,6 +158,8 @@ private:
         ImGui::Checkbox("editorEnabled", &GM::g_debugService.editorEnabled);
 
         ImGui::SliderFloat("cameraSpeed", &GM::g_debugService.cameraSpeed, 1.0f, 10.0f);
+
+        ImGui::InputInt("monitorMachineId", &GM::g_debugService.monitorMachineId);
 
         ImGui::End();
     }

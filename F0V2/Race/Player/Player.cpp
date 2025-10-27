@@ -123,6 +123,8 @@ private:
 
     void resetPhysicsProps()
     {
+        m_physicsProps.machineId = 0;
+
         m_physicsProps.peakVelocity = 100.0f;
 
         m_physicsProps.accelFactor = 1.0f;
@@ -146,8 +148,6 @@ private:
 
         m_physicsProps.input.driftTrigger =
             (KeyLeft.pressed() ? -1 : (KeyRight.pressed() ? 1 : 0));
-
-        m_physicsProps.debugPrint = true;
 
 #ifdef _DEBUG
         if (s_stopMove)

@@ -39,6 +39,8 @@ namespace Race
 
     struct MachinePhysicsProps
     {
+        int machineId{};
+
         struct
         {
             bool accelPressed{};
@@ -55,8 +57,6 @@ namespace Race
         float peakVelocity{};
 
         float accelFactor{};
-
-        bool debugPrint{};
     };
 
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);

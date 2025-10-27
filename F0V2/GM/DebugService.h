@@ -7,6 +7,8 @@ namespace GM
         bool editorEnabled{true};
 
         float cameraSpeed{3.0f};
+
+        int monitorMachineId{};
     };
 
     inline DebugService g_debugService{};

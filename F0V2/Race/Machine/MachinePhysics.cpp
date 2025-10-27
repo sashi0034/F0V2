@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "MachinePhysics.h"
 
+#include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/GameStep.h"
@@ -321,10 +322,12 @@ namespace
         const Float3& fromPos,
         const HitSurface& hit)
     {
-        if (props.debugPrint)
+#if defined(_DEBUG)
+        if (props.machineId == GM::g_debugService.monitorMachineId)
         {
             hit.debugDraw();
         }
+#endif
 
         // 法線の適応
         const Float3 n = hit.normal;
@@ -361,10 +364,12 @@ namespace
         const Float3& fromPos,
         const HitTri& hitTri)
     {
-        if (props.debugPrint)
+#if defined(_DEBUG)
+        if (props.machineId == GM::g_debugService.monitorMachineId)
         {
             hitTri.debugDraw();
         }
+#endif
 
         decreaseDurability(state, 5.0f);
 
@@ -751,16 +756,7 @@ namespace Race
 
         const auto nearestSegmentAndStrip = findNearestSegmentAndStrip(courseSegments, state.m_pose.position);
 
-        {
-            state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, nearestSegmentAndStrip);
-
-            ImmediatePrint(
-                std::format("Lap: {}, Segment: {}, Strip: {}",
-                            state.m_lapProgress.lapIndex,
-                            state.m_lapProgress.segmentIndex,
-                            state.m_lapProgress.stripIndex),
-                Alignment9::TopCenter);
-        }
+        state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, nearestSegmentAndStrip);
 
         // 現在位置における重力方向を計算
         {
@@ -770,14 +766,17 @@ namespace Race
             state.m_gravity = Float3(0, -1, 0);
 #endif
 
-            if (props.debugPrint)
+#if defined(_DEBUG)
+            if (props.machineId == GM::g_debugService.monitorMachineId)
             {
                 Immediate3D::Line{
+
                         state.m_pose.position,
                         state.m_pose.position - state.m_gravity * 10
                     }.setColor(ColorF32{0.3f, 0.0f, 0.3f}, ColorF32{0.1f, 0, 0.1f})
                      .pushAuto();
             }
+#endif
         }
 
         // -----------------------------------------------
@@ -842,18 +841,21 @@ namespace Race
 
         // -----------------------------------------------
 
-        if (props.debugPrint)
+#if defined(_DEBUG)
+        if (props.machineId == GM::g_debugService.monitorMachineId)
         {
-            if (state.m_passiveBoost > 0.0f)
-            {
-                ImmediatePrint_MiddleCenter("<<< BOOST >>>");
-            }
-
+            ImmediatePrint_TopCenter(
+                "[{}] Lap: {}, Segment: {}, Strip: {}",
+                props.machineId,
+                state.m_lapProgress.lapIndex,
+                state.m_lapProgress.segmentIndex,
+                state.m_lapProgress.stripIndex);
             ImmediatePrint_MiddleCenter("position: {:.02f}", state.m_pose.position);
             ImmediatePrint_MiddleCenter("m_forwardVector: {:.02f}", state.m_forwardVector);
             ImmediatePrint_MiddleCenter("m_upVector: {:.02f}", state.m_upVector);
             ImmediatePrint_MiddleCenter("m_gravity: {:.02f}", state.m_gravity);
         }
+#endif
 
         const Quaternion targetRotation =
             Quaternion::FromUnitVectors(Float3{0, 0, 1}, slippedForwardVector); // TODO: pitch

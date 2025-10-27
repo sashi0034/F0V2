@@ -72,6 +72,8 @@ private:
 
     void resetPhysicsProps()
     {
+        m_physicsProps.machineId = 1; // TODO
+
         m_physicsProps.peakVelocity = 100.0f;
 
         m_physicsProps.accelFactor = 1.0f;
