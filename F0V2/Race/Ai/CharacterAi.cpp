@@ -2,6 +2,8 @@
 #include "CharacterAi.h"
 
 #include "Asset.generated.h"
+#include "CharacterAiLogic.h"
+#include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
 #include "Race/Machine/MachinePhysics.h"
@@ -26,6 +28,8 @@ struct CharacterAi::Impl : GameObjectBase
 
     MachineUnit m_machine{};
 
+    CharacterAiLogicState m_logicState{};
+
     void Init()
     {
         ModelBuffer model = ModelBuffer{
@@ -40,6 +44,10 @@ struct CharacterAi::Impl : GameObjectBase
 
         resetPhysicsState();
         resetPhysicsProps();
+
+#if defined(_DEBUG) && 1
+        g_debugService.monitorMachineId = 1;
+#endif
     }
 
 private:
@@ -48,14 +56,7 @@ private:
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
         m_drawer.uploadWorldMatrix(localRotation * m_machine.state.m_pose.getMatrix()).draw();
 
-        if (m_machine.state.m_velocity.lengthSq() < Math::Square(100.0f))
-        {
-            m_machine.props.input.accelPressed = true;
-        }
-        else
-        {
-            m_machine.props.input.accelPressed = false;
-        }
+        m_machine.props.input = UpdateCharacterAiLogic(m_logicState, m_machine);
 
         UpdateMachinePhysicsState(m_machine.state, m_machine.props);
     }
