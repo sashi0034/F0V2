@@ -26,7 +26,7 @@ struct CharacterAi::Impl : GameObjectBase
 
     ModelDrawer m_drawer{};
 
-    MachineUnit m_machine{};
+    MachinePhysicsUnit m_machine{};
 
     CharacterAiLogicState m_logicState{};
 
@@ -103,7 +103,7 @@ namespace Race
         GameObjectHandle::init();
     }
 
-    const MachineUnit& CharacterAi::machine() const
+    const MachinePhysicsUnit& CharacterAi::machine() const
     {
         return p_impl->m_machine;
     }

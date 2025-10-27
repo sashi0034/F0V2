@@ -119,7 +119,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         return m_stageManager;
     }
 
-    const MachineUnit& getMachine(int id) const override
+    const MachinePhysicsUnit& getMachine(int id) const override
     {
         const int aiIndex = id - 1;
         if (InRange<int>(aiIndex, 0, m_characterAiList.size() - 1))

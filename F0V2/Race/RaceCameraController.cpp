@@ -79,7 +79,7 @@ struct RaceCameraController::Impl
     }
 
 private:
-    void computeEyeAndTarget(const MachineUnit& machine, Float3& outEye, Float3& outTarget) const
+    void computeEyeAndTarget(const MachinePhysicsUnit& machine, Float3& outEye, Float3& outTarget) const
     {
         const Float3 forwardVector = machine.state.m_forwardVector;
 

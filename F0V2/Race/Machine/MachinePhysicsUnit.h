@@ -3,7 +3,7 @@
 
 namespace Race
 {
-    struct MachineUnit
+    struct MachinePhysicsUnit
     {
         MachinePhysicsState state{};
         MachinePhysicsProps props{};

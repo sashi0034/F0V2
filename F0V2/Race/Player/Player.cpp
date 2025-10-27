@@ -39,7 +39,7 @@ struct Player::Impl : GameObjectBase
 
     ModelDrawer m_drawer{};
 
-    MachineUnit m_machine{};
+    MachinePhysicsUnit m_machine{};
 
     Float3 m_cameraUp{0, 1, 0};
 
@@ -298,7 +298,7 @@ namespace Race
         GameObjectHandle::init();
     }
 
-    const MachineUnit& Player::machine() const
+    const MachinePhysicsUnit& Player::machine() const
     {
         return p_impl->m_machine;
     }

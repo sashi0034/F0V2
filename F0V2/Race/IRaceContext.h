@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Machine/MachineUnit.h"
+#include "Machine/MachinePhysicsUnit.h"
 
 namespace Race
 {
@@ -19,7 +19,7 @@ namespace Race
         virtual const StageManager& stageManager() const = 0;
 
         // virtual MachineUnit& getMachine(int id) = 0;
-        virtual const MachineUnit& getMachine(int id) const = 0;
+        virtual const MachinePhysicsUnit& getMachine(int id) const = 0;
     };
 
     IRaceContext& GetRaceContext();

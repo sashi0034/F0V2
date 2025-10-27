@@ -176,7 +176,7 @@
     <ClCompile Include="Race\Machine\LapProgress.cpp" />
     <ClCompile Include="Race\Machine\MachineModelBuilder.cpp" />
     <ClCompile Include="Race\Machine\MachinePhysics.cpp" />
-    <ClCompile Include="Race\Machine\MachineUnit.cpp" />
+    <ClCompile Include="Race\Machine\MachinePhysicsUnit.cpp" />
     <ClCompile Include="Race\Player\Player.cpp" />
     <ClCompile Include="Race\RaceCameraController.cpp" />
     <ClCompile Include="Race\Stage\StageStaticCollider.cpp" />
@@ -289,7 +289,7 @@
     <ClInclude Include="Race\Machine\LapProgress.h" />
     <ClInclude Include="Race\Machine\MachineModelBuilder.h" />
     <ClInclude Include="Race\Machine\MachinePhysics.h" />
-    <ClInclude Include="Race\Machine\MachineUnit.h" />
+    <ClInclude Include="Race\Machine\MachinePhysicsUnit.h" />
     <ClInclude Include="Race\Player\Player.h" />
     <ClInclude Include="Race\RaceCameraController.h" />
     <ClInclude Include="Race\RaceContextContent.h" />
