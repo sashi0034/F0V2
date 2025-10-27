@@ -20,12 +20,19 @@ namespace TY
 
         void transformBySimpleInput(float dt = System::DeltaTime(), float moveSpeed = 10.0f, float rotateSpeed = 50.0f);
 
+        [[nodiscard]]
         Float3 eyePosition() const;
 
+        [[nodiscard]]
         Float3 targetPosition() const;
 
+        [[nodiscard]]
+        Float3 upDirection() const;
+
+        [[nodiscard]]
         const Mat4x4& viewMatrix() const;
 
+        [[nodiscard]]
         const Mat4x4& worldMatrix() const;
 
     private:

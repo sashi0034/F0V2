@@ -3,6 +3,7 @@
 
 #include "Asset.generated.h"
 #include "Asset0.h"
+#include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
 #include "Race/Machine/MachinePhysics.h"
@@ -14,8 +15,11 @@
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/ImmediateDrawer.h"
+#include "TY/Mouse.h"
 #include "TY/Palette.h"
 #include "TY/Scene.h"
+#include "TY/SimpleCamera3D.h"
+#include "TY/SimpleInput.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/Pose.h"
@@ -24,9 +28,15 @@ using namespace Race;
 
 namespace
 {
+#ifdef _DEBUG
     bool s_stopMove{};
 
     bool s_fixedCameraUp{};
+
+    SimpleCamera3D s_debugCamera{};
+
+    bool s_useDebugCamera{};
+#endif
 }
 
 struct Player::Impl : GameObjectBase
@@ -90,47 +100,10 @@ private:
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
         m_drawer.uploadWorldMatrix(localRotation * m_physicsState.m_pose.getMatrix()).draw();
 
-        m_physicsProps.input.accelPressed = KeyLShift.pressed();
+        updatePhysics();
 
-        m_physicsProps.input.boostRequested = KeySpace.down();
-
-        m_physicsProps.input.rightHandling =
-            (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
-
-        m_physicsProps.input.driftTrigger =
-            (KeyLeft.pressed() ? -1 : (KeyRight.pressed() ? 1 : 0));
-
-        m_physicsProps.debugPrint = true;
-
-#ifdef _DEBUG
-        if (s_stopMove)
-        {
-            auto previousState = m_physicsState;
-            UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
-            m_physicsState = previousState;
-        }
-        else
-#endif
-        {
-            UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
-        }
-
-        // -----------------------------------------------
         // 次のフレームの camera を決定 --> [次フレーム] 前フレームの camera 適応 & 前フレームの Player 描画
-
-        Float3 eyePos, targetPos;
-        computeEyeAndTarget(eyePos, targetPos);
-
-        for (const float dt : StandardStep_60Hz())
-        {
-            m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, dt * 5.0f);
-        }
-
-#ifdef _DEBUG
-        if (s_fixedCameraUp) m_cameraUp = Float3{0, 1, 0};
-#endif
-
-        GetRaceContextContent().camera.set(eyePos, targetPos, m_cameraUp);
+        updateCamera();
 
         // -----------------------------------------------
 
@@ -155,11 +128,83 @@ private:
         m_physicsProps.accelFactor = 1.0f;
     }
 
+    void updatePhysics()
+    {
+#ifdef _DEBUG
+        if (s_useDebugCamera)
+        {
+            return;
+        }
+#endif
+
+        m_physicsProps.input.accelPressed = KeyLShift.pressed();
+
+        m_physicsProps.input.boostRequested = KeySpace.down();
+
+        m_physicsProps.input.rightHandling =
+            (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
+
+        m_physicsProps.input.driftTrigger =
+            (KeyLeft.pressed() ? -1 : (KeyRight.pressed() ? 1 : 0));
+
+        m_physicsProps.debugPrint = true;
+
+#ifdef _DEBUG
+        if (s_stopMove)
+        {
+            auto previousState = m_physicsState;
+            UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
+            m_physicsState = previousState;
+        }
+        else
+#endif
+        {
+            UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
+        }
+    }
+
+    void updateCamera()
+    {
+#ifdef _DEBUG
+        if (s_useDebugCamera)
+        {
+            Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);
+            moveVector *= GM::g_debugService.cameraSpeed;
+
+            const Float2 rotateVector = Mouse::Drag(MouseM) * Float2{1, -1} * 5.0f;
+            s_debugCamera.transform(System::DeltaTime(), moveVector, rotateVector);
+
+            GetRaceContextContent().camera.set(
+                s_debugCamera.eyePosition(), s_debugCamera.targetPosition(), s_debugCamera.upDirection());
+            return;
+        }
+#endif
+
+        Float3 eyePos, targetPos;
+        computeEyeAndTarget(eyePos, targetPos);
+
+        for (const float dt : StandardStep_60Hz())
+        {
+            m_cameraUp = m_cameraUp.slerp(m_physicsState.m_upVector, dt * 5.0f); // TODO: 2.0f などもを試して調整
+        }
+
+#ifdef _DEBUG
+        if (s_fixedCameraUp)
+        {
+            m_cameraUp = Float3{0, 1, 0};
+        }
+#endif
+
+        GetRaceContextContent().camera.set(eyePos, targetPos, m_cameraUp);
+    }
+
     void debugUI()
     {
         ImGui::Begin("Player");
 
         ImGui::Checkbox("Stop Move", &s_stopMove);
+
+        ImGui::Checkbox("Use Debug Camera", &s_useDebugCamera);
 
         ImGui::DragFloat3("Position", &m_physicsState.m_pose.position.x, 0.1f);
 

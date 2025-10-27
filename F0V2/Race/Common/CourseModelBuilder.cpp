@@ -461,6 +461,7 @@ namespace
                     r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
                     l1.pos = cap_l0.pos * (1 - s1_rate) + cap_l1.pos * s1_rate;
                     r1.pos = cap_r0.pos * (1 - s1_rate) + cap_r1.pos * s1_rate;
+                    // TODO: 法線計算を修正
                     l0.normal = (cap_l0.normal * (1 - s0_rate) + cap_l1.normal * s0_rate).normalized();
                     r0.normal = (cap_r0.normal * (1 - s0_rate) + cap_r1.normal * s0_rate).normalized();
                     l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();

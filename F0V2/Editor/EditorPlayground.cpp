@@ -2,7 +2,6 @@
 #include "EditorPlayground.h"
 
 #include "Asset.generated.h"
-#include "ColorPalette.h"
 #include "EditorState.h"
 #include "Util/DebugUI.h"
 #include "CB/Skydome.h"
@@ -159,12 +158,10 @@ struct EditorPlayground::Impl : ActorBase
     {
         m_children.updateEach();
 
-        static float s_cameraSpeed = 3.0f;
-
         if (not ImGui::IsAnyItemActive())
         {
             Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);
-            moveVector *= s_cameraSpeed;
+            moveVector *= GM::g_debugService.cameraSpeed;
 
             const Float2 rotateVector = Mouse::Drag(MouseM) * Float2{1, -1} * 5.0f;
             m_camera.transform(System::DeltaTime(), moveVector, rotateVector);
@@ -202,7 +199,7 @@ struct EditorPlayground::Impl : ActorBase
                 ResetCamera();
             }
 
-            ImGui::SliderFloat("Camera Speed", &s_cameraSpeed, 1.0f, 10.0f);
+            ImGui::SliderFloat("Camera Speed", &GM::g_debugService.cameraSpeed, 1.0f, 10.0f);
 
             ImGui::End();
         }

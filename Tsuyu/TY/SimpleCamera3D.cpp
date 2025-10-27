@@ -131,6 +131,11 @@ namespace TY
         return p_impl->TargetPosition();
     }
 
+    Float3 SimpleCamera3D::upDirection() const
+    {
+        return p_impl->m_upDirection;
+    }
+
     const Mat4x4& SimpleCamera3D::viewMatrix() const
     {
         return p_impl->m_viewMatrix;
