@@ -2,6 +2,7 @@
 #include "RaceScene.h"
 
 #include "IRaceContext.h"
+#include "RaceCameraController.h"
 #include "RaceContextContent.h"
 #include "Ai/CharacterAi.h"
 #include "Common/RaceSharedState.h"
@@ -28,6 +29,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     RaceContextContent m_state{};
 
     StageManager m_stageManager{};
+
+    RaceCameraController m_cameraController{};
 
     Player m_player{};
 
@@ -63,6 +66,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     void update() override
     {
+        m_cameraController.update();
+
         Graphics3D::SetViewMatrix(m_state.camera.viewMatrix());
 
         {
@@ -112,6 +117,11 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     const StageManager& stageManager() const override
     {
         return m_stageManager;
+    }
+
+    const MachineUnit& getMachine(int id) const override
+    {
+        return m_player.machine(); // TODO: Ai
     }
 };
 
