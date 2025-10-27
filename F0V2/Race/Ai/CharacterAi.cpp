@@ -24,13 +24,12 @@ struct CharacterAi::Impl : GameObjectBase
 
     ModelDrawer m_drawer{};
 
-    MachinePhysicsState m_physicsState{};
-    MachinePhysicsProps m_physicsProps{};
+    MachineUnit m_machine{};
 
     void Init()
     {
         ModelBuffer model = ModelBuffer{
-            PrimitiveModel3D::Capsule(m_physicsState.m_radius, m_physicsState.m_height, Palette::SandyBrown)
+            PrimitiveModel3D::Capsule(m_machine.state.m_radius, m_machine.state.m_height, Palette::SandyBrown)
         };
 
         m_drawer =
@@ -47,36 +46,36 @@ private:
     void update() override
     {
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        m_drawer.uploadWorldMatrix(localRotation * m_physicsState.m_pose.getMatrix()).draw();
+        m_drawer.uploadWorldMatrix(localRotation * m_machine.state.m_pose.getMatrix()).draw();
 
-        if (m_physicsState.m_velocity.lengthSq() < Math::Square(100.0f))
+        if (m_machine.state.m_velocity.lengthSq() < Math::Square(100.0f))
         {
-            m_physicsProps.input.accelPressed = true;
+            m_machine.props.input.accelPressed = true;
         }
         else
         {
-            m_physicsProps.input.accelPressed = false;
+            m_machine.props.input.accelPressed = false;
         }
 
-        UpdateMachinePhysicsState(m_physicsState, m_physicsProps);
+        UpdateMachinePhysicsState(m_machine.state, m_machine.props);
     }
 
     void resetPhysicsState()
     {
-        m_physicsState = {};
+        m_machine.state = {};
 
-        m_physicsState.m_pose.position = GetRaceContext().stageManager().startPosition();
+        m_machine.state.m_pose.position = GetRaceContext().stageManager().startPosition();
 
-        m_physicsState.m_durability = m_physicsProps.maxDurability;
+        m_machine.state.m_durability = m_machine.props.maxDurability;
     }
 
     void resetPhysicsProps()
     {
-        m_physicsProps.machineId = 1; // TODO
+        m_machine.props.machineId = 1; // TODO
 
-        m_physicsProps.peakVelocity = 100.0f;
+        m_machine.props.peakVelocity = 100.0f;
 
-        m_physicsProps.accelFactor = 1.0f;
+        m_machine.props.accelFactor = 1.0f;
     }
 
     void killed() override
@@ -101,6 +100,11 @@ namespace Race
     {
         p_impl->Init();
         GameObjectHandle::init();
+    }
+
+    const MachineUnit& CharacterAi::machine() const
+    {
+        return p_impl->m_machine;
     }
 
     std::shared_ptr<GameObjectBase> CharacterAi::asGameObject() const

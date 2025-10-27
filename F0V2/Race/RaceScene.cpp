@@ -121,7 +121,13 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     const MachineUnit& getMachine(int id) const override
     {
-        return m_player.machine(); // TODO: Ai
+        const int aiIndex = id - 1;
+        if (InRange<int>(aiIndex, 0, m_characterAiList.size() - 1))
+        {
+            return m_characterAiList[aiIndex].machine();
+        }
+
+        return m_player.machine();
     }
 };
 

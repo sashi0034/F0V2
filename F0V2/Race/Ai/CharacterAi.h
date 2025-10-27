@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Race/Machine/MachineUnit.h"
 #include "TY_Extension/GameObjectHandle.h"
 
 namespace Race
@@ -9,6 +10,8 @@ namespace Race
         CharacterAi();
 
         void init() override;
+
+        const MachineUnit& machine() const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 
