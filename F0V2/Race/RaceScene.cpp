@@ -5,6 +5,7 @@
 #include "RaceCameraController.h"
 #include "RaceContextContent.h"
 #include "Ai/CharacterAi.h"
+#include "Ai/SpatialAi.h"
 #include "Common/RaceSharedState.h"
 #include "Player/Player.h"
 #include "Stage/StageManager.h"
@@ -29,6 +30,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     RaceContextContent m_state{};
 
     StageManager m_stageManager{};
+
+    SpatialAi m_spatialAi{};
 
     RaceCameraController m_cameraController{};
 
@@ -59,6 +62,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         m_player = m_children.birth(Player());
         m_player.init();
+
+        m_spatialAi = m_children.birth(SpatialAi());
+        m_spatialAi.init();
 
         m_characterAiList.push_back(m_children.birth(CharacterAi()));
         m_characterAiList.back().init();
@@ -117,6 +123,16 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     const StageManager& stageManager() const override
     {
         return m_stageManager;
+    }
+
+    SpatialAi& spatialAi() override
+    {
+        return m_spatialAi;
+    }
+
+    const SpatialAi& spatialAi() const override
+    {
+        return m_spatialAi;
     }
 
     const MachinePhysicsUnit& getMachine(int id) const override

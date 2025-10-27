@@ -7,6 +7,8 @@ namespace Race
 
     class StageManager;
 
+    struct SpatialAi;
+
     class IRaceContext
     {
     public:
@@ -17,6 +19,9 @@ namespace Race
 
         virtual StageManager& stageManager() = 0;
         virtual const StageManager& stageManager() const = 0;
+
+        virtual SpatialAi& spatialAi() = 0;
+        virtual const SpatialAi& spatialAi() const = 0;
 
         // virtual MachineUnit& getMachine(int id) = 0;
         virtual const MachinePhysicsUnit& getMachine(int id) const = 0;

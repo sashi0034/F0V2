@@ -167,6 +167,8 @@
     <ClCompile Include="GM\DebugService.cpp" />
     <ClCompile Include="Race\Ai\CharacterAi.cpp" />
     <ClCompile Include="Race\Ai\CharacterAiLogic.cpp" />
+    <ClCompile Include="Race\Ai\SpatialAi.cpp" />
+    <ClCompile Include="Race\Ai\SpatialAiLogic.cpp" />
     <ClCompile Include="Race\Common\CourseModelBuilder.cpp" />
     <ClCompile Include="Race\Common\CourseConstants.cpp" />
     <ClCompile Include="Race\Common\CourseData.cpp" />
@@ -279,6 +281,9 @@
     <ClInclude Include="GM\DebugService.h" />
     <ClInclude Include="Race\Ai\CharacterAi.h" />
     <ClInclude Include="Race\Ai\CharacterAiLogic.h" />
+    <ClInclude Include="Race\Ai\SpatialAi.h" />
+    <ClInclude Include="Race\Ai\SpatialAiLogic.h" />
+    <ClInclude Include="Race\Ai\SpatialTypes.h" />
     <ClInclude Include="Race\Common\CourseModelBuilder.h" />
     <ClInclude Include="Race\Common\CourseConstants.h" />
     <ClInclude Include="Race\Common\CourseData.h" />
