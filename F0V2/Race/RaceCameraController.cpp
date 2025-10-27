@@ -31,7 +31,11 @@ struct RaceCameraController::Impl
 
     void Update()
     {
+        debugUI();
+
 #if defined(_DEBUG)
+        GM::g_debugService.disablePlayerInput = s_useDebugCamera;
+
         if (s_useDebugCamera)
         {
             Float3 moveVector = SimpleInput::GetPlayerMovement3D() * (KeyShift.pressed() ? 50.0f : 10.0f);

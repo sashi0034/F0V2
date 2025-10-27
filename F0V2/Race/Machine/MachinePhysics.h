@@ -41,7 +41,7 @@ namespace Race
     {
         int machineId{};
 
-        struct
+        struct input_t
         {
             bool accelPressed{};
 

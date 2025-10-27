@@ -161,6 +161,8 @@ private:
 
         ImGui::InputInt("monitorMachineId", &GM::g_debugService.monitorMachineId);
 
+        ImGui::Checkbox("diablePlayerInput", &GM::g_debugService.disablePlayerInput);
+
         ImGui::End();
     }
 

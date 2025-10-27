@@ -121,15 +121,26 @@ private:
 
     void updatePhysics()
     {
-        m_machine.props.input.accelPressed = KeyLShift.pressed();
+        MachinePhysicsProps::input_t input;
 
-        m_machine.props.input.boostRequested = KeySpace.down();
+        input.accelPressed = KeyLShift.pressed();
 
-        m_machine.props.input.rightHandling =
+        input.boostRequested = KeySpace.down();
+
+        input.rightHandling =
             (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
 
-        m_machine.props.input.driftTrigger =
+        input.driftTrigger =
             (KeyLeft.pressed() ? -1 : (KeyRight.pressed() ? 1 : 0));
+
+#if defined(_DEBUG)
+        if (GM::g_debugService.disablePlayerInput)
+        {
+            input = {};
+        }
+#endif
+
+        m_machine.props.input = input;
 
 #if defined(_DEBUG)
         if (s_stopMove)
