@@ -43,9 +43,15 @@ namespace Race
     {
         MachinePhysicsProps::input_t input{};
 
-        // -----------------------------------------------
+        const auto& spatialData = GetRaceContext().spatialAi().data();
+        const auto& currentLap = machine.state.m_lapProgress;
+        const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
+        constexpr int lookaheadCount = 10;
+        const SpatialWaypoint& targetWaypoint =
+            spatialData.waypoints[(currentWaypoint.indexInList + lookaheadCount) % spatialData.waypoints.size()];
 
-        if (machine.state.m_velocity.lengthSq() < Math::Square(50.0f) || true)
+        const float curveHeuristic = currentWaypoint.curveHeuristic;
+        if (machine.state.m_velocity.lengthSq() < Math::Square(50.0f * (1.0f - curveHeuristic)))
         {
             input.accelPressed = true;
         }
@@ -54,14 +60,7 @@ namespace Race
             input.accelPressed = false;
         }
 
-        // -----------------------------------------------
-
-        const auto& spatialData = GetRaceContext().spatialAi().data();
-        const auto& currentLap = machine.state.m_lapProgress;
-        const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
-        constexpr int lookaheadCount = 20;
-        const SpatialWaypoint& targetWaypoint =
-            spatialData.waypoints[(currentWaypoint.indexInList + lookaheadCount) % spatialData.waypoints.size()];
+        ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);
 
         const Float3 toWaypoints = targetWaypoint.position - machine.state.m_pose.position;
 

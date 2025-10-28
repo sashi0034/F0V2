@@ -7,11 +7,12 @@ namespace Race
     struct SpatialWaypoint
     {
         int indexInList{};
+        int segmentIndex{};
+        int stripIndex{};
         Float3 position{};
         Float3 normal{};
         Float3 forward{};
-        int segmentIndex{};
-        int stripIndex{};
+        float curveHeuristic{}; // [0.0, 1.0]
     };
 
     struct SpatialData
