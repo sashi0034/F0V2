@@ -45,7 +45,7 @@ namespace Race
 
         // -----------------------------------------------
 
-        if (machine.state.m_velocity.lengthSq() < Math::Square(50.0f))
+        if (machine.state.m_velocity.lengthSq() < Math::Square(50.0f) || true)
         {
             input.accelPressed = true;
         }
@@ -59,7 +59,7 @@ namespace Race
         const auto& spatialData = GetRaceContext().spatialAi().data();
         const auto& currentLap = machine.state.m_lapProgress;
         const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
-        constexpr int lookaheadCount = 5;
+        constexpr int lookaheadCount = 20;
         const SpatialWaypoint& targetWaypoint =
             spatialData.waypoints[(currentWaypoint.indexInList + lookaheadCount) % spatialData.waypoints.size()];
 
@@ -75,23 +75,21 @@ namespace Race
         // }
 
         {
-            const Float3 f =
-                toWaypoints.normalized().normalized();
-            // targetWaypoint.forward.normalized();
-            // toWaypoints.normalized().normalized();
-            const Float3 machineForward =
-                // machine.state.m_velocity.normalized();
-                machine.state.m_forwardVector;
-            const float cosTheta = machineForward.dot(f);
-            const float v = 1.0f - std::abs(cosTheta);
-            ImmediatePrint("v: {:.02f}", v);
+            const Float3 wayDir = toWaypoints.normalized();
+            const Float3 F = machine.state.m_forwardVector;
+            const Float3 V = machine.state.m_velocity.normalized();
+            const float dotF = wayDir.dot(F);
+            const float dotV = wayDir.dot(V);
+            const bool useF = dotF < dotV;
+            const float turningIntensity = 1.0f - Max(0.0f, useF ? dotF : dotV);
+            ImmediatePrint("turningIntensity: {:.02f}", turningIntensity);
 
-            if (v > 0.01f)
+            if (turningIntensity > 0.01f)
             {
-                const Float3 cross = machineForward.cross(f);
-                const float rightSign = cross.dot(targetWaypoint.normal) < 0.0f ? -1.0f : 1.0f;
-                input.rightHandling = rightSign * Max(v, 0.5f);
-                input.driftTrigger = rightSign * (v > 0.1 ? 1.0f : 0.0f);
+                const Float3 cross = wayDir.cross(useF ? F : V);
+                const float rightSign = cross.dot(targetWaypoint.normal) < 0.0f ? 1.0f : -1.0f;
+                input.rightHandling = rightSign * Max(turningIntensity, 0.5f);
+                input.driftTrigger = rightSign * (turningIntensity > 0.1 ? 1.0f : 0.0f);
             }
 
             // state.m_accumulatedRightHandling = Math::Clamp(state.m_accumulatedRightHandling, -1.0f, 1.0f);
