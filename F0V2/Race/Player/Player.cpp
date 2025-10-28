@@ -133,7 +133,7 @@ private:
             (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
 
         input.driftTrigger =
-            (KeyLeft.pressed() ? -1 : (KeyRight.pressed() ? 1 : 0));
+            (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
 
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)

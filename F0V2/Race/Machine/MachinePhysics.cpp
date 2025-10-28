@@ -716,7 +716,7 @@ namespace Race
         }
 
         // ドリフト操作
-        if (props.input.driftTrigger != 0)
+        if (props.input.driftTrigger != 0.0f)
         {
             state.m_driftOffset += static_cast<float>(props.input.driftTrigger) * InGameDeltaTime();
             constexpr float maxSlipOffset = 5.0f;

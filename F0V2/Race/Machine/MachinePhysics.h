@@ -51,7 +51,7 @@ namespace Race
 
             float rightHandling{}; // [-1.0f, 1.0f]
 
-            int driftTrigger{}; // -1, 0, 1
+            float driftTrigger{}; // [-1.0f, 1.0f]
         } input{};
 
         float maxDurability{5000.0f};
