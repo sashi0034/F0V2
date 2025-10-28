@@ -44,7 +44,7 @@ namespace Race
 
         // -----------------------------------------------
 
-        if (machine.state.m_velocity.lengthSq() < Math::Square(50.0f))
+        if (machine.state.m_velocity.lengthSq() < Math::Square(20.0f))
         {
             input.accelPressed = true;
         }
@@ -83,7 +83,7 @@ namespace Race
 
         {
             const Float3 f =
-                (toWaypoints.normalized() + targetWaypoint.forward).normalized();
+                (toWaypoints.normalized()).normalized();
             // targetWaypoint.forward.normalized();
             // toWaypoints; // targetWaypoint.forward;
             const Float3 machineForward = machine.state.m_velocity.normalized();
@@ -96,12 +96,12 @@ namespace Race
                 if (cross.dot(targetWaypoint.normal) < 0.0f)
                 {
                     input.rightHandling = -v;
-                    input.driftTrigger = -1.0f;
+                    input.driftTrigger = v > 0.1 ? -1.0f : 0.0f;
                 }
                 else
                 {
                     input.rightHandling = v;
-                    input.driftTrigger = 1.0f;
+                    input.driftTrigger = v > 0.1 ? 1.0f : 0.0f;
                 }
             }
         }
