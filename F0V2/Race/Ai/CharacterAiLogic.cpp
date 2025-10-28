@@ -70,16 +70,46 @@ namespace Race
 
         const SpatialWaypoint& targetWaypoint = waypoints[state.m_targetWaypointIndex];
 
-        // const Float3 toWaypoints = targetWaypoint.position - machine.state.m_pose.position;
+        const Float3 toWaypoints = targetWaypoint.position - machine.state.m_pose.position;
 
-        const Float3 r = targetWaypoint.forward.cross(machine.state.m_forwardVector);
+        // {
+        //     const Float3 forward = machine.state.m_velocity.normalized();
+        //     const Float3 r = toWaypoints.cross(forward).normalized();
+        //
+        //     const float cosTheta = r.dot(targetWaypoint.normal);
+        //
+        //     input.rightHandling = -cosTheta;
+        // }
 
-        const bool wantsRight = r.dot(targetWaypoint.normal) < 0.0f;
+        {
+            const Float3 f =
+                (toWaypoints.normalized() + targetWaypoint.forward).normalized();
+            // targetWaypoint.forward.normalized();
+            // toWaypoints; // targetWaypoint.forward;
+            const Float3 machineForward = machine.state.m_velocity.normalized();
+            const float cosTheta = machineForward.dot(f);
+            const float v = 1.0f - std::abs(cosTheta);
+            ImmediatePrint("v: {:.02f}", v);
 
-        input.rightHandling = wantsRight ? 1.0f : -1.0f;
+            {
+                const Float3 cross = machineForward.cross(f);
+                if (cross.dot(targetWaypoint.normal) < 0.0f)
+                {
+                    input.rightHandling = -v;
+                    input.driftTrigger = -1.0f;
+                }
+                else
+                {
+                    input.rightHandling = v;
+                    input.driftTrigger = 1.0f;
+                }
+            }
+        }
 
 #if defined(_DEBUG)
         ImmediatePrint_TopRight("m_targetWaypointIndex: {}", state.m_targetWaypointIndex);
+        ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);
+        ImmediatePrint_TopRight("driftTrigger: {:+.02f}", input.driftTrigger);
 
         {
             const Float3 n = machine.state.m_upVector;
