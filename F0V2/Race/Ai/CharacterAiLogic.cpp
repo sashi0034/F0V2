@@ -47,8 +47,28 @@ namespace Race
         const auto& currentLap = machine.state.m_lapProgress;
         const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
         constexpr int lookaheadCount = 10; // TODO
-        const SpatialWaypoint& targetWaypoint =
-            spatialData.waypoints[(currentWaypoint.indexInList + lookaheadCount) % spatialData.waypoints.size()];
+        int targetWaypointIndex = currentWaypoint.indexInList + lookaheadCount;
+
+        // Gap 対策
+        for (;;)
+        {
+            targetWaypointIndex = targetWaypointIndex % spatialData.waypoints.size();
+            if (spatialData.waypoints[targetWaypointIndex].targetStrip.style != CourseSegmentStyle::Gap)
+            {
+                break;
+            }
+
+            targetWaypointIndex++;
+        }
+
+        if (machine.state.isHovering())
+        {
+            // 空中にいるなら更に先読みをする
+            constexpr int lookaheadCount2 = lookaheadCount * 2; // TODO
+            targetWaypointIndex = (targetWaypointIndex + lookaheadCount2) % spatialData.waypoints.size();
+        }
+
+        const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
 
         // TODO: Gap の対応をどうするか
 
