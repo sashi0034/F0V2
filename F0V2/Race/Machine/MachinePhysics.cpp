@@ -477,7 +477,7 @@ namespace
     Float3 updateUpVector(const MachinePhysicsState& state)
     {
         Float3 upVector = state.m_upVector;
-        if (state.m_surfaceNormal.isZero())
+        if (state.isHovering())
         {
             // 空中にいるときは滑らかに重力方向へ m_upVector を調整
             for (const auto dt : StandardStep_60Hz())
@@ -488,6 +488,7 @@ namespace
         else
         {
             // 地面接触時はその地面の m_surfaceNormal を m_upVector に設定
+            assert(not state.m_surfaceNormal.isZero());
             upVector = state.m_surfaceNormal;
         }
 
@@ -675,6 +676,11 @@ namespace Race
     Float3 MachinePhysicsState::rightVector() const
     {
         return m_upVector.cross(m_forwardVector).normalized();
+    }
+
+    bool MachinePhysicsState::isHovering() const
+    {
+        return m_surfaceNormal.isZero();
     }
 
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)

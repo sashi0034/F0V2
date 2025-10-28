@@ -46,12 +46,16 @@ namespace Race
         const auto& spatialData = GetRaceContext().spatialAi().data();
         const auto& currentLap = machine.state.m_lapProgress;
         const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
-        constexpr int lookaheadCount = 10;
+        constexpr int lookaheadCount = 10; // TODO
         const SpatialWaypoint& targetWaypoint =
             spatialData.waypoints[(currentWaypoint.indexInList + lookaheadCount) % spatialData.waypoints.size()];
 
+        // TODO: Gap の対応をどうするか
+
         const float curveHeuristic = currentWaypoint.curveHeuristic;
-        if (machine.state.m_velocity.lengthSq() < Math::Square(50.0f * (1.0f - curveHeuristic)))
+        if (machine.state.isHovering() ||
+            curveHeuristic == 1.0f ||
+            machine.state.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
         {
             input.accelPressed = true;
         }
@@ -62,7 +66,7 @@ namespace Race
 
         ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);
 
-        const Float3 toWaypoints = targetWaypoint.position - machine.state.m_pose.position;
+        const Float3 toWaypoints = targetWaypoint.position() - machine.state.m_pose.position;
 
         // {
         //     const Float3 forward = machine.state.m_velocity.normalized();
@@ -86,7 +90,7 @@ namespace Race
             if (turningIntensity > 0.01f)
             {
                 const Float3 cross = wayDir.cross(useF ? F : V);
-                const float rightSign = cross.dot(targetWaypoint.normal) < 0.0f ? 1.0f : -1.0f;
+                const float rightSign = cross.dot(targetWaypoint.normal()) < 0.0f ? 1.0f : -1.0f;
                 input.rightHandling = rightSign * Max(turningIntensity, 0.5f);
                 input.driftTrigger = rightSign * (turningIntensity > 0.1 ? 1.0f : 0.0f);
             }
@@ -96,13 +100,15 @@ namespace Race
         }
 
 #if defined(_DEBUG)
+        ImmediatePrint_TopRight("[AI-san]");
         ImmediatePrint_TopRight("targetWaypoint: {}", targetWaypoint.indexInList);
         ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);
         ImmediatePrint_TopRight("driftTrigger: {:+.02f}", input.driftTrigger);
+        ImmediatePrint_TopRight("velocity: {:.01f} km/h", machine.state.m_velocity.length() * 10.0f);
 
         {
             const Float3 n = machine.state.m_upVector;
-            Immediate3D::Line{machine.state.m_pose.position + n, targetWaypoint.position + n}
+            Immediate3D::Line{machine.state.m_pose.position + n, targetWaypoint.position() + n}
                 .setColor(Palette::Chartreuse)
                 .pushAuto();
         }

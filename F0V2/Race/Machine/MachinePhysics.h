@@ -36,7 +36,11 @@ namespace Race
 
         LapProgress m_reachedLapProgress{};
 
+        [[nodiscard]]
         Float3 rightVector() const;
+
+        [[nodiscard]]
+        bool isHovering() const;
     };
 
     struct MachinePhysicsProps

@@ -4,6 +4,16 @@
 
 namespace Race
 {
+    Float3 SpatialWaypoint::position() const
+    {
+        return targetStrip.center;
+    }
+
+    Float3 SpatialWaypoint::normal() const
+    {
+        return targetStrip.normal;
+    }
+
     const SpatialWaypoint& SpatialData::takeWaypoint(int segmentIndex, int stripIndex) const
     {
         return waypoints[segmentOffsetTable[segmentIndex] + stripIndex];

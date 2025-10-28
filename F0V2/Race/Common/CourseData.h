@@ -34,6 +34,7 @@ namespace Race
 
         CourseSegmentStyle style{};
 
+        // TODO: pipe を外す
         struct
         {
             std::array<Float3, PipeSubdivision> ringVectors{}; // リング上の頂点方向へのベクトル
