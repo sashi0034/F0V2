@@ -169,6 +169,7 @@
     <ClCompile Include="Race\Ai\CharacterAiLogic.cpp" />
     <ClCompile Include="Race\Ai\SpatialAi.cpp" />
     <ClCompile Include="Race\Ai\SpatialAiLogic.cpp" />
+    <ClCompile Include="Race\Ai\SpatialTypes.cpp" />
     <ClCompile Include="Race\Common\CourseModelBuilder.cpp" />
     <ClCompile Include="Race\Common\CourseConstants.cpp" />
     <ClCompile Include="Race\Common\CourseData.cpp" />

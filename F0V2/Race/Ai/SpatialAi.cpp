@@ -15,11 +15,11 @@ struct SpatialAi::Impl : GameObjectBase
 {
     ActorContainer m_children{};
 
-    SpatialAiLogicState m_logicState{};
+    SpatialData m_data{};
 
     void Init()
     {
-        m_logicState = BuildSpatialAiLogic();
+        m_data = BuildSpatialData();
     }
 
 private:
@@ -32,11 +32,11 @@ private:
     {
         ImGui::Begin("Spatial AI");
 
-        ImGui::Text(std::format("Waypoints: {}", m_logicState.nodes.size()).c_str());
+        ImGui::Text(std::format("Waypoints: {}", m_data.waypoints.size()).c_str());
 
-        if (ImGui::Button("Rebuild m_logicState"))
+        if (ImGui::Button("Rebuild m_data"))
         {
-            m_logicState = BuildSpatialAiLogic();
+            m_data = BuildSpatialData();
         }
 
         ImGui::End();
@@ -66,9 +66,9 @@ namespace Race
         GameObjectHandle::init();
     }
 
-    const Array<SpatialWaypoint>& SpatialAi::waypoints() const
+    const SpatialData& SpatialAi::data() const
     {
-        return p_impl->m_logicState.nodes;
+        return p_impl->m_data;
     }
 
     std::shared_ptr<GameObjectBase> SpatialAi::asGameObject() const

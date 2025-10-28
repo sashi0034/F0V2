@@ -12,7 +12,7 @@ namespace Race
 
         void init() override;
 
-        const Array<SpatialWaypoint>& waypoints() const;
+        const SpatialData& data() const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 
