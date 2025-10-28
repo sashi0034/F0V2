@@ -6,6 +6,7 @@ namespace Race
     struct CharacterAiLogicState
     {
         int m_targetWaypointIndex{};
+        int m_lastLapIndex{};
     };
 
     MachinePhysicsProps::input_t UpdateCharacterAiLogic(

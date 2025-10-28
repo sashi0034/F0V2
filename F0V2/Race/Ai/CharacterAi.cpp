@@ -72,6 +72,8 @@ private:
 
         m_machine.state.m_pose.position = GetRaceContext().stageManager().startPosition();
 
+        m_machine.state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
+
         m_machine.state.m_durability = m_machine.props.maxDurability;
     }
 

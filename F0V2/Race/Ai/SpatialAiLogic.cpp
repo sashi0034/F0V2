@@ -25,13 +25,14 @@ namespace Race
                 const bool isFirst = state.nodes.empty();
                 const bool isLast = s == segments.size() - 1 && m == segment.midwayStrips.size() - 1;
 
-                if (isFirst ||
-                    isLast ||
-                    (strip.center - state.nodes.back().position).lengthSq() > Math::Square(50.0f))
+                // if (isFirst ||
+                //     isLast ||
+                //     (strip.center - state.nodes.back().position).lengthSq() > Math::Square(50.0f))
                 {
                     SpatialWaypoint waypoint;
                     waypoint.position = strip.center;
                     waypoint.normal = strip.normal;
+                    waypoint.forward = strip.toNext.normalized();
                     waypoint.segmentIndex = s;
                     waypoint.stripIndex = m;
                     state.nodes.push_back(waypoint);

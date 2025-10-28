@@ -12,30 +12,9 @@ using namespace Race;
 
 namespace
 {
-}
-
-namespace Race
-{
-    MachinePhysicsProps::input_t UpdateCharacterAiLogic(CharacterAiLogicState& state, const MachinePhysicsUnit& machine)
+    void refreshWaypointIndex(
+        CharacterAiLogicState& state, const MachinePhysicsUnit& machine, const Array<SpatialWaypoint>& waypoints)
     {
-        MachinePhysicsProps::input_t input{};
-
-        // -----------------------------------------------
-
-        if (machine.state.m_velocity.lengthSq() < Math::Square(20.0f))
-        {
-            input.accelPressed = true;
-        }
-        else
-        {
-            input.accelPressed = false;
-        }
-
-        // -----------------------------------------------
-
-        const auto& spatialAi = GetRaceContext().spatialAi();
-        const auto& waypoints = spatialAi.waypoints();
-
         for (;;)
         {
             if (state.m_targetWaypointIndex >= waypoints.size() - 1)
@@ -54,19 +33,52 @@ namespace Race
 
             state.m_targetWaypointIndex++;
         }
+    }
+}
+
+namespace Race
+{
+    MachinePhysicsProps::input_t UpdateCharacterAiLogic(CharacterAiLogicState& state, const MachinePhysicsUnit& machine)
+    {
+        MachinePhysicsProps::input_t input{};
+
+        // -----------------------------------------------
+
+        if (machine.state.m_velocity.lengthSq() < Math::Square(50.0f))
+        {
+            input.accelPressed = true;
+        }
+        else
+        {
+            input.accelPressed = false;
+        }
+
+        // -----------------------------------------------
+
+        if (state.m_lastLapIndex < machine.state.m_reachedLapProgress.lapIndex)
+        {
+            state.m_targetWaypointIndex = 0;
+            state.m_lastLapIndex = machine.state.m_reachedLapProgress.lapIndex;
+        }
+
+        const auto& spatialAi = GetRaceContext().spatialAi();
+        const auto& waypoints = spatialAi.waypoints();
+
+        refreshWaypointIndex(state, machine, waypoints);
+
+        // -----------------------------------------------
 
         const SpatialWaypoint& targetWaypoint = waypoints[state.m_targetWaypointIndex];
 
-        const Float3 toWaypoints = targetWaypoint.position - machine.state.m_pose.position;
+        // const Float3 toWaypoints = targetWaypoint.position - machine.state.m_pose.position;
 
-        const Float3 r = toWaypoints.cross(machine.state.m_forwardVector);
+        const Float3 r = targetWaypoint.forward.cross(machine.state.m_forwardVector);
 
         const bool wantsRight = r.dot(targetWaypoint.normal) < 0.0f;
 
         input.rightHandling = wantsRight ? 1.0f : -1.0f;
 
 #if defined(_DEBUG)
-        ImmediatePrint_TopRight("toWaypoints: {}", toWaypoints);
         ImmediatePrint_TopRight("m_targetWaypointIndex: {}", state.m_targetWaypointIndex);
 
         {
