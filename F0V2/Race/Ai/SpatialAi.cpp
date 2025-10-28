@@ -34,6 +34,11 @@ private:
 
         ImGui::Text(std::format("Waypoints: {}", m_logicState.nodes.size()).c_str());
 
+        if (ImGui::Button("Rebuild m_logicState"))
+        {
+            m_logicState = BuildSpatialAiLogic();
+        }
+
         ImGui::End();
     }
 

@@ -7,6 +7,7 @@ namespace Race
     {
         int m_targetWaypointIndex{};
         int m_lastLapIndex{};
+        float m_accumulatedRightHandling{};
     };
 
     MachinePhysicsProps::input_t UpdateCharacterAiLogic(

@@ -3,6 +3,7 @@
 
 #include "SpatialAi.h"
 #include "Race/IRaceContext.h"
+#include "TY/GameTime.h"
 #include "TY/Immediate2D.h"
 #include "TY/Immediate3D.h"
 #include "TY/Palette.h"
@@ -83,10 +84,12 @@ namespace Race
 
         {
             const Float3 f =
-                (toWaypoints.normalized()).normalized();
+                toWaypoints.normalized().normalized();
             // targetWaypoint.forward.normalized();
-            // toWaypoints; // targetWaypoint.forward;
-            const Float3 machineForward = machine.state.m_velocity.normalized();
+            // toWaypoints.normalized().normalized();
+            const Float3 machineForward =
+                machine.state.m_velocity.normalized();
+            // machine.state.m_forwardVector;
             const float cosTheta = machineForward.dot(f);
             const float v = 1.0f - std::abs(cosTheta);
             ImmediatePrint("v: {:.02f}", v);
@@ -95,15 +98,20 @@ namespace Race
                 const Float3 cross = machineForward.cross(f);
                 if (cross.dot(targetWaypoint.normal) < 0.0f)
                 {
-                    input.rightHandling = -v;
+                    state.m_accumulatedRightHandling -= v * 100.0f * InGameDeltaTime();
+                    // input.rightHandling = -v;
                     input.driftTrigger = v > 0.1 ? -1.0f : 0.0f;
                 }
                 else
                 {
-                    input.rightHandling = v;
+                    state.m_accumulatedRightHandling += v * 100.0f * InGameDeltaTime();
+                    // input.rightHandling = v;
                     input.driftTrigger = v > 0.1 ? 1.0f : 0.0f;
                 }
             }
+
+            state.m_accumulatedRightHandling = Math::Clamp(state.m_accumulatedRightHandling, -1.0f, 1.0f);
+            input.rightHandling = state.m_accumulatedRightHandling;
         }
 
 #if defined(_DEBUG)

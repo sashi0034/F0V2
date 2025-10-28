@@ -23,6 +23,9 @@ namespace Race
 
         [[nodiscard]]
         bool isLessThan(LapProgress other) const;
+
+        [[nodiscard]]
+        bool operator==(const LapProgress&) const = default;
     };
 
     LapProgress EvaluateLapProgress(const LapProgress& previousLap, const SegmentAndStrip& currentIndex);
