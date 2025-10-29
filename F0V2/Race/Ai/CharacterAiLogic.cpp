@@ -83,7 +83,7 @@ namespace Race
         }
 
         const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
-        const Float3 toWaypoints = targetWaypoint.position() - machineState.m_pose.position;
+        const Float3 toWaypoints = targetWaypoint.boundaryCenter - machineState.m_pose.position;
         const Float3 wayVector = toWaypoints.normalized();
 
         const float curveHeuristic = currentWaypoint.curveHeuristic;
@@ -150,8 +150,12 @@ namespace Race
 
         {
             const Float3 n = machineState.m_upVector;
-            Immediate3D::Line{machineState.m_pose.position + n, targetWaypoint.position() + n}
+            Immediate3D::Line{machineState.m_pose.position + n, targetWaypoint.boundaryCenter + n}
                 .setColor(Palette::Chartreuse)
+                .pushAuto();
+
+            Immediate3D::Line{targetWaypoint.leftBoundary + n, targetWaypoint.rightBoundary + n}
+                .setColor(Palette::Aquamarine)
                 .pushAuto();
         }
 #endif

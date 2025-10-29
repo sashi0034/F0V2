@@ -4,11 +4,6 @@
 
 namespace Race
 {
-    Float3 SpatialWaypoint::position() const
-    {
-        return targetStrip.center;
-    }
-
     Float3 SpatialWaypoint::normal() const
     {
         return targetStrip.normal;

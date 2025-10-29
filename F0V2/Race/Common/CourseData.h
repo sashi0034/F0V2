@@ -27,6 +27,7 @@ namespace Race
         Float3 center{};
         Float3 leftmost{};
         Float3 rightmost{};
+        float width{};
 
         Float3 toNext{}; // 次点へのベクトル
         float lengthToNext{};

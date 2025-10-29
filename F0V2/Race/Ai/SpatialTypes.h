@@ -11,11 +11,12 @@ namespace Race
         int segmentIndex{};
         int stripIndex{};
         CourseStrip targetStrip{};
-        Float3 forward{};
+        Float3 forward{}; // normalized
+        Float3 right{}; // normalized
         float curveHeuristic{}; // [0.0, 1.0]
-
-        [[nodiscard]]
-        Float3 position() const;
+        Float3 leftBoundary{};
+        Float3 rightBoundary{};
+        Float3 boundaryCenter{};
 
         [[nodiscard]]
         Float3 normal() const;

@@ -30,6 +30,7 @@ namespace Race
                 waypoint.stripIndex = m;
                 waypoint.targetStrip = strip;
                 waypoint.forward = strip.toNext.normalized();
+                waypoint.right = (strip.rightmost - strip.leftmost).normalized();
                 state.waypoints.push_back(waypoint);
             }
         }
@@ -43,7 +44,10 @@ namespace Race
             auto& waypoint = state.waypoints[i];
             if (waypoint.targetStrip.style != CourseSegmentStyle::Road)
             {
-                // Road 以外は curveFactor: 0
+                // Road 以外
+                waypoint.leftBoundary = waypoint.targetStrip.center;
+                waypoint.rightBoundary = waypoint.targetStrip.center;
+                waypoint.boundaryCenter = waypoint.targetStrip.center;
                 continue;
             }
 
@@ -53,17 +57,49 @@ namespace Race
             static constexpr std::array weights{0.25f, 0.25f, 0.25f, 0.25f};
             static_assert(offsets.size() == weights.size());
 
-            float sum = 0.0f;
-            for (size_t j = 0; j < offsets.size(); ++j)
+            // curveHeuristic
             {
-                const auto& w = state.waypoints[(i + offsets[j]) % state.waypoints.size()];
-                const float dot = waypoint.forward.dot(w.forward);
-                const float c = (1.0f - Math::Pow5(dot)) * 0.5f;
-                sum += c * weights[j];
+                float sum = 0.0f; // [0, 1]
+                for (int n = 0; n < offsets.size(); ++n)
+                {
+                    const auto& w = state.waypoints[(i + offsets[n]) % state.waypoints.size()];
+                    const float dot = waypoint.forward.dot(w.forward);
+                    const float c = (1.0f - Math::Pow5(dot)) * 0.5f;
+                    sum += c * weights[n];
+                }
+
+                waypoint.curveHeuristic = 1.0f - Math::Square(1.0f - sum);
+                waypoint.curveHeuristic = Math::Clamp(waypoint.curveHeuristic, 0.0f, 1.0f);
             }
 
-            waypoint.curveHeuristic = 1.0f - Math::Square(1.0f - sum);
-            waypoint.curveHeuristic = Math::Clamp(waypoint.curveHeuristic, 0.0f, 1.0f);
+            // leftBoundary, rightBoundary
+            {
+                float sum{}; // [-1, 1]
+                for (int n = 0; n < offsets.size(); ++n)
+                {
+                    const auto& w = state.waypoints[(i + offsets[n]) % state.waypoints.size()];
+                    const float dot = waypoint.right.dot(w.forward);
+                    const float c = dot;
+                    sum += c * weights[n];
+                }
+
+                if (sum > 0.0f)
+                {
+                    waypoint.leftBoundary =
+                        waypoint.targetStrip.leftmost + waypoint.right * waypoint.targetStrip.width * sum;
+                    waypoint.rightBoundary =
+                        waypoint.targetStrip.rightmost;
+                }
+                else // sum <= 0.0f
+                {
+                    waypoint.leftBoundary =
+                        waypoint.targetStrip.leftmost;
+                    waypoint.rightBoundary =
+                        waypoint.targetStrip.rightmost + waypoint.right * waypoint.targetStrip.width * sum;
+                }
+
+                waypoint.boundaryCenter = (waypoint.leftBoundary + waypoint.rightBoundary) * 0.5f;
+            }
         }
 
         // -----------------------------------------------

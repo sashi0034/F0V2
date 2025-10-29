@@ -161,6 +161,7 @@ namespace Race
                 const auto right = strip.toNext.cross(strip.normal).normalized();
                 strip.leftmost = strip.center - right * midwayLeftWidths[m];
                 strip.rightmost = strip.center + right * midwayRightWidths[m];
+                strip.width = midwayLeftWidths[m] + midwayRightWidths[m];
 
                 if (segment.style == CourseSegmentStyle::Pipe)
                 {
