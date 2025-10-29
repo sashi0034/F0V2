@@ -53,49 +53,58 @@ namespace Race
 
             // 注: これは数学的に根拠のないヒューリスティックである
 
-            static constexpr std::array offsets{4, 8, 16, 20};
-            static constexpr std::array weights{0.25f, 0.25f, 0.25f, 0.25f};
-            static_assert(offsets.size() == weights.size());
+            // static constexpr std::array offsets{4, 8, 16, 20};
+            // static constexpr std::array weights{0.25f, 0.25f, 0.25f, 0.25f};
+            // static_assert(offsets.size() == weights.size());
+
+            constexpr int heuristicStart = 4;
+            constexpr int heuristicEnd = 23;
 
             // curveHeuristic
             {
-                float sum = 0.0f; // [0, 1]
-                for (int n = 0; n < offsets.size(); ++n)
+                float acc = 0.0f; // [0, 1]
+                for (int h = heuristicStart; h < heuristicEnd; ++h)
                 {
-                    const auto& w = state.waypoints[(i + offsets[n]) % state.waypoints.size()];
+                    const auto& w = state.waypoints[(i + h) % state.waypoints.size()];
                     const float dot = waypoint.forward.dot(w.forward);
                     const float c = (1.0f - Math::Pow5(dot)) * 0.5f;
-                    sum += c * weights[n];
+                    acc += c;
                 }
 
-                waypoint.curveHeuristic = 1.0f - Math::Square(1.0f - sum);
+                acc = acc / (heuristicEnd - heuristicStart + 1);
+
+                waypoint.curveHeuristic = 1.0f - Math::Square(1.0f - acc);
                 waypoint.curveHeuristic = Math::Clamp(waypoint.curveHeuristic, 0.0f, 1.0f);
             }
 
             // leftBoundary, rightBoundary
             {
-                float sum{}; // [-1, 1]
-                for (int n = 0; n < offsets.size(); ++n)
+                float acc{}; // [-1, 1]
+                for (int h = heuristicStart; h < heuristicEnd; ++h)
                 {
-                    const auto& w = state.waypoints[(i + offsets[n]) % state.waypoints.size()];
+                    const auto& w = state.waypoints[(i + h) % state.waypoints.size()];
                     const float dot = waypoint.right.dot(w.forward);
                     const float c = dot;
-                    sum += c * weights[n];
+                    acc += c;
                 }
 
-                if (sum > 0.0f)
+                acc = acc / (heuristicEnd - heuristicStart + 1);
+
+                constexpr float margin = 5.0f;
+                const float w = Max(0.0f, waypoint.targetStrip.width - margin * 2.0f) * 0.5f;
+                if (acc > 0.0f)
                 {
                     waypoint.leftBoundary =
-                        waypoint.targetStrip.leftmost + waypoint.right * waypoint.targetStrip.width * sum;
+                        waypoint.targetStrip.leftmost + waypoint.right * (margin + w * acc);
                     waypoint.rightBoundary =
-                        waypoint.targetStrip.rightmost;
+                        waypoint.targetStrip.rightmost - waypoint.right * margin;
                 }
                 else // sum <= 0.0f
                 {
                     waypoint.leftBoundary =
-                        waypoint.targetStrip.leftmost;
+                        waypoint.targetStrip.leftmost + waypoint.right * margin;
                     waypoint.rightBoundary =
-                        waypoint.targetStrip.rightmost + waypoint.right * waypoint.targetStrip.width * sum;
+                        waypoint.targetStrip.rightmost - waypoint.right * (margin + w * acc);
                 }
 
                 waypoint.boundaryCenter = (waypoint.leftBoundary + waypoint.rightBoundary) * 0.5f;
