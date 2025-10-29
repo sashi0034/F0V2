@@ -34,7 +34,7 @@ private:
 
         ImGui::Text(std::format("Waypoints: {}", m_data.waypoints.size()).c_str());
 
-        if (ImGui::Button("Rebuild m_data"))
+        if (ImGui::Button("Rebuild Spatial Data"))
         {
             m_data = BuildSpatialData();
         }

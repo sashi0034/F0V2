@@ -57,12 +57,11 @@ namespace Race
             // static constexpr std::array weights{0.25f, 0.25f, 0.25f, 0.25f};
             // static_assert(offsets.size() == weights.size());
 
-            constexpr int heuristicStart = 4;
-            constexpr int heuristicEnd = 23;
-
             // curveHeuristic
             {
-                float acc = 0.0f; // [0, 1]
+                float acc{}; // [0, 1]
+                constexpr int heuristicStart = 4;
+                constexpr int heuristicEnd = 23;
                 for (int h = heuristicStart; h < heuristicEnd; ++h)
                 {
                     const auto& w = state.waypoints[(i + h) % state.waypoints.size()];
@@ -80,9 +79,11 @@ namespace Race
             // leftBoundary, rightBoundary
             {
                 float acc{}; // [-1, 1]
+                constexpr int heuristicStart = -4;
+                constexpr int heuristicEnd = 23;
                 for (int h = heuristicStart; h < heuristicEnd; ++h)
                 {
-                    const auto& w = state.waypoints[(i + h) % state.waypoints.size()];
+                    const auto& w = state.waypoints[Modulo<int>(i + h, state.waypoints.size())];
                     const float dot = waypoint.right.dot(w.forward);
                     const float c = dot;
                     acc += c;
