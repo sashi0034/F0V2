@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "SpatialAi.h"
 
-#include "SpatialAiLogic.h"
+#include "SpatialDataBuilder.h"
 #include "TY/ActorContainer.h"
 #include "TY_Extension/GameObjectBase.h"
 

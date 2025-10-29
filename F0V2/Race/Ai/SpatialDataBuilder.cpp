@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "SpatialAiLogic.h"
+#include "SpatialDataBuilder.h"
 
 #include "Race/IRaceContext.h"
 #include "Race/Stage/StageManager.h"
