@@ -19,6 +19,9 @@ using namespace Race;
 
 namespace
 {
+#if defined(_DEBUG)
+    bool s_stopMove{};
+#endif
 }
 
 struct CharacterAi::Impl : GameObjectBase
@@ -59,7 +62,12 @@ private:
 
         m_machine.props.input = UpdateCharacterAiLogic(m_logicState, m_machine);
 
-        UpdateMachinePhysicsState(m_machine.state, m_machine.props);
+#if defined(_DEBUG)
+        if (not s_stopMove)
+#endif
+        {
+            UpdateMachinePhysicsState(m_machine.state, m_machine.props);
+        }
 
         ImmediateDrawer::Global().draw();
 
@@ -89,6 +97,15 @@ private:
     void debugUI()
     {
         ImGui::Begin("Character AI");
+
+        ImGui::Checkbox("Stop Move", &s_stopMove);
+
+        if (ImGui::DragFloat3("Position", &m_machine.state.m_pose.position.x))
+        {
+            s_stopMove = true;
+        }
+
+        ImGui::Separator();
 
         if (ImGui::Button("Reset"))
         {

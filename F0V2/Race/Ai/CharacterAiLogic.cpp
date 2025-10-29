@@ -23,11 +23,11 @@ namespace
     //             break;
     //         }
     //
-    //         LapProgress targetWaypoint = machine.state.m_reachedLapProgress;
-    //         targetWaypoint.lapIndex = machine.state.m_reachedLapProgress.lapIndex;
+    //         LapProgress targetWaypoint = machineState.m_reachedLapProgress;
+    //         targetWaypoint.lapIndex = machineState.m_reachedLapProgress.lapIndex;
     //         targetWaypoint.segmentIndex = waypoints[state.m_targetWaypointIndex].segmentIndex;
     //         targetWaypoint.stripIndex = waypoints[state.m_targetWaypointIndex].stripIndex;
-    //         if (machine.state.m_lapProgress.isLessThan(targetWaypoint))
+    //         if (machineState.m_lapProgress.isLessThan(targetWaypoint))
     //         {
     //             break;
     //         }
@@ -43,8 +43,11 @@ namespace Race
     {
         MachinePhysicsProps::input_t input{};
 
+        const auto& machineState = machine.state;
+        const auto& machineProps = machine.props;
+
         const auto& spatialData = GetRaceContext().spatialAi().data();
-        const auto& currentLap = machine.state.m_lapProgress;
+        const auto& currentLap = machineState.m_lapProgress;
         const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
         constexpr int lookaheadCount = 10; // TODO
         int targetWaypointIndex = currentWaypoint.indexInList + lookaheadCount;
@@ -61,7 +64,7 @@ namespace Race
             targetWaypointIndex++;
         }
 
-        if (machine.state.isHovering())
+        if (machineState.isHovering())
         {
             // 空中にいるなら更に先読みをする
             constexpr int lookaheadCount2 = lookaheadCount * 2; // TODO
@@ -73,9 +76,9 @@ namespace Race
         // TODO: Gap の対応をどうするか
 
         const float curveHeuristic = currentWaypoint.curveHeuristic;
-        if (machine.state.isHovering() ||
+        if (machineState.isHovering() ||
             curveHeuristic == 1.0f ||
-            machine.state.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
+            machineState.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
         {
             input.accelPressed = true;
         }
@@ -86,10 +89,11 @@ namespace Race
 
         ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);
 
-        const Float3 toWaypoints = targetWaypoint.position() - machine.state.m_pose.position;
+        const Float3& upVector = machineState.m_upVector;
+        const Float3 toWaypoints = targetWaypoint.position() - machineState.m_pose.position;
 
         // {
-        //     const Float3 forward = machine.state.m_velocity.normalized();
+        //     const Float3 forward = machineState.m_velocity.normalized();
         //     const Float3 r = toWaypoints.cross(forward).normalized();
         //
         //     const float cosTheta = r.dot(targetWaypoint.normal);
@@ -98,9 +102,18 @@ namespace Race
         // }
 
         {
-            const Float3 wayDir = toWaypoints.normalized();
-            const Float3 F = machine.state.m_forwardVector;
-            const Float3 V = machine.state.m_velocity.normalized();
+            const Float3 wayDir =
+                // (toWaypoints - upVector * upVector.dot(toWaypoints)).normalized();
+                toWaypoints.normalized(); // 投影しないほうが安定する模様 
+
+            Float3 F = machineState.m_forwardVector;
+            F = F - upVector * upVector.dot(F);
+            F = F.normalized();
+
+            Float3 V = machineState.m_velocity;
+            V = V - upVector * upVector.dot(V);
+            V = V.normalized();
+
             const float dotF = wayDir.dot(F);
             const float dotV = wayDir.dot(V);
             const bool useF = dotF < dotV;
@@ -124,11 +137,11 @@ namespace Race
         ImmediatePrint_TopRight("targetWaypoint: {}", targetWaypoint.indexInList);
         ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);
         ImmediatePrint_TopRight("driftTrigger: {:+.02f}", input.driftTrigger);
-        ImmediatePrint_TopRight("velocity: {:.01f} km/h", machine.state.m_velocity.length() * 10.0f);
+        ImmediatePrint_TopRight("velocity: {:.01f} km/h", machineState.m_velocity.length() * 10.0f);
 
         {
-            const Float3 n = machine.state.m_upVector;
-            Immediate3D::Line{machine.state.m_pose.position + n, targetWaypoint.position() + n}
+            const Float3 n = machineState.m_upVector;
+            Immediate3D::Line{machineState.m_pose.position + n, targetWaypoint.position() + n}
                 .setColor(Palette::Chartreuse)
                 .pushAuto();
         }
