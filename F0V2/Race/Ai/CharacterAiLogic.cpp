@@ -84,7 +84,7 @@ namespace Race
 
         const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
         const Float3 toWaypoints = targetWaypoint.position() - machineState.m_pose.position;
-        const Float3 wayDir = toWaypoints.normalized();
+        const Float3 wayVector = toWaypoints.normalized();
 
         const float curveHeuristic = currentWaypoint.curveHeuristic;
 
@@ -95,7 +95,7 @@ namespace Race
                 Float3 V = machineState.m_velocity;
                 // V = V - upVector * upVector.dot(V);
                 V = V.normalized();
-                input.accelPressed = true; // V.dot(wayDir) > 0.5f; // TODO
+                input.accelPressed = true; // V.dot(wayVector) > 0.5f; // TODO
             }
             else if (curveHeuristic == 1.0f ||
                 machineState.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
@@ -112,7 +112,7 @@ namespace Race
 
         // rightHandling, driftTrigger 
         {
-            // wayDir は投影しないほうが安定する模様
+            // wayVector は投影しないほうが安定する模様
 
             Float3 F = machineState.m_forwardVector;
             F = F - upVector * upVector.dot(F);
@@ -122,15 +122,15 @@ namespace Race
             V = V - upVector * upVector.dot(V);
             V = V.normalized();
 
-            const float dotF = wayDir.dot(F);
-            const float dotV = wayDir.dot(V);
+            const float dotF = wayVector.dot(F);
+            const float dotV = wayVector.dot(V);
             const bool useF = dotF < dotV;
             const float turningIntensity = 1.0f - Max(0.0f, useF ? dotF : dotV);
             ImmediatePrint("turningIntensity: {:.02f}", turningIntensity);
 
             if (turningIntensity > 0.01f)
             {
-                const Float3 cross = wayDir.cross(useF ? F : V);
+                const Float3 cross = wayVector.cross(useF ? F : V);
                 const float rightSign = cross.dot(targetWaypoint.normal()) < 0.0f ? 1.0f : -1.0f;
                 input.rightHandling = rightSign * Max(turningIntensity, 0.5f);
                 input.driftTrigger = rightSign * (turningIntensity > 0.1 ? 1.0f : 0.0f);
