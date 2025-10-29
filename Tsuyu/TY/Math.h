@@ -182,6 +182,14 @@ namespace TY
             return x * x;
         }
 
+        template <Arithmetic Arithmetic>
+        inline constexpr Arithmetic Pow5(const Arithmetic x) noexcept
+        {
+            Arithmetic x2 = x * x;
+            Arithmetic x3 = x2 * x;
+            return x2 * x3;
+        }
+
         // template <Integral Integral>
         // constexpr Integral Mod(Integral a, Integral b) noexcept
         // {

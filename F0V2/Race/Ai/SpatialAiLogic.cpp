@@ -58,7 +58,7 @@ namespace Race
             {
                 const auto& w = state.waypoints[(i + offsets[j]) % state.waypoints.size()];
                 const float dot = waypoint.forward.dot(w.forward);
-                const float c = (1.0f - dot * dot * dot) * 0.5f;
+                const float c = (1.0f - Math::Pow5(dot)) * 0.5f;
                 sum += c * weights[j];
             }
 
