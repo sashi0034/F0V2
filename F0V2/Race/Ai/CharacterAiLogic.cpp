@@ -50,6 +50,7 @@ namespace Race
         const auto& currentLap = machineState.m_lapProgress;
         const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
 
+        const Float3& currentPosition = machineState.m_pose.position;
         const Float3& upVector = machineState.m_upVector;
 
         Float3 V = machineState.m_velocity;
@@ -83,8 +84,9 @@ namespace Race
         }
 
         const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
-        const Float3 toWaypoints = targetWaypoint.boundaryCenter - machineState.m_pose.position;
-        const Float3 wayVector = toWaypoints.normalized();
+        // const Float3 toWaypoints = targetWaypoint.boundaryCenter - machineState.m_pose.position;
+        // const Float3 wayVector = toWaypoints.normalized();
+        const Float3 wayNormal = targetWaypoint.normal();
 
         const float curveHeuristic = currentWaypoint.curveHeuristic;
 
@@ -110,27 +112,51 @@ namespace Race
 
         ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);
 
+        Float3 targetDirection;
+        {
+            const Float3& f = machineState.m_forwardVector;
+            const Float3 leftBoundaryDir = (targetWaypoint.leftBoundary - currentPosition).normalized();
+            const Float3 rightBoundaryDir = (targetWaypoint.rightBoundary - currentPosition).normalized();
+            const float sl = f.cross(leftBoundaryDir).dot(wayNormal);
+            const float sr = f.cross(rightBoundaryDir).dot(wayNormal);
+            if (Math::Sign(sl) != Math::Sign(sr))
+            {
+                targetDirection = (f - wayNormal * wayNormal.dot(f)).normalized();
+            }
+            // else if (Abs(sl) < 0.1f || Abs(sr) < 0.1f)
+            // {
+            //     targetDirection = (targetWaypoint.boundaryCenter - currentPosition).normalized();
+            // }
+            // else if (targetWaypoint.right.dot(machineState.m_forwardVector) < 0)
+            else if (Abs(sl) < Abs(sr))
+            {
+                targetDirection = rightBoundaryDir;
+            }
+            else
+            {
+                targetDirection = leftBoundaryDir;
+            }
+        }
+
         // rightHandling, driftTrigger 
         {
-            // wayVector は投影しないほうが安定する模様
-
             Float3 F = machineState.m_forwardVector;
-            F = F - upVector * upVector.dot(F);
+            F = F - wayNormal * wayNormal.dot(F);
             F = F.normalized();
 
             Float3 V = machineState.m_velocity;
-            V = V - upVector * upVector.dot(V);
+            V = V - wayNormal * wayNormal.dot(V);
             V = V.normalized();
 
-            const float dotF = wayVector.dot(F);
-            const float dotV = wayVector.dot(V);
+            const float dotF = targetDirection.dot(F);
+            const float dotV = targetDirection.dot(V);
             const bool useF = dotF < dotV;
             const float turningIntensity = 1.0f - Max(0.0f, useF ? dotF : dotV);
             ImmediatePrint("turningIntensity: {:.02f}", turningIntensity);
 
             if (turningIntensity > 0.01f)
             {
-                const Float3 cross = wayVector.cross(useF ? F : V);
+                const Float3 cross = targetDirection.cross(useF ? F : V);
                 const float rightSign = cross.dot(targetWaypoint.normal()) < 0.0f ? 1.0f : -1.0f;
                 input.rightHandling = rightSign * Max(turningIntensity, 0.5f);
                 input.driftTrigger = rightSign * (turningIntensity > 0.1 ? 1.0f : 0.0f);
@@ -150,10 +176,14 @@ namespace Race
 
         {
             const Float3 n = machineState.m_upVector;
-            Immediate3D::Line{machineState.m_pose.position + n, targetWaypoint.boundaryCenter + n}
-                .setColor(Palette::Chartreuse)
-                .pushAuto();
-
+            // Immediate3D::Line{machineState.m_pose.position + n, targetWaypoint.boundaryCenter + n}
+            //     .setColor(Palette::Chartreuse)
+            //     .pushAuto();
+            Immediate3D::Line{
+                    machineState.m_pose.position + n,
+                    machineState.m_pose.position + n + targetDirection * 50.0f
+                }.setColor(Palette::Chartreuse)
+                 .pushAuto();
             Immediate3D::Line{targetWaypoint.leftBoundary + n, targetWaypoint.rightBoundary + n}
                 .setColor(Palette::Aquamarine)
                 .pushAuto();
