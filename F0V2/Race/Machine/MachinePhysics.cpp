@@ -722,9 +722,10 @@ namespace Race
         }
 
         // ドリフト操作
-        if (props.input.driftTrigger != 0.0f)
+        const float driftTrigger = props.input.driftTrigger; // state.isHovering() ? 0.0f : props.input.driftTrigger;
+        if (driftTrigger != 0.0f)
         {
-            state.m_driftOffset += static_cast<float>(props.input.driftTrigger) * InGameDeltaTime();
+            state.m_driftOffset += static_cast<float>(driftTrigger) * InGameDeltaTime();
             constexpr float maxSlipOffset = 5.0f;
             if (Abs(state.m_driftOffset) > maxSlipOffset)
             {
@@ -732,17 +733,14 @@ namespace Race
             }
         }
 
-        if (Math::Sign(props.input.driftTrigger) != Math::Sign(state.m_driftOffset))
+        if (Math::Sign(driftTrigger) != Math::Sign(state.m_driftOffset))
         {
             // ドリフト量を減らす
-            const float delta = 10.0f * InGameDeltaTime();
+            const float delta = 10.0f * InGameDeltaTime(); // > 0
+            state.m_driftOffset -= delta * Math::Sign(state.m_driftOffset);
             if (Abs(state.m_driftOffset) < delta)
             {
                 state.m_driftOffset = 0.0f;
-            }
-            else
-            {
-                state.m_driftOffset -= delta * Math::Sign(state.m_driftOffset);
             }
         }
 

@@ -49,10 +49,21 @@ namespace Race
         const auto& spatialData = GetRaceContext().spatialAi().data();
         const auto& currentLap = machineState.m_lapProgress;
         const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
-        constexpr int lookaheadCount = 10; // TODO
+
+        const Float3& upVector = machineState.m_upVector;
+
+        Float3 V = machineState.m_velocity;
+        V = V - upVector * upVector.dot(V);
+        V = V.normalized();
+
+        const int lookaheadCount = Min<int>(20, 10 + static_cast<int>(V.length() / 5.0f));
+
+        ImmediatePrint("lookaheadCount: {}", lookaheadCount);
+
         int targetWaypointIndex = currentWaypoint.indexInList + lookaheadCount;
 
         // Gap 対策
+        // FIXME: 簡潔にしたい
         for (;;)
         {
             targetWaypointIndex = targetWaypointIndex % spatialData.waypoints.size();
@@ -67,44 +78,41 @@ namespace Race
         if (machineState.isHovering())
         {
             // 空中にいるなら更に先読みをする
-            constexpr int lookaheadCount2 = lookaheadCount * 2; // TODO
+            const int lookaheadCount2 = lookaheadCount * 2; // TODO
             targetWaypointIndex = (targetWaypointIndex + lookaheadCount2) % spatialData.waypoints.size();
         }
 
         const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
-
-        // TODO: Gap の対応をどうするか
+        const Float3 toWaypoints = targetWaypoint.position() - machineState.m_pose.position;
+        const Float3 wayDir = toWaypoints.normalized();
 
         const float curveHeuristic = currentWaypoint.curveHeuristic;
-        if (machineState.isHovering() ||
-            curveHeuristic == 1.0f ||
-            machineState.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
+
+        // accelPressed
         {
-            input.accelPressed = true;
-        }
-        else
-        {
-            input.accelPressed = false;
+            if (machineState.isHovering())
+            {
+                Float3 V = machineState.m_velocity;
+                // V = V - upVector * upVector.dot(V);
+                V = V.normalized();
+                input.accelPressed = true; // V.dot(wayDir) > 0.5f; // TODO
+            }
+            else if (curveHeuristic == 1.0f ||
+                machineState.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
+            {
+                input.accelPressed = true;
+            }
+            else
+            {
+                input.accelPressed = false;
+            }
         }
 
         ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);
 
-        const Float3& upVector = machineState.m_upVector;
-        const Float3 toWaypoints = targetWaypoint.position() - machineState.m_pose.position;
-
-        // {
-        //     const Float3 forward = machineState.m_velocity.normalized();
-        //     const Float3 r = toWaypoints.cross(forward).normalized();
-        //
-        //     const float cosTheta = r.dot(targetWaypoint.normal);
-        //
-        //     input.rightHandling = -cosTheta;
-        // }
-
+        // rightHandling, driftTrigger 
         {
-            const Float3 wayDir =
-                // (toWaypoints - upVector * upVector.dot(toWaypoints)).normalized();
-                toWaypoints.normalized(); // 投影しないほうが安定する模様 
+            // wayDir は投影しないほうが安定する模様
 
             Float3 F = machineState.m_forwardVector;
             F = F - upVector * upVector.dot(F);
@@ -135,6 +143,7 @@ namespace Race
 #if defined(_DEBUG)
         ImmediatePrint_TopRight("[AI-san]");
         ImmediatePrint_TopRight("targetWaypoint: {}", targetWaypoint.indexInList);
+        ImmediatePrint_TopRight("accelPressed: {}", input.accelPressed);
         ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);
         ImmediatePrint_TopRight("driftTrigger: {:+.02f}", input.driftTrigger);
         ImmediatePrint_TopRight("velocity: {:.01f} km/h", machineState.m_velocity.length() * 10.0f);

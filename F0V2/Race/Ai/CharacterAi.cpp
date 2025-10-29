@@ -100,6 +100,13 @@ private:
 
         ImGui::Checkbox("Stop Move", &s_stopMove);
 
+        ImGui::SameLine();
+
+        if (ImGui::Button("Step"))
+        {
+            UpdateMachinePhysicsState(m_machine.state, m_machine.props);
+        }
+
         if (ImGui::DragFloat3("Position", &m_machine.state.m_pose.position.x))
         {
             s_stopMove = true;
