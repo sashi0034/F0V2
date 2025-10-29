@@ -121,7 +121,15 @@ namespace Race
             const float sr = f.cross(rightBoundaryDir).dot(wayNormal);
             if (Math::Sign(sl) != Math::Sign(sr))
             {
-                targetDirection = (f - wayNormal * wayNormal.dot(f)).normalized();
+                if (f.dot(currentWaypoint.forward) > 0.9f)
+                {
+                    const Float3 f_ = (f - currentWaypoint.normal() * currentWaypoint.normal().dot(f)).normalized();
+                    targetDirection = f_;
+                }
+                else
+                {
+                    targetDirection = (targetWaypoint.boundaryCenter - currentPosition).normalized();
+                }
             }
             // else if (Abs(sl) < 0.1f || Abs(sr) < 0.1f)
             // {
@@ -136,6 +144,19 @@ namespace Race
             {
                 targetDirection = leftBoundaryDir;
             }
+            // else
+            // {
+            //     const float l = (currentWaypoint.leftBoundary - currentPosition).lengthSq();
+            //     const float r = (currentWaypoint.rightBoundary - currentPosition).lengthSq();
+            //     if (l < r)
+            //     {
+            //         targetDirection = rightBoundaryDir;
+            //     }
+            //     else
+            //     {
+            //         targetDirection = leftBoundaryDir;
+            //     }
+            // }
         }
 
         // rightHandling, driftTrigger 
