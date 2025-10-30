@@ -57,6 +57,7 @@ namespace Race
         V = V - upVector * upVector.dot(V);
         V = V.normalized();
 
+        // レイキャスト風に前方を探索
         constexpr int maxLookaheadCount = 20;
         int lookaheadCount = 1;
         int targetWaypointIndex;
@@ -107,14 +108,19 @@ namespace Race
                 if (Abs(vl) < Abs(vr))
                 {
                     targetDirection = rightBoundaryDir;
-                    break;
                 }
                 else
                 {
                     targetDirection = leftBoundaryDir;
-                    break;
                 }
+
+                break;
             }
+        }
+
+        if (lookaheadCount == maxLookaheadCount)
+        {
+            targetDirection = currentWaypoint.forward;
         }
 
         ImmediatePrint("lookaheadCount: {}", lookaheadCount);
