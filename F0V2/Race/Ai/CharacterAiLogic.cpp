@@ -72,24 +72,48 @@ namespace Race
                 continue;
             }
 
+            constexpr float margin = 5.0f;
+
+            const Float3 leftBoundary = lookaheadWaypoint.targetStrip.leftmost + lookaheadWaypoint.right * margin;
+            const Float3 rightBoundary = lookaheadWaypoint.targetStrip.rightmost - lookaheadWaypoint.right * margin;
+
+            const Float3 leftBoundaryDir = (leftBoundary - currentPosition).normalized();
+            const Float3 rightBoundaryDir = (rightBoundary - currentPosition).normalized();
+
             const Float3& f = machineState.m_forwardVector;
-            const Float3 leftBoundaryDir = (lookaheadWaypoint.leftBoundary - currentPosition).normalized();
-            const Float3 rightBoundaryDir = (lookaheadWaypoint.rightBoundary - currentPosition).normalized();
-            const float sl = f.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
-            const float sr = f.cross(rightBoundaryDir).dot(lookaheadWaypoint.normal());
-            if (Math::Sign(sl) != Math::Sign(sr))
+            const float fl = f.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
+            const float fr = f.cross(rightBoundaryDir).dot(lookaheadWaypoint.normal());
+            if (Math::Sign(fl) == Math::Sign(fr))
             {
-                continue;
+                // 進行方向が道から外れている
+                if (Abs(fl) < Abs(fr))
+                {
+                    targetDirection = rightBoundaryDir;
+                    break;
+                }
+                else
+                {
+                    targetDirection = leftBoundaryDir;
+                    break;
+                }
             }
-            else if (Abs(sl) < Abs(sr))
+
+            const Float3& v = machineState.m_velocity;
+            const float vl = v.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
+            const float vr = v.cross(rightBoundaryDir).dot(lookaheadWaypoint.normal());
+            if (Math::Sign(vl) == Math::Sign(vr))
             {
-                targetDirection = rightBoundaryDir;
-                break;
-            }
-            else
-            {
-                targetDirection = leftBoundaryDir;
-                break;
+                // 速度方向が道から外れている
+                if (Abs(fl) < Abs(fr))
+                {
+                    targetDirection = rightBoundaryDir;
+                    break;
+                }
+                else
+                {
+                    targetDirection = leftBoundaryDir;
+                    break;
+                }
             }
         }
 
@@ -124,22 +148,24 @@ namespace Race
 
         // accelPressed
         {
-            if (machineState.isHovering())
-            {
-                Float3 V = machineState.m_velocity;
-                // V = V - upVector * upVector.dot(V);
-                V = V.normalized();
-                input.accelPressed = true; // V.dot(wayVector) > 0.5f; // TODO
-            }
-            else if (curveHeuristic == 1.0f ||
-                machineState.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
-            {
-                input.accelPressed = true;
-            }
-            else
-            {
-                input.accelPressed = false;
-            }
+            // if (machineState.isHovering())
+            // {
+            //     Float3 V = machineState.m_velocity;
+            //     // V = V - upVector * upVector.dot(V);
+            //     V = V.normalized();
+            //     input.accelPressed = true; // V.dot(wayVector) > 0.5f; // TODO
+            // }
+            // else if (curveHeuristic == 1.0f ||
+            //     machineState.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
+            // {
+            //     input.accelPressed = true;
+            // }
+            // else
+            // {
+            //     input.accelPressed = false;
+            // }
+
+            input.accelPressed = true;
         }
 
         ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);
@@ -164,7 +190,7 @@ namespace Race
             {
                 const Float3 cross = targetDirection.cross(useF ? F : V);
                 const float rightSign = cross.dot(targetWaypoint.normal()) < 0.0f ? 1.0f : -1.0f;
-                input.rightHandling = rightSign * Max(turningIntensity, 0.5f);
+                input.rightHandling = rightSign; // * Max(turningIntensity, 0.5f);
                 input.driftTrigger = rightSign * (turningIntensity > 0.1 ? 1.0f : 0.0f);
             }
 
