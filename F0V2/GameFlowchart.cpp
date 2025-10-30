@@ -2,6 +2,7 @@
 #include "GameFlowchart.h"
 
 #include "Asset.generated.h"
+#include "ColorPalette.h"
 #include "Editor/EditorScene.h"
 #include "GM/DebugService.h"
 #include "Race/RaceScene.h"
@@ -144,10 +145,14 @@ private:
             System::Sleep(500);
         }
 
-        if (ImGui::Button("Toggle Editor"))
+        ImGui::PushStyleColor(ImGuiCol_Button, ColorPalette::DarkOrange.toFloat4().cast<ImVec4>());
         {
-            g_debugService.editorEnabled = not g_debugService.editorEnabled;
+            if (ImGui::Button("Toggle Editor"))
+            {
+                g_debugService.editorEnabled = not g_debugService.editorEnabled;
+            }
         }
+        ImGui::PopStyleColor();
 
         ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
 
