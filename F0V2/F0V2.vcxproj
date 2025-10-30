@@ -154,6 +154,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <Content Include="asset\.gitignore" />
+    <Content Include="asset\debug.example.toml" />
+    <Content Include="asset\debug.toml" />
     <Content Include="asset\edit\.gitignore" />
     <Content Include="asset\fsr1\fsr1_easu.hlsl" />
     <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
@@ -195,6 +198,7 @@
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
     <ClCompile Include="Util\CatmullRom.cpp" />
+    <ClCompile Include="Util\DebugTomlValue.cpp" />
     <ClCompile Include="Util\DebugUI.cpp" />
     <ClCompile Include="Util\ImmediatePrint.cpp" />
     <ClCompile Include="Util\Utilities.cpp" />
@@ -327,6 +331,7 @@
     <ClInclude Include="TY_Extension\SerializeTransform.h" />
     <ClInclude Include="TY_Extension\Transform.h" />
     <ClInclude Include="Util\CatmullRom.h" />
+    <ClInclude Include="Util\DebugTomlValue.h" />
     <ClInclude Include="Util\DebugUI.h" />
     <ClInclude Include="Util\ImmediatePrint.h" />
     <ClInclude Include="Util\Utilities.h" />

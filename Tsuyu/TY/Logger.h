@@ -56,6 +56,18 @@ namespace TY
             writeln(message);
         }
 
+        template <class... Args>
+        void operator()(std::format_string<Args...> fmt, Args&&... args) const
+        {
+            writeln(std::format(fmt, std::forward<Args>(args)...));
+        }
+
+        template <class... Args>
+        void operator()(std::wformat_string<Args...> fmt, Args&&... args) const
+        {
+            writeln(std::format(fmt, std::forward<Args>(args)...));
+        }
+
         const Logger_impl& operator <<(const UnifiedString& message) const;
 
     private:
@@ -67,7 +79,7 @@ namespace TY
 #if defined(TY_LIBRARY_BUILD)
         LoggerSource::Engine;
 #else
-        LoggerSource::Title;
+    LoggerSource::Title;
 #endif
 
     constexpr auto LogInfo = Logger_impl{LoggerKind::Info, DefaultLoggerSource};

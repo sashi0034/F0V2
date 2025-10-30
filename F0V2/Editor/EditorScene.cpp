@@ -13,6 +13,7 @@
 #include "TY/Scene.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY_Extension/GameObjectHierarchy.h"
+#include "Util/DebugTomlValue.h"
 #include "Util/Utilities.h"
 
 using namespace Editor;
@@ -79,7 +80,7 @@ namespace
 
     // -----------------------------------------------
 
-    const std::string courseFilepath = "asset/edit/sandbox_course.toml";
+    const std::string defaultCourseFilepath = "asset/edit/sandbox_course.toml";
 }
 
 struct EditorScene::Impl : ActorBase
@@ -90,9 +91,11 @@ struct EditorScene::Impl : ActorBase
 
     EditorPlayground m_debugPlayground{};
 
+    std::string m_courseFilepath = defaultCourseFilepath;
+
     void init()
     {
-        g_editorState->course = LoadCourseData(courseFilepath);
+        reloadCourseData();
 
         m_debugNodeEditor = m_children.birth(EditorNodeTool());
         m_debugNodeEditor.init();
@@ -108,13 +111,34 @@ struct EditorScene::Impl : ActorBase
         m_children.updateEach();
 
         // hierarchWindow(GlobalGameObjectHierarchy().list());
+
+        ImGui::Begin("Editor Scene");
+
+        ImGui::Text(std::format("m_courseFilepath: {}", m_courseFilepath).c_str());
+
+        if (ImGui::Button("Reload Course Data"))
+        {
+            reloadCourseData();
+        }
+
+        ImGui::End();
     }
 
     void killed() override
     {
         m_children.killEach();
 
-        SaveCourseData(g_editorState->course, courseFilepath);
+        SaveCourseData(g_editorState->course, m_courseFilepath);
+    }
+
+private:
+    void reloadCourseData()
+    {
+#if defined(_DEBUG)
+        m_courseFilepath = GetDebugTomlValue<std::string>("fixed_course_path");
+#endif
+
+        g_editorState->course = LoadCourseData(m_courseFilepath);
     }
 };
 

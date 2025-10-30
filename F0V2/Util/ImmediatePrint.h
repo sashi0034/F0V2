@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "TY/Alignment.h"
 
-inline namespace Util_ImmediatePrint
+inline namespace Util_inline
 {
     void InitImmediatePrintAddon();
 

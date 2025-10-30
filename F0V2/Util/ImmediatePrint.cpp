@@ -56,7 +56,7 @@ namespace
     };
 }
 
-namespace Util_ImmediatePrint
+namespace Util_inline
 {
     void InitImmediatePrintAddon()
     {

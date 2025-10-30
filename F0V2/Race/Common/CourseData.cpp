@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "CourseData.h"
 
+#include "TY/Logger.h"
 #include "Util/CatmullRom.h"
 #include "Util/Utilities.h"
 
@@ -89,7 +90,9 @@ namespace Race
         }
         catch (const toml::parse_error& err)
         {
-            std::cerr << "TOML parse error: " << err.description() << " at " << err.source().begin << "\n";
+            const auto& source = err.source();
+            LogError("LoadCourseData(): {} at {}:{}",
+                     err.description(), source.begin.line, source.end.column);
         }
 
         return result;

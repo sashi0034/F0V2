@@ -17,11 +17,14 @@
 #include "Demo/Demo_Shadertoy.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
+#include "Util/DebugTomlValue.h"
 #include "Util/ImmediatePrint.h"
 
 void Main()
 {
     InitLivePPAddon();
+
+    InitDebugTomlValueAddon();
 
     InitImmediatePrintAddon();
 
