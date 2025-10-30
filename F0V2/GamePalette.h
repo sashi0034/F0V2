@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "TY/Color.h"
 
-namespace ColorPalette
+namespace GamePalette
 {
     constexpr ColorF32 EditorBackground{"#0a0a0af0"};
 

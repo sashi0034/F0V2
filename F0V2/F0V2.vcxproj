@@ -275,7 +275,7 @@
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="CB\Lambert.h" />
     <ClInclude Include="CB\Skydome.h" />
-    <ClInclude Include="ColorPalette.h" />
+    <ClInclude Include="GamePalette.h" />
     <ClInclude Include="Demo\Demo_Shadertoy.h" />
     <ClInclude Include="Demo\Demo_ShadertoyPS.h" />
     <ClInclude Include="Editor\EditorScene.h" />

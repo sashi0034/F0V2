@@ -2,7 +2,7 @@
 #include "ImmediatePrint.h"
 
 #include "Asset0.h"
-#include "ColorPalette.h"
+#include "GamePalette.h"
 #include "TY/Addon.h"
 #include "TY/Array.h"
 #include "TY/IAddon.h"
@@ -38,7 +38,7 @@ namespace
                     const auto t =
                         Immediate2D_Text::MPlus1_16_Bitmap(texts[y])
                         .setPosition(offset + Float2{0, y * lineHeight}, align)
-                        .setColor(ColorPalette::GamingGreen)
+                        .setColor(GamePalette::GamingGreen)
                         .cache();
 
                     Immediate2D::Rect{t.region.stretched(1.5f)}.setColor(ColorF32{0.0f}).pushAuto();

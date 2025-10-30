@@ -2,7 +2,7 @@
 #include "GameFlowchart.h"
 
 #include "Asset.generated.h"
-#include "ColorPalette.h"
+#include "GamePalette.h"
 #include "Editor/EditorScene.h"
 #include "GM/DebugService.h"
 #include "Race/RaceScene.h"
@@ -145,7 +145,7 @@ private:
             System::Sleep(500);
         }
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ColorPalette::DarkOrange.toFloat4().cast<ImVec4>());
+        ImGui::PushStyleColor(ImGuiCol_Button, GamePalette::DarkOrange.toFloat4().cast<ImVec4>());
         {
             if (ImGui::Button("Toggle Editor"))
             {

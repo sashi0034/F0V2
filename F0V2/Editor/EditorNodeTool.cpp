@@ -3,7 +3,7 @@
 
 #include "Asset.generated.h"
 #include "Asset0.h"
-#include "ColorPalette.h"
+#include "GamePalette.h"
 #include "Util/DebugUI.h"
 #include "EditorState.h"
 #include "Race/Common/CourseModelBuilder.h"
@@ -116,7 +116,7 @@ private:
 
             if (i == m_activeNodeIndex)
             {
-                Immediate2D::RoundRect{buttonRect}.setColor(ColorPalette::GamingGreen).pushAuto();
+                Immediate2D::RoundRect{buttonRect}.setColor(GamePalette::GamingGreen).pushAuto();
             }
 
             Immediate2D_Text::MPlus1_16_Bitmap(ToUtf32(std::to_string(i)))
@@ -203,7 +203,7 @@ private:
         {
             if (m_activeNodeIndex == i)
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, ColorPalette::GamingGreen.toFloat4().cast<ImVec4>());
+                ImGui::PushStyleColor(ImGuiCol_Text, GamePalette::GamingGreen.toFloat4().cast<ImVec4>());
             }
 
             ImGui::Text(std::format("--- [{}] ---", i).c_str());

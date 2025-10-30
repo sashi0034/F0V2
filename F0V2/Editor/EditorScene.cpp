@@ -2,7 +2,7 @@
 #include "EditorScene.h"
 
 #include "Asset0.h"
-#include "ColorPalette.h"
+#include "GamePalette.h"
 #include "EditorState.h"
 #include "EditorPlayground.h"
 #include "Util/DebugUI.h"
@@ -27,15 +27,15 @@ namespace
         const auto backgroundRegion = RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 800}};
 
         Immediate2D::RoundRect{backgroundRegion}
-            .setColor(ColorPalette::EditorBackground)
-            .setOutline({1.0f, ColorPalette::GrayOrange})
+            .setColor(GamePalette::EditorBackground)
+            .setOutline({1.0f, GamePalette::GrayOrange})
             .pushAuto();
 
         constexpr float lineLength = 28.0f;
         auto [headerRegion, contentRegion] = backgroundRegion.separate(lineLength, Direction4::Up);
 
         Immediate2D::RoundRect{headerRegion.stretched(-1)}
-            .setColor(ColorF32{ColorPalette::DarkOrange} * 1.05f)
+            .setColor(ColorF32{GamePalette::DarkOrange} * 1.05f)
             .pushAuto();
 
         Immediate2D_Text::MPlus1_16_Bitmap(U"GameObject List")
