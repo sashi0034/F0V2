@@ -62,13 +62,19 @@ namespace Race
         int lookaheadCount = 1;
         int targetWaypointIndex;
         Float3 targetDirection = machineState.m_velocity.normalized();
+
         for (; lookaheadCount < maxLookaheadCount; ++lookaheadCount)
         {
             targetWaypointIndex =
                 Modulo<int>(currentWaypoint.indexInList + lookaheadCount, spatialData.waypoints.size());
             auto& lookaheadWaypoint = spatialData.waypoints[targetWaypointIndex];
 
-            if (lookaheadWaypoint.targetStrip.style != CourseSegmentStyle::Road)
+            if (lookaheadWaypoint.targetStrip.style == CourseSegmentStyle::Pipe ||
+                lookaheadWaypoint.targetStrip.style == CourseSegmentStyle::Cylinder)
+            {
+                break;
+            }
+            else if (lookaheadWaypoint.targetStrip.style != CourseSegmentStyle::Road)
             {
                 continue;
             }
@@ -142,8 +148,7 @@ namespace Race
 
         if (currentWaypoint.targetStrip.style != CourseSegmentStyle::Road)
         {
-            targetDirection = (targetWaypoint.targetStrip.center - currentPosition).normalized();
-            // targetDirection = currentWaypoint.forward;
+            targetDirection = currentWaypoint.forward;
         }
 
         // if (machineState.isHovering())
@@ -155,7 +160,21 @@ namespace Race
 
         // const Float3 toWaypoints = targetWaypoint.boundaryCenter - machineState.m_pose.position;
         // const Float3 wayVector = toWaypoints.normalized();
-        const Float3 wayNormal = targetWaypoint.normal();
+        Float3 wayNormal = targetWaypoint.normal();
+
+        if (targetWaypoint.targetStrip.style == CourseSegmentStyle::Pipe)
+        {
+            Float3 n = (currentPosition - targetWaypoint.targetStrip.center);
+            n = n - targetWaypoint.forward * targetWaypoint.forward.dot(n);
+            wayNormal = -n.normalized();
+        }
+        else if (targetWaypoint.targetStrip.style == CourseSegmentStyle::Cylinder)
+        {
+            Float3 n = (currentPosition - targetWaypoint.targetStrip.center);
+            n = n - targetWaypoint.forward * targetWaypoint.forward.dot(n);
+            wayNormal = n.normalized();
+        }
+
         // TODO: Pipe ではこの wayNormal を使ってはいけない! 
 
         const float curveHeuristic = currentWaypoint.curveHeuristic;
