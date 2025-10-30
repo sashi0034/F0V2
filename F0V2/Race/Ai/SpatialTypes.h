@@ -14,8 +14,8 @@ namespace Race
         Float3 forward{}; // normalized
         Float3 right{}; // normalized
         float curveHeuristic{}; // [0.0, 1.0]
-        Float3 leftBoundary{};
-        Float3 rightBoundary{};
+        Float3 leftBoundary{}; // TODO: Remove this?
+        Float3 rightBoundary{}; // TODO: Remove this?
         Float3 boundaryCenter{};
 
         [[nodiscard]]

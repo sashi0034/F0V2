@@ -91,8 +91,11 @@ namespace Race
 
                 acc = acc / (heuristicEnd - heuristicStart + 1);
 
+                acc = 0; // TEMP
+
                 constexpr float baseMargin = 5.0f;
-                const float margin = baseMargin * (1.0f + waypoint.curveHeuristic);
+                const float margin = 5.0f; // TEMP
+                // baseMargin * (1.0f + waypoint.curveHeuristic);
                 const float w = Max(0.0f, waypoint.targetStrip.width - margin * 2.0f) * 0.5f;
                 if (acc > 0.0f)
                 {

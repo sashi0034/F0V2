@@ -57,11 +57,43 @@ namespace Race
         V = V - upVector * upVector.dot(V);
         V = V.normalized();
 
-        const int lookaheadCount = Min<int>(20, 10 + static_cast<int>(V.length() / 5.0f));
+        constexpr int maxLookaheadCount = 20;
+        int lookaheadCount = 1;
+        int targetWaypointIndex;
+        Float3 targetDirection = machineState.m_forwardVector;
+        for (; lookaheadCount < maxLookaheadCount; ++lookaheadCount)
+        {
+            targetWaypointIndex =
+                Modulo<int>(currentWaypoint.indexInList + lookaheadCount, spatialData.waypoints.size());
+            auto& lookaheadWaypoint = spatialData.waypoints[targetWaypointIndex];
+
+            if (lookaheadWaypoint.targetStrip.style != CourseSegmentStyle::Road)
+            {
+                continue;
+            }
+
+            const Float3& f = machineState.m_forwardVector;
+            const Float3 leftBoundaryDir = (lookaheadWaypoint.leftBoundary - currentPosition).normalized();
+            const Float3 rightBoundaryDir = (lookaheadWaypoint.rightBoundary - currentPosition).normalized();
+            const float sl = f.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
+            const float sr = f.cross(rightBoundaryDir).dot(lookaheadWaypoint.normal());
+            if (Math::Sign(sl) != Math::Sign(sr))
+            {
+                continue;
+            }
+            else if (Abs(sl) < Abs(sr))
+            {
+                targetDirection = rightBoundaryDir;
+                break;
+            }
+            else
+            {
+                targetDirection = leftBoundaryDir;
+                break;
+            }
+        }
 
         ImmediatePrint("lookaheadCount: {}", lookaheadCount);
-
-        int targetWaypointIndex = currentWaypoint.indexInList + lookaheadCount;
 
         // Gap 対策
         // FIXME: 簡潔にしたい
@@ -76,12 +108,12 @@ namespace Race
             targetWaypointIndex++;
         }
 
-        if (machineState.isHovering())
-        {
-            // 空中にいるなら更に先読みをする
-            const int lookaheadCount2 = lookaheadCount * 2; // TODO
-            targetWaypointIndex = (targetWaypointIndex + lookaheadCount2) % spatialData.waypoints.size();
-        }
+        // if (machineState.isHovering())
+        // {
+        //     // 空中にいるなら更に先読みをする
+        //     const int lookaheadCount2 = lookaheadCount * 2; // TODO
+        //     targetWaypointIndex = (targetWaypointIndex + lookaheadCount2) % spatialData.waypoints.size();
+        // }
 
         const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
         // const Float3 toWaypoints = targetWaypoint.boundaryCenter - machineState.m_pose.position;
@@ -111,53 +143,6 @@ namespace Race
         }
 
         ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);
-
-        Float3 targetDirection;
-        {
-            const Float3& f = machineState.m_forwardVector;
-            const Float3 leftBoundaryDir = (targetWaypoint.leftBoundary - currentPosition).normalized();
-            const Float3 rightBoundaryDir = (targetWaypoint.rightBoundary - currentPosition).normalized();
-            const float sl = f.cross(leftBoundaryDir).dot(wayNormal);
-            const float sr = f.cross(rightBoundaryDir).dot(wayNormal);
-            if (Math::Sign(sl) != Math::Sign(sr))
-            {
-                if (f.dot(currentWaypoint.forward) > 0.9f)
-                {
-                    const Float3 f_ = (f - currentWaypoint.normal() * currentWaypoint.normal().dot(f)).normalized();
-                    targetDirection = f_;
-                }
-                else
-                {
-                    targetDirection = (targetWaypoint.boundaryCenter - currentPosition).normalized();
-                }
-            }
-            // else if (Abs(sl) < 0.1f || Abs(sr) < 0.1f)
-            // {
-            //     targetDirection = (targetWaypoint.boundaryCenter - currentPosition).normalized();
-            // }
-            // else if (targetWaypoint.right.dot(machineState.m_forwardVector) < 0)
-            else if (Abs(sl) < Abs(sr))
-            {
-                targetDirection = rightBoundaryDir;
-            }
-            else
-            {
-                targetDirection = leftBoundaryDir;
-            }
-            // else
-            // {
-            //     const float l = (currentWaypoint.leftBoundary - currentPosition).lengthSq();
-            //     const float r = (currentWaypoint.rightBoundary - currentPosition).lengthSq();
-            //     if (l < r)
-            //     {
-            //         targetDirection = rightBoundaryDir;
-            //     }
-            //     else
-            //     {
-            //         targetDirection = leftBoundaryDir;
-            //     }
-            // }
-        }
 
         // rightHandling, driftTrigger 
         {
