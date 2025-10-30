@@ -149,7 +149,7 @@ private:
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
             m_machine.state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
-            m_machine.state.m_velocity = {};
+            // m_machine.state.m_velocity = {};
         }
 
         if (ImGui::IsItemDeactivatedAfterEdit())
@@ -162,7 +162,7 @@ private:
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
             m_machine.state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
-            m_machine.state.m_velocity = {};
+            // m_machine.state.m_velocity = {};
         }
 
         ImGui::End();
