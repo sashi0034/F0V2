@@ -63,7 +63,13 @@ private:
         m_machine.props.input = UpdateCharacterAiLogic(m_logicState, m_machine);
 
 #if defined(_DEBUG)
-        if (not s_stopMove)
+        if (s_stopMove)
+        {
+            auto previousState = m_machine.state;
+            UpdateMachinePhysicsState(m_machine.state, m_machine.props);
+            m_machine.state = previousState;
+        }
+        else
 #endif
         {
             UpdateMachinePhysicsState(m_machine.state, m_machine.props);
@@ -119,6 +125,44 @@ private:
             resetPhysicsState();
             resetPhysicsProps();
             m_logicState = {};
+        }
+
+        // -----------------------------------------------
+        ImGui::Separator();
+
+        static std::deque<MachinePhysicsState> s_physicsHistory{};
+        static int s_rewindFrames{};
+
+        if (not s_stopMove)
+        {
+            s_physicsHistory.push_back(m_machine.state);
+            s_rewindFrames = 0;
+        }
+
+        while (s_physicsHistory.size() > 300)
+        {
+            s_physicsHistory.pop_front();
+        }
+
+        if (ImGui::SliderInt("Rewind Frames", &s_rewindFrames, static_cast<int>(s_physicsHistory.size()) - 1, 0))
+        {
+            s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
+            s_stopMove = true;
+            m_machine.state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
+            m_machine.state.m_velocity = {};
+        }
+
+        if (ImGui::IsItemDeactivatedAfterEdit())
+        {
+            s_stopMove = false;
+        }
+
+        if (ImGui::InputInt("(Rewind Frames9", &s_rewindFrames))
+        {
+            s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
+            s_stopMove = true;
+            m_machine.state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
+            m_machine.state.m_velocity = {};
         }
 
         ImGui::End();

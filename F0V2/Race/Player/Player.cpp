@@ -185,7 +185,6 @@ private:
         }
 
         // -----------------------------------------------
-
         ImGui::Separator();
 
         static std::deque<MachinePhysicsState> s_physicsHistory{};
