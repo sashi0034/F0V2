@@ -138,6 +138,14 @@ namespace Race
             targetWaypointIndex++;
         }
 
+        const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
+
+        if (currentWaypoint.targetStrip.style != CourseSegmentStyle::Road)
+        {
+            targetDirection = (targetWaypoint.targetStrip.center - currentPosition).normalized();
+            // targetDirection = currentWaypoint.forward;
+        }
+
         // if (machineState.isHovering())
         // {
         //     // 空中にいるなら更に先読みをする
@@ -145,10 +153,10 @@ namespace Race
         //     targetWaypointIndex = (targetWaypointIndex + lookaheadCount2) % spatialData.waypoints.size();
         // }
 
-        const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
         // const Float3 toWaypoints = targetWaypoint.boundaryCenter - machineState.m_pose.position;
         // const Float3 wayVector = toWaypoints.normalized();
         const Float3 wayNormal = targetWaypoint.normal();
+        // TODO: Pipe ではこの wayNormal を使ってはいけない! 
 
         const float curveHeuristic = currentWaypoint.curveHeuristic;
 
@@ -195,7 +203,7 @@ namespace Race
             if (turningIntensity > 0.01f)
             {
                 const Float3 cross = targetDirection.cross(useF ? F : V);
-                const float rightSign = cross.dot(targetWaypoint.normal()) < 0.0f ? 1.0f : -1.0f;
+                const float rightSign = cross.dot(wayNormal) < 0.0f ? 1.0f : -1.0f;
                 input.rightHandling = rightSign; // * Max(turningIntensity, 0.5f);
                 input.driftTrigger = rightSign * (turningIntensity > 0.1 ? 1.0f : 0.0f);
             }
