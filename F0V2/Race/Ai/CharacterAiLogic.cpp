@@ -60,7 +60,7 @@ namespace Race
         constexpr int maxLookaheadCount = 20;
         int lookaheadCount = 1;
         int targetWaypointIndex;
-        Float3 targetDirection = machineState.m_forwardVector;
+        Float3 targetDirection = machineState.m_velocity.normalized();
         for (; lookaheadCount < maxLookaheadCount; ++lookaheadCount)
         {
             targetWaypointIndex =
@@ -80,23 +80,23 @@ namespace Race
             const Float3 leftBoundaryDir = (leftBoundary - currentPosition).normalized();
             const Float3 rightBoundaryDir = (rightBoundary - currentPosition).normalized();
 
-            const Float3& f = machineState.m_forwardVector;
-            const float fl = f.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
-            const float fr = f.cross(rightBoundaryDir).dot(lookaheadWaypoint.normal());
-            if (Math::Sign(fl) == Math::Sign(fr))
-            {
-                // 進行方向が道から外れている
-                if (Abs(fl) < Abs(fr))
-                {
-                    targetDirection = rightBoundaryDir;
-                    break;
-                }
-                else
-                {
-                    targetDirection = leftBoundaryDir;
-                    break;
-                }
-            }
+            // const Float3& f = machineState.m_forwardVector;
+            // const float fl = f.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
+            // const float fr = f.cross(rightBoundaryDir).dot(lookaheadWaypoint.normal());
+            // if (Math::Sign(fl) == Math::Sign(fr))
+            // {
+            //     // 進行方向が道から外れている
+            //     if (Abs(fl) < Abs(fr))
+            //     {
+            //         targetDirection = rightBoundaryDir;
+            //         break;
+            //     }
+            //     else
+            //     {
+            //         targetDirection = leftBoundaryDir;
+            //         break;
+            //     }
+            // }
 
             const Float3& v = machineState.m_velocity;
             const float vl = v.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
