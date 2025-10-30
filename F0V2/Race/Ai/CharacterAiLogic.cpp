@@ -104,7 +104,7 @@ namespace Race
             if (Math::Sign(vl) == Math::Sign(vr))
             {
                 // 速度方向が道から外れている
-                if (Abs(fl) < Abs(fr))
+                if (Abs(vl) < Abs(vr))
                 {
                     targetDirection = rightBoundaryDir;
                     break;

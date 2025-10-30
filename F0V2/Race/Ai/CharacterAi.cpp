@@ -157,7 +157,7 @@ private:
             s_stopMove = false;
         }
 
-        if (ImGui::InputInt("(Rewind Frames9", &s_rewindFrames))
+        if (ImGui::InputInt("(Rewind Frames)", &s_rewindFrames))
         {
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
