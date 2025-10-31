@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "LapProgress.h"
 #include "TY_Extension/Pose.h"
+#include "Util/PositiveValue.h"
 
 namespace Race
 {
@@ -30,7 +31,7 @@ namespace Race
 
         float m_passiveBoost{};
 
-        float m_durability{};
+        PositiveF32 m_durability{};
 
         LapProgress m_lapProgress{};
 
@@ -60,7 +61,7 @@ namespace Race
             float driftTrigger{}; // [-1.0f, 1.0f]
         } input{};
 
-        float maxDurability{5000.0f};
+        PositiveF32 maxDurability{5000.0f};
 
         float peakVelocity{};
 
