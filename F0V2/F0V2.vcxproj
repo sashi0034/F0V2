@@ -180,6 +180,7 @@
     <ClCompile Include="Race\Common\CourseTriangleAttribute.cpp" />
     <ClCompile Include="Race\Common\RaceSharedState.cpp" />
     <ClCompile Include="Race\Machine\LapProgress.cpp" />
+    <ClCompile Include="Race\Machine\MachineManager.cpp" />
     <ClCompile Include="Race\Machine\MachineModelBuilder.cpp" />
     <ClCompile Include="Race\Machine\MachinePhysics.cpp" />
     <ClCompile Include="Race\Machine\MachinePhysicsUnit.cpp" />
@@ -297,6 +298,7 @@
     <ClInclude Include="Race\Common\RaceSharedState.h" />
     <ClInclude Include="Race\IRaceContext.h" />
     <ClInclude Include="Race\Machine\LapProgress.h" />
+    <ClInclude Include="Race\Machine\MachineManager.h" />
     <ClInclude Include="Race\Machine\MachineModelBuilder.h" />
     <ClInclude Include="Race\Machine\MachinePhysics.h" />
     <ClInclude Include="Race\Machine\MachinePhysicsUnit.h" />

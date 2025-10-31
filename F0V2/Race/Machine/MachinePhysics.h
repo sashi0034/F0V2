@@ -43,9 +43,11 @@ namespace Race
         bool isHovering() const;
     };
 
+    using MachineId = int;
+
     struct MachinePhysicsProps
     {
-        int machineId{};
+        MachineId machineId{};
 
         struct input_t
         {

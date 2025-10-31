@@ -1,15 +1,17 @@
 ﻿#pragma once
-#include "Race/Machine/MachinePhysicsUnit.h"
+#include "MachinePhysicsUnit.h"
 #include "TY_Extension/GameObjectHandle.h"
 
 namespace Race
 {
-    class Player : public GameObjectHandle
+    class MachineManager : public GameObjectHandle
     {
     public:
-        Player();
+        MachineManager();
 
         void init() override;
+
+        MachinePhysicsUnit& fetchMachine(MachineId id);
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 

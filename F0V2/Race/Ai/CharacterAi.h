@@ -11,8 +11,6 @@ namespace Race
 
         void init() override;
 
-        const MachinePhysicsUnit& machine() const;
-
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 
     private:

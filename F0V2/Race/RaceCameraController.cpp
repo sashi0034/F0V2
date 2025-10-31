@@ -56,7 +56,7 @@ struct RaceCameraController::Impl
 #if defined(_DEBUG)
         machineId = g_debugService.monitorMachineId;
 #endif
-        const auto& machine = GetRaceContext().getMachine(machineId);
+        const auto& machine = GetRaceContext().machineManager().fetchMachine(machineId);
 
         // -----------------------------------------------
 

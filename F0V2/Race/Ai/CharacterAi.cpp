@@ -30,14 +30,12 @@ struct CharacterAi::Impl : GameObjectBase
 
     ModelDrawer m_drawer{};
 
-    MachinePhysicsUnit m_machine{};
-
     CharacterAiLogicState m_logicState{};
 
     void Init()
     {
         ModelBuffer model = ModelBuffer{
-            PrimitiveModel3D::Capsule(m_machine.state.m_radius, m_machine.state.m_height, Palette::SandyBrown)
+            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, Palette::SandyBrown)
         };
 
         m_drawer =
@@ -55,24 +53,29 @@ struct CharacterAi::Impl : GameObjectBase
     }
 
 private:
+    static MachinePhysicsUnit& machine()
+    {
+        return GetRaceContext().machineManager().fetchMachine(1);
+    }
+
     void update() override
     {
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        m_drawer.uploadWorldMatrix(localRotation * m_machine.state.m_pose.getMatrix()).draw();
+        m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix()).draw();
 
-        m_machine.props.input = UpdateCharacterAiLogic(m_logicState, m_machine);
+        machine().props.input = UpdateCharacterAiLogic(m_logicState, machine());
 
 #if defined(_DEBUG)
         if (s_stopMove)
         {
-            auto previousState = m_machine.state;
-            UpdateMachinePhysicsState(m_machine.state, m_machine.props);
-            m_machine.state = previousState;
+            auto previousState = machine().state;
+            UpdateMachinePhysicsState(machine().state, machine().props);
+            machine().state = previousState;
         }
         else
 #endif
         {
-            UpdateMachinePhysicsState(m_machine.state, m_machine.props);
+            UpdateMachinePhysicsState(machine().state, machine().props);
         }
 
         ImmediateDrawer::Global().draw();
@@ -82,22 +85,22 @@ private:
 
     void resetPhysicsState()
     {
-        m_machine.state = {};
+        machine().state = {};
 
-        m_machine.state.m_pose.position = GetRaceContext().stageManager().startPosition();
+        machine().state.m_pose.position = GetRaceContext().stageManager().startPosition();
 
-        m_machine.state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
+        machine().state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
 
-        m_machine.state.m_durability = m_machine.props.maxDurability;
+        machine().state.m_durability = machine().props.maxDurability;
     }
 
     void resetPhysicsProps()
     {
-        m_machine.props.machineId = 1; // TODO
+        machine().props.machineId = 1; // TODO
 
-        m_machine.props.peakVelocity = 100.0f;
+        machine().props.peakVelocity = 100.0f;
 
-        m_machine.props.accelFactor = 1.0f;
+        machine().props.accelFactor = 1.0f;
     }
 
     void debugUI()
@@ -110,10 +113,10 @@ private:
 
         if (ImGui::Button("Step"))
         {
-            UpdateMachinePhysicsState(m_machine.state, m_machine.props);
+            UpdateMachinePhysicsState(machine().state, machine().props);
         }
 
-        if (ImGui::DragFloat3("Position", &m_machine.state.m_pose.position.x))
+        if (ImGui::DragFloat3("Position", &machine().state.m_pose.position.x))
         {
             s_stopMove = true;
         }
@@ -135,7 +138,7 @@ private:
 
         if (not s_stopMove)
         {
-            s_physicsHistory.push_back(m_machine.state);
+            s_physicsHistory.push_back(machine().state);
             s_rewindFrames = 0;
         }
 
@@ -148,8 +151,8 @@ private:
         {
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
-            m_machine.state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
-            // m_machine.state.m_velocity = {};
+            machine().state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
+            // machine().state.m_velocity = {};
         }
 
         if (ImGui::IsItemDeactivatedAfterEdit())
@@ -161,8 +164,8 @@ private:
         {
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
-            m_machine.state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
-            // m_machine.state.m_velocity = {};
+            machine().state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
+            // machine().state.m_velocity = {};
         }
 
         ImGui::End();
@@ -190,11 +193,6 @@ namespace Race
     {
         p_impl->Init();
         GameObjectHandle::init();
-    }
-
-    const MachinePhysicsUnit& CharacterAi::machine() const
-    {
-        return p_impl->m_machine;
     }
 
     std::shared_ptr<GameObjectBase> CharacterAi::asGameObject() const

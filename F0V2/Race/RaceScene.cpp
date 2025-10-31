@@ -31,6 +31,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     StageManager m_stageManager{};
 
+    MachineManager m_machineManager{};
+
     SpatialAi m_spatialAi{};
 
     RaceCameraController m_cameraController{};
@@ -59,6 +61,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     {
         m_stageManager = m_children.birth(StageManager());
         m_stageManager.init();
+
+        m_machineManager = m_children.birth(MachineManager());
+        m_machineManager.init();
 
         m_player = m_children.birth(Player());
         m_player.init();
@@ -125,6 +130,16 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         return m_stageManager;
     }
 
+    MachineManager& machineManager() override
+    {
+        return m_machineManager;
+    }
+
+    const MachineManager& machineManager() const override
+    {
+        return m_machineManager;
+    }
+
     SpatialAi& spatialAi() override
     {
         return m_spatialAi;
@@ -133,17 +148,6 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     const SpatialAi& spatialAi() const override
     {
         return m_spatialAi;
-    }
-
-    const MachinePhysicsUnit& getMachine(int id) const override
-    {
-        const int aiIndex = id - 1;
-        if (InRange<int>(aiIndex, 0, m_characterAiList.size() - 1))
-        {
-            return m_characterAiList[aiIndex].machine();
-        }
-
-        return m_player.machine();
     }
 };
 

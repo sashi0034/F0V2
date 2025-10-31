@@ -9,8 +9,6 @@
 #include "Race/Machine/MachinePhysics.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
-#include "TY/GameStep.h"
-#include "TY/GameTime.h"
 #include "TY/KeyboardInput.h"
 #include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
@@ -18,7 +16,6 @@
 #include "TY/Mouse.h"
 #include "TY/Palette.h"
 #include "TY/Scene.h"
-#include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
@@ -39,14 +36,12 @@ struct Player::Impl : GameObjectBase
 
     ModelDrawer m_drawer{};
 
-    MachinePhysicsUnit m_machine{};
-
     Float3 m_cameraUp{0, 1, 0};
 
     void Init()
     {
         ModelBuffer model = ModelBuffer{
-            PrimitiveModel3D::Capsule(m_machine.state.m_radius, m_machine.state.m_height, Palette::CornflowerBlue)
+            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, Palette::CornflowerBlue)
         };
 
         m_drawer =
@@ -62,11 +57,16 @@ struct Player::Impl : GameObjectBase
     }
 
 private:
+    static MachinePhysicsUnit& machine()
+    {
+        return GetRaceContext().machineManager().fetchMachine(0);
+    }
+
     void computeEyeAndTarget(Float3& outEye, Float3& outTarget) const
     {
-        const Float3 forwardVector = m_machine.state.m_forwardVector;
+        const Float3 forwardVector = machine().state.m_forwardVector;
 
-        outTarget = m_machine.state.m_pose.position + m_machine.state.m_upVector * 5.0f;
+        outTarget = machine().state.m_pose.position + machine().state.m_upVector * 5.0f;
 
         constexpr float cameraBackward = 10.0f;
         constexpr float cameraHeight = 5.0f;
@@ -92,7 +92,7 @@ private:
     {
         // 前フレームの camera & 前フレームの Player 描画方式
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        m_drawer.uploadWorldMatrix(localRotation * m_machine.state.m_pose.getMatrix()).draw();
+        m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix()).draw();
 
         updatePhysics();
 
@@ -103,22 +103,22 @@ private:
 
     void resetPhysicsState()
     {
-        m_machine.state = {};
+        machine().state = {};
 
-        m_machine.state.m_pose.position = GetRaceContext().stageManager().startPosition();
+        machine().state.m_pose.position = GetRaceContext().stageManager().startPosition();
 
-        m_machine.state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
+        machine().state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
 
-        m_machine.state.m_durability = m_machine.props.maxDurability;
+        machine().state.m_durability = machine().props.maxDurability;
     }
 
     void resetPhysicsProps()
     {
-        m_machine.props.machineId = 0;
+        machine().props.machineId = 0;
 
-        m_machine.props.peakVelocity = 100.0f;
+        machine().props.peakVelocity = 100.0f;
 
-        m_machine.props.accelFactor = 1.0f;
+        machine().props.accelFactor = 1.0f;
     }
 
     void updatePhysics()
@@ -142,19 +142,19 @@ private:
         }
 #endif
 
-        m_machine.props.input = input;
+        machine().props.input = input;
 
 #if defined(_DEBUG)
         if (s_stopMove)
         {
-            auto previousState = m_machine.state;
-            UpdateMachinePhysicsState(m_machine.state, m_machine.props);
-            m_machine.state = previousState;
+            auto previousState = machine().state;
+            UpdateMachinePhysicsState(machine().state, machine().props);
+            machine().state = previousState;
         }
         else
 #endif
         {
-            UpdateMachinePhysicsState(m_machine.state, m_machine.props);
+            UpdateMachinePhysicsState(machine().state, machine().props);
         }
     }
 
@@ -164,7 +164,7 @@ private:
 
         ImGui::Checkbox("Stop Move", &s_stopMove);
 
-        ImGui::DragFloat3("Position", &m_machine.state.m_pose.position.x, 0.1f);
+        ImGui::DragFloat3("Position", &machine().state.m_pose.position.x, 0.1f);
 
         if (ImGui::CollapsingHeader("Checkpoint Teleport"))
         {
@@ -177,8 +177,8 @@ private:
             if (ImGui::Button("Go To Checkpoint"))
             {
                 const auto& s = segments[s_checkpointIndex];
-                m_machine.state = {};
-                m_machine.state.m_pose.position = s.p1 + s.midwayStrips[0].normal * 10.0f;
+                machine().state = {};
+                machine().state.m_pose.position = s.p1 + s.midwayStrips[0].normal * 10.0f;
 
                 s_stopMove = false;
             }
@@ -192,7 +192,7 @@ private:
 
         if (not s_stopMove)
         {
-            s_physicsHistory.push_back(m_machine.state);
+            s_physicsHistory.push_back(machine().state);
             s_rewindFrames = 0;
         }
 
@@ -205,8 +205,8 @@ private:
         {
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
-            m_machine.state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
-            m_machine.state.m_velocity = {};
+            machine().state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
+            machine().state.m_velocity = {};
         }
 
         if (ImGui::IsItemDeactivatedAfterEdit())
@@ -218,20 +218,20 @@ private:
         {
             s_rewindFrames = std::clamp(s_rewindFrames, 0, static_cast<int>(s_physicsHistory.size()) - 1);
             s_stopMove = true;
-            m_machine.state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
-            m_machine.state.m_velocity = {};
+            machine().state = s_physicsHistory[s_physicsHistory.size() - 1 - s_rewindFrames];
+            machine().state.m_velocity = {};
         }
 
         // -----------------------------------------------
 
-        const auto& surfaceNormal = m_machine.state.m_surfaceNormal;
+        const auto& surfaceNormal = machine().state.m_surfaceNormal;
         ImGui::Text("Normal: (%.3f, %.3f, %.3f)", surfaceNormal.x, surfaceNormal.y, surfaceNormal.z);
 
         ImGui::Separator();
 
-        ImGui::DragFloat("Max Velocity", &m_machine.props.peakVelocity);
+        ImGui::DragFloat("Max Velocity", &machine().props.peakVelocity);
 
-        ImGui::DragFloat("Acceleration Rate", &m_machine.props.accelFactor, 0.01f);
+        ImGui::DragFloat("Acceleration Rate", &machine().props.accelFactor, 0.01f);
 
         if (ImGui::Button("Reset Physics State"))
         {
@@ -244,7 +244,7 @@ private:
     void drawUI() const
     {
         // スピードメーター
-        Immediate2D_Text::ZXProto_Sdf(ToUtf32(std::format("{:.1f} km/h", m_machine.state.m_velocity.length() * 10.0f)))
+        Immediate2D_Text::ZXProto_Sdf(ToUtf32(std::format("{:.1f} km/h", machine().state.m_velocity.length() * 10.0f)))
             .setPosition(Scene::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
             .setSize(28.0f)
             .pushAuto();
@@ -252,7 +252,7 @@ private:
         // -----------------------------------------------
         // 耐久値バー
         {
-            const float barRate = Math::Clamp(m_machine.state.m_durability / m_machine.props.maxDurability, 0.0f, 1.0f);
+            const float barRate = Math::Clamp(machine().state.m_durability / machine().props.maxDurability, 0.0f, 1.0f);
             const Float2 bottomLeft = Scene::RectF().bl().movedBy(40.0f, -160.0f);
             constexpr SizeF barSize{320.0f, 12.0f};
             Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
@@ -263,7 +263,7 @@ private:
                 }
                 .setColor(Palette::GoldenRod)
                 .pushAuto();
-            Immediate2D_Text::RocknRoll_Sdf(ToUtf32("{}", static_cast<int>(m_machine.state.m_durability)))
+            Immediate2D_Text::RocknRoll_Sdf(ToUtf32("{}", static_cast<int>(machine().state.m_durability)))
                 .setSize(20.0f)
                 .setPosition(bottomLeft.movedBy(barSize.x, -barSize.y - 4.0f), Alignment9::BottomRight)
                 .setColor(Palette::LightSteelBlue)
@@ -297,11 +297,6 @@ namespace Race
     {
         p_impl->Init();
         GameObjectHandle::init();
-    }
-
-    const MachinePhysicsUnit& Player::machine() const
-    {
-        return p_impl->m_machine;
     }
 
     std::shared_ptr<GameObjectBase> Player::asGameObject() const
