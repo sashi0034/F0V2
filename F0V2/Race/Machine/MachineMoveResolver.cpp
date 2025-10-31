@@ -37,6 +37,11 @@ namespace
     struct MachineHit
     {
         float distSqFromStart;
+        LineSegment3D selfLine{};
+        LineSegment3D otherLine{};
+        std::pair<Float3, Float3> closestPair{};
+        float lineListSq{};
+        float otherRadius{};
     };
 
     std::optional<MachineHit> traceMachineToMachineHit(
@@ -71,17 +76,22 @@ namespace
                 otherPosition + otherForward * other.state.m_height * 0.5f,
             };
 
-            std::pair<Float3, Float3> hitPos{};
-            const float lineDistSq = DistanceSq(selfLine, otherLine, &hitPos);
+            std::pair<Float3, Float3> closestPair{};
+            const float lineDistSq = DistanceSq(selfLine, otherLine, &closestPair);
             if (lineDistSq < Math::Square(selfRadius + otherRadius))
             {
-                const float distSqFromStart = (hitPos.first - fromPos).lengthSq();
+                const float distSqFromStart = (closestPair.first - fromPos).lengthSq();
 
                 if (distSqFromStart < bestDistSq)
                 {
                     bestDistSq = distSqFromStart;
                     hit = MachineHit{
                         .distSqFromStart = distSqFromStart,
+                        .selfLine = selfLine,
+                        .otherLine = otherLine,
+                        .closestPair = closestPair,
+                        .lineListSq = lineDistSq,
+                        .otherRadius = otherRadius,
                     };
                 }
             }
@@ -150,25 +160,7 @@ namespace
     }
 
     // -----------------------------------------------
-
-    struct HitSurface
-    {
-        float moveDistance;
-        IndexedTriangle tri;
-        Float3 normal;
-        Float3 surfaceToTriangle;
-
-        void debugDraw() const
-        {
-            debugDrawTriangle(tri, normal);
-        }
-    };
-
-    struct SurfacePushback
-    {
-        Float3 newPos;
-        HitSurface surface{};
-    };
+    // handleGroundHit()
 
     Float3 bilinear_00_10_01_11(const std::array<Float3, 4>& p, const Float2& uv)
     {
@@ -231,37 +223,24 @@ namespace
         return {u, v};
     }
 
-    void onHitGround(
-        Float3& newMoveVector,
-        MachinePhysicsState& state,
-        const Float3& fromPos,
-        const Float3& toPos,
-        const HitSurface& hit)
+    struct HitSurfaceInfo
     {
-#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
-        hit.debugDraw();
-#endif
+        float moveDistance;
+        IndexedTriangle tri;
+        Float3 normal;
+        Float3 surfaceToTriangle;
 
-        // 法線の適応
-        const Float3 n = hit.normal;
-
-        state.m_surfaceNormal = n;
-        state.m_surfaceToTriangle = hit.surfaceToTriangle;
-
-        // 法線方向速度の除去
-        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
-
-        // 法線方向移動ベクトルの補正
-        const Float3 r = toPos - state.m_pose.position;
-        newMoveVector = r - n * r.dot(n);
-        if (newMoveVector.isZero())
+        void debugDraw() const
         {
-            return;
+            debugDrawTriangle(tri, normal);
         }
+    };
 
-        // 移動ベクトルの長さを残りの移動量に調節する
-        newMoveVector = newMoveVector.normalized() * Max(0.0f, (toPos - fromPos).length() - hit.moveDistance);
-    }
+    struct SurfacePushback
+    {
+        Float3 newPos;
+        HitSurfaceInfo surface{};
+    };
 
     SurfacePushback pushbackFromSurface(
         const MachinePhysicsState& state,
@@ -308,12 +287,44 @@ namespace
 
         const Float3 U = bilinearI + normal * r; // TODO
 
-        HitSurface hitTri{};
-        hitTri.tri = tri;
-        hitTri.moveDistance = (U - S).length();
-        hitTri.normal = normal;
-        hitTri.surfaceToTriangle = I - U;
-        return {U, hitTri};
+        HitSurfaceInfo hitSurface{};
+        hitSurface.tri = tri;
+        hitSurface.moveDistance = (U - S).length();
+        hitSurface.normal = normal;
+        hitSurface.surfaceToTriangle = I - U;
+        return {U, hitSurface};
+    }
+
+    void onHitGround(
+        Float3& newMoveVector,
+        MachinePhysicsState& state,
+        const Float3& fromPos,
+        const Float3& toPos,
+        const HitSurfaceInfo& hit)
+    {
+#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
+        hit.debugDraw();
+#endif
+
+        // 法線の適応
+        const Float3 n = hit.normal;
+
+        state.m_surfaceNormal = n;
+        state.m_surfaceToTriangle = hit.surfaceToTriangle;
+
+        // 法線方向速度の除去
+        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
+
+        // 法線方向移動ベクトルの補正
+        const Float3 r = toPos - state.m_pose.position;
+        newMoveVector = r - n * r.dot(n);
+        if (newMoveVector.isZero())
+        {
+            return;
+        }
+
+        // 移動ベクトルの長さを残りの移動量に調節する
+        newMoveVector = newMoveVector.normalized() * Max(0.0f, (toPos - fromPos).length() - hit.moveDistance);
     }
 
     void handleGroundHit(
@@ -332,8 +343,9 @@ namespace
     }
 
     // -----------------------------------------------
+    // handleGimmickHit()
 
-    struct HitTri
+    struct HitTriInfo
     {
         float moveDistance;
         IndexedTriangle tri;
@@ -348,7 +360,7 @@ namespace
     struct TrianglePushback
     {
         Float3 newPos;
-        HitTri tri;
+        HitTriInfo tri;
     };
 
     // 衝突した三角形から押し出す (壁に対して用いる)
@@ -396,7 +408,7 @@ namespace
             const Float3 G = S - plane.normal * signedDistanceGS;
             const Float3 T = G + IV;
 
-            HitTri hitTri{};
+            HitTriInfo hitTri{};
             hitTri.moveDistance = (T - S).length();
             hitTri.tri = hit;
             hitTri.normal = plane.normal; // TODO: 符号考慮
@@ -413,7 +425,7 @@ namespace
             const Float3 ST = SV.normalized() * lengthST;
             const Float3 T = S + ST;
 
-            HitTri hitTri{};
+            HitTriInfo hitTri{};
             hitTri.moveDistance = lengthST;
             hitTri.tri = hit;
             hitTri.normal = plane.normal;
@@ -426,7 +438,7 @@ namespace
         MachinePhysicsState& state,
         const Float3& fromPos,
         const Float3& toPos,
-        const HitTri& hitTri)
+        const HitTriInfo& hitTri)
     {
 #if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
         hitTri.debugDraw();
@@ -497,6 +509,80 @@ namespace
     }
 
     // -----------------------------------------------
+    // handleMachineToMachineHit()
+
+    struct HitInfo
+    {
+        float moveDistance;
+        Float3 normal;
+    };
+
+    void onHitMachineToMachine(
+        Float3& newMoveVector,
+        MachinePhysicsState& state,
+        const Float3& fromPos,
+        const Float3& toPos,
+        const HitInfo& hit)
+    {
+        // 法線の適応
+        const Float3 n = hit.normal;
+
+        // 法線方向速度の除去
+        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
+
+        // 法線方向移動ベクトルの補正
+        const Float3 r = toPos - state.m_pose.position;
+        newMoveVector = r - n * r.dot(n);
+        if (newMoveVector.isZero())
+        {
+            return;
+        }
+
+        // 移動ベクトルの長さを残りの移動量に調節する
+        newMoveVector = newMoveVector.normalized() * Max(0.0f, (toPos - fromPos).length() - hit.moveDistance);
+    }
+
+    struct MachinePushback
+    {
+        Float3 newPos;
+        HitInfo hit{};
+    };
+
+    MachinePushback pushbackFromMachine(
+        const MachinePhysicsState& state,
+        const MachineHit& hit,
+        const Float3& fromPos,
+        const Float3& toPos)
+    {
+        MachinePushback pushback{};
+
+        const Float3 normal =
+            (hit.closestPair.first - hit.closestPair.second).normalized();
+
+        const float pushbackLength = (state.m_radius + hit.otherRadius) - std::sqrtf(hit.lineListSq);
+        pushback.newPos = hit.closestPair.first + normal * pushbackLength;
+
+        pushback.hit.moveDistance = (pushback.newPos - fromPos).length();
+        pushback.hit.normal = normal;
+        return pushback;
+    }
+
+    void handleMachineToMachineHit(
+        std::optional<Float3>& newMoveVector,
+        MachinePhysicsState& state,
+        const MachineHit& hit,
+        const Float3& fromPos,
+        const Float3& toPos)
+    {
+        auto [newPos, surface] = pushbackFromMachine(state, hit, fromPos, toPos);
+        state.m_pose.position = newPos;
+
+        Float3 newMoveVector_{};
+        onHitMachineToMachine(newMoveVector_, state, fromPos, toPos, surface);
+        newMoveVector = newMoveVector_;
+    }
+
+    // -----------------------------------------------
 
     void resolveMachineMove(
         MachinePhysicsState& state,
@@ -531,7 +617,8 @@ namespace
             else if (hit.isHolds<MachineHit>())
             {
                 ImmediatePrint("接触中: machineId {}", props.machineId);
-                // TODO
+                handleMachineToMachineHit(
+                    newMoveVector, state, hit.get<MachineHit>(), fromPos, toPos);
             }
 
             // 何らかの物体と接触した場合は newMoveVector を用いて再帰的に更新

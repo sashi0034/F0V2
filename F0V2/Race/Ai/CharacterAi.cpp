@@ -48,7 +48,7 @@ struct CharacterAi::Impl : GameObjectBase
         resetPhysicsState();
         resetPhysicsProps();
 
-#if defined(_DEBUG) && 1
+#if defined(_DEBUG) && 0
         g_debugService.monitorMachineId = 1;
 #endif
     }
