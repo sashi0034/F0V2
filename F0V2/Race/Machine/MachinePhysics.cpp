@@ -354,6 +354,8 @@ namespace Race
             state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 10.0f * dt);
         }
 
+        state.m_visualForwardVector = slippedForwardVector; // TODO: state.m_pose.rotation から構築したい
+
         state.m_upVector = updateUpVector(state);
 
         ResolveMachineGroundContact(state);

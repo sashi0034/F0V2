@@ -7,6 +7,8 @@
 #include "TY/Color.h"
 #include "TY/Immediate3D.h"
 #include "TY/IndexedTriangle.h"
+#include "TY/Intersects3D.h"
+#include "Util/ImmediatePrint.h"
 
 #define DEBUG_DRAW_LINES
 
@@ -32,11 +34,74 @@ namespace
 
     // -----------------------------------------------
 
+    struct MachineHit
+    {
+        float distSqFromStart;
+    };
+
+    std::optional<MachineHit> traceMachineToMachineHit(
+        const MachinePhysicsState& state,
+        const MachinePhysicsProps& props,
+        const Float3& fromPos,
+        const Float3& toPos)
+    {
+        const MachineId selfMachineId = props.machineId;
+        const float selfRadius = state.m_radius;
+        const LineSegment3D selfLine{
+            fromPos - state.m_visualForwardVector * state.m_height * 0.5f,
+            toPos + state.m_visualForwardVector * state.m_height * 0.5f,
+        };
+
+        float bestDistSq = FLT_MAX;
+        std::optional<MachineHit> hit{};
+        const auto& otherMachines = GetRaceContext().machineManager().machineList();
+        for (int i = 0; i < otherMachines.size(); ++i)
+        {
+            if (i == selfMachineId)
+            {
+                continue;
+            }
+
+            const auto& other = otherMachines[i];
+            const Float3& otherPosition = other.state.m_pose.position;
+            const Float3& otherForward = other.state.m_visualForwardVector;
+            const float otherRadius = other.state.m_radius;
+            const LineSegment3D otherLine{
+                otherPosition - otherForward * other.state.m_height * 0.5f,
+                otherPosition + otherForward * other.state.m_height * 0.5f,
+            };
+
+            std::pair<Float3, Float3> hitPos{};
+            const float lineDistSq = DistanceSq(selfLine, otherLine, &hitPos);
+            if (lineDistSq < Math::Square(selfRadius + otherRadius))
+            {
+                const float distSqFromStart = (hitPos.first - fromPos).lengthSq();
+
+                if (distSqFromStart < bestDistSq)
+                {
+                    bestDistSq = distSqFromStart;
+                    hit = MachineHit{
+                        .distSqFromStart = distSqFromStart,
+                    };
+                }
+            }
+        }
+
+        return hit;
+    }
+
+    // -----------------------------------------------
+
     using HitCandidate = Variant<
         StageStaticCollider::ground_hit,
-        StageStaticCollider::gimmick_hit>;
+        StageStaticCollider::gimmick_hit,
+        MachineHit>;
 
-    Array<HitCandidate> traceHitCandidates(const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos)
+    Array<HitCandidate> traceHitCandidates(
+        const MachinePhysicsState& state,
+        const MachinePhysicsProps& props,
+        const Float3& fromPos,
+        const Float3& toPos)
     {
         if (fromPos == toPos)
         {
@@ -63,13 +128,21 @@ namespace
             }
         }
 
+        {
+            const auto machineHit = traceMachineToMachineHit(state, props, fromPos, toPos);
+            if (machineHit.has_value())
+            {
+                candidates.push_back(*machineHit);
+            }
+        }
+
         std::ranges::sort(
             candidates,
             [](const HitCandidate& a, const HitCandidate& b)
             {
                 return std::visit([](const auto& hitA, const auto& hitB)
                 {
-                    return hitA.distanceSq < hitB.distanceSq;
+                    return hitA.distSqFromStart < hitB.distSqFromStart;
                 }, a, b);
             });
 
@@ -441,7 +514,7 @@ namespace
         const Float3& fromPos = state.m_pose.position;
         const auto toPos = fromPos + moveVector;
 
-        const auto hitCandidates = traceHitCandidates(state, fromPos, toPos);
+        const auto hitCandidates = traceHitCandidates(state, props, fromPos, toPos);
         std::optional<Float3> newMoveVector{};
         for (auto& hit : hitCandidates)
         {
@@ -454,6 +527,11 @@ namespace
             {
                 handleGimmickHit(
                     newMoveVector, state, hit.get<StageStaticCollider::gimmick_hit>(), fromPos, toPos);
+            }
+            else if (hit.isHolds<MachineHit>())
+            {
+                ImmediatePrint("接触中: machineId {}", props.machineId);
+                // TODO
             }
 
             // 何らかの物体と接触した場合は newMoveVector を用いて再帰的に更新

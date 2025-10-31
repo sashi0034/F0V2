@@ -79,7 +79,7 @@ struct StageStaticCollider::Impl
 
         const Float3 startPoint = ray.p0;
 
-        float bestDistSq = std::numeric_limits<float>::max();
+        float bestDistSq = FLT_MAX;
         std::optional<std::pair<IndexedTriangle, GroundTriangleAttribute*>> bestTri{};
         Float3 hitPosition{};
 
@@ -124,7 +124,7 @@ struct StageStaticCollider::Impl
             return ground_hit{
                 .triangle = bestTri->first,
                 .attribute = *(bestTri->second),
-                .distanceSq = bestDistSq,
+                .distSqFromStart = bestDistSq,
                 .hitPosition = hitPosition
             };
         }
@@ -169,10 +169,10 @@ struct StageStaticCollider::Impl
             Alignment9::BottomLeft);
 #endif
 
-        std::ranges::sort(
-            result,
-            {},
-            &gimmick_hit::distanceSq);
+        // std::ranges::sort(
+        //     result,
+        //     {},
+        //     &gimmick_hit::distSqFromStart);
 
         return result;
     }

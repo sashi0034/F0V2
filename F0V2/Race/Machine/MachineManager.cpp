@@ -76,6 +76,11 @@ namespace Race
         return p_impl->FetchMachine(id);
     }
 
+    Array<MachinePhysicsUnit>& MachineManager::machineList() const
+    {
+        return p_impl->m_physicsUnits;
+    }
+
     std::shared_ptr<GameObjectBase> MachineManager::asGameObject() const
     {
         return p_impl;

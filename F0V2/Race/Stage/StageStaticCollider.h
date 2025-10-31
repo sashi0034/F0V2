@@ -17,7 +17,7 @@ namespace Race
         {
             IndexedTriangle triangle;
             GroundTriangleAttribute attribute;
-            float distanceSq;
+            float distSqFromStart;
             Float3 hitPosition;
         };
 
@@ -25,7 +25,7 @@ namespace Race
         {
             IndexedTriangle triangle;
             GimmickTriangleAttribute attribute;
-            float distanceSq;
+            float distSqFromStart;
         };
 
         [[nodiscard]]

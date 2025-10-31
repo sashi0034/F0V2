@@ -15,6 +15,8 @@ namespace Race
 
         Float3 m_forwardVector{0, 1, 0};
 
+        Float3 m_visualForwardVector{0, 1, 0};
+
         Float3 m_upVector{0, 1, 0};
 
         Float3 m_velocity{};
