@@ -32,6 +32,52 @@ namespace
             .pushAuto();
     }
 
+    using HitCandidate = Variant<
+        StageStaticCollider::ground_hit,
+        StageStaticCollider::gimmick_hit>;
+
+    Array<HitCandidate> traceHitCandidates(const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos)
+    {
+        if (fromPos == toPos)
+        {
+            return {};
+        }
+
+        Array<HitCandidate> candidates{};
+
+        {
+            const auto moveTestRay = LineSegment3D{fromPos, toPos};
+            const auto hitOpt = GetRaceContext().stageManager().stageStaticCollider().rayCastGround(moveTestRay);
+            if (hitOpt.has_value())
+            {
+                candidates.push_back(*hitOpt);
+            }
+        }
+
+        {
+            const auto moveTestCapsule = Capsule3D{fromPos, toPos, state.m_radius};
+            const auto hits = GetRaceContext().stageManager().stageStaticCollider().sphereCastGimmick(moveTestCapsule);
+            for (const auto& hit : hits)
+            {
+                candidates.push_back(hit);
+            }
+        }
+
+        std::ranges::sort(
+            candidates,
+            [](const HitCandidate& a, const HitCandidate& b)
+            {
+                return std::visit([](const auto& hitA, const auto& hitB)
+                {
+                    return hitA.distanceSq < hitB.distanceSq;
+                }, a, b);
+            });
+
+        return candidates;
+    }
+
+    // -----------------------------------------------
+
     struct HitSurface
     {
         float moveDistance;
@@ -45,10 +91,10 @@ namespace
         }
     };
 
-    struct MoveResult
+    struct SurfacePushback
     {
         Float3 newPos;
-        std::optional<HitSurface> hit{};
+        HitSurface surface{};
     };
 
     Float3 bilinear_00_10_01_11(const std::array<Float3, 4>& p, const Float2& uv)
@@ -112,26 +158,44 @@ namespace
         return {u, v};
     }
 
-    MoveResult moveOnGround(const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos)
+    void onHitGround(
+        Float3& newMoveVector,
+        MachinePhysicsState& state,
+        const Float3& fromPos,
+        const Float3& toPos,
+        const HitSurface& hit)
     {
-        if (fromPos == toPos)
+#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
+        hit.debugDraw();
+#endif
+
+        // 法線の適応
+        const Float3 n = hit.normal;
+
+        state.m_surfaceNormal = n;
+        state.m_surfaceToTriangle = hit.surfaceToTriangle;
+
+        // 法線方向速度の除去
+        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
+
+        // 法線方向移動ベクトルの補正
+        const Float3 r = toPos - state.m_pose.position;
+        newMoveVector = r - n * r.dot(n);
+        if (newMoveVector.isZero())
         {
-            return {toPos, std::nullopt};
+            return;
         }
 
-        // const auto moveTestCapsule = Capsule{fromPos, toPos, state.m_radius}; // FIXME?
-        const auto moveTestRay = LineSegment3D{fromPos, toPos};
+        // 移動ベクトルの長さを残りの移動量に調節する
+        newMoveVector = newMoveVector.normalized() * Max(0.0f, (toPos - fromPos).length() - hit.moveDistance);
+    }
 
-        const auto hitOpt = GetRaceContext().stageManager().stageStaticCollider().rayCastGround(moveTestRay);
-        if (not hitOpt.has_value())
-        {
-            // 衝突なし
-            return {toPos, std::nullopt};
-        }
-
-        // -----------------------------------------------
-        // 衝突あり
-
+    SurfacePushback pushbackFromSurface(
+        const MachinePhysicsState& state,
+        const StageStaticCollider::ground_hit& hit,
+        const Float3& fromPos,
+        const Float3& toPos)
+    {
         //         +   T
         //         +  /|
         //         + / |
@@ -143,15 +207,15 @@ namespace
         //     /---+---|
         //     S   H
 
-        const auto& tri = hitOpt.value().triangle;
-        const auto& attr = hitOpt.value().attribute;
+        const auto& tri = hit.triangle;
+        const auto& attr = hit.attribute;
 
         const Float3 S = fromPos;
         // const Float3 T = toPos;
 
         // const Float3 H = S - plane.normal * distance;
 
-        Float3 I = hitOpt.value().hitPosition;
+        Float3 I = hit.hitPosition;
 
         // const auto bc = tri.getBarycentric(I);
 
@@ -179,6 +243,21 @@ namespace
         return {U, hitTri};
     }
 
+    void handleGroundHit(
+        std::optional<Float3>& newMoveVector,
+        MachinePhysicsState& state,
+        const StageStaticCollider::ground_hit& hit,
+        const Float3& fromPos,
+        const Float3& toPos)
+    {
+        auto [newPos, surface] = pushbackFromSurface(state, hit, fromPos, toPos);
+        state.m_pose.position = newPos;
+
+        Float3 newMoveVector_{};
+        onHitGround(newMoveVector_, state, fromPos, toPos, surface);
+        newMoveVector = newMoveVector_;
+    }
+
     // -----------------------------------------------
 
     struct HitTri
@@ -193,14 +272,14 @@ namespace
         }
     };
 
-    struct PushbackResult
+    struct TrianglePushback
     {
         Float3 newPos;
-        HitTri hitTri;
+        HitTri tri;
     };
 
     // 衝突した三角形から押し出す (壁に対して用いる)
-    PushbackResult pushbackFromTriangle(
+    TrianglePushback pushbackFromTriangle(
         const MachinePhysicsState& state, const Float3& fromPos, const Float3& toPos, const IndexedTriangle& hit)
     {
         //             V  /|
@@ -269,87 +348,6 @@ namespace
         }
     }
 
-    struct GimmickResult
-    {
-        std::optional<PushbackResult> pushback{};
-        bool boostPad{};
-        bool jumpPad{};
-    };
-
-    GimmickResult checkGimmickHit(
-        const MachinePhysicsState& state,
-        const Float3& fromPos,
-        const Float3& toPos)
-    {
-        if (fromPos == toPos)
-        {
-            return {};
-        }
-
-        const auto moveTestCapsule = Capsule3D{fromPos, toPos, state.m_radius};
-
-        GimmickResult result{};
-        const auto hits = GetRaceContext().stageManager().stageStaticCollider().sphereCastGimmick(moveTestCapsule);
-        for (const auto& hit : hits)
-        {
-            switch (hit.attribute.kind)
-            {
-            case GimmickTriangleAttribute::kind_t::Barrier: {
-                result.pushback = pushbackFromTriangle(state, fromPos, toPos, hit.triangle);
-                return result;
-            }
-            case GimmickTriangleAttribute::kind_t::BoostPad: {
-                result.boostPad = true;
-                break;
-            }
-            case GimmickTriangleAttribute::kind_t::JumpPad: {
-                result.jumpPad = true;
-                break;
-            }
-            default:
-                assert(false && "tryMoveGimmickPosition(): Unsupported gimmick triangle kind");
-            }
-        }
-
-        return result;
-    }
-
-    // -----------------------------------------------
-
-    void onHitGround(
-        Float3& newMoveVector,
-        MachinePhysicsState& state,
-        const MachinePhysicsProps& props,
-        const Float3& moveVector,
-        const Float3& fromPos,
-        const HitSurface& hit)
-    {
-#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
-        hit.debugDraw();
-#endif
-
-        // 法線の適応
-        const Float3 n = hit.normal;
-
-        state.m_surfaceNormal = n;
-        state.m_surfaceToTriangle = hit.surfaceToTriangle;
-
-        // 法線方向速度の除去
-        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
-
-        // 法線方向移動ベクトルの補正
-        const Float3 toPos = fromPos + moveVector;
-        const Float3 r = toPos - state.m_pose.position;
-        newMoveVector = r - n * r.dot(n);
-        if (newMoveVector.isZero())
-        {
-            return;
-        }
-
-        // 移動ベクトルの長さを残りの移動量に調節する
-        newMoveVector = newMoveVector.normalized() * Max(0.0f, moveVector.length() - hit.moveDistance);
-    }
-
     void decreaseDurability(MachinePhysicsState& state, float value)
     {
         state.m_durability = Max(0.0f, state.m_durability - value);
@@ -358,9 +356,8 @@ namespace
     void onHitBarrier(
         Float3& newMoveVector,
         MachinePhysicsState& state,
-        const MachinePhysicsProps& props,
-        const Float3& moveVector,
         const Float3& fromPos,
+        const Float3& toPos,
         const HitTri& hitTri)
     {
 #if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
@@ -376,7 +373,6 @@ namespace
         state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
 
         // 法線方向移動ベクトルの補正
-        const Float3 toPos = fromPos + moveVector;
         const Float3 r = toPos - state.m_pose.position;
         newMoveVector = r - n * r.dot(n);
         if (newMoveVector.isZero())
@@ -386,8 +382,53 @@ namespace
 
         // 移動ベクトルの長さを残りの移動量に調節する
         newMoveVector =
-            newMoveVector.normalized() * Max(0.0f, moveVector.length() - hitTri.moveDistance);
+            newMoveVector.normalized() * Max(0.0f, (toPos - fromPos).length() - hitTri.moveDistance);
     }
+
+    void handleGimmickHit(
+        std::optional<Float3>& newMoveVector,
+        MachinePhysicsState& state,
+        const StageStaticCollider::gimmick_hit& hit,
+        const Float3& fromPos,
+        const Float3& toPos)
+    {
+        switch (hit.attribute.kind)
+        {
+        case GimmickTriangleAttribute::kind_t::Barrier: {
+            // Barrier の押し戻し処理
+            auto pushback = pushbackFromTriangle(state, fromPos, toPos, hit.triangle);
+            state.m_pose.position = pushback.newPos;
+
+            Float3 newMoveVector_{};
+            onHitBarrier(newMoveVector_, state, fromPos, toPos, pushback.tri);
+            newMoveVector = newMoveVector_;
+            return;
+        }
+        case GimmickTriangleAttribute::kind_t::BoostPad: {
+            // Boost 発生
+            state.m_passiveBoost = 1.0f;
+            return;
+        }
+        case GimmickTriangleAttribute::kind_t::JumpPad: {
+            if (not state.m_surfaceNormal.isZero())
+            {
+                // Jump 発生
+                state.m_velocity = state.m_velocity - state.m_gravity * state.m_gravity.dot(state.m_velocity);
+                state.m_velocity = state.m_velocity - state.m_gravity * 50.0;
+
+                state.m_surfaceNormal = {};
+                state.m_surfaceToTriangle = {};
+            }
+
+            return;
+        }
+        default:
+            assert(false && "onGimmickHit(): Unsupported GimmickTriangleAttribute::kind_t");
+            return;
+        }
+    }
+
+    // -----------------------------------------------
 
     void updateCapsulePosition(
         MachinePhysicsState& state,
@@ -404,72 +445,35 @@ namespace
         }
 
         const auto toPos = fromPos + moveVector;
-        const auto [newPos, hitOpt] = moveOnGround(state, fromPos, toPos);
 
-        // ギミックの対応
+        const auto hitCandidates = traceHitCandidates(state, fromPos, toPos);
+        std::optional<Float3> newMoveVector{};
+        for (auto& hit : hitCandidates)
         {
-            const Float3 resultMoveVector = newPos - fromPos;
-            const Float3 moveVector2 = moveVector * resultMoveVector.dot(moveVector) / moveVector.lengthSq();
-
-            const auto gimmickResult = checkGimmickHit(state, fromPos, fromPos + moveVector2);
-
-            if (gimmickResult.boostPad > 0.0f)
+            if (hit.isHolds<StageStaticCollider::ground_hit>())
             {
-                // Boost 発生
-                state.m_passiveBoost = 1.0f;
+                handleGroundHit(
+                    newMoveVector, state, hit.get<StageStaticCollider::ground_hit>(), fromPos, toPos);
+            }
+            else if (hit.isHolds<StageStaticCollider::gimmick_hit>())
+            {
+                handleGimmickHit(
+                    newMoveVector, state, hit.get<StageStaticCollider::gimmick_hit>(), fromPos, toPos);
             }
 
-            if (gimmickResult.jumpPad > 0.0f && not state.m_surfaceNormal.isZero())
+            // 何らかの物体と接触した場合は newMoveVector を用いて再帰的に更新
+            if (newMoveVector.has_value())
             {
-                // Jump 発生
-                state.m_velocity = state.m_velocity - state.m_gravity * state.m_gravity.dot(state.m_velocity);
-                state.m_velocity = state.m_velocity - state.m_gravity * 50.0;
-
-                state.m_surfaceNormal = {};
-                state.m_surfaceToTriangle = {};
-            }
-
-            if (gimmickResult.pushback.has_value())
-            {
-                // Barrier の押し戻し処理
-                const auto& pushback = *gimmickResult.pushback;
-                state.m_pose.position = pushback.newPos;
-
-                Float3 newMoveVector{};
-                onHitBarrier(newMoveVector,
-                             state,
-                             props,
-                             moveVector,
-                             fromPos,
-                             pushback.hitTri);
                 if (nest < maxNest)
                 {
-                    updateCapsulePosition(state, props, state.m_pose.position, newMoveVector, nest + 1);
-                    return;
+                    updateCapsulePosition(state, props, state.m_pose.position, *newMoveVector, nest + 1);
                 }
-            }
-        }
 
-        state.m_pose.position = newPos;
-
-        if (hitOpt.has_value())
-        {
-            // Ground の押し戻し処理
-            const auto& hitSurface = *hitOpt;
-
-            Float3 newMoveVector{};
-            onHitGround(newMoveVector,
-                        state,
-                        props,
-                        moveVector,
-                        fromPos,
-                        hitSurface);
-            if (nest < maxNest)
-            {
-                updateCapsulePosition(state, props, state.m_pose.position, newMoveVector, nest + 1);
                 return;
             }
         }
+
+        state.m_pose.position = toPos;
     }
 
     // -----------------------------------------------
@@ -506,30 +510,30 @@ namespace
         const Float3 fromPos = state.m_pose.position;
         const Float3 toPos = state.m_pose.position + vector;
 
-        const auto [newPos, hitOpt] = moveOnGround(state, fromPos, toPos);
-        if (hitOpt.has_value())
-        {
-            const auto& hit = *hitOpt;
-
-#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
-            Immediate3D::Line{fromPos - vector * 10, toPos}.setColor(ColorF32{1.0f, 1, 0}).pushAuto();
-
-            hit.debugDraw();
-#endif
-
-            state.m_pose.position = newPos;
-
-            const Float3 n = hit.normal;
-            state.m_surfaceNormal = n;
-
-            state.m_surfaceToTriangle = hit.surfaceToTriangle;
-
-            state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
-        }
-        else
+        const auto moveTestRay = LineSegment3D{fromPos, toPos};
+        const auto groundHit = GetRaceContext().stageManager().stageStaticCollider().rayCastGround(moveTestRay);
+        if (not groundHit.has_value())
         {
             state.m_surfaceNormal = {};
+            return;
         }
+
+        const auto [newPos, hit] = pushbackFromSurface(state, *groundHit, fromPos, toPos);
+
+#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
+        Immediate3D::Line{fromPos - vector * 10, toPos}.setColor(ColorF32{1.0f, 1, 0}).pushAuto();
+
+        hit.debugDraw();
+#endif
+
+        state.m_pose.position = newPos;
+
+        const Float3 n = hit.normal;
+        state.m_surfaceNormal = n;
+
+        state.m_surfaceToTriangle = hit.surfaceToTriangle;
+
+        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
     }
 
     // -----------------------------------------------

@@ -124,6 +124,7 @@ struct StageStaticCollider::Impl
             return ground_hit{
                 .triangle = bestTri->first,
                 .attribute = *(bestTri->second),
+                .distanceSq = bestDistSq,
                 .hitPosition = hitPosition
             };
         }
@@ -143,14 +144,7 @@ struct StageStaticCollider::Impl
         int testCount{};
 #endif
 
-        struct tmp_t
-        {
-            float distanceSq{};
-            IndexedTriangle tri;
-            GimmickTriangleAttribute* attr;
-        };
-
-        Array<tmp_t> tmp{};
+        Array<gimmick_hit> result{};
         for (const int index : indices)
         {
             Array<IndexedTriangle> candidates = m_gimmickBvh[index].queryHitsAndMerge(ray.aabb());
@@ -164,7 +158,7 @@ struct StageStaticCollider::Impl
                 if (Intersects(ray, tri))
                 {
                     const float distanceSq = (tri.centroid() - startPoint).lengthSq();
-                    tmp.push_back({distanceSq, tri, &m_gimmickAttributes[index][tri.id]});
+                    result.push_back({tri, m_gimmickAttributes[index][tri.id], distanceSq});
                 }
             }
         }
@@ -176,18 +170,9 @@ struct StageStaticCollider::Impl
 #endif
 
         std::ranges::sort(
-            tmp,
+            result,
             {},
-            &tmp_t::distanceSq);
-
-        Array<gimmick_hit> result{};
-        for (const auto& item : tmp)
-        {
-            result.push_back(gimmick_hit{
-                .triangle = item.tri,
-                .attribute = *item.attr
-            });
-        }
+            &gimmick_hit::distanceSq);
 
         return result;
     }
