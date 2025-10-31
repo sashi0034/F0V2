@@ -242,7 +242,7 @@ std::optional<Float3> TY::IntersectsAt(const LineSegment3D& segment, const Trian
     }
 }
 
-float TY::DistanceSq(const LineSegment3D& lhs, const LineSegment3D& rhs)
+float TY::DistanceSq(const LineSegment3D& lhs, const LineSegment3D& rhs, std::pair<Float3, Float3>* outClosest)
 {
     const auto& [a, b] = lhs;
     const auto& [c, d] = rhs;
@@ -325,7 +325,17 @@ float TY::DistanceSq(const LineSegment3D& lhs, const LineSegment3D& rhs)
     sc = (std::abs(sD) < EPS_PARALLEL ? 0.0f : sN / sD);
     tc = (std::abs(tD) < EPS_PARALLEL ? 0.0f : tN / tD);
 
-    Float3 dP = w + (u * sc) - (v * tc);
+    const Float3 closestAB = a + u * sc; // lhs 上の最近接点
+    const Float3 closestCD = c + v * tc; // rhs 上の最近接点
+
+    if (outClosest)
+    {
+        outClosest->first = closestAB;
+        outClosest->second = closestCD;
+    }
+
+    const Float3 dP = closestAB - closestCD;
+
     return dP.lengthSq();
 }
 
@@ -402,4 +412,10 @@ bool TY::Intersects(const Capsule3D& capsule, const Triangle3D& tri)
 bool TY::Intersects(const Capsule3D& capsule, const Quad3D& quad)
 {
     return Intersects(quad, capsule);
+}
+
+bool TY::Intersects(const Capsule3D& lhs, const Capsule3D& rhs, std::pair<Float3, Float3>* outClosest)
+{
+    const float distSq = DistanceSq(LineSegment3D{lhs.p0, lhs.p1}, LineSegment3D{rhs.p0, rhs.p1}, outClosest);
+    return distSq < Math::Square(lhs.radius + rhs.radius);
 }

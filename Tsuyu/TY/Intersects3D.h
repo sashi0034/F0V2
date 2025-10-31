@@ -12,7 +12,7 @@ namespace TY
     // - Plane3Points
     // - Triangle3D
     // - Quad3D
-    // - Capsule
+    // - Capsule3D
 
     // -----------------------------------------------
     // Float3
@@ -51,7 +51,10 @@ namespace TY
 
     std::optional<Float3> IntersectsAt(const LineSegment3D& segment, const Triangle3D& tri);
 
-    float DistanceSq(const LineSegment3D& lhs, const LineSegment3D& rhs);
+    float DistanceSq(
+        const LineSegment3D& lhs,
+        const LineSegment3D& rhs,
+        std::pair<Float3, Float3>* outClosest = nullptr);
 
     float DistanceSq(const LineSegment3D& segment, const Triangle3D& tri);
 
@@ -75,4 +78,6 @@ namespace TY
     bool Intersects(const Capsule3D& capsule, const Triangle3D& tri);
 
     bool Intersects(const Capsule3D& capsule, const Quad3D& quad);
+
+    bool Intersects(const Capsule3D& lhs, const Capsule3D& rhs, std::pair<Float3, Float3>* outClosest = nullptr);
 }
