@@ -9,7 +9,7 @@ namespace Race
         return targetStrip.normal;
     }
 
-    const SpatialWaypoint& SpatialData::takeWaypoint(int segmentIndex, int stripIndex) const
+    const SpatialWaypoint& SpatialData::fetchWaypoint(int segmentIndex, int stripIndex) const
     {
         return waypoints[segmentOffsetTable[segmentIndex] + stripIndex];
     }

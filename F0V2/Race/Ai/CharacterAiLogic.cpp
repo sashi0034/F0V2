@@ -13,32 +13,86 @@ using namespace Race;
 
 namespace
 {
-    // void refreshWaypointIndex(
-    //     CharacterAiLogicState& state, const MachinePhysicsUnit& machine, const Array<SpatialWaypoint>& waypoints)
-    // {
-    //     for (;;)
-    //     {
-    //         if (state.m_targetWaypointIndex >= waypoints.size() - 1)
-    //         {
-    //             break;
-    //         }
-    //
-    //         LapProgress targetWaypoint = machineState.m_reachedLapProgress;
-    //         targetWaypoint.lapIndex = machineState.m_reachedLapProgress.lapIndex;
-    //         targetWaypoint.segmentIndex = waypoints[state.m_targetWaypointIndex].segmentIndex;
-    //         targetWaypoint.stripIndex = waypoints[state.m_targetWaypointIndex].stripIndex;
-    //         if (machineState.m_lapProgress.isLessThan(targetWaypoint))
-    //         {
-    //             break;
-    //         }
-    //
-    //         state.m_targetWaypointIndex++;
-    //     }
-    // }
 }
 
 namespace Race
 {
+    int findTargetWaypoint(
+        const MachinePhysicsState& machineState,
+        const SpatialData& spatialData,
+        const SpatialWaypoint& currentWaypoint,
+        Float3& targetDirection)
+    {
+        // レイキャスト風に前方を探索する
+        std::optional<Float3> inwardCorrectionDir{};
+        int targetWaypointIndex{};
+        int lookaheadCount = 1;
+        constexpr int maxLookaheadCount = 20;
+        for (; lookaheadCount < maxLookaheadCount; ++lookaheadCount)
+        {
+            targetWaypointIndex =
+                Modulo<int>(currentWaypoint.indexInList + lookaheadCount, spatialData.waypoints.size());
+
+            auto& checkingWaypoint = spatialData.waypoints[targetWaypointIndex];
+
+            if (checkingWaypoint.targetStrip.style != CourseSegmentStyle::Road)
+            {
+                break;
+            }
+
+            constexpr float margin = 5.0f;
+
+            const Float3 leftBoundary = checkingWaypoint.targetStrip.leftmost + checkingWaypoint.right * margin;
+            const Float3 rightBoundary = checkingWaypoint.targetStrip.rightmost - checkingWaypoint.right * margin;
+
+            const Float3& currentPosition = machineState.m_pose.position;
+            const Float3 leftBoundaryDir = (leftBoundary - currentPosition).normalized();
+            const Float3 rightBoundaryDir = (rightBoundary - currentPosition).normalized();
+
+            const Float3& v = machineState.m_velocity;
+            const float vl = v.cross(leftBoundaryDir).dot(checkingWaypoint.normal());
+            const float vr = v.cross(rightBoundaryDir).dot(checkingWaypoint.normal());
+            if (Math::Sign(vl) == Math::Sign(vr))
+            {
+                // 速度方向が道から外れている
+                if (Abs(vl) < Abs(vr))
+                {
+                    inwardCorrectionDir = rightBoundaryDir;
+                }
+                else
+                {
+                    inwardCorrectionDir = leftBoundaryDir;
+                }
+
+                break;
+            }
+        } // end for
+
+        // -----------------------------------------------
+        // targetDirection
+
+        if (lookaheadCount == maxLookaheadCount ||
+            currentWaypoint.targetStrip.style != CourseSegmentStyle::Road)
+        {
+            // 現在位置のパス方向に向くようにする
+            targetDirection = currentWaypoint.forward;
+        }
+        else if (inwardCorrectionDir.has_value())
+        {
+            // 道の内側へ向かうようにする
+            targetDirection = *inwardCorrectionDir;
+        }
+        else
+        {
+            // 現在の速度方向へ向くようにする
+            targetDirection = machineState.m_velocity.normalized();
+        }
+
+        ImmediatePrint("lookaheadCount: {}", lookaheadCount);
+
+        return targetWaypointIndex;
+    }
+
     MachinePhysicsProps::input_t UpdateCharacterAiLogic(CharacterAiLogicState& state, const MachinePhysicsUnit& machine)
     {
         MachinePhysicsProps::input_t input{};
@@ -48,7 +102,7 @@ namespace Race
 
         const auto& spatialData = GetRaceContext().spatialAi().data();
         const auto& currentLap = machineState.m_lapProgress;
-        const auto& currentWaypoint = spatialData.takeWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
+        const auto& currentWaypoint = spatialData.fetchWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
 
         const Float3& currentPosition = machineState.m_pose.position;
         const Float3& upVector = machineState.m_upVector;
@@ -57,98 +111,11 @@ namespace Race
         V = V - upVector * upVector.dot(V);
         V = V.normalized();
 
-        // レイキャスト風に前方を探索
-        constexpr int maxLookaheadCount = 20;
-        int lookaheadCount = 1;
-        int targetWaypointIndex;
-        Float3 targetDirection = machineState.m_velocity.normalized();
-
-        for (; lookaheadCount < maxLookaheadCount; ++lookaheadCount)
-        {
-            targetWaypointIndex =
-                Modulo<int>(currentWaypoint.indexInList + lookaheadCount, spatialData.waypoints.size());
-            auto& lookaheadWaypoint = spatialData.waypoints[targetWaypointIndex];
-
-            if (lookaheadWaypoint.targetStrip.style == CourseSegmentStyle::Pipe ||
-                lookaheadWaypoint.targetStrip.style == CourseSegmentStyle::Cylinder)
-            {
-                break;
-            }
-            else if (lookaheadWaypoint.targetStrip.style != CourseSegmentStyle::Road)
-            {
-                continue;
-            }
-
-            constexpr float margin = 5.0f;
-
-            const Float3 leftBoundary = lookaheadWaypoint.targetStrip.leftmost + lookaheadWaypoint.right * margin;
-            const Float3 rightBoundary = lookaheadWaypoint.targetStrip.rightmost - lookaheadWaypoint.right * margin;
-
-            const Float3 leftBoundaryDir = (leftBoundary - currentPosition).normalized();
-            const Float3 rightBoundaryDir = (rightBoundary - currentPosition).normalized();
-
-            // const Float3& f = machineState.m_forwardVector;
-            // const float fl = f.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
-            // const float fr = f.cross(rightBoundaryDir).dot(lookaheadWaypoint.normal());
-            // if (Math::Sign(fl) == Math::Sign(fr))
-            // {
-            //     // 進行方向が道から外れている
-            //     if (Abs(fl) < Abs(fr))
-            //     {
-            //         targetDirection = rightBoundaryDir;
-            //         break;
-            //     }
-            //     else
-            //     {
-            //         targetDirection = leftBoundaryDir;
-            //         break;
-            //     }
-            // }
-
-            const Float3& v = machineState.m_velocity;
-            const float vl = v.cross(leftBoundaryDir).dot(lookaheadWaypoint.normal());
-            const float vr = v.cross(rightBoundaryDir).dot(lookaheadWaypoint.normal());
-            if (Math::Sign(vl) == Math::Sign(vr))
-            {
-                // 速度方向が道から外れている
-                if (Abs(vl) < Abs(vr))
-                {
-                    targetDirection = rightBoundaryDir;
-                }
-                else
-                {
-                    targetDirection = leftBoundaryDir;
-                }
-
-                break;
-            }
-        }
-
-        if (lookaheadCount == maxLookaheadCount)
-        {
-            targetDirection = currentWaypoint.forward;
-        }
-
-        ImmediatePrint("lookaheadCount: {}", lookaheadCount);
-
+        Float3 targetDirection;
+        const int targetWaypointIndex = findTargetWaypoint(machineState, spatialData, currentWaypoint, targetDirection);
         const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
 
-        if (currentWaypoint.targetStrip.style != CourseSegmentStyle::Road)
-        {
-            targetDirection = currentWaypoint.forward;
-        }
-
-        // if (machineState.isHovering())
-        // {
-        //     // 空中にいるなら更に先読みをする
-        //     const int lookaheadCount2 = lookaheadCount * 2; // TODO
-        //     targetWaypointIndex = (targetWaypointIndex + lookaheadCount2) % spatialData.waypoints.size();
-        // }
-
-        // const Float3 toWaypoints = targetWaypoint.boundaryCenter - machineState.m_pose.position;
-        // const Float3 wayVector = toWaypoints.normalized();
         Float3 wayNormal = targetWaypoint.normal();
-
         if (targetWaypoint.targetStrip.style == CourseSegmentStyle::Pipe)
         {
             Float3 n = (currentPosition - targetWaypoint.targetStrip.center);
@@ -161,8 +128,6 @@ namespace Race
             n = n - targetWaypoint.forward * targetWaypoint.forward.dot(n);
             wayNormal = n.normalized();
         }
-
-        // TODO: Pipe ではこの wayNormal を使ってはいけない! 
 
         const float curveHeuristic = currentWaypoint.curveHeuristic;
 

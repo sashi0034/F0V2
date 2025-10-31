@@ -28,6 +28,6 @@ namespace Race
         Array<int> segmentOffsetTable{};
 
         [[nodiscard]]
-        const SpatialWaypoint& takeWaypoint(int segmentIndex, int stripIndex) const;
+        const SpatialWaypoint& fetchWaypoint(int segmentIndex, int stripIndex) const;
     };
 }
