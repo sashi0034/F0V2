@@ -20,6 +20,7 @@ using namespace Race;
 namespace
 {
 #if defined(_DEBUG)
+    bool s_stopInput{};
     bool s_stopMove{};
 #endif
 }
@@ -63,7 +64,16 @@ private:
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
         m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix()).draw();
 
-        machine().props.input = UpdateCharacterAiLogic(m_logicState, machine());
+#if defined(_DEBUG)
+        if (s_stopInput)
+        {
+            machine().props.input = {};
+        }
+        else
+#endif
+        {
+            machine().props.input = UpdateCharacterAiLogic(m_logicState, machine());
+        }
 
 #if defined(_DEBUG)
         if (s_stopMove)
@@ -106,6 +116,8 @@ private:
     void debugUI()
     {
         ImGui::Begin("Character AI");
+
+        ImGui::Checkbox("Stop Input", &s_stopInput);
 
         ImGui::Checkbox("Stop Move", &s_stopMove);
 
