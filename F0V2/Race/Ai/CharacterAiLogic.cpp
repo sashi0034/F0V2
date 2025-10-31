@@ -131,19 +131,6 @@ namespace Race
 
         ImmediatePrint("lookaheadCount: {}", lookaheadCount);
 
-        // Gap 対策
-        // FIXME: 簡潔にしたい
-        for (;;)
-        {
-            targetWaypointIndex = targetWaypointIndex % spatialData.waypoints.size();
-            if (spatialData.waypoints[targetWaypointIndex].targetStrip.style != CourseSegmentStyle::Gap)
-            {
-                break;
-            }
-
-            targetWaypointIndex++;
-        }
-
         const SpatialWaypoint& targetWaypoint = spatialData.waypoints[targetWaypointIndex];
 
         if (currentWaypoint.targetStrip.style != CourseSegmentStyle::Road)

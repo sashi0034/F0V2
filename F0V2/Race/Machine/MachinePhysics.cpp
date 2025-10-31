@@ -540,6 +540,11 @@ namespace
         for (int i = 0; i < courseSegments.size(); ++i)
         {
             const auto& seg = courseSegments[i];
+            if (seg.style == CourseSegmentStyle::Gap)
+            {
+                continue;;
+            }
+
             const float dist = DistanceSq(position, LineSegment3D{seg.p1, seg.p2});
             if (dist < bestSegment.second)
             {
@@ -547,6 +552,7 @@ namespace
             }
         }
 
+        assert(bestSegment.first != -1);
         return bestSegment.first;
     }
 
@@ -619,39 +625,8 @@ namespace
             const Float3 p = line.projectPoint(position);
             return (p - position).normalized();
         }
-        else if (targetStrip.style == CourseSegmentStyle::Gap)
-        {
-            int fromIndex = targetSegmentAndStrip.segmentIndex;
-            int toIndex = targetSegmentAndStrip.segmentIndex;
-            for (;;)
-            {
-                fromIndex = Modulo<int>(fromIndex - 1, courseSegments.size());
-                if (courseSegments[fromIndex].style != CourseSegmentStyle::Gap || fromIndex == toIndex)
-                {
-                    break;
-                }
-            }
 
-            for (;;)
-            {
-                toIndex = Modulo<int>(toIndex + 1, courseSegments.size());
-                if (courseSegments[toIndex].style != CourseSegmentStyle::Gap || toIndex == fromIndex)
-                {
-                    break;
-                }
-            }
-
-            const auto from = courseSegments[fromIndex];
-            const auto to = courseSegments[toIndex];
-
-            const auto line = LineSegment3D(from.p2, to.p1);
-            const float t = line.projectionParameter(position);
-            return -(from.midwayStrips.back().normal * t + to.midwayStrips.front().normal * (1 - t)).normalized();
-        }
-        else
-        {
-            return -targetStrip.normal;
-        }
+        return -targetStrip.normal;
     }
 
     void applyInputAccel(MachinePhysicsState& state, const MachinePhysicsProps& props)
