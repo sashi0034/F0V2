@@ -80,7 +80,7 @@ namespace
             const float lineDistSq = DistanceSq(selfLine, otherLine, &closestPair);
             if (lineDistSq < Math::Square(selfRadius + otherRadius))
             {
-                const float distSqFromStart = (closestPair.first - fromPos).lengthSq();
+                const float distSqFromStart = (otherPosition - fromPos).lengthSq();
 
                 if (distSqFromStart < bestDistSq)
                 {
