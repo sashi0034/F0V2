@@ -45,9 +45,6 @@ namespace Race
             if (waypoint.targetStrip.style != CourseSegmentStyle::Road)
             {
                 // Road 以外
-                waypoint.leftBoundary = waypoint.targetStrip.center;
-                waypoint.rightBoundary = waypoint.targetStrip.center;
-                waypoint.boundaryCenter = waypoint.targetStrip.center;
                 continue;
             }
 
@@ -74,45 +71,6 @@ namespace Race
 
                 waypoint.curveHeuristic = 1.0f - Math::Square(1.0f - acc);
                 waypoint.curveHeuristic = Math::Clamp(waypoint.curveHeuristic, 0.0f, 1.0f);
-            }
-
-            // leftBoundary, rightBoundary
-            {
-                float acc{}; // [-1, 1]
-                constexpr int heuristicStart = -4;
-                constexpr int heuristicEnd = 23;
-                for (int h = heuristicStart; h < heuristicEnd; ++h)
-                {
-                    const auto& w = state.waypoints[Modulo<int>(i + h, state.waypoints.size())];
-                    const float dot = waypoint.right.dot(w.forward);
-                    const float c = dot;
-                    acc += c;
-                }
-
-                acc = acc / (heuristicEnd - heuristicStart + 1);
-
-                acc = 0; // TEMP
-
-                constexpr float baseMargin = 5.0f;
-                const float margin = 5.0f; // TEMP
-                // baseMargin * (1.0f + waypoint.curveHeuristic);
-                const float w = Max(0.0f, waypoint.targetStrip.width - margin * 2.0f) * 0.5f;
-                if (acc > 0.0f)
-                {
-                    waypoint.leftBoundary =
-                        waypoint.targetStrip.leftmost + waypoint.right * (margin + w * acc);
-                    waypoint.rightBoundary =
-                        waypoint.targetStrip.rightmost - waypoint.right * margin;
-                }
-                else // sum <= 0.0f
-                {
-                    waypoint.leftBoundary =
-                        waypoint.targetStrip.leftmost + waypoint.right * margin;
-                    waypoint.rightBoundary =
-                        waypoint.targetStrip.rightmost - waypoint.right * (margin + w * acc);
-                }
-
-                waypoint.boundaryCenter = (waypoint.leftBoundary + waypoint.rightBoundary) * 0.5f;
             }
         }
 

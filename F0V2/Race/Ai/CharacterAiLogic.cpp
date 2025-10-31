@@ -206,7 +206,7 @@ namespace Race
                     machineState.m_pose.position + n + V * 50.0f
                 }.setColor(Palette::Coral)
                  .pushAuto();
-            Immediate3D::Line{targetWaypoint.leftBoundary + n, targetWaypoint.rightBoundary + n}
+            Immediate3D::Line{targetWaypoint.targetStrip.leftmost + n, targetWaypoint.targetStrip.rightmost + n}
                 .setColor(Palette::Aquamarine)
                 .pushAuto();
         }
