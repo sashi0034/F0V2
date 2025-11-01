@@ -53,9 +53,13 @@ struct CharacterAi::Impl : ActorBase
         }
 #endif
 
-        ModelBuffer model = ModelBuffer{
-            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, color)
-        };
+        static const auto s_modelData =
+            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, color);
+
+        auto modelData = s_modelData;
+        modelData.materials[0].parameters.diffuse = color.toFloat3();
+
+        const ModelBuffer model = ModelBuffer{modelData};
 
         m_drawer =
             ModelDrawerParams{}
