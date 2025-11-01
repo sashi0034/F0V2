@@ -4,14 +4,14 @@
 
 namespace Race
 {
-    class CharacterAi : public GameObjectHandle
+    class CharacterAi : public ActorHandle
     {
     public:
         CharacterAi();
 
-        void init() override;
+        void init(int aiId);
 
-        std::shared_ptr<GameObjectBase> asGameObject() const override;
+        std::shared_ptr<ActorBase> asActor() const override;
 
     private:
         struct Impl;

@@ -71,8 +71,11 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_spatialAi = m_children.birth(SpatialAi());
         m_spatialAi.init();
 
-        m_characterAiList.push_back(m_children.birth(CharacterAi()));
-        m_characterAiList.back().init();
+        for (int i = 0; i < 30; ++i)
+        {
+            m_characterAiList.push_back(m_children.birth(CharacterAi()));
+            m_characterAiList.back().init(i);
+        }
     }
 
     void update() override

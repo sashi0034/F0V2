@@ -38,6 +38,8 @@ struct Player::Impl : GameObjectBase
 
     Float3 m_cameraUp{0, 1, 0};
 
+    MachineId m_machineId{0};
+
     void Init()
     {
         ModelBuffer model = ModelBuffer{
@@ -57,9 +59,9 @@ struct Player::Impl : GameObjectBase
     }
 
 private:
-    static MachinePhysicsUnit& machine()
+    MachinePhysicsUnit& machine() const
     {
-        return GetRaceContext().machineManager().fetchMachine(0);
+        return GetRaceContext().machineManager().fetchMachine(m_machineId);
     }
 
     void computeEyeAndTarget(Float3& outEye, Float3& outTarget) const
@@ -105,7 +107,7 @@ private:
     {
         machine().state = {};
 
-        machine().state.m_pose.position = GetRaceContext().stageManager().startPosition();
+        machine().state.m_pose.position = GetRaceContext().stageManager().startPosition(m_machineId);
 
         machine().state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
 

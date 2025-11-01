@@ -88,7 +88,9 @@ namespace Race
             targetDirection = machineState.m_velocity.normalized();
         }
 
+#if defined(_DEBUG) && 0
         ImmediatePrint("lookaheadCount: {}", lookaheadCount);
+#endif
 
         return targetWaypointIndex;
     }
@@ -153,7 +155,9 @@ namespace Race
             input.accelPressed = true;
         }
 
+#if defined(_DEBUG) && 0
         ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);
+#endif
 
         // rightHandling, driftTrigger 
         {
@@ -169,7 +173,10 @@ namespace Race
             const float dotV = targetDirection.dot(V);
             const bool useF = dotF < dotV;
             const float turningIntensity = 1.0f - Max(0.0f, useF ? dotF : dotV);
+
+#if defined(_DEBUG) && 0
             ImmediatePrint("turningIntensity: {:.02f}", turningIntensity);
+#endif
 
             if (turningIntensity > 0.01f)
             {
@@ -184,31 +191,34 @@ namespace Race
         }
 
 #if defined(_DEBUG)
-        ImmediatePrint_TopRight("[AI-san]");
-        ImmediatePrint_TopRight("targetWaypoint: {}", targetWaypoint.indexInList);
-        ImmediatePrint_TopRight("accelPressed: {}", input.accelPressed);
-        ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);
-        ImmediatePrint_TopRight("driftTrigger: {:+.02f}", input.driftTrigger);
-        ImmediatePrint_TopRight("velocity: {:.01f} km/h", machineState.m_velocity.length() * 10.0f);
-
+        if (state.m_aiId == 0)
         {
-            const Float3 n = machineState.m_upVector;
-            // Immediate3D::Line{machineState.m_pose.position + n, targetWaypoint.boundaryCenter + n}
-            //     .setColor(Palette::Chartreuse)
-            //     .pushAuto();
-            Immediate3D::Line{
-                    machineState.m_pose.position + n,
-                    machineState.m_pose.position + n + targetDirection * 50.0f
-                }.setColor(Palette::Chartreuse)
-                 .pushAuto();
-            Immediate3D::Line{
-                    machineState.m_pose.position + n,
-                    machineState.m_pose.position + n + V * 50.0f
-                }.setColor(Palette::Coral)
-                 .pushAuto();
-            Immediate3D::Line{targetWaypoint.targetStrip.leftmost + n, targetWaypoint.targetStrip.rightmost + n}
-                .setColor(Palette::Aquamarine)
-                .pushAuto();
+            ImmediatePrint_TopRight("[CharacterAi#{}]", state.m_aiId);
+            ImmediatePrint_TopRight("targetWaypoint: {}", targetWaypoint.indexInList);
+            ImmediatePrint_TopRight("accelPressed: {}", input.accelPressed);
+            ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);
+            ImmediatePrint_TopRight("driftTrigger: {:+.02f}", input.driftTrigger);
+            ImmediatePrint_TopRight("velocity: {:.01f} km/h", machineState.m_velocity.length() * 10.0f);
+
+            {
+                const Float3 n = machineState.m_upVector;
+                // Immediate3D::Line{machineState.m_pose.position + n, targetWaypoint.boundaryCenter + n}
+                //     .setColor(Palette::Chartreuse)
+                //     .pushAuto();
+                Immediate3D::Line{
+                        machineState.m_pose.position + n,
+                        machineState.m_pose.position + n + targetDirection * 50.0f
+                    }.setColor(Palette::Chartreuse)
+                     .pushAuto();
+                Immediate3D::Line{
+                        machineState.m_pose.position + n,
+                        machineState.m_pose.position + n + V * 50.0f
+                    }.setColor(Palette::Coral)
+                     .pushAuto();
+                Immediate3D::Line{targetWaypoint.targetStrip.leftmost + n, targetWaypoint.targetStrip.rightmost + n}
+                    .setColor(Palette::Aquamarine)
+                    .pushAuto();
+            }
         }
 #endif
 

@@ -5,6 +5,7 @@
 
 namespace TY
 {
+    // TODO: Remove this
     class GameObjectHandle : public ActorHandle
     {
     public:

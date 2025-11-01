@@ -364,9 +364,35 @@ namespace Race
         return g_sharedState->courseSegments;
     }
 
-    Float3 StageManager::startPosition() const
+    Float3 StageManager::startPosition(int machineId) const
     {
-        return g_sharedState->courseSegments[0].p1 + g_sharedState->courseSegments[0].midwayStrips[0].normal * 5.0f;
+        constexpr int columnsPerLine = 5;
+        const int lineId = machineId / columnsPerLine;
+        const int columnId = machineId % columnsPerLine;
+
+        auto& segments = courseSegments();
+
+        int segmentIndex{static_cast<int>(segments.size()) - 1};
+        int stripIndex{static_cast<int>(segments[segmentIndex].midwayStrips.size()) - 1};
+        const int backCount = lineId * 2;
+        for (int i = 0; i < backCount; ++i)
+        {
+            stripIndex--;
+            if (stripIndex < 0)
+            {
+                segmentIndex = Modulo(segmentIndex - 1, static_cast<int>(segments.size()));
+                stripIndex = static_cast<int>(segments[segmentIndex].midwayStrips.size()) - 1;
+            }
+        }
+
+        const auto& targetStrip = segments[segmentIndex].midwayStrips[stripIndex];
+
+        // [0.2, 0.8]
+        const float offsetRate = 0.2f + static_cast<float>(columnId) / static_cast<float>(columnsPerLine - 1) * 0.6f;
+
+        Float3 pos = targetStrip.leftmost + (targetStrip.rightmost - targetStrip.leftmost) * offsetRate;
+        pos += targetStrip.normal * 5.0f; // 地面から少し浮かせる
+        return pos;
     }
 
     std::shared_ptr<GameObjectBase> StageManager::asGameObject() const

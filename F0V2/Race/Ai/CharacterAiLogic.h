@@ -5,6 +5,7 @@ namespace Race
 {
     struct CharacterAiLogicState
     {
+        int m_aiId{};
         int m_lastLapIndex{};
     };
 

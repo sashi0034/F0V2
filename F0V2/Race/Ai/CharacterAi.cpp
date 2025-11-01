@@ -25,16 +25,26 @@ namespace
 #endif
 }
 
-struct CharacterAi::Impl : GameObjectBase
+struct CharacterAi::Impl : ActorBase
 {
+#if defined(_DEBUG)
+    std::string m_debugName = "CharacterAi";
+#endif
+
+    int m_aiId{};
+
     ActorContainer m_children{};
 
     ModelDrawer m_drawer{};
 
     CharacterAiLogicState m_logicState{};
 
-    void Init()
+    void Init(int aiId)
     {
+        m_aiId = aiId;
+        m_logicState.m_aiId = aiId;
+        m_debugName += "#" + std::to_string(aiId);
+
         ModelBuffer model = ModelBuffer{
             PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, Palette::SandyBrown)
         };
@@ -54,9 +64,14 @@ struct CharacterAi::Impl : GameObjectBase
     }
 
 private:
-    static MachinePhysicsUnit& machine()
+    MachinePhysicsUnit& machine() const
     {
-        return GetRaceContext().machineManager().fetchMachine(1);
+        return GetRaceContext().machineManager().fetchMachine(machineId());
+    }
+
+    int machineId() const
+    {
+        return 1 + m_aiId;
     }
 
     void update() override
@@ -97,7 +112,7 @@ private:
     {
         machine().state = {};
 
-        machine().state.m_pose.position = GetRaceContext().stageManager().startPosition();
+        machine().state.m_pose.position = GetRaceContext().stageManager().startPosition(machineId());
 
         machine().state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
 
@@ -106,7 +121,7 @@ private:
 
     void resetPhysicsProps()
     {
-        machine().props.machineId = 1; // TODO
+        machine().props.machineId = machineId();
 
         machine().props.peakVelocity = 100.0f;
 
@@ -115,7 +130,12 @@ private:
 
     void debugUI()
     {
-        ImGui::Begin("Character AI");
+        if (m_aiId != 0)
+        {
+            return;
+        }
+
+        ImGui::Begin(std::format("Character AI [{}]", m_aiId).c_str());
 
         ImGui::Checkbox("Stop Input", &s_stopInput);
 
@@ -187,11 +207,6 @@ private:
     {
         m_children.killEach();
     }
-
-    std::u32string name() const override
-    {
-        return U"CharacterAi";
-    }
 };
 
 namespace Race
@@ -201,13 +216,12 @@ namespace Race
     {
     }
 
-    void CharacterAi::init()
+    void CharacterAi::init(int aiId)
     {
-        p_impl->Init();
-        GameObjectHandle::init();
+        p_impl->Init(aiId);
     }
 
-    std::shared_ptr<GameObjectBase> CharacterAi::asGameObject() const
+    std::shared_ptr<ActorBase> CharacterAi::asActor() const
     {
         return p_impl;
     }

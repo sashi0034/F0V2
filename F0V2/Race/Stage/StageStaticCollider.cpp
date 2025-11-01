@@ -8,6 +8,8 @@
 
 using namespace Race;
 
+// #define DEBUG_TEST_COUNT
+
 namespace
 {
     constexpr int gridDivisions = 8;
@@ -113,7 +115,7 @@ struct StageStaticCollider::Impl
             }
         }
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DEBUG_TEST_COUNT)
         ImmediatePrint(
             std::format("RayCastGround(): testCount: {}", testCount),
             Alignment9::BottomLeft);
@@ -163,7 +165,7 @@ struct StageStaticCollider::Impl
             }
         }
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(DEBUG_TEST_COUNT)
         ImmediatePrint(
             std::format("SphereCastGimmick(): testCount: {}", testCount),
             Alignment9::BottomLeft);
