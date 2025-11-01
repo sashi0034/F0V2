@@ -7,13 +7,13 @@
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
 #include "Race/Machine/MachinePhysics.h"
-#include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Palette.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY_Extension/GameObjectBase.h"
+#include "TY/Random.h"
+#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -45,8 +45,16 @@ struct CharacterAi::Impl : ActorBase
         m_logicState.m_aiId = aiId;
         m_debugName += "#" + std::to_string(aiId);
 
+        auto color = Palette::List()[Random::Int(0, Palette::List().size() - 1)];
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("fix_ai_color"))
+        {
+            color = Palette::SandyBrown;
+        }
+#endif
+
         ModelBuffer model = ModelBuffer{
-            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, Palette::SandyBrown)
+            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, color)
         };
 
         m_drawer =

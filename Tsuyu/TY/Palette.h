@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Array.h"
 #include "Color.h"
 
 namespace TY
@@ -156,5 +157,8 @@ namespace TY
         constexpr ColorF32 WhiteSmoke{"F5F5F5"};
         constexpr ColorF32 Yellow{"FFFF00"};
         constexpr ColorF32 YellowGreen{"9ACD32"};
+
+        [[nodiscard]]
+        const Array<ColorF32>& List();
     };
 }
