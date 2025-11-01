@@ -55,8 +55,8 @@ struct CharacterAi::Impl : ActorBase
             .setShader(Asset_shader::lambert)
             .setCbv10AndLater({GetRaceContextContent().cb.lambert});
 
-        resetPhysicsState();
         resetPhysicsProps();
+        resetPhysicsState();
 
 #if defined(_DEBUG) && 0
         g_debugService.monitorMachineId = 1;
@@ -110,13 +110,7 @@ private:
 
     void resetPhysicsState()
     {
-        machine().state = {};
-
-        machine().state.m_pose.position = GetRaceContext().stageManager().startPosition(machineId());
-
-        machine().state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
-
-        machine().state.m_durability = machine().props.maxDurability;
+        SetupMachinePhysicsState(machine().state, machine().props);
     }
 
     void resetPhysicsProps()

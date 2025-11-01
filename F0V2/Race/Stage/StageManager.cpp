@@ -364,7 +364,7 @@ namespace Race
         return g_sharedState->courseSegments;
     }
 
-    Float3 StageManager::startPosition(int machineId) const
+    StageManager::start_position StageManager::getStartPosition(int machineId) const
     {
         constexpr int columnsPerLine = 5;
         const int lineId = machineId / columnsPerLine;
@@ -390,9 +390,15 @@ namespace Race
         // [0.2, 0.8]
         const float offsetRate = 0.2f + static_cast<float>(columnId) / static_cast<float>(columnsPerLine - 1) * 0.6f;
 
-        Float3 pos = targetStrip.leftmost + (targetStrip.rightmost - targetStrip.leftmost) * offsetRate;
-        pos += targetStrip.normal * 5.0f; // 地面から少し浮かせる
-        return pos;
+        start_position data;
+        data.position = targetStrip.leftmost + (targetStrip.rightmost - targetStrip.leftmost) * offsetRate;
+        data.position += targetStrip.normal * 5.0f; // 地面から少し浮かせる
+
+        data.forward = targetStrip.toNext.normalized();
+
+        data.up = targetStrip.normal;
+
+        return data;
     }
 
     std::shared_ptr<GameObjectBase> StageManager::asGameObject() const

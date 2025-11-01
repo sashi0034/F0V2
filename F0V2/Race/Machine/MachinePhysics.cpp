@@ -163,6 +163,21 @@ namespace Race
         return m_surfaceNormal.isZero();
     }
 
+    void SetupMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
+    {
+        const auto startPosition = GetRaceContext().stageManager().getStartPosition(props.machineId);
+
+        state = {};
+
+        state.m_pose.position = startPosition.position;
+
+        state.m_forwardVector = startPosition.forward;
+
+        state.m_upVector = startPosition.up;
+
+        state.m_durability = props.maxDurability;
+    }
+
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
         // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);

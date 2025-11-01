@@ -22,7 +22,14 @@ namespace Race
         Array<CourseSegment>& courseSegments();
         const Array<CourseSegment>& courseSegments() const;
 
-        Float3 startPosition(int machineId) const;
+        struct start_position
+        {
+            Float3 position;
+            Float3 forward;
+            Float3 up;
+        };
+
+        start_position getStartPosition(int machineId) const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 

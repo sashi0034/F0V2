@@ -70,5 +70,7 @@ namespace Race
         float accelFactor{};
     };
 
+    void SetupMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);
+
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);
 }

@@ -52,8 +52,8 @@ struct Player::Impl : GameObjectBase
             .setShader(Asset_shader::lambert)
             .setCbv10AndLater({GetRaceContextContent().cb.lambert});
 
-        resetPhysicsState();
         resetPhysicsProps();
+        resetPhysicsState();
 
         // TODO: Update 前の最初のフレームでカメラが設定されるようにする
     }
@@ -105,13 +105,7 @@ private:
 
     void resetPhysicsState()
     {
-        machine().state = {};
-
-        machine().state.m_pose.position = GetRaceContext().stageManager().startPosition(m_machineId);
-
-        machine().state.m_forwardVector = GetRaceContext().stageManager().courseSegments()[0].midwayStrips[0].toNext;
-
-        machine().state.m_durability = machine().props.maxDurability;
+        SetupMachinePhysicsState(machine().state, machine().props);
     }
 
     void resetPhysicsProps()
