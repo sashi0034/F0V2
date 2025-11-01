@@ -60,7 +60,7 @@ namespace TY
         return p_impl;
     }
 
-    bool FileWatcher::isChangedInFrame() const
+    bool FileWatcher::wasChangedThisFrame() const
     {
         return p_impl->m_timestamp = System::FrameCount();
     }

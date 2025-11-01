@@ -55,7 +55,7 @@ namespace
 
         bool update() override
         {
-            if (m_watcher.isChangedInFrame())
+            if (m_watcher.wasChangedThisFrame())
             {
                 reload();
             }

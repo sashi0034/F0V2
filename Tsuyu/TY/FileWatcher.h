@@ -13,7 +13,7 @@ namespace TY
 
         std::shared_ptr<ITimestamp> timestamp() const;
 
-        bool isChangedInFrame() const;
+        bool wasChangedThisFrame() const;
 
     private:
         struct Impl;
