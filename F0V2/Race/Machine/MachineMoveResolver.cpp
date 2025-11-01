@@ -16,7 +16,7 @@ using namespace Race;
 
 namespace
 {
-    constexpr float epsGround = 1e-2f;
+    constexpr float EPS_CONTACT = 1e-2f;
 
     void debugDrawTriangle(const IndexedTriangle& tri, const Float3 normal)
     {
@@ -37,14 +37,12 @@ namespace
     struct MachineHit
     {
         float distSqFromStart;
-        LineSegment3D selfLine{};
-        LineSegment3D otherLine{};
         std::pair<Float3, Float3> closestPair{};
-        float lineListSq{};
+        float distSqOnLineSegment{};
         float otherRadius{};
     };
 
-    std::optional<MachineHit> traceMachineToMachineHit(
+    std::optional<MachineHit> traceOtherMachineHit(
         const MachinePhysicsState& state,
         const MachinePhysicsProps& props,
         const Float3& fromPos,
@@ -52,10 +50,12 @@ namespace
     {
         const MachineId selfMachineId = props.machineId;
         const float selfRadius = state.m_radius;
-        const LineSegment3D selfLine{
-            fromPos - state.m_visualForwardVector * state.m_height * 0.5f,
-            toPos + state.m_visualForwardVector * state.m_height * 0.5f,
-        };
+
+        const LineSegment3D selfLine{fromPos, toPos,};
+        // const LineSegment3D selfLine{
+        //     fromPos - state.m_visualForwardVector * state.m_height * 0.5f,
+        //     toPos + state.m_visualForwardVector * state.m_height * 0.5f,
+        // };
 
         float bestDistSq = FLT_MAX;
         std::optional<MachineHit> hit{};
@@ -77,8 +77,8 @@ namespace
             };
 
             std::pair<Float3, Float3> closestPair{};
-            const float lineDistSq = DistanceSq(selfLine, otherLine, &closestPair);
-            if (lineDistSq < Math::Square(selfRadius + otherRadius))
+            const float distSqOnLineSegment = DistanceSq(selfLine, otherLine, &closestPair);
+            if (distSqOnLineSegment < Math::Square(selfRadius + otherRadius))
             {
                 const float distSqFromStart = (otherPosition - fromPos).lengthSq();
 
@@ -87,10 +87,8 @@ namespace
                     bestDistSq = distSqFromStart;
                     hit = MachineHit{
                         .distSqFromStart = distSqFromStart,
-                        .selfLine = selfLine,
-                        .otherLine = otherLine,
                         .closestPair = closestPair,
-                        .lineListSq = lineDistSq,
+                        .distSqOnLineSegment = distSqOnLineSegment,
                         .otherRadius = otherRadius,
                     };
                 }
@@ -111,7 +109,8 @@ namespace
         const MachinePhysicsState& state,
         const MachinePhysicsProps& props,
         const Float3& fromPos,
-        const Float3& toPos)
+        const Float3& toPos,
+        bool shouldCheckOtherMachineHit)
     {
         if (fromPos == toPos)
         {
@@ -138,8 +137,9 @@ namespace
             }
         }
 
+        if (shouldCheckOtherMachineHit)
         {
-            const auto machineHit = traceMachineToMachineHit(state, props, fromPos, toPos);
+            const auto machineHit = traceOtherMachineHit(state, props, fromPos, toPos);
             if (machineHit.has_value())
             {
                 candidates.push_back(*machineHit);
@@ -283,7 +283,7 @@ namespace
 
         Float3 bilinearI = bilinear_00_10_01_11(p_00_10_01_11, normalUV);
 
-        const float r = state.m_radius + epsGround;
+        const float r = state.m_radius + EPS_CONTACT;
 
         const Float3 U = bilinearI + normal * r; // TODO
 
@@ -399,7 +399,7 @@ namespace
         const Float3 SV = V - S;
         const Float3 IV = SV - plane.normal * SV.dot(plane.normal);
 
-        const float r = state.m_radius + epsGround;
+        const float r = state.m_radius + EPS_CONTACT;
         const float signedDistanceGS = signedDistanceHS - r;
 
         if (signedDistanceHS * signedDistanceIH >= 0)
@@ -509,15 +509,16 @@ namespace
     }
 
     // -----------------------------------------------
-    // handleMachineToMachineHit()
+    // handleOtherMachineHit()
 
     struct HitInfo
     {
         float moveDistance;
         Float3 normal;
+        Float3 pushbackVector;
     };
 
-    void onHitMachineToMachine(
+    void onHitOtherMachine(
         Float3& newMoveVector,
         MachinePhysicsState& state,
         const Float3& fromPos,
@@ -535,11 +536,13 @@ namespace
         newMoveVector = r - n * r.dot(n);
         if (newMoveVector.isZero())
         {
+            newMoveVector += hit.pushbackVector;
             return;
         }
 
         // 移動ベクトルの長さを残りの移動量に調節する
         newMoveVector = newMoveVector.normalized() * Max(0.0f, (toPos - fromPos).length() - hit.moveDistance);
+        newMoveVector += hit.pushbackVector;
     }
 
     struct MachinePushback
@@ -559,15 +562,20 @@ namespace
         const Float3 normal =
             (hit.closestPair.first - hit.closestPair.second).normalized();
 
-        const float pushbackLength = (state.m_radius + hit.otherRadius) - std::sqrtf(hit.lineListSq);
-        pushback.newPos = hit.closestPair.first + normal * pushbackLength;
+        pushback.newPos = hit.closestPair.first;
+
+        const float pushbackLength = (state.m_radius + hit.otherRadius) - std::sqrtf(hit.distSqOnLineSegment);
+        pushback.hit.pushbackVector = normal * (pushbackLength + EPS_CONTACT);
+
+        // Immediate3D::Line{fromPos, fromPos + normal * 10}.setColor(Palette::White).pushAuto();
 
         pushback.hit.moveDistance = (pushback.newPos - fromPos).length();
         pushback.hit.normal = normal;
+
         return pushback;
     }
 
-    void handleMachineToMachineHit(
+    void handleOtherMachineHit(
         std::optional<Float3>& newMoveVector,
         MachinePhysicsState& state,
         const MachineHit& hit,
@@ -578,7 +586,7 @@ namespace
         state.m_pose.position = newPos;
 
         Float3 newMoveVector_{};
-        onHitMachineToMachine(newMoveVector_, state, fromPos, toPos, surface);
+        onHitOtherMachine(newMoveVector_, state, fromPos, toPos, surface);
         newMoveVector = newMoveVector_;
     }
 
@@ -588,6 +596,7 @@ namespace
         MachinePhysicsState& state,
         const Float3& moveVector,
         const MachinePhysicsProps& props,
+        bool shouldCheckOtherMachineHit,
         int nest)
     {
         constexpr int maxNest = 3;
@@ -600,7 +609,7 @@ namespace
         const Float3& fromPos = state.m_pose.position;
         const auto toPos = fromPos + moveVector;
 
-        const auto hitCandidates = traceHitCandidates(state, props, fromPos, toPos);
+        const auto hitCandidates = traceHitCandidates(state, props, fromPos, toPos, shouldCheckOtherMachineHit);
         std::optional<Float3> newMoveVector{};
         for (auto& hit : hitCandidates)
         {
@@ -616,9 +625,9 @@ namespace
             }
             else if (hit.isHolds<MachineHit>())
             {
-                ImmediatePrint("接触中: machineId {}", props.machineId);
-                handleMachineToMachineHit(
+                handleOtherMachineHit(
                     newMoveVector, state, hit.get<MachineHit>(), fromPos, toPos);
+                shouldCheckOtherMachineHit = false;
             }
 
             // 何らかの物体と接触した場合は newMoveVector を用いて再帰的に更新
@@ -626,7 +635,7 @@ namespace
             {
                 if (nest < maxNest)
                 {
-                    resolveMachineMove(state, *newMoveVector, props, nest + 1);
+                    resolveMachineMove(state, *newMoveVector, props, shouldCheckOtherMachineHit, nest + 1);
                 }
 
                 return;
@@ -678,7 +687,7 @@ namespace Race
 {
     void ResolveMachineMove(MachinePhysicsState& state, const Float3& moveVector, const MachinePhysicsProps& props)
     {
-        resolveMachineMove(state, moveVector, props, 0);
+        resolveMachineMove(state, moveVector, props, true, 0);
     }
 
     void ResolveMachineGroundContact(MachinePhysicsState& state)
