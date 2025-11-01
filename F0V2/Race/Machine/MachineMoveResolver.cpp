@@ -8,9 +8,8 @@
 #include "TY/Immediate3D.h"
 #include "TY/IndexedTriangle.h"
 #include "TY/Intersects3D.h"
+#include "Util/DebugTomlValue.h"
 #include "Util/ImmediatePrint.h"
-
-#define DEBUG_DRAW_LINES
 
 using namespace Race;
 
@@ -302,8 +301,11 @@ namespace
         const Float3& toPos,
         const HitSurfaceInfo& hit)
     {
-#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
-        hit.debugDraw();
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("draw_physics_lines"))
+        {
+            hit.debugDraw();
+        }
 #endif
 
         // 法線の適応
@@ -440,8 +442,11 @@ namespace
         const Float3& toPos,
         const HitTriInfo& hitTri)
     {
-#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
-        hitTri.debugDraw();
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("draw_physics_lines"))
+        {
+            hitTri.debugDraw();
+        }
 #endif
 
         state.m_durability = PositiveF32(state.m_durability - 5.0f);
@@ -666,10 +671,13 @@ namespace
 
         const auto [newPos, hit] = pushbackFromSurface(state, *groundHit, fromPos, toPos);
 
-#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
-        Immediate3D::Line{fromPos - vector * 10, toPos}.setColor(ColorF32{1.0f, 1, 0}).pushAuto();
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("draw_physics_lines"))
+        {
+            Immediate3D::Line{fromPos - vector * 10, toPos}.setColor(ColorF32{1.0f, 1, 0}).pushAuto();
 
-        hit.debugDraw();
+            hit.debugDraw();
+        }
 #endif
 
         state.m_pose.position = newPos;

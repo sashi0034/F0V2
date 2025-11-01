@@ -1,3 +1,7 @@
 [debug]
 
 fixed_course_path = "asset/edit/sandbox_course.toml"
+
+ai_count = 29
+
+draw_physics_lines = false

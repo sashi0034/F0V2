@@ -9,11 +9,10 @@
 #include "TY/GameTime.h"
 #include "TY/Intersects3D.h"
 #include "TY/Immediate3D.h"
+#include "Util/DebugTomlValue.h"
 #include "Util/ImmediatePrint.h"
 
 using namespace Race;
-
-#define DEBUG_DRAW_LINES
 
 namespace
 {
@@ -257,13 +256,15 @@ namespace Race
             state.m_gravity = Float3(0, -1, 0);
 #endif
 
-#if defined(_DEBUG) && defined(DEBUG_DRAW_LINES)
-            Immediate3D::Line{
-
-                    state.m_pose.position,
-                    state.m_pose.position - state.m_gravity * 10
-                }.setColor(ColorF32{0.3f, 0.0f, 0.3f}, ColorF32{0.1f, 0, 0.1f})
-                 .pushAuto();
+#if defined(_DEBUG)
+            if (GetDebugTomlValue<bool>("draw_physics_lines"))
+            {
+                Immediate3D::Line{
+                        state.m_pose.position,
+                        state.m_pose.position - state.m_gravity * 10
+                    }.setColor(ColorF32{0.3f, 0.0f, 0.3f}, ColorF32{0.1f, 0, 0.1f})
+                     .pushAuto();
+            }
 #endif
         }
 

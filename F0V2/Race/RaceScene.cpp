@@ -13,6 +13,7 @@
 #include "TY/Graphics3D.h"
 #include "TY/Scene.h"
 #include "TY_Extension/CoroutineActor.h"
+#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -71,7 +72,15 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_spatialAi = m_children.birth(SpatialAi());
         m_spatialAi.init();
 
-        for (int i = 0; i < 30; ++i)
+        int aiCount = 29;
+#if defined(_DEBUG)
+        if (int aiCount_ = GetDebugTomlValue<int>("ai_count", -1); aiCount >= 0)
+        {
+            aiCount = aiCount_;
+        }
+#endif
+
+        for (int i = 0; i < aiCount; ++i)
         {
             m_characterAiList.push_back(m_children.birth(CharacterAi()));
             m_characterAiList.back().init(i);

@@ -7,8 +7,8 @@ inline namespace Util_inline
     toml::node_view<toml::node> GetDebugTomlValueInternal();
 
     template <typename T>
-    T GetDebugTomlValue(std::string_view key)
+    T GetDebugTomlValue(std::string_view key, T defaultValue = T{})
     {
-        return GetDebugTomlValueInternal()[key].value_or(T{});
+        return GetDebugTomlValueInternal()[key].value_or(defaultValue);
     }
 }

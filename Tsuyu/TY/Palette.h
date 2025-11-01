@@ -3,6 +3,9 @@
 
 namespace TY
 {
+    // HTML Color Names
+    // https://www.w3schools.com/colors/colors_names.asp
+
     namespace Palette
     {
         constexpr ColorF32 AliceBlue{"F0F8FF"};
