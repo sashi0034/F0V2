@@ -176,6 +176,8 @@ struct StageManager::Impl : GameObjectBase
 
     StageStaticCollider m_staticCollider{};
 
+    Array<start_position> m_startPositions{};
+
     void Init()
     {
         auto skydome_b4 = ConstantBufferWrapper<Skydome_b10>{};
@@ -236,6 +238,8 @@ struct StageManager::Impl : GameObjectBase
 
         m_staticCollider = StageStaticCollider();
         m_staticCollider.build(colliders);
+
+        buildStartPositions();
     }
 
 private:
@@ -297,6 +301,50 @@ private:
         ImmediateDrawer::Global().draw();
 
         debugUI();
+    }
+
+    void buildStartPositions()
+    {
+        m_startPositions.clear();
+
+        constexpr int columnsPerLine = 5;
+        constexpr int maxMachines = 100;
+
+        const auto& segments = g_sharedState->courseSegments;
+
+        int segmentIndex{static_cast<int>(segments.size()) - 1};
+        int stripIndex{static_cast<int>(segments[segmentIndex].midwayStrips.size()) - 1};
+        for (int lineId = 0; lineId < maxMachines / columnsPerLine; ++lineId)
+        {
+            for (int i = 0; i < 2; ++i)
+            {
+                stripIndex--;
+                if (stripIndex < 0)
+                {
+                    segmentIndex = Modulo(segmentIndex - 1, static_cast<int>(segments.size()));
+                    stripIndex = static_cast<int>(segments[segmentIndex].midwayStrips.size()) - 1;
+                }
+            }
+
+            for (int columnId = 0; columnId < columnsPerLine; ++columnId)
+            {
+                const auto& targetStrip = segments[segmentIndex].midwayStrips[stripIndex];
+
+                // [0.2, 0.8]
+                const float offsetRate =
+                    0.2f + static_cast<float>(columnId) / static_cast<float>(columnsPerLine - 1) * 0.6f;
+
+                start_position data;
+                data.position = targetStrip.leftmost + (targetStrip.rightmost - targetStrip.leftmost) * offsetRate;
+                data.position += targetStrip.normal * 5.0f; // 地面から少し浮かせる
+
+                data.forward = targetStrip.toNext.normalized();
+
+                data.up = targetStrip.normal;
+
+                m_startPositions.push_back(data);
+            }
+        }
     }
 
     void debugUI()
@@ -366,39 +414,8 @@ namespace Race
 
     StageManager::start_position StageManager::getStartPosition(int machineId) const
     {
-        constexpr int columnsPerLine = 5;
-        const int lineId = machineId / columnsPerLine;
-        const int columnId = machineId % columnsPerLine;
-
-        auto& segments = courseSegments();
-
-        int segmentIndex{static_cast<int>(segments.size()) - 1};
-        int stripIndex{static_cast<int>(segments[segmentIndex].midwayStrips.size()) - 1};
-        const int backCount = lineId * 2;
-        for (int i = 0; i < backCount; ++i)
-        {
-            stripIndex--;
-            if (stripIndex < 0)
-            {
-                segmentIndex = Modulo(segmentIndex - 1, static_cast<int>(segments.size()));
-                stripIndex = static_cast<int>(segments[segmentIndex].midwayStrips.size()) - 1;
-            }
-        }
-
-        const auto& targetStrip = segments[segmentIndex].midwayStrips[stripIndex];
-
-        // [0.2, 0.8]
-        const float offsetRate = 0.2f + static_cast<float>(columnId) / static_cast<float>(columnsPerLine - 1) * 0.6f;
-
-        start_position data;
-        data.position = targetStrip.leftmost + (targetStrip.rightmost - targetStrip.leftmost) * offsetRate;
-        data.position += targetStrip.normal * 5.0f; // 地面から少し浮かせる
-
-        data.forward = targetStrip.toNext.normalized();
-
-        data.up = targetStrip.normal;
-
-        return data;
+        const int index = Math::Clamp<int>(machineId, 0, static_cast<int>(p_impl->m_startPositions.size() - 1));
+        return p_impl->m_startPositions[index];
     }
 
     std::shared_ptr<GameObjectBase> StageManager::asGameObject() const
