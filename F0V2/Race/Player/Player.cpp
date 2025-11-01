@@ -267,6 +267,21 @@ private:
         }
 
         // -----------------------------------------------
+        // 順位
+        {
+            const auto evaluation = GetRaceContext().machineManager().getEvaluation(m_machineId);
+            const int rank1 = evaluation.rank + 1;
+            const int totalMachines = GetRaceContext().machineManager().machineList().size();
+            Immediate2D_Text::RocknRoll_Sdf(
+                    ToUtf32(std::format("{} / {}", rank1, totalMachines))
+                )
+                .setSize(40.0f)
+                .setPosition(Scene::TopCenterF().movedY(80.0f), Alignment9::TopCenter)
+                .setColor(Palette::LightSteelBlue)
+                .pushAuto();
+        }
+
+        // -----------------------------------------------
 
         ImmediateDrawer::Global().draw();
     }

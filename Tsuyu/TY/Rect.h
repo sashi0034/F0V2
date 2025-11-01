@@ -131,7 +131,17 @@ namespace TY
 
         position_type getRelativePoint(Alignment9 alignment9) const
         {
-            return pos + size * AlignmentToPivot(alignment9);
+            if constexpr (std::is_integral_v<value_type>)
+            {
+                const Float2 offset = Float2(size) * AlignmentToPivot(alignment9);
+                return position_type(
+                    static_cast<value_type>(pos.x + value_type(offset.x)),
+                    static_cast<value_type>(pos.y + value_type(offset.y)));
+            }
+            else
+            {
+                return pos + size * AlignmentToPivot(alignment9);
+            }
         }
 
         value_type leftX() const

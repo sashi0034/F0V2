@@ -171,13 +171,13 @@ namespace TY
         [[nodiscard]]
         constexpr Vector2D movedX(value_type x_) const noexcept
         {
-            return {x - x_, y};
+            return {x + x_, y};
         }
 
         [[nodiscard]]
         constexpr Vector2D movedY(value_type y_) const noexcept
         {
-            return {x, y - y_};
+            return {x, y + y_};
         }
 
         [[nodiscard]]

@@ -5,6 +5,11 @@
 
 namespace Race
 {
+    struct MachineEvaluation
+    {
+        int rank;
+    };
+
     class MachineManager : public GameObjectHandle
     {
     public:
@@ -14,7 +19,9 @@ namespace Race
 
         MachinePhysicsUnit& fetchMachine(MachineId id);
 
-        Array<MachinePhysicsUnit>& machineList() const;
+        const MachineEvaluation& getEvaluation(MachineId id) const;
+
+        const Array<MachinePhysicsUnit>& machineList() const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 

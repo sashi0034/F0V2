@@ -1,10 +1,8 @@
 ﻿#include "pch.h"
 #include "MachineManager.h"
 
-#include "Asset.generated.h"
 #include "MachinePhysicsUnit.h"
 #include "TY/ActorContainer.h"
-#include "TY/ModelDrawer.h"
 #include "TY_Extension/GameObjectBase.h"
 
 using namespace Race;
@@ -21,6 +19,8 @@ struct MachineManager::Impl : GameObjectBase
 
     Array<MachinePhysicsUnit> m_physicsUnits{};
 
+    Array<MachineEvaluation> m_evaluations{};
+
     void Init()
     {
         m_initialized = true;
@@ -28,7 +28,7 @@ struct MachineManager::Impl : GameObjectBase
         m_physicsUnits.reserve(100);
     }
 
-    MachinePhysicsUnit& FetchMachine(MachineId id)
+    void ResizeIfNeeded(MachineId id)
     {
         assert(m_initialized);
 
@@ -37,14 +37,44 @@ struct MachineManager::Impl : GameObjectBase
             const int nextid = m_physicsUnits.size();
             m_physicsUnits.push_back({});
             m_physicsUnits.back().props.machineId = nextid;
-        }
 
-        return m_physicsUnits[id];
+            m_evaluations.push_back(MachineEvaluation{
+                .rank = nextid,
+            });
+        }
     }
 
 private:
     void update() override
     {
+        evaluateMachines();
+    }
+
+    void evaluateMachines()
+    {
+        Array<std::pair<int, LapProgress>> progressList;
+        for (int i = 0; i < m_physicsUnits.size(); ++i)
+        {
+            const auto& machine = m_physicsUnits[i];
+            progressList.push_back({i, machine.state.m_lapProgress});
+        }
+
+        // m_lapProgress が大きい順にソート
+        std::ranges::sort(
+            progressList,
+            [](const auto& a, const auto& b)
+            {
+                return b.second.isLessThan(a.second);
+            });
+
+        m_evaluations.resize(progressList.size());
+        for (int rank = 0; rank < progressList.size(); ++rank)
+        {
+            const int index = progressList[rank].first;
+            m_evaluations[index] = MachineEvaluation{
+                .rank = rank,
+            };
+        }
     }
 
     void killed() override
@@ -73,10 +103,17 @@ namespace Race
 
     MachinePhysicsUnit& MachineManager::fetchMachine(MachineId id)
     {
-        return p_impl->FetchMachine(id);
+        p_impl->ResizeIfNeeded(id);
+        return p_impl->m_physicsUnits[id];
     }
 
-    Array<MachinePhysicsUnit>& MachineManager::machineList() const
+    const MachineEvaluation& MachineManager::getEvaluation(MachineId id) const
+    {
+        p_impl->ResizeIfNeeded(id);
+        return p_impl->m_evaluations[id];
+    }
+
+    const Array<MachinePhysicsUnit>& MachineManager::machineList() const
     {
         return p_impl->m_physicsUnits;
     }
