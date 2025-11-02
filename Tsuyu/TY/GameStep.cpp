@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "GameStep.h"
 
-#include "detail/EngineComponent.h"
+#include "detail/ComponentManager_singleton.h"
 
 using namespace TY;
 
@@ -155,7 +155,7 @@ namespace TY
     {
         void InitGameStepComponent()
         {
-            EngineComponent::Register<GameStepComponent>("GameStepComponent");
+            ComponentManager_singleton::Register<GameStepComponent>("GameStepComponent");
         }
     }
 }

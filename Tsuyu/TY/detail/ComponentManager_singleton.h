@@ -10,7 +10,7 @@ namespace TY::detail
         std::unique_ptr<IComponent> addon;
     };
 
-    namespace EngineComponent
+    namespace ComponentManager_singleton
     {
         void Update();
 

@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "FreeTypeContext.h"
 
-#include "EngineComponent.h"
+#include "ComponentManager_singleton.h"
 #include "TY/IComponent.h"
 #include "TY/Logger.h"
 
@@ -52,7 +52,7 @@ namespace TY::detail
 {
     void InitFreeTypeContextComponent()
     {
-        EngineComponent::Register<FreeTypeContextComponent>("FreeTypeContextComponent");
+        ComponentManager_singleton::Register<FreeTypeContextComponent>("FreeTypeContextComponent");
     }
 
     FT_Library GetFreeType()

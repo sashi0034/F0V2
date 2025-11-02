@@ -8,7 +8,7 @@
 #include "ImmediateBuilder2D.h"
 #include "ImmediateBuilder3D.h"
 #include "VertexBuffer.h"
-#include "detail/EngineComponent.h"
+#include "detail/ComponentManager_singleton.h"
 #include "detail/RenderContext_singleton.h"
 #include "detail/GraphicsPipelineState.h"
 #include "detail/RenderEventComponent.h"
@@ -421,7 +421,7 @@ namespace TY
     {
         void InitImmediateDrawerComponent()
         {
-            EngineComponent::Register<ImmediateDrawerComponent>("ImmediateDrawerComponent");
+            ComponentManager_singleton::Register<ImmediateDrawerComponent>("ImmediateDrawerComponent");
         }
     }
 

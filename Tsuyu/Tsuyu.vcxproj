@@ -184,7 +184,7 @@
     <ClInclude Include="TY\TriangleBvh.h" />
     <ClInclude Include="TY\CbvSrvUav.h" />
     <ClInclude Include="TY\Color.h" />
-    <ClInclude Include="TY\detail\EngineComponent.h" />
+    <ClInclude Include="TY\detail\ComponentManager_singleton.h" />
     <ClInclude Include="TY\detail\FreeTypeContext.h" />
     <ClInclude Include="TY\detail\RenderEventComponent.h" />
     <ClInclude Include="TY\detail\ShaderRegisterStart.h" />
@@ -348,7 +348,7 @@
     <ClCompile Include="TY\TextureHandle.cpp" />
     <ClCompile Include="TY\TriangleBvh.cpp" />
     <ClCompile Include="TY\Color.cpp" />
-    <ClCompile Include="TY\detail\EngineComponent.cpp" />
+    <ClCompile Include="TY\detail\ComponentManager_singleton.cpp" />
     <ClCompile Include="TY\detail\FreeTypeContext.cpp" />
     <ClCompile Include="TY\detail\RenderEventComponent.cpp" />
     <ClCompile Include="TY\detail\ImmediateDrawer_Common.cpp" />

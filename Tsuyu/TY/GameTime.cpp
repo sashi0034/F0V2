@@ -2,7 +2,7 @@
 #include "GameTime.h"
 
 #include "Math.h"
-#include "detail/EngineComponent.h"
+#include "detail/ComponentManager_singleton.h"
 #include "TY/Addon.h"
 #include "TY/IAddon.h"
 #include "TY/System.h"
@@ -130,7 +130,7 @@ namespace TY
     {
         void InitGameTimeComponent()
         {
-            EngineComponent::Register<GameTimeComponent>("GameTimeAddon");
+            ComponentManager_singleton::Register<GameTimeComponent>("GameTimeAddon");
         }
     }
 }

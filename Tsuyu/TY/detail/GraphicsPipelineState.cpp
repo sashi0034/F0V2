@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "GraphicsPipelineState.h"
 
-#include "EngineComponent.h"
+#include "ComponentManager_singleton.h"
 #include "TY/AssertObject.h"
 #include "EngineHotReloader.h"
 #include "EnginePresetAsset.h"
@@ -404,7 +404,7 @@ namespace TY
     {
         void InitializeGraphicsPipelineStateCacheComponent()
         {
-            EngineComponent::Register<GraphicsPipelineState::Internal::GraphicsPipelineStateCacheComponent>(
+            ComponentManager_singleton::Register<GraphicsPipelineState::Internal::GraphicsPipelineStateCacheComponent>(
                 "GraphicsPipelineStateCacheComponent");
         }
     }

@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "EngineComponent.h"
+#include "ComponentManager_singleton.h"
 
 #include "EngineCore.h"
 #include "TY/Logger.h"
@@ -7,7 +7,7 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct EngineComponentImpl
+struct ComponentManagerImpl
 {
     Array<ComponentObject> m_components{};
 
@@ -45,17 +45,17 @@ struct EngineComponentImpl
 
 namespace
 {
-    EngineComponentImpl s_component{};
+    ComponentManagerImpl s_component{};
 }
 
 namespace TY::detail
 {
-    void EngineComponent::HandleAlreadyRegistered(std::string_view name)
+    void ComponentManager_singleton::HandleAlreadyRegistered(std::string_view name)
     {
         LogError(std::format("Component '{}' is already registered.", name));
     }
 
-    bool EngineComponent::RegisterInternal(std::string_view name, std::unique_ptr<IComponent> component)
+    bool ComponentManager_singleton::RegisterInternal(std::string_view name, std::unique_ptr<IComponent> component)
     {
         if (not component->init())
         {
@@ -67,32 +67,32 @@ namespace TY::detail
         return true;
     }
 
-    const Array<ComponentObject>& EngineComponent::ComponentList()
+    const Array<ComponentObject>& ComponentManager_singleton::ComponentList()
     {
         return s_component.m_components;
     }
 
-    void EngineComponent::Update()
+    void ComponentManager_singleton::Update()
     {
         s_component.Update();
     }
 
-    void EngineComponent::BeforeFlush()
+    void ComponentManager_singleton::BeforeFlush()
     {
         s_component.BeforeFlush();
     }
 
-    void EngineComponent::AfterPresent()
+    void ComponentManager_singleton::AfterPresent()
     {
         s_component.AfterPresent();
     }
 
-    void EngineComponent::Shutdown()
+    void ComponentManager_singleton::Shutdown()
     {
         s_component = {};
     }
 
-    bool EngineComponent::IsRegistered(std::string_view name)
+    bool ComponentManager_singleton::IsRegistered(std::string_view name)
     {
         for (const auto& component : s_component.m_components)
         {

@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "EngineCore.h"
 
-#include "EngineComponent.h"
+#include "ComponentManager_singleton.h"
 #include "EngineGamepad.h"
 #include "EngineHotReloader.h"
 #include "EngineImGUI.h"
@@ -107,12 +107,12 @@ struct EngineCoreImpl
             }
         }
 
-        EngineComponent::Update();
+        ComponentManager_singleton::Update();
     }
 
     void EndFrame()
     {
-        EngineComponent::BeforeFlush();
+        ComponentManager_singleton::BeforeFlush();
 
         EngineImGui::Render();
 
@@ -120,7 +120,7 @@ struct EngineCoreImpl
 
         Window_singleton::AfterPresent();
 
-        EngineComponent::AfterPresent();
+        ComponentManager_singleton::AfterPresent();
 
         m_inFrame = false;
     }
@@ -141,7 +141,7 @@ struct EngineCoreImpl
 
         EngineImGui::Shutdown();
 
-        EngineComponent::Shutdown();
+        ComponentManager_singleton::Shutdown();
 
         // 他のリソースを全て解放してからレンダリングリソースを解放する
         RenderContext_singleton::Shutdown();

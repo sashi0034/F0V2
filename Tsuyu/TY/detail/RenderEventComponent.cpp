@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "RenderEventComponent.h"
 
-#include "EngineComponent.h"
+#include "ComponentManager_singleton.h"
 #include "TY/Array.h"
 #include "TY/IComponent.h"
 
@@ -64,6 +64,6 @@ namespace TY::detail
 
     void InitRenderEventComponent()
     {
-        EngineComponent::Register<RenderEventComponent>("RenderEventComponent");
+        ComponentManager_singleton::Register<RenderEventComponent>("RenderEventComponent");
     }
 }
