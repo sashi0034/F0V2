@@ -1,5 +1,9 @@
 #define PI 3.14159265359
-#define EPS 1e-4
+#define TWO_PI (PI * 2)
+#define HALF_PI (PI * 0.5)
+
+#define EPS_SDF 1e-4
+
 #define MAX_DIST 1000.0
 #define MAX_RAYMARCH 64
 
@@ -19,6 +23,23 @@ cbuffer Shadertoy_b10 : register(b0)
 };
 
 // -----------------------------------------------
+
+// Roll-Pitch-Yaw行列を作成
+float3x3 rotateRollPitchYaw(float roll, float pitch, float yaw)
+{
+    float cp = cos(pitch);
+    float sp = sin(pitch);
+    float sr = sin(roll);
+    float cr = cos(roll);
+    float sy = sin(yaw);
+    float cy = cos(yaw);
+
+    return float3x3(
+        cp * cy, (sr * sp * cy) - (cr * sy), (cr * sp * cy) + (sr * sy),
+        cp * sy, (sr * sp * sy) + (cr * cy), (cr * sp * sy) - (sr * cy),
+        -sp, sr * cp, cr * cp
+    );
+}
 
 float3x3 rotateAxis(float3 axis, float angle)
 {
@@ -81,6 +102,54 @@ float2x2 rotate(float a)
     return float2x2(c, s, -s, c);
 }
 
+// https://www.shadertoy.com/view/ltS3W3
+float sdfMenger(float3 p)
+{
+    const int Iterations = 6;
+    float3 offset = float3(1, 1, 1);
+
+    // 初期スケールと動的変化
+    p *= 0.4;
+    float scale = 3.0 + 0.3 * sin(g_time * 0.084);
+
+    // 回転角度を時間で変化させる
+    float rotX = 5.0 * sin(g_time * 0.01);
+    float rotY = 5.0 * sin(g_time * 0.0057);
+    float rotZ = 5.0 * sin(g_time * 0.0266);
+    float3x3 rot = rotateRollPitchYaw(rotX, rotY, rotZ);
+
+    // 反復折り返し
+    [unroll]
+    for (int i = 0; i < Iterations; i++)
+    {
+        p = mul(p, rot);
+
+        // 軸対称化
+        p = abs(p);
+
+        // fold
+        if (p.x - p.y < 0.0) p.xy = p.yx;
+        if (p.x - p.z < 0.0) p.xz = p.zx;
+        if (p.y - p.z < 0.0) p.yz = p.zy;
+
+        // Z方向の折り返し
+        p.z -= 0.5 * offset.z * (scale - 1.0) / scale;
+        p.z = -abs(-p.z);
+        p.z += 0.5 * offset.z * (scale - 1.0) / scale;
+
+        // スケーリングと平行移動
+        p.xy = scale * p.xy - offset.xy * (scale - 1.0);
+        p.z = scale * p.z;
+    }
+
+    // 距離評価
+    float3 d = abs(p) - 1.0;
+    float distance = min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
+    distance *= pow(scale, -Iterations);
+
+    return distance;
+}
+
 float sdfTree(float3 p)
 {
     float scale = 0.8;
@@ -110,15 +179,17 @@ SdfAndMat scanSdf(float3 pos)
     //     result.mat = 1.0;
     // }
 
-    float dTree;
+    float sdMenger;
     {
-        float3 p = pos - float3(0, 0, 10.0f);
-        dTree = sdfTree(p);
+        float3 cell = float3(8.0, 8.0, 8.0);
+        float3 folded = frac(pos / cell) * cell - 0.5 * cell;
+        float3 p = folded - float3(0, 0, 5.0f);
+        sdMenger = sdfMenger(p);
     }
 
-    if (dTree < result.sdf)
+    if (sdMenger < result.sdf)
     {
-        result.sdf = dTree;
+        result.sdf = sdMenger;
         result.mat = 1.0;
     }
 
@@ -127,7 +198,7 @@ SdfAndMat scanSdf(float3 pos)
 
 float3 scanNormal(float3 pos)
 {
-    float h = 1e-4;
+    const float h = EPS_SDF;
     float3 n;
     n.x = scanSdf(pos + float3(h, 0, 0)).sdf - scanSdf(pos - float3(h, 0, 0)).sdf;
     n.y = scanSdf(pos + float3(0, h, 0)).sdf - scanSdf(pos - float3(0, h, 0)).sdf;
@@ -152,7 +223,7 @@ RaycastResult raycast(float3 pos, float3 dir)
     {
         float3 p = pos + dir * t;
         SdfAndMat d = scanSdf(p);
-        if (d.sdf < EPS)
+        if (d.sdf < EPS_SDF)
         {
             r.pos = p;
             r.d = d;
@@ -188,7 +259,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-    const float3x3 cameraMat = rotateY(g_time * 0.5);
+    const float3x3 cameraMat = rotateY(sin(g_time) * (HALF_PI * 0.25f));
 
     float2 screenPos2 = (float2(pixel) - g_screenResolution * 0.5) / g_screenResolution.y;
     screenPos2 *= 1.5f;

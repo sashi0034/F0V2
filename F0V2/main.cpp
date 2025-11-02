@@ -28,7 +28,7 @@ void Main()
 
     InitImmediatePrintAddon();
 
-#if 0
+#if 1
     Testbed_Shadertoy();
 #else
     using namespace TY;
