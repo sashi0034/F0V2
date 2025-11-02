@@ -3,18 +3,18 @@
 #include "GameFlowchart.h"
 #include "TY_Extension/LivePPAddon.h"
 #include "Race/RaceScene.h"
-#include "Demo/Demo_AirCombat.h"
-#include "Demo/Demo_Basic3D.h"
-#include "Demo/Demo_Collision1.h"
-#include "Demo/Demo_Collision2.h"
-#include "Demo/Demo_Collision3.h"
-#include "Demo/Demo_Intersection.h"
-#include "Demo/Demo_Font.h"
-#include "Demo/Demo_Ocean.h"
-#include "Demo/Demo_RenderTarget.h"
-#include "Demo/Demo_ShadowMap.h"
-#include "Demo/Demo_ImmediateDrawer.h"
-#include "Demo/Demo_Shadertoy.h"
+#include "Testbed/Testbed_AirCombat.h"
+#include "Testbed/Testbed_Basic3D.h"
+#include "Testbed/Testbed_Collision1.h"
+#include "Testbed/Testbed_Collision2.h"
+#include "Testbed/Testbed_Collision3.h"
+#include "Testbed/Testbed_Intersection.h"
+#include "Testbed/Testbed_Font.h"
+#include "Testbed/Testbed_Ocean.h"
+#include "Testbed/Testbed_RenderTarget.h"
+#include "Testbed/Testbed_ShadowMap.h"
+#include "Testbed/Testbed_ImmediateDrawer.h"
+#include "Testbed/Testbed_Shadertoy.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 #include "Util/DebugTomlValue.h"
@@ -29,7 +29,7 @@ void Main()
     InitImmediatePrintAddon();
 
 #if 0
-    Demo_Shadertoy();
+    Testbed_Shadertoy();
 #else
     using namespace TY;
 

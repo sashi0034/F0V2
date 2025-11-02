@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Demo_Shadertoy.h"
+#include "Testbed_Shadertoy.h"
 
 #include "imgui/imgui.h"
 #include "TY/ComputeDispatcher.h"
@@ -152,7 +152,7 @@ namespace
     };
 }
 
-struct Demo_Shadertoy_impl
+struct Testbed_Shadertoy_impl
 {
     UnorderedRenderTargetTexture m_lowResolution{};
     ComputeDispatcher m_lowResolutionDispatcher{};
@@ -164,7 +164,7 @@ struct Demo_Shadertoy_impl
 
     Fsr1Upscaler m_fsr1Upscaler{};
 
-    Demo_Shadertoy_impl()
+    Testbed_Shadertoy_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -274,9 +274,9 @@ struct Demo_Shadertoy_impl
 private:
 };
 
-void Demo_Shadertoy()
+void Testbed_Shadertoy()
 {
-    Demo_Shadertoy_impl impl{};
+    Testbed_Shadertoy_impl impl{};
 
     while (System::Update())
     {

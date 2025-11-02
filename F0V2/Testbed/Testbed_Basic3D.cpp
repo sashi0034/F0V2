@@ -1,14 +1,13 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Demo_ImmediateDrawer.h"
+#include "Testbed_Basic3D.h"
 
-#include "TY/BitmapFont.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/DynamicTexture.h"
 #include "TY/Gamepad.h"
-#include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
+#include "TY/InlineComponent.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 
@@ -22,7 +21,6 @@
 #include "TY/RenderTarget.h"
 #include "TY/Screen.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/ImmediateDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -107,41 +105,47 @@ namespace
     constexpr float groundPositionY = -10.0f;
 
     constexpr float fovFarZ = 1000.0f;
+
+    // -----------------------------------------------
+
+    struct Resource_Testbed_Basic3D : IInlineComponent
+    {
+        struct
+        {
+            GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
+
+            GraphicsShader model{GraphicsShader::VS_PS("asset/shader/model.hlsl")};
+
+            // GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
+
+            GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
+
+            GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
+        } shaders;
+
+        struct models_t
+        {
+            ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
+
+            ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
+        } models;
+
+        struct
+        {
+            ConstantBufferWrapper<PhongLight_b4> phongLight{};
+        } cb;
+    };
+
+    InlineComponent<Resource_Testbed_Basic3D> s_resource_Testbed_Basic3D{};
+
+    Resource_Testbed_Basic3D& getRsc()
+    {
+        return s_resource_Testbed_Basic3D.get();
+    }
 }
 
-struct Demo_ImmediateDrawer_impl
+struct Testbed_Basic3D_impl
 {
-    struct
-    {
-        GraphicsShader default2d{GraphicsShader::VS_PS("asset/shader/default2d.hlsl")};
-
-        GraphicsShader model{GraphicsShader::VS_PS("asset/shader/model.hlsl")};
-
-        // GraphicsShader lambert{GraphicsShader::VS_PS("asset/shader/lambert.hlsl")};
-
-        GraphicsShader phong{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
-
-        GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
-    } m_shaders;
-
-    struct
-    {
-        ModelBuffer playerModel{ModelLoader::Load("asset/model/tie_fighter.obj")};
-
-        ModelBuffer mountainModel{ModelLoader::Load("asset/model/dirty_plane.obj")};
-    } m_models;
-
-    struct
-    {
-        ConstantBufferWrapper<PhongLight_b4> phongLight{};
-    } m_cb;
-
-    BitmapFont m_zxProtoBitmap{"asset/font/0xProto/0xProto-Regular.ttf", 32};
-
-    BitmapFont m_rocknRollOneBitmap{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
-
-    SdfFont m_rocknRollOneSdf{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
-
     SimpleCamera3D m_camera{};
 
     ModelDrawer m_skydomeModel{};
@@ -157,11 +161,7 @@ struct Demo_ImmediateDrawer_impl
 
     ModelDrawer m_mountainDrawer{};
 
-    RenderTarget m_miniMap{};
-
-    TextureDrawer m_miniMapDrawer{};
-
-    Demo_ImmediateDrawer_impl()
+    Testbed_Basic3D_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -176,7 +176,7 @@ struct Demo_ImmediateDrawer_impl
         m_skydomeModel = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::Sphere(fovFarZ, ColorF32{0.5, 0.7, 1.0}))
-            .setShader(m_shaders.skydome)
+            .setShader(getRsc().shaders.skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
                         .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
@@ -189,34 +189,23 @@ struct Demo_ImmediateDrawer_impl
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
-            .setShader(m_shaders.model)
+            .setShader(getRsc().shaders.model)
         }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
         m_playerDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(m_models.playerModel)
-            .setShader(m_shaders.phong)
-            .setCbv10AndLater({m_cb.phongLight})
+            .setModel(getRsc().models.playerModel)
+            .setShader(getRsc().shaders.phong)
+            .setCbv10AndLater({getRsc().cb.phongLight})
         };
 
         m_playerPose.position.y = groundPositionY + 15.0f;
 
         m_mountainDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(m_models.mountainModel)
-            .setShader(m_shaders.phong)
-            .setCbv10AndLater({m_cb.phongLight})
-        };
-
-        m_miniMap = RenderTarget{
-            RenderTargetParams{}
-            .setRtvAndClearColor(RtvParams{}.setSize({256, 256}).setClearColor(ColorF32{0.0f, 1.0f}))
-        };
-
-        m_miniMapDrawer = TextureDrawer{
-            TextureDrawerParams{}
-            .setShader(m_shaders.default2d)
-            .setTexture(m_miniMap.asTexture())
+            .setModel(getRsc().models.mountainModel)
+            .setShader(getRsc().shaders.phong)
+            .setCbv10AndLater({getRsc().cb.phongLight})
         };
     }
 
@@ -259,12 +248,12 @@ struct Demo_ImmediateDrawer_impl
             Graphics3D::SetProjectionMatrix(m_projectionMat);
         }
 
-        m_cb.phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
-        m_cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
-        m_cb.phongLight->eyePosition = m_camera.eyePosition();
-        m_cb.phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
+        getRsc().cb.phongLight->lightDirection = Float3{0.3f, -1.0f, 0.3f}.normalized();
+        getRsc().cb.phongLight->lightColor = Float3{1.0f, 1.0f, 0.5f};
+        getRsc().cb.phongLight->eyePosition = m_camera.eyePosition();
+        getRsc().cb.phongLight->ambientColor = Float3{0.3f, 0.35f, 0.35f};
 
-        m_cb.phongLight.upload();
+        getRsc().cb.phongLight.upload();
 
         m_planeLight->lightDirection = Float3(0.5f, -1.0f, 0.5f).normalized();
         m_planeLight->lightColor = Float3{1.0f, 1.0f, 1.0f};
@@ -279,79 +268,6 @@ struct Demo_ImmediateDrawer_impl
         m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
         m_playerDrawer.draw();
-
-        // -----------------------------------------------
-
-        ImmediateDrawer::Global()
-            .push(Immediate3D::Line{
-                    Float3{0, -5, 0},
-                    Float3{10, 30, 10}
-                }.setColor(ColorF32{1.0f, 0.3f, 0.7f})
-            )
-            .push(Immediate2D::Rect{RectF{10, 10, 100, 50}})
-            .push(Immediate2D::Rect{RectF{1000, 10, 100, 50}}
-                .setColor(ColorF32{1.0f, 0.3f, 0.7f, 0.5f})
-            )
-            .push(Immediate2D::Line{Float2{100, 200}, Float2{200, 300}}
-                  .setThickness(5.0f)
-                  .setColor(ColorF32{1.0f, 0.9f, 0.3f})
-                  .asDotLine(InGameElapsedTime() * 50.0f)
-            )
-            .push(Immediate2D::Line{Float2{200, 200}, Float2{300, 400}}
-                  .setThickness(10.0f)
-                  .setColor(ColorF32{1.0f, 0.9f, 0.3f})
-            ).push(Immediate2D::Path({
-                       {400.0f, 500.0f}, {550.0f, 500.0f}, {600.0f, 600.0f}, {750.0f, 600.0f}, {850.0f, 550.0f},
-                       {900.0f, 700.0f}, {1100.0f, 710.0f}, {1150.0f, 500.0f}
-                   })
-                   .setThickness(50.0f)
-                   .setColor(ColorF32{0.3f, 1.0f, 0.7f})
-            )
-            .push(Immediate2D::Text(m_zxProtoBitmap, U"強化人間-san IS VERY INTERESTING")
-                  .setPosition({300, 300})
-                  .setColor(ColorF32{0.7, 0.4, 1.0})
-            )
-            .push(Immediate2D::Path({{1000, 600}, {1200, 600}, {1300, 800}, {1200, 1000}, {1000, 1000}, {900, 800}})
-                  .setThickness(50.0f)
-                  .setColor(ColorF32{0.1f, 1.0f, 0.3f})
-                  .asCycle()
-                // )
-                // .push(Immediate2D::Text(m_rocknRollOneSdf, U"メイン")
-                //       .setSize(200.0f)
-                //       .setPosition(Scene::Center().movedBy(0, 100), Alignment9::MiddleCenter)
-                //       .setColor(ColorF32{0.7, 1.0, 0.3})
-            ).push(Immediate2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
-                   .setSize(16.0f)
-                   .setPosition(Screen::Center(), Alignment9::MiddleLeft)
-                   .setColor(ColorF32{0.7})
-            ).push(Immediate2D::Text(m_rocknRollOneBitmap, U"メインシステム")
-                   .setSize(64.0f)
-                   .setPosition(Screen::Center().movedBy(0, -100), Alignment9::MiddleCenter)
-                   .setColor(ColorF32{0.7, 1.0, 0.3})
-            );
-
-        ImmediateDrawer::Global().draw();
-
-        if (KeySpace.down())
-        {
-            ImmediateDrawer::Global() = ImmediateDrawer{};
-        }
-
-        ImmediateDrawer::Global()
-            .push(Immediate2D::Rect{RectF{50, 500, 50, 50}})
-            .draw();
-
-        {
-            const auto bind = m_miniMap.scopedBind();
-
-            ImmediateDrawer::Global()
-                .push(Immediate2D::Rect{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
-            ImmediateDrawer::Global().draw();
-        }
-
-        m_miniMapDrawer.as2D().draw(Float2{500, 10});
-
-        // -----------------------------------------------
 
         {
             ImGui::Begin("Camera");
@@ -368,9 +284,9 @@ struct Demo_ImmediateDrawer_impl
                         targetPosition.z);
 
             ImGui::Text("Light Direction: (%.2f, %.2f, %.2f)",
-                        m_cb.phongLight->lightDirection.x,
-                        m_cb.phongLight->lightDirection.y,
-                        m_cb.phongLight->lightDirection.z);
+                        getRsc().cb.phongLight->lightDirection.x,
+                        getRsc().cb.phongLight->lightDirection.y,
+                        getRsc().cb.phongLight->lightDirection.z);
 
             ImGui::Separator();
 
@@ -404,9 +320,9 @@ private:
     }
 };
 
-void Demo_ImmediateDrawer()
+void Testbed_Basic3D()
 {
-    Demo_ImmediateDrawer_impl impl{};
+    Testbed_Basic3D_impl impl{};
 
     Screen::RequestResize({1920, 1080});
 

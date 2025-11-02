@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Demo_ShadowMap.h"
+#include "Testbed_ShadowMap.h"
 
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/DynamicTexture.h"
@@ -157,7 +157,7 @@ namespace
     InlineComponent<CommonResource> s_resource{};
 }
 
-struct Demo_ShadowMap_impl
+struct Testbed_ShadowMap_impl
 {
     SimpleCamera3D m_camera{};
 
@@ -180,7 +180,7 @@ struct Demo_ShadowMap_impl
 
     std::array<TextureDrawer, cascadeShadowMapCount> m_shadowMapDebugDrawers{};
 
-    Demo_ShadowMap_impl()
+    Testbed_ShadowMap_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -505,9 +505,9 @@ private:
     }
 };
 
-void Demo_ShadowMap()
+void Testbed_ShadowMap()
 {
-    Demo_ShadowMap_impl impl{};
+    Testbed_ShadowMap_impl impl{};
 
     Screen::RequestResize({1920, 1080});
 

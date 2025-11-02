@@ -1,14 +1,14 @@
 ﻿#include "pch.h"
 
 #include "imgui/imgui.h"
-#include "Demo_Font.h"
+#include "Testbed_ImmediateDrawer.h"
 
 #include "TY/BitmapFont.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/DynamicTexture.h"
 #include "TY/Gamepad.h"
+#include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
-#include "TY/Image.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
 
@@ -22,6 +22,7 @@
 #include "TY/RenderTarget.h"
 #include "TY/Screen.h"
 #include "TY/PrimitiveModel3D.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 
@@ -108,7 +109,7 @@ namespace
     constexpr float fovFarZ = 1000.0f;
 }
 
-struct Demo_Font_impl
+struct Testbed_ImmediateDrawer_impl
 {
     struct
     {
@@ -135,6 +136,12 @@ struct Demo_Font_impl
         ConstantBufferWrapper<PhongLight_b4> phongLight{};
     } m_cb;
 
+    BitmapFont m_zxProtoBitmap{"asset/font/0xProto/0xProto-Regular.ttf", 32};
+
+    BitmapFont m_rocknRollOneBitmap{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
+
+    SdfFont m_rocknRollOneSdf{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
+
     SimpleCamera3D m_camera{};
 
     ModelDrawer m_skydomeModel{};
@@ -150,10 +157,11 @@ struct Demo_Font_impl
 
     ModelDrawer m_mountainDrawer{};
 
-    BitmapFont m_fontBitmap{"asset/font/RocknRoll/RocknRollOne-Regular.ttf", 32};
-    TextureDrawer m_fontDrawer{};
+    RenderTarget m_miniMap{};
 
-    Demo_Font_impl()
+    TextureDrawer m_miniMapDrawer{};
+
+    Testbed_ImmediateDrawer_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -200,16 +208,15 @@ struct Demo_Font_impl
             .setCbv10AndLater({m_cb.phongLight})
         };
 
-        std::u32string text = U"abc にゃんぱすー。こまちゃんも妖精さんごっこするのん";
-        for (const char32_t c : text)
-        {
-            m_fontBitmap.fetchByCodePoint(c);
-        }
+        m_miniMap = RenderTarget{
+            RenderTargetParams{}
+            .setRtvAndClearColor(RtvParams{}.setSize({256, 256}).setClearColor(ColorF32{0.0f, 1.0f}))
+        };
 
-        m_fontDrawer = TextureDrawer{
+        m_miniMapDrawer = TextureDrawer{
             TextureDrawerParams{}
-            .setTexture({m_fontBitmap.atlasTexture()})
             .setShader(m_shaders.default2d)
+            .setTexture(m_miniMap.asTexture())
         };
     }
 
@@ -275,13 +282,74 @@ struct Demo_Font_impl
 
         // -----------------------------------------------
 
-        std::u32string text = U"携帯型心理診断鎮圧執行システム";
-        if (50 <= System::FrameCount() && System::FrameCount() < 50 + text.size())
+        ImmediateDrawer::Global()
+            .push(Immediate3D::Line{
+                    Float3{0, -5, 0},
+                    Float3{10, 30, 10}
+                }.setColor(ColorF32{1.0f, 0.3f, 0.7f})
+            )
+            .push(Immediate2D::Rect{RectF{10, 10, 100, 50}})
+            .push(Immediate2D::Rect{RectF{1000, 10, 100, 50}}
+                .setColor(ColorF32{1.0f, 0.3f, 0.7f, 0.5f})
+            )
+            .push(Immediate2D::Line{Float2{100, 200}, Float2{200, 300}}
+                  .setThickness(5.0f)
+                  .setColor(ColorF32{1.0f, 0.9f, 0.3f})
+                  .asDotLine(InGameElapsedTime() * 50.0f)
+            )
+            .push(Immediate2D::Line{Float2{200, 200}, Float2{300, 400}}
+                  .setThickness(10.0f)
+                  .setColor(ColorF32{1.0f, 0.9f, 0.3f})
+            ).push(Immediate2D::Path({
+                       {400.0f, 500.0f}, {550.0f, 500.0f}, {600.0f, 600.0f}, {750.0f, 600.0f}, {850.0f, 550.0f},
+                       {900.0f, 700.0f}, {1100.0f, 710.0f}, {1150.0f, 500.0f}
+                   })
+                   .setThickness(50.0f)
+                   .setColor(ColorF32{0.3f, 1.0f, 0.7f})
+            )
+            .push(Immediate2D::Text(m_zxProtoBitmap, U"強化人間-san IS VERY INTERESTING")
+                  .setPosition({300, 300})
+                  .setColor(ColorF32{0.7, 0.4, 1.0})
+            )
+            .push(Immediate2D::Path({{1000, 600}, {1200, 600}, {1300, 800}, {1200, 1000}, {1000, 1000}, {900, 800}})
+                  .setThickness(50.0f)
+                  .setColor(ColorF32{0.1f, 1.0f, 0.3f})
+                  .asCycle()
+                // )
+                // .push(Immediate2D::Text(m_rocknRollOneSdf, U"メイン")
+                //       .setSize(200.0f)
+                //       .setPosition(Scene::Center().movedBy(0, 100), Alignment9::MiddleCenter)
+                //       .setColor(ColorF32{0.7, 1.0, 0.3})
+            ).push(Immediate2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
+                   .setSize(16.0f)
+                   .setPosition(Screen::Center(), Alignment9::MiddleLeft)
+                   .setColor(ColorF32{0.7})
+            ).push(Immediate2D::Text(m_rocknRollOneBitmap, U"メインシステム")
+                   .setSize(64.0f)
+                   .setPosition(Screen::Center().movedBy(0, -100), Alignment9::MiddleCenter)
+                   .setColor(ColorF32{0.7, 1.0, 0.3})
+            );
+
+        ImmediateDrawer::Global().draw();
+
+        if (KeySpace.down())
         {
-            m_fontBitmap.fetchByCodePoint(text[System::FrameCount() - 50]);
+            ImmediateDrawer::Global() = ImmediateDrawer{};
         }
 
-        m_fontDrawer.as2D().scaled(3.0f).draw({20.0f, 20.0f});
+        ImmediateDrawer::Global()
+            .push(Immediate2D::Rect{RectF{50, 500, 50, 50}})
+            .draw();
+
+        {
+            const auto bind = m_miniMap.scopedBind();
+
+            ImmediateDrawer::Global()
+                .push(Immediate2D::Rect{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));
+            ImmediateDrawer::Global().draw();
+        }
+
+        m_miniMapDrawer.as2D().draw(Float2{500, 10});
 
         // -----------------------------------------------
 
@@ -336,9 +404,9 @@ private:
     }
 };
 
-void Demo_Font()
+void Testbed_ImmediateDrawer()
 {
-    Demo_Font_impl impl{};
+    Testbed_ImmediateDrawer_impl impl{};
 
     Screen::RequestResize({1920, 1080});
 

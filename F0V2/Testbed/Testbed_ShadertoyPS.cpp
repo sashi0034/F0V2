@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Demo_ShadertoyPS.h"
+#include "Testbed_ShadertoyPS.h"
 
 #include "imgui/imgui.h"
 
@@ -77,7 +77,7 @@ namespace
     InlineComponent<Resource_Shadertoy> s_rsc{};
 }
 
-struct Demo_ShadertoyPS_impl
+struct Testbed_ShadertoyPS_impl
 {
     GenericModelDrawer m_toyDrawer{};
 
@@ -87,7 +87,7 @@ struct Demo_ShadertoyPS_impl
 
     TextureDrawer m_lowResolutionDrawer{};
 
-    Demo_ShadertoyPS_impl()
+    Testbed_ShadertoyPS_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -160,9 +160,9 @@ struct Demo_ShadertoyPS_impl
 private:
 };
 
-void Demo_ShadertoyPS()
+void Testbed_ShadertoyPS()
 {
-    Demo_ShadertoyPS_impl impl{};
+    Testbed_ShadertoyPS_impl impl{};
 
     while (System::Update())
     {

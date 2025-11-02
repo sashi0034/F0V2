@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Demo_Collision2.h"
+#include "Testbed_Collision2.h"
 
 #include "imgui/imgui.h"
 
@@ -110,7 +110,7 @@ namespace
 
     // -----------------------------------------------
 
-    struct Resource_Demo_Collision2 : IInlineComponent
+    struct Resource_Testbed_Collision2 : IInlineComponent
     {
         struct
         {
@@ -142,17 +142,17 @@ namespace
             ConstantBufferWrapper<PhongLight_b4> phongLight{};
         } cb;
 
-        Resource_Demo_Collision2()
+        Resource_Testbed_Collision2()
         {
             models.toy_terrain = ModelBuffer{modelData.toy_terrain};
         }
     };
 
-    InlineComponent<Resource_Demo_Collision2> s_resource_Demo_Collision2{};
+    InlineComponent<Resource_Testbed_Collision2> s_resource_Testbed_Collision2{};
 
-    Resource_Demo_Collision2& getRsc()
+    Resource_Testbed_Collision2& getRsc()
     {
-        return s_resource_Demo_Collision2.get();
+        return s_resource_Testbed_Collision2.get();
     }
 
     // -----------------------------------------------
@@ -290,7 +290,7 @@ namespace
     };
 }
 
-struct Demo_Collision2_impl
+struct Testbed_Collision2_impl
 {
     SimpleCamera3D m_camera{};
 
@@ -306,7 +306,7 @@ struct Demo_Collision2_impl
     TriangleObject m_triangleObject{};
     CapsuleObject m_capsuleObject{};
 
-    Demo_Collision2_impl()
+    Testbed_Collision2_impl()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
 
@@ -658,9 +658,9 @@ private:
     }
 };
 
-void Demo_Collision2()
+void Testbed_Collision2()
 {
-    Demo_Collision2_impl impl{};
+    Testbed_Collision2_impl impl{};
 
     Screen::RequestResize({1920, 1080});
 

@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Demo_RenderTarget.h"
+#include "Testbed_RenderTarget.h"
 
 #include "TY/DiskTexture.h"
 #include "TY/DynamicTexture.h"
@@ -21,7 +21,7 @@
 
 using namespace TY;
 
-void Demo_RenderTarget()
+void Testbed_RenderTarget()
 {
     const PixelShader default2dPS{ShaderParams{.filepath = "asset/shader/default2d.hlsl", .entryPoint = "PS"}};
     const VertexShader default2dVS{ShaderParams{.filepath = "asset/shader/default2d.hlsl", .entryPoint = "VS"}};
