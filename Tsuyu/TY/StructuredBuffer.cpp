@@ -3,7 +3,7 @@
 
 #include "GpgpuBuffer.h"
 #include "Logger.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -26,7 +26,7 @@ struct StructuredBuffer::Impl
         uint8_t* readbackSrc{};
     };
 
-    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+    std::array<frame_resources, RenderContext_singleton::FrameBufferCount> m_frameResources{};
 
     size_t m_flushTimestamp{};
 
@@ -34,7 +34,7 @@ struct StructuredBuffer::Impl
 
     Impl(const UnorderedStructuredBufferParams& params, bool isWritable) : m_params(params), m_writable(isWritable)
     {
-        const auto device = EngineRenderContext::GetDevice();
+        const auto device = RenderContext_singleton::GetDevice();
 
         m_dataSize = params.elementCount * params.elementStride;
         if (m_dataSize <= 0)
@@ -81,18 +81,18 @@ struct StructuredBuffer::Impl
                 frameResource.readbackBuffer->Unmap(0, nullptr);
             }
 
-            EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
-            EngineRenderContext::SafeDisposeRenderResource(frameResource.readbackBuffer);
+            RenderContext_singleton::SafeDisposeRenderResource(frameResource.uploadBuffer);
+            RenderContext_singleton::SafeDisposeRenderResource(frameResource.readbackBuffer);
         }
 
-        EngineRenderContext::SafeDisposeRenderResource(m_finalBuffer);
+        RenderContext_singleton::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const uint8_t* src)
     {
-        m_flushTimestamp = EngineRenderContext::GetFlushTimestamp();
+        m_flushTimestamp = RenderContext_singleton::GetFlushTimestamp();
 
-        const size_t frameIndex = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t frameIndex = m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
 
         auto& frameResource = m_frameResources[frameIndex];
 
@@ -101,13 +101,13 @@ struct StructuredBuffer::Impl
         memcpy(frameResource.uploadDest, src, m_dataSize);
 
         // GPU へアップロード
-        const auto copyCommandList = EngineRenderContext::TargetCommandList();;
+        const auto copyCommandList = RenderContext_singleton::TargetCommandList();;
         copyCommandList->CopyResource(m_finalBuffer.Get(), frameResource.uploadBuffer.Get());
 
         // CopyResource で COPY_DEST 状態になっている m_finalBuffer を、UNORDERED_ACCESS に移す
         if (m_writable)
         {
-            const auto computeCommandList = EngineRenderContext::TargetCommandList();;
+            const auto computeCommandList = RenderContext_singleton::TargetCommandList();;
             const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 m_finalBuffer.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
@@ -120,7 +120,7 @@ struct StructuredBuffer::Impl
     {
         assert(m_writable);;
 
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_finalBuffer.Get());
@@ -129,7 +129,7 @@ struct StructuredBuffer::Impl
 
     static void AfterDispatch(const Array<UnorderedStructuredBuffer>& list)
     {
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         Array<D3D12_RESOURCE_BARRIER> barriers{};
         barriers.reserve(8);
@@ -151,7 +151,7 @@ struct StructuredBuffer::Impl
     {
         assert(m_writable);
 
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_finalBuffer.Get());
@@ -165,8 +165,8 @@ struct StructuredBuffer::Impl
         commandList->ResourceBarrier(1, &toCopySrc);
 
         // Copy GPU -> Readback
-        m_flushTimestamp = EngineRenderContext::GetFlushTimestamp();
-        const size_t frameIndex = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+        m_flushTimestamp = RenderContext_singleton::GetFlushTimestamp();
+        const size_t frameIndex = m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
         auto& frameResource = m_frameResources[frameIndex];
 
         if (not ensureReadbackBuffer(frameResource, m_dataSize)) return;
@@ -183,7 +183,7 @@ struct StructuredBuffer::Impl
 
     static void BeforeFlush(const Array<UnorderedStructuredBuffer>& list)
     {
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
         Array<D3D12_RESOURCE_BARRIER> barriers;
@@ -211,8 +211,8 @@ struct StructuredBuffer::Impl
             auto& impl = list[i].p_impl;
             if (not impl) continue;
 
-            impl->m_flushTimestamp = EngineRenderContext::GetFlushTimestamp();
-            const size_t frameIndex = impl->m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+            impl->m_flushTimestamp = RenderContext_singleton::GetFlushTimestamp();
+            const size_t frameIndex = impl->m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
             auto& frameResource = impl->m_frameResources[frameIndex];
 
             if (not ensureReadbackBuffer(frameResource, impl->m_dataSize)) return;
@@ -248,7 +248,7 @@ struct StructuredBuffer::Impl
             return;
         }
 
-        const size_t frameIndex = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t frameIndex = m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
         auto& frameResource = m_frameResources[frameIndex];
         assert(frameResource.readbackSrc);
 
@@ -263,7 +263,7 @@ private:
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
 
-            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+            if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
                     &heapProperties,
                     D3D12_HEAP_FLAG_NONE,
                     &resourceDesc,
@@ -299,7 +299,7 @@ private:
         {
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
-            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+            if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
                     &heapProperties,
                     D3D12_HEAP_FLAG_NONE,
                     &resourceDesc,

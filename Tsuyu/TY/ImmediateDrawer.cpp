@@ -9,7 +9,7 @@
 #include "ImmediateBuilder3D.h"
 #include "VertexBuffer.h"
 #include "detail/EngineComponent.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 #include "detail/GraphicsPipelineState.h"
 #include "detail/RenderEventComponent.h"
 #include "detail/ImmediateDrawer_Component.h"
@@ -212,7 +212,7 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
 
     void Draw()
     {
-        EngineRenderContext::RefreshSceneStateIfNeeded();
+        RenderContext_singleton::RefreshSceneStateIfNeeded();
 
         flushCurrentBuffer(m_stateManager.Current());
 

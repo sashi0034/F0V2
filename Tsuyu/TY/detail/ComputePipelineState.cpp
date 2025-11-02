@@ -3,7 +3,7 @@
 
 #include "EngineHotReloader.h"
 #include "EnginePresetAsset.h"
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "RootSignature.h"
 #include "TY/Logger.h"
 #include "TY/System.h"
@@ -38,8 +38,8 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
 
     void DisposeRenderResource()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_pso);
-        EngineRenderContext::SafeDisposeRenderResource(m_rootSignature.get());
+        RenderContext_singleton::SafeDisposeRenderResource(m_pso);
+        RenderContext_singleton::SafeDisposeRenderResource(m_rootSignature.get());
     }
 
     void HotReload() override
@@ -63,7 +63,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
         desc.CS.pShaderBytecode = cs.getBlob()->GetBufferPointer();
         desc.CS.BytecodeLength = cs.getBlob()->GetBufferSize();
 
-        const auto device = EngineRenderContext::GetDevice();
+        const auto device = RenderContext_singleton::GetDevice();
         if (const auto hr = device->CreateComputePipelineState(
                 &desc, IID_PPV_ARGS(m_pso.ReleaseAndGetAddressOf()));
             FAILED(hr))
@@ -77,7 +77,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
         commandList->SetPipelineState(m_pso.Get());
         commandList->SetComputeRootSignature(m_rootSignature.getPointer());
     }

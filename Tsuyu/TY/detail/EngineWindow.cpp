@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "EngineWindow.h"
 
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "TY/Vector2D.h"
 
 #include "backends/imgui_impl_win32.h"
@@ -165,13 +165,13 @@ struct EngineWindowImpl
     {
         m_fullscreen = enable;
 
-        EngineRenderContext::RequestFullscreen(enable);
+        RenderContext_singleton::RequestFullscreen(enable);
 
         const HWND hwnd = m_handle;
 
         if (enable)
         {
-            if (EngineRenderContext::IsFullscreen())
+            if (RenderContext_singleton::IsFullscreen())
             {
                 // DXGI 側で制御された場合は何もしない
                 m_rectBeforeFullscreen = {};

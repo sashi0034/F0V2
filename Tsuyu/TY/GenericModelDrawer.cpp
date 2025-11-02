@@ -2,7 +2,7 @@
 #include "GenericModelDrawer.h"
 
 #include "detail/DescriptorHeap.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 #include "detail/GraphicsPipelineState.h"
 #include "TY/Graphics3D.h"
 #include "TY/Logger.h"
@@ -58,7 +58,7 @@ struct GenericModelDrawer::Impl
                 m_modelBuffer->materialCount(), // [2]
             },
             .descriptors = {
-                CbvSrvUavSet{{EngineRenderContext::GetSceneState3D_CB0()}, {}, {}}, // [0]
+                CbvSrvUavSet{{RenderContext_singleton::GetSceneState3D_CB0()}, {}, {}}, // [0]
                 CbvSrvUavSet{{m_cb1}, {}, {}}, // [1]
                 CbvSrvUavSet{{m_modelBuffer->materialCbv()}, std::move(materialSrv), {}}, // [2],
             },
@@ -114,7 +114,7 @@ struct GenericModelDrawer::Impl
 
     void Draw() const
     {
-        EngineRenderContext::RefreshSceneStateIfNeeded();
+        RenderContext_singleton::RefreshSceneStateIfNeeded();
 
         m_pso.commandSet();
 

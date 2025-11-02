@@ -2,7 +2,7 @@
 #include "MipmappedDynamicTexture.h"
 
 #include "Logger.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -53,12 +53,12 @@ struct MipmappedDynamicTexture::Impl
         //     EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
         // }
 
-        EngineRenderContext::SafeDisposeRenderResource(m_uploadBuffer); // TODO
+        RenderContext_singleton::SafeDisposeRenderResource(m_uploadBuffer); // TODO
     }
 
     bool Create(const ImageView& image)
     {
-        ID3D12Device* device = EngineRenderContext::GetDevice();
+        ID3D12Device* device = RenderContext_singleton::GetDevice();
 
         // -----------------------------------------------
         // ImageView --> ScratchImage
@@ -165,7 +165,7 @@ struct MipmappedDynamicTexture::Impl
         m_uploadBuffer->SetName(L"MipmappedTexture::Upload");
 
         // エンジンのコマンドリストに記録（実行・フェンス待ちはエンジン側ポリシーに従う）
-        auto cmdList = EngineRenderContext::TargetCommandList();
+        auto cmdList = RenderContext_singleton::TargetCommandList();
 
         UpdateSubresources(cmdList, m_textureHandle.getResource(), m_uploadBuffer.Get(), 0, 0, subresourceCount,
                            subresources.data());

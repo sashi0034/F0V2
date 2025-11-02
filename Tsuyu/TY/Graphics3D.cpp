@@ -4,7 +4,7 @@
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 #include "detail/EngineCore.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 #include "detail/EngineStateContext.h"
 #include "detail/SceneState3D_singleton.h"
 
@@ -19,7 +19,7 @@ namespace
         int indexCount,
         D3D12_PRIMITIVE_TOPOLOGY topology)
     {
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         if (not vertexBuffer.isEmpty())
         {

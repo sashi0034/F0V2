@@ -3,7 +3,7 @@
 
 #include "EngineCore.h"
 #include "EnginePresetAsset.h"
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "TY/Logger.h"
 
 using namespace TY;
@@ -104,7 +104,7 @@ namespace
         D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
         cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
         cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
-        EngineRenderContext::GetDevice()->CreateConstantBufferView(&cbvDesc, heapHandle);
+        RenderContext_singleton::GetDevice()->CreateConstantBufferView(&cbvDesc, heapHandle);
 
         return true;
     }
@@ -147,7 +147,7 @@ namespace
             return false;
         }
 
-        EngineRenderContext::GetDevice()->CreateShaderResourceView(p_resource, &srvDesc, heapHandle);
+        RenderContext_singleton::GetDevice()->CreateShaderResourceView(p_resource, &srvDesc, heapHandle);
         return true;
     }
 
@@ -209,7 +209,7 @@ namespace
             return false;
         }
 
-        EngineRenderContext::GetDevice()->CreateUnorderedAccessView(
+        RenderContext_singleton::GetDevice()->CreateUnorderedAccessView(
             pResource,
             nullptr,
             &uavDesc,
@@ -241,7 +241,7 @@ namespace
 
     UINT getHandleIncrementalSize()
     {
-        return EngineRenderContext::GetDevice()->GetDescriptorHandleIncrementSize(
+        return RenderContext_singleton::GetDevice()->GetDescriptorHandleIncrementSize(
             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 }
@@ -275,7 +275,7 @@ struct DescriptorHeap::Impl
         descriptorHeapDesc.NumDescriptors = m_descriptorsCount;
         descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-        if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateDescriptorHeap(
+        if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateDescriptorHeap(
                 &descriptorHeapDesc,
                 IID_PPV_ARGS(&m_descriptorHeap));
             FAILED(hr))
@@ -335,7 +335,7 @@ struct DescriptorHeap::Impl
 
     ~Impl()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_descriptorHeap);
+        RenderContext_singleton::SafeDisposeRenderResource(m_descriptorHeap);
     }
 
     void RegisterSRV(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
@@ -354,7 +354,7 @@ struct DescriptorHeap::Impl
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
         const auto incrementSize =
-            EngineRenderContext::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            RenderContext_singleton::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
         heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
@@ -381,7 +381,7 @@ struct DescriptorHeap::Impl
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
         const auto incrementSize =
-            EngineRenderContext::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            RenderContext_singleton::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
         heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
@@ -397,7 +397,7 @@ struct DescriptorHeap::Impl
 
     void CommandSet() const
     {
-        EngineRenderContext::TargetCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
+        RenderContext_singleton::TargetCommandList()->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
     }
 
     void CommandSetGraphicsTable(int tableId, int materialId) const
@@ -405,7 +405,7 @@ struct DescriptorHeap::Impl
         auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
-        EngineRenderContext::TargetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
+        RenderContext_singleton::TargetCommandList()->SetGraphicsRootDescriptorTable(tableId, heapHandle);
     }
 
     void CommandSetComputeTable(int tableId, int materialId) const
@@ -413,7 +413,7 @@ struct DescriptorHeap::Impl
         auto heapHandle = m_descriptorHeap->GetGPUDescriptorHandleForHeapStart();
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
-        EngineRenderContext::TargetCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
+        RenderContext_singleton::TargetCommandList()->SetComputeRootDescriptorTable(tableId, heapHandle);
     }
 };
 

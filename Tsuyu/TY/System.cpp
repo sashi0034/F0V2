@@ -4,7 +4,7 @@
 #include "AssertObject.h"
 #include "detail/EngineTimer.h"
 #include "detail/EngineCore.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY::detail;
 
@@ -71,6 +71,6 @@ namespace TY
 
     IGpuMemoryUsage& System::GpuMemoryUsage()
     {
-        return EngineRenderContext::GpuMemoryUsage();
+        return RenderContext_singleton::GpuMemoryUsage();
     }
 }

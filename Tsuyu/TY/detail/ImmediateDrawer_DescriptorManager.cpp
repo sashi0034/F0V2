@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "ImmediateDrawer_DescriptorManager.h"
 
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 
 namespace
 {
@@ -14,7 +14,7 @@ namespace TY::ImmediateDrawer_detail
     {
         heap_type heap{};
 
-        auto&& cbv0 = EngineRenderContext::GetSceneState3D_CB0();
+        auto&& cbv0 = RenderContext_singleton::GetSceneState3D_CB0();
 
         heap.cbv1 = ConstantBufferWrapper<ImmediateDrawer_b1>();
 

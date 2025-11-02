@@ -9,7 +9,7 @@
 #include "System.h"
 #include "Utils.h"
 #include "detail/EngineHotReloader.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 #include "detail/IEngineHotReloadable.h"
 
 using namespace TY;
@@ -50,7 +50,7 @@ struct TY::Shader_impl : IEngineHotReloadable
 
     void DisposeRenderResource()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_shaderBlob);
+        RenderContext_singleton::SafeDisposeRenderResource(m_shaderBlob);
     }
 
     void HotReload() override

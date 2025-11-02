@@ -7,7 +7,7 @@
 #include "EngineImGUI.h"
 #include "EngineKeyboardMouse.h"
 #include "EnginePresetAsset.h"
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "EngineStateContext.h"
 #include "EngineTimer.h"
 #include "EngineWindow.h"
@@ -68,7 +68,7 @@ struct EngineCoreImpl
 
         EngineWindow::Init();
 
-        EngineRenderContext::Init();
+        RenderContext_singleton::Init();
 
         EngineWindow::Show(); // <-- window will be shown
 
@@ -85,7 +85,7 @@ struct EngineCoreImpl
     {
         m_inFrame = true;
 
-        EngineRenderContext::NewFrame();
+        RenderContext_singleton::NewFrame();
 
         EngineImGui::NewFrame();
 
@@ -116,7 +116,7 @@ struct EngineCoreImpl
 
         EngineImGui::Render();
 
-        EngineRenderContext::Render();
+        RenderContext_singleton::Render();
 
         EngineWindow::AfterPresent();
 
@@ -144,7 +144,7 @@ struct EngineCoreImpl
         EngineComponent::Shutdown();
 
         // 他のリソースを全て解放してからレンダリングリソースを解放する
-        EngineRenderContext::Shutdown();
+        RenderContext_singleton::Shutdown();
 
         // FIXME: 順序関係?
     }

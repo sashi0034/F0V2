@@ -5,7 +5,7 @@
 #include "BufferHandle.h"
 #include "Uncopyable.h"
 #include "Utils.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -33,7 +33,7 @@ namespace
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(unitSize * maxCapacity);
 
             assert(not m.uploadBuffer);
-            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+            if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
                     &heapProperties,
                     D3D12_HEAP_FLAG_NONE,
                     &resourceDesc,
@@ -129,7 +129,7 @@ namespace
         {
             Unmap();
 
-            EngineRenderContext::SafeDisposeRenderResource(m.uploadBuffer);
+            RenderContext_singleton::SafeDisposeRenderResource(m.uploadBuffer);
         }
     };
 }
@@ -146,7 +146,7 @@ struct ConstantBufferArrayImpl::Impl
 
     using frame_resources = FrameResource;
 
-    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+    std::array<frame_resources, RenderContext_singleton::FrameBufferCount> m_frameResources{};
 
     size_t m_uploadTimestamp{};
 
@@ -159,7 +159,7 @@ struct ConstantBufferArrayImpl::Impl
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_alignedSize * count);
 
-        if (const auto hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+        if (const auto hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -186,9 +186,9 @@ struct ConstantBufferArrayImpl::Impl
         assert(count <= m_materialCount);
 
         const size_t previousUploadTimestamp = m_uploadTimestamp;
-        m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
+        m_uploadTimestamp = RenderContext_singleton::GetFlushTimestamp();
 
-        const size_t frameIndex = m_uploadTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t frameIndex = m_uploadTimestamp % RenderContext_singleton::FrameBufferCount;
 
         auto& frameResource = m_frameResources[frameIndex];
 
@@ -221,7 +221,7 @@ struct ConstantBufferArrayImpl::Impl
 
         m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
-        EngineRenderContext::TargetCommandList()->CopyBufferRegion(
+        RenderContext_singleton::TargetCommandList()->CopyBufferRegion(
             m_bufferHandle.getResource(),
             0,
             frameResource.UploadBuffer(),

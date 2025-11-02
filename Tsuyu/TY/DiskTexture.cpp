@@ -4,7 +4,7 @@
 #include "AssertObject.h"
 #include "System.h"
 #include "Utils.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -19,7 +19,7 @@ struct DiskTexture::Impl
 
     ~Impl()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_uploadBuffer);
+        RenderContext_singleton::SafeDisposeRenderResource(m_uploadBuffer);
     }
 
     Impl(const std::wstring& filename)
@@ -63,7 +63,7 @@ struct DiskTexture::Impl
 
         // アップロード用中間バッファの作成
         AssertWin32{"failed to create commited resource"sv}
-            | EngineRenderContext::GetDevice()->CreateCommittedResource(
+            | RenderContext_singleton::GetDevice()->CreateCommittedResource(
                 &uploadBufferDesc,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -90,7 +90,7 @@ struct DiskTexture::Impl
 
         // テクスチャバッファ作成
         AssertWin32{""sv}
-            | EngineRenderContext::GetDevice()->CreateCommittedResource(
+            | RenderContext_singleton::GetDevice()->CreateCommittedResource(
                 &textureHeapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -137,7 +137,7 @@ struct DiskTexture::Impl
             static_cast<UINT>(AlignedSize(rawImage->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
         srcCopyLocation.PlacedFootprint.Footprint.Format = rawImage->format;
 
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 

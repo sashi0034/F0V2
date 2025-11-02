@@ -25,7 +25,7 @@ namespace TY::detail
         ComPtr<ID3D12DescriptorHeap>
     >;
 
-    namespace EngineRenderContext
+    namespace RenderContext_singleton
     {
         constexpr int FrameBufferCount = 2;
 

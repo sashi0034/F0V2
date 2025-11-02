@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "RootSignature.h"
 
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "TY/AssertObject.h"
 #include "TY/Logger.h"
 #include "TY/System.h"
@@ -238,7 +238,7 @@ namespace TY::detail
         }
 
         AssertWin32{"failed to create root signature"sv}
-            | EngineRenderContext::GetDevice()->CreateRootSignature(
+            | RenderContext_singleton::GetDevice()->CreateRootSignature(
                 0,
                 rootSignatureBlob->GetBufferPointer(),
                 rootSignatureBlob->GetBufferSize(),

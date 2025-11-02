@@ -4,7 +4,7 @@
 #include "Logger.h"
 #include "RenderTargetTexture.h"
 #include "TextureDrawer.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -55,16 +55,16 @@ struct RenderTarget::Impl
 
     ~Impl()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_rtvDescriptorHeap);
-        EngineRenderContext::SafeDisposeRenderResource(m_dsvDescriptorHeap);
+        RenderContext_singleton::SafeDisposeRenderResource(m_rtvDescriptorHeap);
+        RenderContext_singleton::SafeDisposeRenderResource(m_dsvDescriptorHeap);
 
         // EngineRenderContext::SafeDisposeRenderResource(m_rtvResource);
-        EngineRenderContext::SafeDisposeRenderResource(m_dsvResource);
+        RenderContext_singleton::SafeDisposeRenderResource(m_dsvResource);
     }
 
     bool CreateInternal(const RenderTargetParams& params)
     {
-        const auto device = EngineRenderContext::GetDevice();
+        const auto device = RenderContext_singleton::GetDevice();
 
         {
             CD3DX12_RESOURCE_DESC resourceDesc{};
@@ -149,7 +149,7 @@ struct RenderTarget::Impl
 
     void CommandSetViewportAndScissorsRect() const
     {
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         // ビューポートの設定
         D3D12_VIEWPORT viewport = {};
@@ -172,7 +172,7 @@ struct RenderTarget::Impl
 
     ScopedRenderTarget ScopedBind()
     {
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         const auto previousResourceState = m_rtvResource.getResourceState();
         m_rtvResource.transitionResourceState(D3D12_RESOURCE_STATE_RENDER_TARGET);

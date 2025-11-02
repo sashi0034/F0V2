@@ -2,7 +2,7 @@
 #include "BufferHandle.h"
 
 #include "Logger.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -14,14 +14,14 @@ struct BufferHandle::Impl
 
     ~Impl()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_resourceBuffer);
+        RenderContext_singleton::SafeDisposeRenderResource(m_resourceBuffer);
     }
 
     void TransitionResourceState(D3D12_RESOURCE_STATES newState)
     {
         if (m_resourceState != newState)
         {
-            const auto commandList = EngineRenderContext::TargetCommandList();
+            const auto commandList = RenderContext_singleton::TargetCommandList();
 
             D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 m_resourceBuffer.Get(),

@@ -3,7 +3,7 @@
 
 #include "BufferHandle.h"
 #include "Logger.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -24,13 +24,13 @@ struct VertexBufferImpl::Impl
         uint8_t* dest{};
     };
 
-    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+    std::array<frame_resources, RenderContext_singleton::FrameBufferCount> m_frameResources{};
 
     size_t m_uploadTimestamp{};
 
     Impl(int sizeInBytes, int strideInBytes)
     {
-        const auto device = EngineRenderContext::GetDevice();
+        const auto device = RenderContext_singleton::GetDevice();
 
         const D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes);
@@ -69,16 +69,16 @@ struct VertexBufferImpl::Impl
                 frameResource.uploadBuffer->Unmap(0, nullptr);
             }
 
-            EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
+            RenderContext_singleton::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
     }
 
     void Upload(const void* data, size_t size)
     {
         const size_t previousUploadTimestamp = m_uploadTimestamp;
-        m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
+        m_uploadTimestamp = RenderContext_singleton::GetFlushTimestamp();
 
-        const size_t frameIndex = m_uploadTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t frameIndex = m_uploadTimestamp % RenderContext_singleton::FrameBufferCount;
 
         auto& frameResource = m_frameResources[frameIndex];
 
@@ -87,7 +87,7 @@ struct VertexBufferImpl::Impl
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_vertBufferView.SizeInBytes);
 
-            if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+            if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
                     &heapProperties,
                     D3D12_HEAP_FLAG_NONE,
                     &resourceDesc,
@@ -119,7 +119,7 @@ struct VertexBufferImpl::Impl
 
         m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
-        EngineRenderContext::TargetCommandList()->CopyBufferRegion(
+        RenderContext_singleton::TargetCommandList()->CopyBufferRegion(
             m_bufferHandle.getResource(),
             0,
             frameResource.uploadBuffer.Get(),
@@ -138,7 +138,7 @@ struct VertexBufferImpl::Impl
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
         commandList->IASetVertexBuffers(0, 1, &m_vertBufferView);
     }
 };

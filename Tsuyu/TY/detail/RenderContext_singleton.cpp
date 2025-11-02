@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
@@ -53,7 +53,7 @@ namespace
     }
 }
 
-struct EngineRenderContextImpl
+struct RenderContextImpl
 {
     bool m_valid{};
 
@@ -73,7 +73,7 @@ struct EngineRenderContextImpl
 
     ComPtr<IDXGISwapChain4> m_swapChain{};
 
-    std::array<RenderTarget, EngineRenderContext::FrameBufferCount> m_backBuffers{};
+    std::array<RenderTarget, RenderContext_singleton::FrameBufferCount> m_backBuffers{};
     ScopedRenderTarget m_scopedBackBuffer{};
 
     Mat3x2 m_windowToFrameBuffer{};
@@ -87,7 +87,7 @@ struct EngineRenderContextImpl
 
     ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
 
-    std::array<Array<RenderResource>, EngineRenderContext::FrameBufferCount> m_disposedRenderResources{};
+    std::array<Array<RenderResource>, RenderContext_singleton::FrameBufferCount> m_disposedRenderResources{};
 
     // Copy のフラッシュとともに加算
     size_t m_flushTimestamp{};
@@ -175,7 +175,7 @@ struct EngineRenderContextImpl
         swapchainDesc.SampleDesc.Count = 1;
         swapchainDesc.SampleDesc.Quality = 0;
         swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
-        swapchainDesc.BufferCount = EngineRenderContext::FrameBufferCount;
+        swapchainDesc.BufferCount = RenderContext_singleton::FrameBufferCount;
         swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
@@ -233,7 +233,7 @@ struct EngineRenderContextImpl
 
     Array<RenderResource>& CurrentDisposedRenderResources()
     {
-        const size_t index = m_flushTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t index = m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
         return m_disposedRenderResources[index];
     }
 
@@ -297,7 +297,7 @@ struct EngineRenderContextImpl
 private:
     void setupBackBuffers()
     {
-        for (int i = 0; i < EngineRenderContext::FrameBufferCount; ++i)
+        for (int i = 0; i < RenderContext_singleton::FrameBufferCount; ++i)
         {
             TextureHandle backBuffer{};
             m_swapChain->GetBuffer(i, IID_PPV_ARGS(backBuffer.assignResourceAddress(D3D12_RESOURCE_STATE_PRESENT)));
@@ -421,7 +421,7 @@ private:
         }
 
         if (const auto hr = m_swapChain->ResizeBuffers(
-                EngineRenderContext::FrameBufferCount,
+                RenderContext_singleton::FrameBufferCount,
                 newSize.x,
                 newSize.y,
                 DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -442,27 +442,27 @@ private:
 
 namespace
 {
-    EngineRenderContextImpl s_renderContext{};
+    RenderContextImpl s_renderContext{};
 }
 
 namespace TY::detail
 {
-    void EngineRenderContext::Init()
+    void RenderContext_singleton::Init()
     {
         s_renderContext.Init();
     }
 
-    void EngineRenderContext::NewFrame()
+    void RenderContext_singleton::NewFrame()
     {
         s_renderContext.NewFrame();
     }
 
-    void EngineRenderContext::Render()
+    void RenderContext_singleton::Render()
     {
         s_renderContext.Render();
     }
 
-    void EngineRenderContext::Shutdown()
+    void RenderContext_singleton::Shutdown()
     {
         s_renderContext.OnShutdown();
 
@@ -472,65 +472,65 @@ namespace TY::detail
         reportLiveObjects();
     }
 
-    ID3D12Device* EngineRenderContext::GetDevice()
+    ID3D12Device* RenderContext_singleton::GetDevice()
     {
         assert(s_renderContext.m_device);
         return s_renderContext.m_device.Get();
     }
 
-    ID3D12GraphicsCommandList* EngineRenderContext::TargetCommandList()
+    ID3D12GraphicsCommandList* RenderContext_singleton::TargetCommandList()
     {
         return s_renderContext.m_drawCommandList.getCommandList(); // TODO: draw or compute
     }
 
-    void EngineRenderContext::FlushComputeCommandSync()
+    void RenderContext_singleton::FlushComputeCommandSync()
     {
         // s_renderContext.FlushComputeCommandSync();
     }
 
-    void EngineRenderContext::RequestFrameBufferSize(Size frameBufferSize)
+    void RenderContext_singleton::RequestFrameBufferSize(Size frameBufferSize)
     {
         s_renderContext.m_wantsFrameBufferSize = frameBufferSize;
     }
 
-    void EngineRenderContext::RequestFullscreen(bool fullscreen)
+    void RenderContext_singleton::RequestFullscreen(bool fullscreen)
     {
         s_renderContext.m_wantsFullscreen = fullscreen;
     }
 
-    bool EngineRenderContext::IsFullscreen()
+    bool RenderContext_singleton::IsFullscreen()
     {
         BOOL fullscreen;
         s_renderContext.m_swapChain->GetFullscreenState(&fullscreen, nullptr);
         return fullscreen != FALSE;
     }
 
-    Size EngineRenderContext::FrameBufferSize()
+    Size RenderContext_singleton::FrameBufferSize()
     {
         return s_renderContext.m_frameBufferSize;
     }
 
-    Mat3x2 EngineRenderContext::WindowToFrameBuffer()
+    Mat3x2 RenderContext_singleton::WindowToFrameBuffer()
     {
         return s_renderContext.m_windowToFrameBuffer;
     }
 
-    Mat3x2 EngineRenderContext::FrameBufferToWindow()
+    Mat3x2 RenderContext_singleton::FrameBufferToWindow()
     {
         return s_renderContext.m_frameBufferToWindow;
     }
 
-    void EngineRenderContext::RefreshSceneStateIfNeeded()
+    void RenderContext_singleton::RefreshSceneStateIfNeeded()
     {
         s_renderContext.RefreshSceneStateIfNeeded();
     }
 
-    ConstantBuffer<SceneState3D_b0> EngineRenderContext::GetSceneState3D_CB0()
+    ConstantBuffer<SceneState3D_b0> RenderContext_singleton::GetSceneState3D_CB0()
     {
         return s_renderContext.m_sceneState3D;
     }
 
-    void EngineRenderContext::SafeDisposeRenderResource(const RenderResource& renderResource)
+    void RenderContext_singleton::SafeDisposeRenderResource(const RenderResource& renderResource)
     {
         if (not isNull(renderResource))
         {
@@ -538,12 +538,12 @@ namespace TY::detail
         }
     }
 
-    size_t EngineRenderContext::GetFlushTimestamp()
+    size_t RenderContext_singleton::GetFlushTimestamp()
     {
         return s_renderContext.m_flushTimestamp;
     }
 
-    IGpuMemoryUsage& EngineRenderContext::GpuMemoryUsage()
+    IGpuMemoryUsage& RenderContext_singleton::GpuMemoryUsage()
     {
         return s_renderContext.m_gpuMemoryUsage;
     }

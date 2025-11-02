@@ -2,7 +2,7 @@
 #include "Screen.h"
 
 #include "detail/EngineCore.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 namespace TY
 {
@@ -10,17 +10,17 @@ namespace TY
 
     void Screen::RequestResize(TY::Size size)
     {
-        EngineRenderContext::RequestFrameBufferSize(size);
+        RenderContext_singleton::RequestFrameBufferSize(size);
     }
 
     Size Screen::Size()
     {
-        return EngineRenderContext::FrameBufferSize();
+        return RenderContext_singleton::FrameBufferSize();
     }
 
     TY::SizeF Screen::SizeF()
     {
-        return EngineRenderContext::FrameBufferSize();
+        return RenderContext_singleton::FrameBufferSize();
     }
 
     Point Screen::Center()

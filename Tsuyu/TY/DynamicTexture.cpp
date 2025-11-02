@@ -2,7 +2,7 @@
 #include "DynamicTexture.h"
 
 #include "Logger.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -22,7 +22,7 @@ struct DynamicTexture::Impl
         uint8_t* dest{};
     };
 
-    std::array<frame_resources, EngineRenderContext::FrameBufferCount> m_frameResources{};
+    std::array<frame_resources, RenderContext_singleton::FrameBufferCount> m_frameResources{};
 
     size_t m_uploadTimestamp{};
 
@@ -47,7 +47,7 @@ struct DynamicTexture::Impl
         resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
         resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-        if (const HRESULT hr = EngineRenderContext::GetDevice()->CreateCommittedResource(
+        if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -76,7 +76,7 @@ struct DynamicTexture::Impl
                 frameResource.uploadBuffer->Unmap(0, nullptr);
             }
 
-            EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
+            RenderContext_singleton::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
     }
 
@@ -88,9 +88,9 @@ struct DynamicTexture::Impl
             return;
         }
 
-        m_uploadTimestamp = EngineRenderContext::GetFlushTimestamp();
+        m_uploadTimestamp = RenderContext_singleton::GetFlushTimestamp();
 
-        const size_t frameIndex = m_uploadTimestamp % EngineRenderContext::FrameBufferCount;
+        const size_t frameIndex = m_uploadTimestamp % RenderContext_singleton::FrameBufferCount;
 
         auto& frameResource = m_frameResources[frameIndex];
 
@@ -101,7 +101,7 @@ struct DynamicTexture::Impl
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
 
-            if (FAILED(EngineRenderContext::GetDevice()->CreateCommittedResource(
+            if (FAILED(RenderContext_singleton::GetDevice()->CreateCommittedResource(
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -129,7 +129,7 @@ struct DynamicTexture::Impl
         // -----------------------------------------------
         // footprint
 
-        ID3D12Device* device = EngineRenderContext::GetDevice();
+        ID3D12Device* device = RenderContext_singleton::GetDevice();
 
         const D3D12_RESOURCE_DESC desc = m_textureHandle.getResource()->GetDesc();
         D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
@@ -175,7 +175,7 @@ struct DynamicTexture::Impl
         srcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
         srcCopyLocation.PlacedFootprint = footprint;
 
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
 
         m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 

@@ -5,7 +5,7 @@
 #include "TY/AssertObject.h"
 #include "EngineHotReloader.h"
 #include "EnginePresetAsset.h"
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "IEngineHotReloadable.h"
 #include "RootSignature.h"
 #include "TY/IComponent.h"
@@ -109,8 +109,8 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
     void DisposeRenderResource()
     {
-        EngineRenderContext::SafeDisposeRenderResource(m_pso);
-        EngineRenderContext::SafeDisposeRenderResource(m_rootSignature.get());
+        RenderContext_singleton::SafeDisposeRenderResource(m_pso);
+        RenderContext_singleton::SafeDisposeRenderResource(m_rootSignature.get());
     }
 
     void HotReload() override
@@ -151,7 +151,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
     HRESULT createPipelineState(const GraphicsPipelineStateParams& params)
     {
-        const auto device = EngineRenderContext::GetDevice();
+        const auto device = RenderContext_singleton::GetDevice();
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc = {};
 
         const auto vs = params.shader.vs;
@@ -250,7 +250,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
     void CommandSet() const
     {
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
         commandList->SetPipelineState(m_pso.Get());
         commandList->SetGraphicsRootSignature(m_rootSignature.getPointer());
     }

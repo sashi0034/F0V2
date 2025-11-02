@@ -3,7 +3,7 @@
 
 #include "DescriptorHeap.h"
 #include "EngineCore.h"
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "EngineWindow.h"
 #include "backends/imgui_impl_dx12.h"
 #include "backends/imgui_impl_win32.h"
@@ -25,17 +25,17 @@ struct EngineImGuiImpl
 
         ImGui_ImplWin32_Init(EngineWindow::Handle());
 
-        constexpr int framesInFlight = EngineRenderContext::FrameBufferCount;
+        constexpr int framesInFlight = RenderContext_singleton::FrameBufferCount;
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
         srvHeapDesc.NumDescriptors = 1 * framesInFlight;
         srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         srvHeapDesc.NodeMask = 0;
 
-        EngineRenderContext::GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvHeap));
+        RenderContext_singleton::GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvHeap));
 
         ImGui_ImplDX12_Init(
-            EngineRenderContext::GetDevice(),
+            RenderContext_singleton::GetDevice(),
             framesInFlight,
             DXGI_FORMAT_R8G8B8A8_UNORM,
             m_srvHeap.Get(),
@@ -76,7 +76,7 @@ namespace TY::detail
         io.DisplaySize = windowSize.cast<ImVec2>();
 
         io.DisplayFramebufferScale =
-            (Float2(EngineRenderContext::FrameBufferSize()) / Float2(EngineWindow::GetSize())).cast<ImVec2>();
+            (Float2(RenderContext_singleton::FrameBufferSize()) / Float2(EngineWindow::GetSize())).cast<ImVec2>();
 
         ImGui_ImplDX12_NewFrame();
         ImGui_ImplWin32_NewFrame();
@@ -87,7 +87,7 @@ namespace TY::detail
     {
         ImGui::Render();
 
-        const auto commandList = EngineRenderContext::TargetCommandList();
+        const auto commandList = RenderContext_singleton::TargetCommandList();
         commandList->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);

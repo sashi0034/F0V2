@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "EngineKeyboardMouse.h"
 
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "EngineWindow.h"
 #include "TY/Vector2D.h"
 
@@ -53,7 +53,7 @@ struct EngineKeyboardMouseImpl
             m_mousePosInWindow.y = static_cast<float>(mousePos.y);
 
             m_previousMousePosInFrameBuffer = m_mousePosInFrameBuffer;
-            m_mousePosInFrameBuffer = EngineRenderContext::WindowToFrameBuffer().transformPoint(m_mousePosInWindow);
+            m_mousePosInFrameBuffer = RenderContext_singleton::WindowToFrameBuffer().transformPoint(m_mousePosInWindow);
         }
     }
 
@@ -68,7 +68,7 @@ struct EngineKeyboardMouseImpl
 
     void SetMousePosInFrameBuffer(const Float2& pos)
     {
-        SetMousePosInWindow(EngineRenderContext::FrameBufferToWindow().transformPoint(pos));
+        SetMousePosInWindow(RenderContext_singleton::FrameBufferToWindow().transformPoint(pos));
     }
 };
 

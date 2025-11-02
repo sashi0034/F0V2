@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "CommandListManager.h"
 
-#include "EngineRenderContext.h"
+#include "RenderContext_singleton.h"
 #include "TY/AssertObject.h"
 #include "TY/Logger.h"
 
@@ -39,7 +39,7 @@ struct CommandListManager::Impl
         bool needFence{};
     };
 
-    Array<frame_resource> m_frameResources{EngineRenderContext::FrameBufferCount};
+    Array<frame_resource> m_frameResources{RenderContext_singleton::FrameBufferCount};
 
     uint8_t m_frameResourceIndex{0};
 
@@ -49,10 +49,10 @@ struct CommandListManager::Impl
 
     Impl(CommandListType type)
     {
-        const auto device = EngineRenderContext::GetDevice();
+        const auto device = RenderContext_singleton::GetDevice();
         const auto commandListType = getCommandListType(type);
 
-        for (int i = 0; i < EngineRenderContext::FrameBufferCount; ++i)
+        for (int i = 0; i < RenderContext_singleton::FrameBufferCount; ++i)
         {
             auto& rsc = m_frameResources[i];
 
@@ -143,12 +143,12 @@ struct CommandListManager::Impl
         m_commandQueue->ExecuteCommandLists(1, commandLists);
 
         // 実行の待機
-        currentResource.fenceValue += EngineRenderContext::FrameBufferCount;
+        currentResource.fenceValue += RenderContext_singleton::FrameBufferCount;
         m_commandQueue->Signal(m_fence.Get(), currentResource.fenceValue);
 
         // -----------------------------------------------
 
-        m_frameResourceIndex = (m_frameResourceIndex + 1) % EngineRenderContext::FrameBufferCount;
+        m_frameResourceIndex = (m_frameResourceIndex + 1) % RenderContext_singleton::FrameBufferCount;
 
         auto& nextResource = m_frameResources[m_frameResourceIndex];
 
@@ -185,7 +185,7 @@ struct CommandListManager::Impl
 private:
     uint8_t previousFrameResourceIndex() const
     {
-        constexpr int frameBufferCount = EngineRenderContext::FrameBufferCount;
+        constexpr int frameBufferCount = RenderContext_singleton::FrameBufferCount;
         return (m_frameResourceIndex - 1 + frameBufferCount) % frameBufferCount;
     }
 };

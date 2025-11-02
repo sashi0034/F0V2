@@ -10,7 +10,7 @@
 #include "RenderTarget.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 #include "detail/EngineStateContext.h"
 #include "detail/GraphicsPipelineState.h"
 #include "detail/SceneState3D_singleton.h"
@@ -141,7 +141,7 @@ struct TextureDrawer::Impl
 
     void Draw3D()
     {
-        EngineRenderContext::RefreshSceneStateIfNeeded();
+        RenderContext_singleton::RefreshSceneStateIfNeeded();
 
         SceneState_b0 sceneState{};
         sceneState.worldMat = SceneState3D_singleton::GetWorldMatrix().mat;

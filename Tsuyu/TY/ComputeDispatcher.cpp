@@ -3,7 +3,7 @@
 
 #include "detail/ComputePipelineState.h"
 #include "detail/DescriptorHeap.h"
-#include "detail/EngineRenderContext.h"
+#include "detail/RenderContext_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -59,7 +59,7 @@ struct ComputeDispatcher::Impl
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetComputeTable(0);
 
-        EngineRenderContext::TargetCommandList()->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+        RenderContext_singleton::TargetCommandList()->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 
         for (auto& uav : m_uavList)
         {
