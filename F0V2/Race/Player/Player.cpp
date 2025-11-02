@@ -15,7 +15,7 @@
 #include "TY/ImmediateDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/Palette.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/SimpleInput.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
@@ -241,7 +241,7 @@ private:
     {
         // スピードメーター
         Immediate2D_Text::ZXProto_Sdf(ToUtf32(std::format("{:.1f} km/h", machine().state.m_velocity.length() * 10.0f)))
-            .setPosition(Scene::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
+            .setPosition(Screen::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
             .setSize(28.0f)
             .pushAuto();
 
@@ -249,7 +249,7 @@ private:
         // 耐久値バー
         {
             const float barRate = Math::Clamp(machine().state.m_durability / machine().props.maxDurability, 0.0f, 1.0f);
-            const Float2 bottomLeft = Scene::RectF().bl().movedBy(40.0f, -160.0f);
+            const Float2 bottomLeft = Screen::RectF().bl().movedBy(40.0f, -160.0f);
             constexpr SizeF barSize{320.0f, 12.0f};
             Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
                 .setColor(ColorF32{0.1f})
@@ -276,7 +276,7 @@ private:
                     ToUtf32(std::format("{} / {}", rank1, totalMachines))
                 )
                 .setSize(40.0f)
-                .setPosition(Scene::TopCenterF().movedY(80.0f), Alignment9::TopCenter)
+                .setPosition(Screen::TopCenterF().movedY(80.0f), Alignment9::TopCenter)
                 .setColor(Palette::LightSteelBlue)
                 .pushAuto();
         }

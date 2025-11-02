@@ -16,7 +16,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY/ModelLoader.h"
 #include "TY/RenderTarget.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/Transformer3D.h"
 
 using namespace TY;
@@ -53,7 +53,7 @@ void Demo_RenderTarget()
 
     const Mat4x4 projectionMat = Mat4x4::PerspectiveFov(
         90.0_deg,
-        Scene::Size().horizontalAspectRatio(),
+        Screen::Size().horizontalAspectRatio(),
         1.0f,
         10.0f
     );
@@ -105,11 +105,11 @@ void Demo_RenderTarget()
             count++;
             if (count % 120 < 60)
             {
-                pngTexture.as2D().drawAt(Scene::Center());
+                pngTexture.as2D().drawAt(Screen::Center());
             }
             else
             {
-                noiseTexture.as2D().drawAt(Scene::Center());
+                noiseTexture.as2D().drawAt(Screen::Center());
             }
 
             continue;

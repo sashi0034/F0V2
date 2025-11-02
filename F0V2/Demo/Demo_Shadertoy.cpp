@@ -11,7 +11,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/RenderTarget.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/Shader.h"
 #include "TY/System.h"
 
@@ -116,8 +116,8 @@ namespace
                            static_cast<AF1>(m_outputSize.y));
                 m_easuCB.uploadValue(cb);
 
-                int groupsX = (Scene::Size().x + 15) / 16;
-                int groupsY = (Scene::Size().y + 15) / 16;
+                int groupsX = (Screen::Size().x + 15) / 16;
+                int groupsY = (Screen::Size().y + 15) / 16;
                 m_easuDispatcher.dispatch(groupsX, groupsY, 1);
             }
 
@@ -127,8 +127,8 @@ namespace
                 FsrRcasCon(reinterpret_cast<AU1*>(&cb.Const0), sharpnessAttenuation);
                 m_rcasCB.uploadValue(cb);
 
-                int groupsX = (Scene::Size().x + 15) / 16;
-                int groupsY = (Scene::Size().y + 15) / 16;
+                int groupsX = (Screen::Size().x + 15) / 16;
+                int groupsY = (Screen::Size().y + 15) / 16;
                 m_rcasDispatcher.dispatch(groupsX, groupsY, 1);
             }
         }
@@ -170,12 +170,12 @@ struct Demo_Shadertoy_impl
 
         m_lowResolution =
             RenderTargetTextureParams()
-            .setSize(Scene::Size() * 0.5)
+            .setSize(Screen::Size() * 0.5)
             .setClearColor(ColorF32{0.0f, 1.0f});
 
         m_nativeResolution =
             RenderTargetTextureParams()
-            .setSize(Scene::Size())
+            .setSize(Screen::Size())
             .setClearColor(ColorF32{0.0f, 1.0f});
 
         m_lowResolutionDispatcher =
@@ -190,7 +190,7 @@ struct Demo_Shadertoy_impl
             .setCbv({s_rsc->cb.shadertoy})
             .setUav({m_nativeResolution});
 
-        m_fsr1Upscaler.Init(m_lowResolution, Scene::Size());
+        m_fsr1Upscaler.Init(m_lowResolution, Screen::Size());
     }
 
     // -----------------------------------------------
@@ -199,7 +199,7 @@ struct Demo_Shadertoy_impl
     {
         const Float2 textureSize = texture.size().cast<Float2>();
         s_rsc->cb.shadertoy->g_screenResolution = textureSize;
-        s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (textureSize / Scene::Size().cast<Float2>());
+        s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (textureSize / Screen::Size().cast<Float2>());
         s_rsc->cb.shadertoy->g_time += System::DeltaTime();
         s_rsc->cb.shadertoy.upload();
 
@@ -216,7 +216,7 @@ struct Demo_Shadertoy_impl
         if (s_nativeResolution)
         {
             draw3D(m_nativeResolution, m_nativeResolutionDispatcher);
-            Immediate2D::Texture(m_nativeResolution).resized(Scene::Size()).pushAuto();
+            Immediate2D::Texture(m_nativeResolution).resized(Screen::Size()).pushAuto();
         }
         else
         {
@@ -225,11 +225,11 @@ struct Demo_Shadertoy_impl
             if (s_fsr1Enabled)
             {
                 m_fsr1Upscaler.Dispatch(s_sharpnessAttenuation);
-                Immediate2D::Texture(m_fsr1Upscaler.OutputTexture()).resized(Scene::Size()).pushAuto();
+                Immediate2D::Texture(m_fsr1Upscaler.OutputTexture()).resized(Screen::Size()).pushAuto();
             }
             else
             {
-                Immediate2D::Texture(m_lowResolution).resized(Scene::Size()).pushAuto();
+                Immediate2D::Texture(m_lowResolution).resized(Screen::Size()).pushAuto();
             }
         }
 

@@ -7,7 +7,7 @@
 #include "TY/Array.h"
 #include "TY/IAddon.h"
 #include "TY/ImmediateDrawer.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/Utils.h"
 
 namespace
@@ -30,7 +30,7 @@ namespace
                 const auto align = static_cast<Alignment9>(a);
                 constexpr float lineHeight = 16.0f;
 
-                Float2 offset = Scene::RectF().getRelativePoint(align);
+                Float2 offset = Screen::RectF().getRelativePoint(align);
                 offset.y -= (texts.size() - 1) * lineHeight * AlignmentToPivot(align).y;
 
                 for (int y = 0; y < texts.size(); ++y)

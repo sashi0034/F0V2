@@ -16,7 +16,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/Immediate2D.h"
 #include "TY/Immediate3D.h"
 #include "TY/ImmediateDrawer.h"
@@ -136,7 +136,7 @@ private:
                             segments[m_activeNodeIndex].p1.y,
                             segments[m_activeNodeIndex].p1.z);
 
-            if (DebugUI::DragButton(RectF{Scene::Center(), Float2{240, 24}}, ToUtf32(text)))
+            if (DebugUI::DragButton(RectF{Screen::Center(), Float2{240, 24}}, ToUtf32(text)))
             {
                 const auto screenToWorld = worldToScreen.inverse();
 

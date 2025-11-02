@@ -16,7 +16,7 @@
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/PrimitiveModel3D.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
 #include "TY/System.h"
@@ -145,7 +145,7 @@ struct EditorPlayground::Impl : ActorBase
         {
             m_projectionMat = Mat4x4::PerspectiveFov(
                 75.0_deg,
-                Scene::Size().horizontalAspectRatio(),
+                Screen::Size().horizontalAspectRatio(),
                 0.1f,
                 fovFarZ
             );

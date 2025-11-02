@@ -21,7 +21,7 @@
 #include "TY/Mouse.h"
 #include "TY/Random.h"
 #include "TY/RenderTarget.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
@@ -310,7 +310,7 @@ struct Demo_ShadowMap_impl
         {
             m_projectionMat = Mat4x4::PerspectiveFov(
                 fovAngle,
-                Scene::Size().horizontalAspectRatio(),
+                Screen::Size().horizontalAspectRatio(),
                 fovNearZ,
                 fovFarZ
             );
@@ -460,10 +460,10 @@ private:
             const float farDepth = cascadeShadowMapSplits[i];
 
             const float nearHalfH = tanf(fovAngle / 2.0f) * nearDepth;
-            const float nearHalfW = nearHalfH * Scene::Size().horizontalAspectRatio();
+            const float nearHalfW = nearHalfH * Screen::Size().horizontalAspectRatio();
 
             const float farHalfH = tanf(fovAngle / 2.0f) * farDepth;
-            const float farHalfW = farHalfH * Scene::Size().horizontalAspectRatio();
+            const float farHalfW = farHalfH * Screen::Size().horizontalAspectRatio();
 
             const Float3 nearCenter = cameraEye + cameraForward * nearDepth;
             const Float3 farCenter = cameraEye + cameraForward * farDepth;
@@ -509,7 +509,7 @@ void Demo_ShadowMap()
 {
     Demo_ShadowMap_impl impl{};
 
-    Scene::RequestResize({1920, 1080});
+    Screen::RequestResize({1920, 1080});
 
     while (System::Update())
     {

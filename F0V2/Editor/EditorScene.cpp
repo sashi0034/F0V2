@@ -10,7 +10,7 @@
 #include "GM/DebugService.h"
 #include "Race/Common/CourseData.h"
 #include "TY/ActorContainer.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY_Extension/GameObjectHierarchy.h"
 #include "Util/DebugTomlValue.h"
@@ -24,7 +24,7 @@ namespace
 #if 0
     void hierarchWindow(const GameObjectHierarchy::list_type& gameObjectList)
     {
-        const auto backgroundRegion = RectF{Scene::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 800}};
+        const auto backgroundRegion = RectF{Screen::Rect().stretched(-10).bl(), Alignment9::BottomLeft, Size{400, 800}};
 
         Immediate2D::RoundRect{backgroundRegion}
             .setColor(GamePalette::EditorBackground)

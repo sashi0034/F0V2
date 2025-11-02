@@ -11,7 +11,7 @@
 #include "Stage/StageManager.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY_Extension/CoroutineActor.h"
 #include "Util/DebugTomlValue.h"
 
@@ -96,7 +96,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         {
             auto projectionMat = Mat4x4::PerspectiveFov(
                 75.0_deg,
-                Scene::Size().horizontalAspectRatio(),
+                Screen::Size().horizontalAspectRatio(),
                 0.1f,
                 g_sharedState->fovFarZ
             );

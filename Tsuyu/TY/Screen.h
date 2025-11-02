@@ -4,7 +4,7 @@
 
 namespace TY
 {
-    namespace Scene
+    namespace Screen
     {
         void RequestResize(Size size);
 

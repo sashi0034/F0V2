@@ -20,7 +20,7 @@
 #include "TY/ModelLoader.h"
 #include "TY/Mouse.h"
 #include "TY/RenderTarget.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/SimpleCamera3D.h"
@@ -251,7 +251,7 @@ struct Demo_ImmediateDrawer_impl
         {
             m_projectionMat = Mat4x4::PerspectiveFov(
                 75.0_deg,
-                Scene::Size().horizontalAspectRatio(),
+                Screen::Size().horizontalAspectRatio(),
                 0.1f,
                 fovFarZ
             );
@@ -322,11 +322,11 @@ struct Demo_ImmediateDrawer_impl
                 //       .setColor(ColorF32{0.7, 1.0, 0.3})
             ).push(Immediate2D::Text(m_rocknRollOneBitmap, U"メインシステム: 戦闘モード起動")
                    .setSize(16.0f)
-                   .setPosition(Scene::Center(), Alignment9::MiddleLeft)
+                   .setPosition(Screen::Center(), Alignment9::MiddleLeft)
                    .setColor(ColorF32{0.7})
             ).push(Immediate2D::Text(m_rocknRollOneBitmap, U"メインシステム")
                    .setSize(64.0f)
-                   .setPosition(Scene::Center().movedBy(0, -100), Alignment9::MiddleCenter)
+                   .setPosition(Screen::Center().movedBy(0, -100), Alignment9::MiddleCenter)
                    .setColor(ColorF32{0.7, 1.0, 0.3})
             );
 
@@ -408,7 +408,7 @@ void Demo_ImmediateDrawer()
 {
     Demo_ImmediateDrawer_impl impl{};
 
-    Scene::RequestResize({1920, 1080});
+    Screen::RequestResize({1920, 1080});
 
     while (System::Update())
     {

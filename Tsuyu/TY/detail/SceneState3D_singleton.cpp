@@ -2,7 +2,7 @@
 #include "SceneState3D_singleton.h"
 
 #include "TY/Mat4x4.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 
 using namespace TY;
 
@@ -110,8 +110,8 @@ namespace TY
     Mat4x4 SceneState3D_singleton::WorldToScreen()
     {
         Mat4x4 m{};
-        const float width = static_cast<float>(Scene::Size().x);
-        const float height = static_cast<float>(Scene::Size().y);
+        const float width = static_cast<float>(Screen::Size().x);
+        const float height = static_cast<float>(Screen::Size().y);
         m.at1(1, 1) = width / 2.0f;
         m.at1(2, 2) = -height / 2.0f;
         m.at1(3, 3) = 1.0f;

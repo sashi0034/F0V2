@@ -20,7 +20,7 @@
 #include "TY/ModelLoader.h"
 #include "TY/Mouse.h"
 #include "TY/RenderTarget.h"
-#include "TY/Scene.h"
+#include "TY/Screen.h"
 #include "TY/PrimitiveModel3D.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
@@ -244,7 +244,7 @@ struct Demo_Font_impl
         {
             m_projectionMat = Mat4x4::PerspectiveFov(
                 75.0_deg,
-                Scene::Size().horizontalAspectRatio(),
+                Screen::Size().horizontalAspectRatio(),
                 0.1f,
                 fovFarZ
             );
@@ -340,7 +340,7 @@ void Demo_Font()
 {
     Demo_Font_impl impl{};
 
-    Scene::RequestResize({1920, 1080});
+    Screen::RequestResize({1920, 1080});
 
     while (System::Update())
     {
