@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <dinput.h>
 
-#include "EngineWindow.h"
+#include "Window_singleton.h"
 #include "TY/GamepadInputState.h"
 #include "TY/KeyboardMouseInput.h"
 
@@ -95,9 +95,9 @@ struct EngineGamepadImpl
 
     void Init()
     {
-        assert(EngineWindow::IsInitialized());
+        assert(Window_singleton::IsInitialized());
 
-        const auto hInstance = EngineWindow::HInstance();
+        const auto hInstance = Window_singleton::HInstance();
         if (FAILED(DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_di, nullptr)))
         {
             return;
@@ -118,7 +118,7 @@ struct EngineGamepadImpl
             return;
         }
 
-        const auto hwnd = EngineWindow::Handle();
+        const auto hwnd = Window_singleton::Handle();
         if (FAILED(m_gamepad->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE)))
         {
             return;

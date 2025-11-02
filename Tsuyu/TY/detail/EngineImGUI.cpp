@@ -4,7 +4,7 @@
 #include "DescriptorHeap.h"
 #include "EngineCore.h"
 #include "RenderContext_singleton.h"
-#include "EngineWindow.h"
+#include "Window_singleton.h"
 #include "backends/imgui_impl_dx12.h"
 #include "backends/imgui_impl_win32.h"
 
@@ -23,7 +23,7 @@ struct EngineImGuiImpl
 
         ImGui::CreateContext();
 
-        ImGui_ImplWin32_Init(EngineWindow::Handle());
+        ImGui_ImplWin32_Init(Window_singleton::Handle());
 
         constexpr int framesInFlight = RenderContext_singleton::FrameBufferCount;
         D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
@@ -71,12 +71,12 @@ namespace TY::detail
 
     void EngineImGui::NewFrame()
     {
-        const auto windowSize = EngineWindow::GetSize();
+        const auto windowSize = Window_singleton::GetSize();
         ImGuiIO& io = ImGui::GetIO();
         io.DisplaySize = windowSize.cast<ImVec2>();
 
         io.DisplayFramebufferScale =
-            (Float2(RenderContext_singleton::FrameBufferSize()) / Float2(EngineWindow::GetSize())).cast<ImVec2>();
+            (Float2(RenderContext_singleton::FrameBufferSize()) / Float2(Window_singleton::GetSize())).cast<ImVec2>();
 
         ImGui_ImplDX12_NewFrame();
         ImGui_ImplWin32_NewFrame();

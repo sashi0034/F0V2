@@ -252,7 +252,7 @@
     <ClInclude Include="TY\detail\RenderContext_singleton.h" />
     <ClInclude Include="TY\detail\EngineStateContext.h" />
     <ClInclude Include="TY\detail\EngineTimer.h" />
-    <ClInclude Include="TY\detail\EngineWindow.h" />
+    <ClInclude Include="TY\detail\Window_singleton.h" />
     <ClInclude Include="TY\detail\IEngineHotReloadable.h" />
     <ClInclude Include="TY\detail\IEngineUpdatable.h" />
     <ClInclude Include="TY\detail\GraphicsPipelineState.h" />
@@ -401,7 +401,7 @@
     <ClCompile Include="TY\detail\RenderContext_singleton.cpp" />
     <ClCompile Include="TY\detail\EngineStateContext.cpp" />
     <ClCompile Include="TY\detail\EngineTimer.cpp" />
-    <ClCompile Include="TY\detail\EngineWindow.cpp" />
+    <ClCompile Include="TY\detail\Window_singleton.cpp" />
     <ClCompile Include="TY\detail\GraphicsPipelineState.cpp" />
     <ClCompile Include="TY\FileWatcher.cpp" />
     <ClCompile Include="TY\Graphics3D.cpp" />

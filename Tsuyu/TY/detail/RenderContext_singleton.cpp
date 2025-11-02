@@ -6,7 +6,7 @@
 
 #include "CommandListManager.h"
 #include "EngineStateContext.h"
-#include "EngineWindow.h"
+#include "Window_singleton.h"
 #include "GpuMemoryUsage.h"
 #include "SceneState3D_singleton.h"
 #include "TY/ConstantBuffer.h"
@@ -184,7 +184,7 @@ struct RenderContextImpl
 
         if (const auto hr = m_dxgiFactory->CreateSwapChainForHwnd(
                 m_drawCommandList.getCommandQueue(),
-                EngineWindow::Handle(),
+                Window_singleton::Handle(),
                 &swapchainDesc,
                 nullptr,
                 nullptr,
@@ -310,7 +310,7 @@ private:
 
     RectF calculateViewportRect() const
     {
-        const auto windowSize = EngineWindow::GetSize();
+        const auto windowSize = Window_singleton::GetSize();
 
         if (windowSize == m_frameBufferSize)
         {
@@ -341,7 +341,7 @@ private:
 
     Mat3x2 calculateWindowToFrameBuffer() const
     {
-        const Float2 windowSize = EngineWindow::GetSize().cast<Float2>();
+        const Float2 windowSize = Window_singleton::GetSize().cast<Float2>();
         const float frameBufferScaling = (Float2(m_frameBufferSize) / windowSize).maxComponent();
         const Float2 windowSizeInScene = windowSize * frameBufferScaling;
         return Mat3x2::Identity()

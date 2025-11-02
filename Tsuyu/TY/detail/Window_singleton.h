@@ -3,7 +3,7 @@
 
 namespace TY::detail
 {
-    namespace EngineWindow
+    namespace Window_singleton
     {
         void Init();
 

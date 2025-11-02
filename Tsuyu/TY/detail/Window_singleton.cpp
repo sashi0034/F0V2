@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "EngineWindow.h"
+#include "Window_singleton.h"
 
 #include "RenderContext_singleton.h"
 #include "TY/Vector2D.h"
@@ -37,7 +37,7 @@ namespace
     }
 }
 
-struct EngineWindowImpl
+struct WindowImpl
 {
     bool m_initialized = false;
 
@@ -249,7 +249,7 @@ struct EngineWindowImpl
 
 namespace
 {
-    EngineWindowImpl s_engineWindow{};
+    WindowImpl s_engineWindow{};
 
     LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
@@ -286,69 +286,69 @@ namespace
 
 namespace TY::detail
 {
-    void EngineWindow::Init()
+    void Window_singleton::Init()
     {
         s_engineWindow.Init();
     }
 
-    bool EngineWindow::IsInitialized()
+    bool Window_singleton::IsInitialized()
     {
         return s_engineWindow.m_initialized;
     }
 
-    void EngineWindow::Show()
+    void Window_singleton::Show()
     {
         s_engineWindow.Show();
     }
 
-    void EngineWindow::Update()
+    void Window_singleton::Update()
     {
         s_engineWindow.Update();
     }
 
-    void EngineWindow::AfterPresent()
+    void Window_singleton::AfterPresent()
     {
         s_engineWindow.AfterPresent();
     }
 
-    HINSTANCE EngineWindow::HInstance()
+    HINSTANCE Window_singleton::HInstance()
     {
         return s_engineWindow.m_windowClass.hInstance;
     }
 
-    HWND EngineWindow::Handle()
+    HWND Window_singleton::Handle()
     {
         return s_engineWindow.m_handle;
     }
 
-    Size EngineWindow::GetSize()
+    Size Window_singleton::GetSize()
     {
         return s_engineWindow.m_windowSize;
     }
 
-    int EngineWindow::TitleBarHeight()
+    int Window_singleton::TitleBarHeight()
     {
         return s_engineWindow.m_titleBarHeight;
     }
 
-    float EngineWindow::WheelDelta()
+    float Window_singleton::WheelDelta()
     {
         return s_engineWindow.m_wheelDelta;
     }
 
-    void EngineWindow::Resize(Size size)
+    void Window_singleton::Resize(Size size)
     {
         s_engineWindow.Resize(size);
     }
 
-    void EngineWindow::SetTitle(const std::wstring& title)
+    void Window_singleton::SetTitle(const std::wstring& title)
     {
         s_engineWindow.m_title = title;
         s_engineWindow.MakeFullTitle();
         SetWindowText(s_engineWindow.m_handle, s_engineWindow.m_fullTitle.c_str());
     }
 
-    void EngineWindow::Shutdown()
+    void Window_singleton::Shutdown()
     {
         s_engineWindow.Shutdown();
     }

@@ -10,7 +10,7 @@
 #include "RenderContext_singleton.h"
 #include "EngineStateContext.h"
 #include "EngineTimer.h"
-#include "EngineWindow.h"
+#include "Window_singleton.h"
 #include "TY/Array.h"
 
 using namespace TY;
@@ -66,11 +66,11 @@ struct EngineCoreImpl
     {
         EngineTimer::Init();
 
-        EngineWindow::Init();
+        Window_singleton::Init();
 
         RenderContext_singleton::Init();
 
-        EngineWindow::Show(); // <-- window will be shown
+        Window_singleton::Show(); // <-- window will be shown
 
         EnginePresetAsset::Init();
 
@@ -91,7 +91,7 @@ struct EngineCoreImpl
 
         EngineTimer::Update();
 
-        EngineWindow::Update();
+        Window_singleton::Update();
 
         EngineGamepad::Update();
 
@@ -118,7 +118,7 @@ struct EngineCoreImpl
 
         RenderContext_singleton::Render();
 
-        EngineWindow::AfterPresent();
+        Window_singleton::AfterPresent();
 
         EngineComponent::AfterPresent();
 
@@ -131,7 +131,7 @@ struct EngineCoreImpl
 
         EngineStateContext::Shutdown();
 
-        EngineWindow::Shutdown();
+        Window_singleton::Shutdown();
 
         EngineHotReloader::Shutdown();
 

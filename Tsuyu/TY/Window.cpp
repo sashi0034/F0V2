@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Window.h"
 
-#include "detail/EngineWindow.h"
+#include "detail/Window_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -10,16 +10,16 @@ namespace TY
 {
     void Window::SetTitle(const UnifiedString& title)
     {
-        EngineWindow::SetTitle(title);
+        Window_singleton::SetTitle(title);
     }
 
     Size Window::GetSize()
     {
-        return EngineWindow::GetSize();
+        return Window_singleton::GetSize();
     }
 
     void Window::Resize(Size size)
     {
-        EngineWindow::Resize(size);
+        Window_singleton::Resize(size);
     }
 }

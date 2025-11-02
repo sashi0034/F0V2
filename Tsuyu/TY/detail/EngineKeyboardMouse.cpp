@@ -2,7 +2,7 @@
 #include "EngineKeyboardMouse.h"
 
 #include "RenderContext_singleton.h"
-#include "EngineWindow.h"
+#include "Window_singleton.h"
 #include "TY/Vector2D.h"
 
 using namespace TY;
@@ -47,7 +47,7 @@ struct EngineKeyboardMouseImpl
         POINT mousePos{};
         if (GetCursorPos(&mousePos))
         {
-            ScreenToClient(EngineWindow::Handle(), &mousePos);
+            ScreenToClient(Window_singleton::Handle(), &mousePos);
 
             m_mousePosInWindow.x = static_cast<float>(mousePos.x);
             m_mousePosInWindow.y = static_cast<float>(mousePos.y);
@@ -62,7 +62,7 @@ struct EngineKeyboardMouseImpl
         POINT p;
         p.x = static_cast<LONG>(pos.x);
         p.y = static_cast<LONG>(pos.y);
-        ClientToScreen(EngineWindow::Handle(), &p);
+        ClientToScreen(Window_singleton::Handle(), &p);
         SetCursorPos(p.x, p.y);
     }
 

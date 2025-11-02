@@ -4,7 +4,7 @@
 #include "Intersects2D.h"
 #include "Screen.h"
 #include "detail/EngineKeyboardMouse.h"
-#include "detail/EngineWindow.h"
+#include "detail/Window_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -38,7 +38,7 @@ namespace TY
 
     float Mouse::Wheel()
     {
-        return EngineWindow::WheelDelta();
+        return Window_singleton::WheelDelta();
     }
 
     Float2 Mouse::Drag(MouseInput button)
