@@ -38,7 +38,7 @@ namespace
         float distSqFromStart;
         std::pair<Float3, Float3> closestPair{};
         float distSqOnLineSegment{};
-        float otherRadius{};
+        MachineId otherMachineId;
     };
 
     std::optional<MachineHit> traceOtherMachineHit(
@@ -88,7 +88,7 @@ namespace
                         .distSqFromStart = distSqFromStart,
                         .closestPair = closestPair,
                         .distSqOnLineSegment = distSqOnLineSegment,
-                        .otherRadius = otherRadius,
+                        .otherMachineId = i,
                     };
                 }
             }
@@ -516,8 +516,9 @@ namespace
     // -----------------------------------------------
     // handleOtherMachineHit()
 
-    struct HitInfo
+    struct HitMachineInfo
     {
+        MachineId otherMachineId{};
         float moveDistance;
         Float3 normal;
         Float3 pushbackVector;
@@ -528,13 +529,24 @@ namespace
         MachinePhysicsState& state,
         const Float3& fromPos,
         const Float3& toPos,
-        const HitInfo& hit)
+        const HitMachineInfo& hit)
     {
         // 法線の適応
         const Float3 n = hit.normal;
 
+        // NOTE: otherMachine 書き換え 
+        auto& otherMachineState = GetRaceContext().machineManager().fetchMachine(hit.otherMachineId).state;
+
         // 法線方向速度の除去
-        state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
+        const Float3 v1 = state.m_velocity;
+        const Float3 v2 = otherMachineState.m_velocity;
+
+        constexpr float m1 = 1;
+        constexpr float m2 = m1;
+        constexpr float e = 1.0f; // 反発係数
+
+        state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
+        otherMachineState.m_velocity = v2 - n * n.dot(v2 - v1) * (1 + e) * m1 / (m1 + m2);
 
         // 法線方向移動ベクトルの補正
         const Float3 r = toPos - state.m_pose.position;
@@ -553,7 +565,7 @@ namespace
     struct MachinePushback
     {
         Float3 newPos;
-        HitInfo hit{};
+        HitMachineInfo hit{};
     };
 
     MachinePushback pushbackFromMachine(
@@ -569,7 +581,11 @@ namespace
 
         pushback.newPos = hit.closestPair.first;
 
-        const float pushbackLength = (state.m_radius + hit.otherRadius) - std::sqrtf(hit.distSqOnLineSegment);
+        pushback.hit.otherMachineId = hit.otherMachineId;
+
+        const auto& otherMachine = GetRaceContext().machineManager().fetchMachine(hit.otherMachineId);
+        const float pushbackLength =
+            (state.m_radius + otherMachine.state.m_radius) - std::sqrtf(hit.distSqOnLineSegment);
         pushback.hit.pushbackVector = normal * (pushbackLength + EPS_CONTACT);
 
         // Immediate3D::Line{fromPos, fromPos + normal * 10}.setColor(Palette::White).pushAuto();
