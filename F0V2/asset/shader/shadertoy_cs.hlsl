@@ -23,7 +23,7 @@ cbuffer Shadertoy_b10 : register(b0)
 }
 
 // -----------------------------------------------
-// random
+// math
 
 float hash31(float3 p)
 {
@@ -31,23 +31,25 @@ float hash31(float3 p)
     return frac(sin(h) * 43758.5453123);
 }
 
+float smoothMin(float a, float b, float k)
+{
+    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+    return lerp(b, a, h) - k * h * (1.0 - h);
+}
+
 // -----------------------------------------------
 // matrix
 
-// Roll-Pitch-Yaw行列を作成
-float3x3 rotateRollPitchYaw(float roll, float pitch, float yaw)
+float3x3 rollPitchYaw(float roll, float pitch, float yaw)
 {
-    float cp = cos(pitch);
-    float sp = sin(pitch);
-    float sr = sin(roll);
-    float cr = cos(roll);
-    float sy = sin(yaw);
-    float cy = cos(yaw);
+    float cp = cos(pitch), sp = sin(pitch); // X
+    float sr = sin(roll), cr = cos(roll); // Z
+    float sy = sin(yaw), cy = cos(yaw); // Y
 
     return float3x3(
-        cp * cy, (sr * sp * cy) - (cr * sy), (cr * sp * cy) + (sr * sy),
-        cp * sy, (sr * sp * sy) + (cr * cy), (cr * sp * sy) - (sr * cy),
-        -sp, sr * cp, cr * cp
+        cr * cy - sr * sp * sy, -sr * cp, cr * sy + sr * sp * cy,
+        sr * cy + cr * sp * sy, cr * cp, sr * sy - cr * sp * cy,
+        -cp * sy, sp, cp * cy
     );
 }
 
@@ -164,7 +166,7 @@ float sdfMenger(float3 p)
     const float rotX = 5.0 * sin(time * 0.01);
     const float rotY = 5.0 * sin(time * 0.0057);
     const float rotZ = 5.0 * sin(time * 0.0266);
-    const float3x3 rot = rotateRollPitchYaw(rotX, rotY, rotZ);
+    const float3x3 rot = rollPitchYaw(rotX, rotY, rotZ);
 
     // 反復折り返し
     [unroll]
@@ -198,31 +200,37 @@ float sdfMenger(float3 p)
     return distance;
 }
 
-float sdfO(float3 p)
+float sdfO_i(float3 p, float speed, float radius)
 {
     // const float3 center = float3(5, 2, 5);
-    const float3 center = float3(0, 5, 1e-5);
-    const float3 offset = float3(0, 0, 10);
+    const float3 center = float3(0, 1, 1e-5);
 
     p.y = abs(p.y);
-    p.xz = mul(rotate2d(g_time * 0.1), p.xz);
+    p.xz = mul(rotate2d(g_time * speed * 0.1), p.xz);
 
-    float d = FAR_DIST;
-    for (int i = 0; i < 4; ++i)
-    {
-        p -= center;
+    p -= center;
 
-        p.zx = pmod(p.zx, 12);
+    // p.zx = pmod(p.zx, 36);
 
-        d = min(d, sdfSphere(p - offset, 1.0));
+    const float r = 24;
+    const float a0 = atan2(p.x, p.z) + PI / r;
 
-        p += center;
+    const float n = 2.0 * PI / r;
+    const float a = floor(a0 / n) * n;
 
-        // p.zy = mul(rotate2d(PI / 36), p.zy);
+    p.zx = mul(p.zx, rotate2d(-a));
 
-        p += float3(0, 0, 2);
-    }
+    float3 offset = float3(0, 1, 10 + sin(a0 * 2.0 * floor(a / n) + g_time * speed) * 0.5);
+    radius += 0.25 * sin((a0 + g_time) * 2);
+    return sdfSphere(p - offset, radius);
+}
 
+float sdfO(float3 p)
+{
+    float d = sdfO_i(p, 5, 1);
+    d = smoothMin(d, sdfO_i(p, 2, 0.75), 0.25);
+    d = smoothMin(d, sdfO_i(p, 0.5, 1.125), 0.25);
+    d = smoothMin(d, sdfO_i(p, 3, 1.25), 0.25);
     return d;
 }
 
@@ -348,7 +356,8 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     float spec = pow(saturate(dot(viewDir, reflectDir)), 32.0);
 
     // Combine
-    float3 diffuse = albedo * NoL;
+    // float3 diffuse = albedo * NoL;
+    float3 diffuse = albedo * NoL + float3(0.7, 1.0, 1.0) * (1.0 - NoL) * 0.9;
     float3 specular = spec * float3(1.0, 0.9, 0.8);
 
     float3 color = (diffuse + specular);
@@ -358,7 +367,7 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     // color *= shadow;
 
     // Ambient term
-    color += albedo * 0.1;
+    // color += albedo * 0.1;
 
     return color;
 }
@@ -381,7 +390,7 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
     {
         // 背景色
         float tbg = 0.5 * (rayDir.y + 1.0);
-        color = lerp(float3(0.2, 0.4, 0.5), float3(1.0, 0.9, 0.7), tbg);
+        color = lerp(float3(0.7, 0.9, 1.0), float3(0.1, 0.2, 0.5), tbg);
     }
 
     // float3 fogColor = float3(0.5, 0.7, 0.9);
@@ -406,13 +415,15 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-    const float3x3 cameraMat = rotateY(g_time * (HALF_PI * 0.25f));
+    const float roll = sin(g_time) * (HALF_PI * 0.125f);
+    const float pitch = sin(g_time * 0.9 + 0.1) * (HALF_PI * 0.125f);
+    const float3x3 cameraMat = rollPitchYaw(roll, pitch, 0);
 
     float2 screenPos2 = (pixelF - g_screenResolution * 0.5) / g_screenResolution.y;
     screenPos2 *= 1.5f;
 
     float3 screenPos3 = float3(screenPos2, 1.0);
-    // screenPos3 = mul(cameraMat, screenPos3);
+    screenPos3 = mul(cameraMat, screenPos3);
 
     const float3 eyePos = float3(0, 0, 0);
 
