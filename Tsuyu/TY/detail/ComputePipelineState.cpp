@@ -48,18 +48,56 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
 
         DisposeRenderResource();
 
+        if (not m_params.computeShader.isEmpty())
+        {
+            if (createPipelineState(m_params))
+            {
+                return;
+            }
+        }
+
+        LogWarning(L"ComputePipelineState: Failed to create PSO with user shaders, using stub shaders instead");
+
+        const auto stubParams = makeStubParams(m_params);
+        if (SUCCEEDED(createPipelineState(stubParams)))
+        {
+            return;
+        }
+
+        throw std::runtime_error("GraphicsPipelineState: Failed to create PSO.");
+    }
+
+    static ComputePipelineStateParams makeStubParams(const ComputePipelineStateParams& params)
+    {
+        auto stub = params;
+
+        stub.computeShader = EnginePresetAsset::GetStubCS();
+
+        return stub;
+    }
+
+    void CommandSet() const
+    {
+        const auto commandList = RenderContext_singleton::TargetCommandList();
+        commandList->SetPipelineState(m_pso.Get());
+        commandList->SetComputeRootSignature(m_rootSignature.getPointer());
+    }
+
+private:
+    bool createPipelineState(const ComputePipelineStateParams& params)
+    {
         m_rootSignature = RootSignature(RootSignatureParams{
             .samplers = {
                 GraphicsSamplerOptions{}
             },
-            .descriptorTable = m_params.descriptorTable,
-            .explicitRegisterStarts = m_params.explicitRegisterStarts
+            .descriptorTable = params.descriptorTable,
+            .explicitRegisterStarts = params.explicitRegisterStarts
         });
 
         D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
         desc.pRootSignature = m_rootSignature.getPointer();
 
-        const auto cs = m_params.computeShader.isEmpty() ? EnginePresetAsset::GetStubCS() : m_params.computeShader;
+        const auto cs = params.computeShader;
         desc.CS.pShaderBytecode = cs.getBlob()->GetBufferPointer();
         desc.CS.BytecodeLength = cs.getBlob()->GetBufferSize();
 
@@ -69,17 +107,10 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
             FAILED(hr))
         {
             LogError.writeln(std::format("Failed to create compute pipeline state: {}", hr));
-            return;
+            return false;
         }
 
-        // LogInfo.writeln("ComputePipelineState created successfully.");
-    }
-
-    void CommandSet() const
-    {
-        const auto commandList = RenderContext_singleton::TargetCommandList();
-        commandList->SetPipelineState(m_pso.Get());
-        commandList->SetComputeRootSignature(m_rootSignature.getPointer());
+        return true;
     }
 };
 

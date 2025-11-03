@@ -127,7 +127,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
             }
         }
 
-        LogWarning.writeln(L"GraphicsPipelineState Failed to create PSO with user shaders, using stub shaders instead");
+        LogWarning(L"GraphicsPipelineState: Failed to create PSO with user shaders, using stub shaders instead");
 
         const auto stubParams = makeStubParams(m_params);
         if (SUCCEEDED(createPipelineState(stubParams)))
