@@ -5,6 +5,8 @@
 #define FAR_DIST 1000.0
 #define MAX_RAYMARCH 50
 
+#define V3(x) float3((x), (x), (x))
+
 // 出力
 RWTexture2D<float4> g_output : register(u0);
 
@@ -137,23 +139,22 @@ float2x2 rotate(float a)
 }
 
 // https://www.shadertoy.com/view/ltS3W3
-float sdfMenger(float3 p, float3 idx)
+float sdfMenger(float3 p)
 {
     const int Iterations = 6;
-    float3 offset = float3(1, 1, 1);
+    const float3 offset = float3(1, 1, 1);
 
-    // float time = g_time + idx.x * 10.0 + idx.y * 20.0 + idx.z * 30.0;
-    const float time = (1.0 + g_time) * (1.0 + hash31(idx)) * 5.0;
+    const float time = g_time * 5.0;
 
     // 初期スケールと動的変化
-    p *= 0.4;
-    float scale = 3.5 + 0.3 * sin(time * 0.084);
+    p *= 0.5;
+    const float scale = 3.5 + 0.5 * sin(time * 0.084);
 
     // 回転角度を時間で変化させる
-    float rotX = 5.0 * sin(time * 0.01);
-    float rotY = 5.0 * sin(time * 0.0057);
-    float rotZ = 5.0 * sin(time * 0.0266);
-    float3x3 rot = rotateRollPitchYaw(rotX, rotY, rotZ);
+    const float rotX = 5.0 * sin(time * 0.01);
+    const float rotY = 5.0 * sin(time * 0.0057);
+    const float rotZ = 5.0 * sin(time * 0.0266);
+    const float3x3 rot = rotateRollPitchYaw(rotX, rotY, rotZ);
 
     // 反復折り返し
     [unroll]
@@ -218,11 +219,7 @@ SdfAndMat scanSdf(float3 pos)
 
     float sdMenger;
     {
-        float3 cell = float3(1, 1, 1) * 8.0;
-        float3 folded = frac(pos / cell) * cell - 0.5 * cell;
-        float3 idx = floor(pos / cell);
-        float3 p = folded - float3(0, 0, 5.0f);
-        sdMenger = sdfMenger(p, idx);
+        sdMenger = sdfMenger(pos);
     }
 
     if (sdMenger < result.sdf)
@@ -319,7 +316,9 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     float3 diffuse = albedo * NoL;
     float3 specular = spec * float3(1.0, 0.9, 0.8);
 
-    float3 color = (diffuse + specular) * shadow;
+    float3 color = (diffuse + specular);
+    color.b *= shadow;
+    color.r *= 2.0f - shadow;
 
     // Ambient term
     color += albedo * 0.1;

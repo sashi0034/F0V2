@@ -21,12 +21,15 @@
 #include "TY/Shader.h"
 #include "TY/System.h"
 #include "TY/Utils.h"
+#include "TY/Window.h"
 #include "Util/ImmediatePrint.h"
 
 using namespace TY;
 
 namespace
 {
+    constexpr Size defaultWindowSize{1280, 720};
+
     struct Shadertoy_b10
     {
         Float2 g_screenResolution{};
@@ -246,6 +249,14 @@ struct Testbed_Shadertoy_impl
             s_ui = not s_ui;
         }
 
+        static bool s_smallWindow{false};
+        if (KeyTab.down())
+        {
+            s_smallWindow = not s_smallWindow;
+
+            Window::Resize(s_smallWindow ? defaultWindowSize * 0.5 : defaultWindowSize);
+        }
+
         if (s_ui)
         {
             if (std::string err = s_rsc->shader.shadertoy_cs.getErrorMessage(); not err.empty())
@@ -297,6 +308,8 @@ private:
 void Testbed_Shadertoy()
 {
     Testbed_Shadertoy_impl impl{};
+
+    Window::Resize(defaultWindowSize);
 
     while (System::Update())
     {
