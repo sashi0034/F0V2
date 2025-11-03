@@ -79,6 +79,22 @@ float3x3 rotateY(float angle)
     );
 }
 
+float2x2 rotate2d(float a)
+{
+    const float s = sin(a), c = cos(a);
+    return float2x2(c, s, -s, c);
+}
+
+float2 pmod(float2 p, float r)
+{
+    float a = atan2(p.y, p.x) + PI / r;
+
+    const float n = 2.0 * PI / r;
+    a = floor(a / n) * n;
+
+    return mul(p, rotate2d(-a));
+}
+
 // -----------------------------------------------
 // material
 
@@ -94,7 +110,7 @@ MatData getMatData(float mat)
     MatData r;
     if (mat == MAT_SOLID)
     {
-        r.albedo = float3(0.04, 1, 0.86);
+        r.albedo = float3(0.15, 0.67, 0.97);
     }
     else
     {
@@ -130,12 +146,6 @@ float sdfBox(float3 p, float3 b)
 {
     float3 d = abs(p) - b;
     return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0);
-}
-
-float2x2 rotate(float a)
-{
-    float s = sin(a), c = cos(a);
-    return float2x2(c, s, -s, c);
 }
 
 // https://www.shadertoy.com/view/ltS3W3
@@ -188,6 +198,34 @@ float sdfMenger(float3 p)
     return distance;
 }
 
+float sdfO(float3 p)
+{
+    // const float3 center = float3(5, 2, 5);
+    const float3 center = float3(0, 5, 1e-5);
+    const float3 offset = float3(0, 0, 10);
+
+    p.y = abs(p.y);
+    p.xz = mul(rotate2d(g_time * 0.1), p.xz);
+
+    float d = FAR_DIST;
+    for (int i = 0; i < 4; ++i)
+    {
+        p -= center;
+
+        p.zx = pmod(p.zx, 12);
+
+        d = min(d, sdfSphere(p - offset, 1.0));
+
+        p += center;
+
+        // p.zy = mul(rotate2d(PI / 36), p.zy);
+
+        p += float3(0, 0, 2);
+    }
+
+    return d;
+}
+
 // float sdfTree(float3 p)
 // {
 //     float scale = 0.8;
@@ -217,14 +255,14 @@ SdfAndMat scanSdf(float3 pos)
     //     result.mat = 1.0;
     // }
 
-    float sdMenger;
+    float sdO;
     {
-        sdMenger = sdfMenger(pos);
+        sdO = sdfO(pos);
     }
 
-    if (sdMenger < result.sdf)
+    if (sdO < result.sdf)
     {
-        result.sdf = sdMenger;
+        result.sdf = sdO;
         result.mat = 1.0;
     }
 
@@ -305,9 +343,6 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     // Diffuse term
     float NoL = saturate(dot(N, L));
 
-    // Soft shadow
-    float shadow = softShadow(pos + N * 1e-2, L, 0.1, 20.0);
-
     // Specular term (Phong)
     float3 reflectDir = reflect(-L, N);
     float spec = pow(saturate(dot(viewDir, reflectDir)), 32.0);
@@ -317,8 +352,10 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     float3 specular = spec * float3(1.0, 0.9, 0.8);
 
     float3 color = (diffuse + specular);
-    color.b *= shadow;
-    color.r *= 2.0f - shadow;
+
+    // Soft shadow
+    // float shadow = softShadow(pos + N * 1e-2, L, 0.1, 20.0);
+    // color *= shadow;
 
     // Ambient term
     color += albedo * 0.1;
@@ -369,13 +406,13 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-    const float3x3 cameraMat = rotateY(sin(g_time) * (HALF_PI * 0.25f));
+    const float3x3 cameraMat = rotateY(g_time * (HALF_PI * 0.25f));
 
     float2 screenPos2 = (pixelF - g_screenResolution * 0.5) / g_screenResolution.y;
     screenPos2 *= 1.5f;
 
     float3 screenPos3 = float3(screenPos2, 1.0);
-    screenPos3 = mul(cameraMat, screenPos3);
+    // screenPos3 = mul(cameraMat, screenPos3);
 
     const float3 eyePos = float3(0, 0, 0);
 
