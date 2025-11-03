@@ -2,7 +2,7 @@
 #define TWO_PI (PI * 2)
 #define HALF_PI (PI * 0.5)
 
-#define MAX_DIST 1000.0
+#define FAR_DIST 1000.0
 #define MAX_RAYMARCH 50
 
 // 出力
@@ -175,7 +175,7 @@ float sdfMenger(float3 p, float3 idx)
         p.z += 0.5 * offset.z * (scale - 1.0) / scale;
 
         // スケーリングと平行移動
-        p.xy = scale * p.xy - offset.xy * (scale - 1.0);
+        p.xy = scale * p.xy - offset.xy * (scale - 1.0); // (p - offset) * scale + offset; // offset 中心拡大
         p.z = scale * p.z;
     }
 
@@ -269,7 +269,7 @@ RaycastResult raycast(float3 pos, float3 dir)
         }
 
         t += d.sdf;
-        if (t > MAX_DIST) break;
+        if (t > FAR_DIST) break;
     }
 
     return r;
@@ -290,7 +290,7 @@ float softShadow(float3 ro, float3 rd, float mint, float k)
         h = max(h, 0.0);
         result = min(result, k * h / t);
         t += clamp(h, 0.01, 0.5);
-        if (t > MAX_DIST)
+        if (t > FAR_DIST)
         {
             break;
         }

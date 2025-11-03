@@ -1,24 +1,25 @@
 ﻿#include "pch.h"
 #include "Testbed_Shadertoy.h"
 
+#define A_CPU
+#include "asset/fsr1/ffx_a.h"
+#include "asset/fsr1/ffx_fsr1.h"
+
 #include "imgui/imgui.h"
 #include "TY/ComputeDispatcher.h"
 
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
+#include "TY/GameTime.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/InlineComponent.h"
+#include "TY/KeyboardInput.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/RenderTarget.h"
 #include "TY/Screen.h"
 #include "TY/Shader.h"
 #include "TY/System.h"
-
-#define A_CPU
-#include "asset/fsr1/ffx_a.h"
-#include "asset/fsr1/ffx_fsr1.h"
-#include "TY/KeyboardInput.h"
 #include "TY/Utils.h"
 #include "Util/ImmediatePrint.h"
 
@@ -152,6 +153,8 @@ namespace
         ConstantBufferWrapper<RcasCB> m_rcasCB;
         ComputeDispatcher m_rcasDispatcher{};
     };
+
+    bool s_stopTime{};
 }
 
 struct Testbed_Shadertoy_impl
@@ -202,7 +205,7 @@ struct Testbed_Shadertoy_impl
         const Float2 textureSize = texture.size().cast<Float2>();
         s_rsc->cb.shadertoy->g_screenResolution = textureSize;
         s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (textureSize / Screen::Size().cast<Float2>());
-        s_rsc->cb.shadertoy->g_time += System::DeltaTime();
+        s_rsc->cb.shadertoy->g_time += s_stopTime ? 0.0f : InGameDeltaTime();
         s_rsc->cb.shadertoy.upload();
 
         const Size threadGroup = (texture.size() + Size{7, 7}) / 8;
@@ -276,6 +279,8 @@ struct Testbed_Shadertoy_impl
 
             static bool s_sleep{};;
             ImGui::Checkbox("Sleep", &s_sleep);
+
+            ImGui::Checkbox("Stop Time", &s_stopTime);
 
             if (s_sleep)
             {
