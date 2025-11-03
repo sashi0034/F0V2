@@ -204,6 +204,31 @@ namespace TY
         return result;
     }
 
+    Array<std::string_view> SplitStringView(std::string_view str, char delimiter, bool skipEmpty)
+    {
+        Array<std::string_view> result;
+
+        size_t start = 0;
+        while (start <= str.size())
+        {
+            size_t end = str.find(delimiter, start);
+            if (end == std::string_view::npos)
+            {
+                end = str.size();
+            }
+
+            std::string_view token = str.substr(start, end - start);
+            if (not(skipEmpty && token.empty()))
+            {
+                result.push_back(token);
+            }
+
+            start = end + 1;
+        }
+
+        return result;
+    }
+
     std::wstring StringifyBlob(ID3DBlob* blob)
     {
         return ToUtf16(std::string{static_cast<char*>(blob->GetBufferPointer()), blob->GetBufferSize()});

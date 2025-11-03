@@ -19,6 +19,8 @@
 #include "asset/fsr1/ffx_a.h"
 #include "asset/fsr1/ffx_fsr1.h"
 #include "TY/KeyboardInput.h"
+#include "TY/Utils.h"
+#include "Util/ImmediatePrint.h"
 
 using namespace TY;
 
@@ -235,15 +237,28 @@ struct Testbed_Shadertoy_impl
 
         ImmediateDrawer::Global().draw();
 
-        static bool s_showImgui{true};
+        static bool s_ui{true};
         if (KeySpace.down())
         {
-            s_showImgui = not s_showImgui;
+            s_ui = not s_ui;
         }
 
-        if (s_showImgui)
+        if (s_ui)
         {
+            if (std::string err = s_rsc->shader.shadertoy_cs.getErrorMessage(); not err.empty())
+            {
+                const auto messages = SplitStringView(err, '\n', true);
+                for (const auto& s : messages)
+                {
+                    ImmediatePrint(s);
+                }
+            }
+
             ImGui::Begin("System Settings");
+
+            ImGui::Text("Press Space to Toggle UI");
+
+            ImGui::Separator();
 
             ImGui::Checkbox("Native Resolution", &s_nativeResolution);
 

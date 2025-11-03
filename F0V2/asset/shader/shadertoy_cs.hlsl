@@ -363,15 +363,16 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
 [numthreads(8, 8, 1)]
 void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    uint2 pixel = dispatchThreadID.xy;
-    if (pixel.x >= g_screenResolution.x || pixel.y >= g_screenResolution.y)
+    const uint2 pixel = dispatchThreadID.xy;
+    const float2 pixelF = float2(pixel);
+    if (pixelF.x >= g_screenResolution.x || pixelF.y >= g_screenResolution.y)
     {
         return;
     }
 
     const float3x3 cameraMat = rotateY(sin(g_time) * (HALF_PI * 0.25f));
 
-    float2 screenPos2 = (float2(pixel) - g_screenResolution * 0.5) / g_screenResolution.y;
+    float2 screenPos2 = (pixelF - g_screenResolution * 0.5) / g_screenResolution.y;
     screenPos2 *= 1.5f;
 
     float3 screenPos3 = float3(screenPos2, 1.0);

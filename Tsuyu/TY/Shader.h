@@ -31,13 +31,20 @@ namespace TY
         {
         }
 
-        [[nodiscard]] bool isEmpty() const;
+        [[nodiscard]]
+        bool isEmpty() const;
 
-        [[nodiscard]] std::shared_ptr<ITimestamp> timestamp() const;
+        [[nodiscard]]
+        std::shared_ptr<ITimestamp> timestamp() const;
 
-        [[nodiscard]] ID3D10Blob* getBlob() const;
+        [[nodiscard]]
+        ID3D10Blob* getBlob() const;
 
-        [[nodiscard]] size_t unique_id() const;
+        [[nodiscard]]
+        std::string getErrorMessage() const;
+
+        [[nodiscard]]
+        size_t unique_id() const;
 
     private:
         std::shared_ptr<Shader_impl> p_impl;
@@ -55,13 +62,20 @@ namespace TY
         {
         }
 
-        [[nodiscard]] bool isEmpty() const;
+        [[nodiscard]]
+        bool isEmpty() const;
 
-        [[nodiscard]] std::shared_ptr<ITimestamp> timestamp() const;
+        [[nodiscard]]
+        std::shared_ptr<ITimestamp> timestamp() const;
 
-        [[nodiscard]] ID3D10Blob* getBlob() const;
+        [[nodiscard]]
+        ID3D10Blob* getBlob() const;
 
-        [[nodiscard]] size_t unique_id() const;
+        [[nodiscard]]
+        std::string getErrorMessage() const;
+
+        [[nodiscard]]
+        size_t unique_id() const;
 
     private:
         std::shared_ptr<Shader_impl> p_impl;
@@ -91,13 +105,20 @@ namespace TY
         {
         }
 
-        [[nodiscard]] bool isEmpty() const;
+        [[nodiscard]]
+        bool isEmpty() const;
 
-        [[nodiscard]] std::shared_ptr<ITimestamp> timestamp() const;
+        [[nodiscard]]
+        std::shared_ptr<ITimestamp> timestamp() const;
 
-        [[nodiscard]] ID3D10Blob* getBlob() const;
+        [[nodiscard]]
+        ID3D10Blob* getBlob() const;
 
-        [[nodiscard]] size_t unique_id() const;
+        [[nodiscard]]
+        std::string getErrorMessage() const;
+
+        [[nodiscard]]
+        size_t unique_id() const;
 
     private:
         std::shared_ptr<Shader_impl> p_impl;

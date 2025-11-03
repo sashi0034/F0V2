@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <string>
 
+#include "Array.h"
+
 namespace TY
 {
     std::wstring ToUtf16(std::string_view str);
@@ -22,6 +24,8 @@ namespace TY
     {
         return ToUtf32(std::format(fmt, std::forward<Args>(args)...));
     }
+
+    Array<std::string_view> SplitStringView(std::string_view str, char delimiter, bool skipEmpty = false);
 
     std::wstring StringifyBlob(ID3DBlob* blob);
 

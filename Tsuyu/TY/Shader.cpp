@@ -39,8 +39,12 @@ struct TY::Shader_impl : IEngineHotReloadable
 
     std::string GetErrorMessage() const
     {
-        if (not m_errorBlob) return "";
-        return std::string{static_cast<char*>(m_errorBlob->GetBufferPointer()), m_errorBlob->GetBufferSize()};
+        if (not m_errorBlob || m_errorBlob->GetBufferSize() == 0)
+        {
+            return "";
+        }
+
+        return std::string{static_cast<char*>(m_errorBlob->GetBufferPointer()), m_errorBlob->GetBufferSize() - 1};
     }
 
     uint64_t timestamp() const override
@@ -72,15 +76,22 @@ struct TY::Shader_impl : IEngineHotReloadable
             m_errorBlob.ReleaseAndGetAddressOf()
         );
 
-        if (SUCCEEDED(compileResult)) return;
+        if (SUCCEEDED(compileResult))
+        {
+            return;
+        }
+
         // -----------------------------------------------
 
-        if (m_shaderBlob != nullptr) m_shaderBlob->Release();
+        if (m_shaderBlob != nullptr)
+        {
+            m_shaderBlob->Release();
+        }
 
-        std::wstring message = L"failed to compile shader: ";
+        std::wstring message = L"Shader: failed to compile: ";
         if (compileResult == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
         {
-            message += L"file not found";
+            message += L"File not found.";
         }
         else
         {
@@ -136,6 +147,11 @@ namespace TY
         return p_impl ? p_impl->m_shaderBlob.Get() : nullptr;
     }
 
+    std::string VertexShader::getErrorMessage() const
+    {
+        return p_impl ? p_impl->GetErrorMessage() : "";
+    }
+
     size_t VertexShader::unique_id() const
     {
         return reinterpret_cast<size_t>(p_impl.get());
@@ -163,6 +179,11 @@ namespace TY
     ID3D10Blob* PixelShader::getBlob() const
     {
         return p_impl ? p_impl->m_shaderBlob.Get() : nullptr;
+    }
+
+    std::string PixelShader::getErrorMessage() const
+    {
+        return p_impl ? p_impl->GetErrorMessage() : "";
     }
 
     size_t PixelShader::unique_id() const
@@ -214,6 +235,11 @@ namespace TY
     ID3D10Blob* ComputeShader::getBlob() const
     {
         return p_impl ? p_impl->m_shaderBlob.Get() : nullptr;
+    }
+
+    std::string ComputeShader::getErrorMessage() const
+    {
+        return p_impl ? p_impl->GetErrorMessage() : "";
     }
 
     size_t ComputeShader::unique_id() const
