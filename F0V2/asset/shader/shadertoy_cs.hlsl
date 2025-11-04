@@ -204,7 +204,9 @@ float sdfMenger(float3 p)
 // http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
 float DE(float3 p, int Iterations)
 {
-    p = p - float3(0, 0, 2.0);
+    p = p - float3(0, 0, 5.0);
+
+    p = mul(rollPitchYaw(g_time, g_time * 0.5, g_time * 2.0), p);
 
     float3 a1 = float3(1, 1, 1);
     float3 a2 = float3(-1, -1, 1);
@@ -214,9 +216,14 @@ float DE(float3 p, int Iterations)
     int n = 0;
     float dist, d;
 
-    const float Scale = 1.1 + g_mouseUV.x;
+    const float Scale = 2.0 + 0.75 * sin(g_time * 3.0);
     while (n < Iterations)
     {
+        p = abs(p) - 0.5;
+        if (p.x < p.y) p.xy = p.yx;
+        if (p.x < p.z) p.xz = p.zx;
+        if (p.y < p.z) p.yz = p.zy;
+
         c = a1;
         dist = length(p - a1);
         d = length(p - a2);
@@ -249,7 +256,7 @@ float DE(float3 p, int Iterations)
 
 float sdfO(float3 p)
 {
-    return DE(p, 10);
+    return max(DE(p, 15), -sdfSphere(p, 5.0));
     // return smoothMin(DE(p, 5), DE(p, 10), 0.5 + 0.5 * sin(g_time * 3.0));
 }
 
