@@ -118,6 +118,7 @@ float2 safe_pmod(float2 p, float r)
 
 static const float MAT_SOLID = 1.0;
 
+// TODO: Remove this?
 struct MatData
 {
     float3 albedo;
@@ -128,7 +129,7 @@ MatData getMatData(float mat)
     MatData r;
     if (mat == MAT_SOLID)
     {
-        r.albedo = float3(0.15, 0.67, 0.97);
+        r.albedo = float3(1, 1, 1);
     }
     else
     {
@@ -225,76 +226,63 @@ float sdfMenger(float3 p)
 // http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
 float sdfP(float3 p)
 {
-    p.zx = safe_pmod(p.zx, 12.0);
-    p.yx = safe_pmod(p.yx, 6.0);
+    p -= float3(0, -2, 5);
 
-    float3 base = abs(p) - float3(0, 0, 5);
-
-    float scale = 1.0;
-    const int Iterations = 5;
-    float d = 1e+6;
-
-    [unroll]
+    float h = 1.0;
+    float r = 0.1;
+    float d = sdfCylinder(p, h, r);
+    const float Scale = 0.8;
+    const int Iterations = 8;
     for (int i = 0; i < Iterations; i++)
     {
-        // 幹 or 枝
-        float branch = sdfCylinder(base, 1.0 * scale, 0.1 * scale);
-        d = smoothMin(d, branch, 0.15 * scale);
+        if (i == Iterations - 1)
+        {
+            float d_ = smoothMin(d, sdfCylinder(p, h, r), 0.1);
+            d = lerp(d, d_, 0.5);
+            break;
+        }
+        else
+        {
+            d = smoothMin(d, sdfCylinder(p, h, r), 0.1);
+        }
 
-        // 枝の先端に移動
-        base.y -= 1.0 * scale;
+        p.xz = abs(p.xz);
+        p.y -= h;
+        p.zx = mul(rotate2d(HALF_PI * (0.5 + 0.25 * sin(g_time * 3.0))), p.zx);
+        p.xy = mul(rotate2d(0.5), p.xy);
 
-        // 左
-        float3 left = base;
-        left.xy = mul(rotate2d(+0.4 + i * 0.1), left.xy);
-        float leftBranch = sdfCylinder(left, 0.7 * scale, 0.07 * scale);
-        d = smoothMin(d, leftBranch, 0.15 * scale);
-
-        // 右
-        float3 right = base;
-        right.xy = mul(rotate2d(-0.4 - i * 0.1), right.xy);
-        float rightBranch = sdfCylinder(right, 0.7 * scale, 0.07 * scale);
-        d = smoothMin(d, rightBranch, 0.15 * scale);
-
-        // 細くなる
-        scale *= 0.7;
+        h *= Scale;
+        r *= Scale;
     }
-
-    // 葉
-    float3 tip = base;
-    float leaves = length(tip - float3(0, -0.2, 0)) - 0.3 * scale;
-    d = smoothMin(d, leaves, 0.2);
 
     return d;
 }
 
 float sdfO(float3 p)
 {
-    // p.zx = safe_pmod(p.zx, 12.0);
-    // return sdfSphere(p - float3(0, 0, 5), 1.0);
-
     return sdfP(p);
+
     // return max(DE(p), -sdfSphere(p, 5.0));
     // return smoothMin(DE(p, 5), DE(p, 10), 0.5 + 0.5 * sin(g_time * 3.0));
 }
 
-// float sdfTree(float3 p)
-// {
-//     float scale = 0.8;
-//     float3 size = float3(0.1, 1.0, 0.1);
-//     float d = sdfBox(p, size);
-//     for (int i = 0; i < 7; i++)
-//     {
-//         float3 q = abs(p);
-//         q.y -= size.y;
-//         q.xy = mul(rotate(-0.5), q.xy);
-//         d = min(d, sdfBox(p, size));
-//         p = q;
-//         size *= scale;
-//     }
-//
-//     return d;
-// }
+float sdfTree(float3 p)
+{
+    float scale = 0.8;
+    float3 size = float3(0.1, 1.0, 0.1);
+    float d = sdfBox(p, size);
+    for (int i = 0; i < 7; i++)
+    {
+        float3 q = abs(p);
+        q.y -= size.y;
+        q.xy = mul(rotate2d(0.5), q.xy);
+        d = min(d, sdfBox(p, size));
+        p = q;
+        size *= scale;
+    }
+
+    return d;
+}
 
 SdfAndMat scanSdf(float3 pos)
 {
@@ -386,9 +374,12 @@ float softShadow(float3 ro, float3 rd, float mint, float k)
     return clamp(result, 0.0, 1.0);
 }
 
-// Lambert + Phong specular
-float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
+float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos)
 {
+    const float3 N = scanNormal(hitPos);
+
+    const float3 viewDir = normalize(eyePos - hitPos);
+
     // Light direction
     float3 L = normalize(float3(-0.5, 1.0, -0.5));
 
@@ -400,8 +391,7 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     float spec = pow(saturate(dot(viewDir, reflectDir)), 32.0);
 
     // Combine
-    // float3 diffuse = albedo * NoL;
-    float3 diffuse = albedo * NoL + float3(0.7, 1.0, 1.0) * (1.0 - NoL) * 0.9;
+    float3 diffuse = float3(0.78, 0.97, 0.1) * NoL + float3(0.13, 0.53, 0.13) * (1 - NoL);
     float3 specular = spec * float3(1.0, 0.9, 0.8);
 
     float3 color = (diffuse + specular);
@@ -411,7 +401,7 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     // color *= shadow;
 
     // Ambient term
-    // color += V3(0.3);
+    color += V3(0.1);
 
     return color;
 }
@@ -421,20 +411,15 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
     float3 color = float3(0, 0, 0);
     RaycastResult r = raycast(eyePos, rayDir);
 
-    if (r.d.mat > 0)
+    if (r.d.mat == MAT_SOLID)
     {
-        float3 n = scanNormal(r.pos);
-
-        MatData mat = getMatData(r.d.mat);
-
-        float3 viewDir = normalize(eyePos - r.pos);
-        color = applyLight(r.pos, n, viewDir, mat.albedo);
+        color = phongLight(eyePos, rayDir, r.pos);
     }
     else
     {
         // 背景色
         float tbg = 0.5 * (rayDir.y + 1.0);
-        color = lerp(float3(0.7, 0.9, 1.0), float3(0.1, 0.2, 0.5), tbg);
+        color = lerp(float3(0.2, 0.5, 0.1), float3(0.9, 1.0, 0.7), tbg);
     }
 
     // float3 fogColor = float3(0.5, 0.7, 0.9);
@@ -464,6 +449,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const float3x3 cameraMat = rollPitchYaw(roll, pitch, 0);
 
     float2 screenPos2 = (pixelF - g_screenResolution * 0.5) / g_screenResolution.y;
+    screenPos2 *= float2(1.0, -1.0);
     screenPos2 *= 1.5f;
 
     float3 screenPos3 = float3(screenPos2, 1.0);
