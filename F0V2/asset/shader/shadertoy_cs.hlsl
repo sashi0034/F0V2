@@ -202,24 +202,49 @@ float sdfMenger(float3 p)
 }
 
 // http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
-float DE(float3 z, int Iterations)
+float DE(float3 p, int Iterations)
 {
-    z = z - float3(0, 0, 1.0);
+    p = p - float3(0, 0, 2.0);
 
-    float r;
+    float3 a1 = float3(1, 1, 1);
+    float3 a2 = float3(-1, -1, 1);
+    float3 a3 = float3(1, -1, -1);
+    float3 a4 = float3(-1, 1, -1);
+    float3 c;
     int n = 0;
-    const float zy = 0, zz = 0;
-    const float Scale = 2.0 + sin(g_time * 2.0);
-    const float3 Offset = V3(1);
+    float dist, d;
+
+    const float Scale = 1.1 + g_mouseUV.x;
     while (n < Iterations)
     {
-        if (z.x + zy < 0) z.xy = -z.yx;
-        if (z.x + zz < 0) z.xz = -z.zx;
-        if (z.y + zz < 0) z.zy = -z.yz;
-        z = z * Scale - Offset * (Scale - 1.0);
+        c = a1;
+        dist = length(p - a1);
+        d = length(p - a2);
+        if (d < dist)
+        {
+            c = a2;
+            dist = d;
+        }
+
+        d = length(p - a3);
+        if (d < dist)
+        {
+            c = a3;
+            dist = d;
+        }
+
+        d = length(p - a4);
+        if (d < dist)
+        {
+            c = a4;
+            dist = d;
+        }
+
+        p = Scale * p - c * (Scale - 1.0);
         n++;
     }
-    return (length(z)) * pow(Scale, -float(n));
+
+    return length(p) * pow(Scale, float(-n));
 }
 
 float sdfO(float3 p)
