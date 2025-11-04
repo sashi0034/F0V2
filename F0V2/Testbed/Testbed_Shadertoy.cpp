@@ -297,12 +297,12 @@ struct Testbed_Shadertoy_impl
             static bool s_sleep{};;
             ImGui::Checkbox("Sleep", &s_sleep);
 
-            static bool s_longSleep{};
+            static bool s_lazySleep{};
             {
                 ImGui::BeginDisabled(not s_sleep);
 
                 ImGui::Indent();
-                ImGui::Checkbox("Long Sleep", &s_longSleep);
+                ImGui::Checkbox("Lazy Sleep", &s_lazySleep);
                 ImGui::Unindent();
 
                 ImGui::EndDisabled();
@@ -312,7 +312,7 @@ struct Testbed_Shadertoy_impl
 
             if (s_sleep)
             {
-                System::Sleep(s_longSleep ? 500 : 100);
+                System::Sleep(s_lazySleep ? 500 : 100);
             }
 
             // -----------------------------------------------
