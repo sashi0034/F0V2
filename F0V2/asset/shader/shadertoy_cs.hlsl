@@ -95,7 +95,22 @@ float2 pmod(float2 p, float r)
     const float n = 2.0 * PI / r;
     a = floor(a / n) * n;
 
-    return mul(p, rotate2d(-a));
+    return mul(rotate2d(-a), p);
+}
+
+float2 safe_pmod(float2 p, float r)
+{
+    float2 result;
+    if (p.x == 0 && p.y == 0)
+    {
+        result = float2(0, 0);
+    }
+    else
+    {
+        result = pmod(p, r);
+    }
+
+    return result;
 }
 
 // -----------------------------------------------
@@ -151,6 +166,12 @@ float sdfBox(float3 p, float3 b)
     return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0);
 }
 
+float sdfCylinder(float3 p, float h, float r)
+{
+    float2 d = abs(float2(length(p.xz), p.y)) - float2(r, h);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+
 // https://www.shadertoy.com/view/ltS3W3
 float sdfMenger(float3 p)
 {
@@ -202,61 +223,58 @@ float sdfMenger(float3 p)
 }
 
 // http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
-float DE(float3 p, int Iterations)
+float sdfP(float3 p)
 {
-    p = p - float3(0, 0, 5.0);
+    p.zx = safe_pmod(p.zx, 12.0);
+    p.yx = safe_pmod(p.yx, 6.0);
 
-    p = mul(rollPitchYaw(g_time, g_time * 0.5, g_time * 2.0), p);
+    float3 base = abs(p) - float3(0, 0, 5);
 
-    float3 a1 = float3(1, 1, 1);
-    float3 a2 = float3(-1, -1, 1);
-    float3 a3 = float3(1, -1, -1);
-    float3 a4 = float3(-1, 1, -1);
-    float3 c;
-    int n = 0;
-    float dist, d;
+    float scale = 1.0;
+    const int Iterations = 5;
+    float d = 1e+6;
 
-    const float Scale = 2.0 + 0.75 * sin(g_time * 3.0);
-    while (n < Iterations)
+    [unroll]
+    for (int i = 0; i < Iterations; i++)
     {
-        p = abs(p) - 0.5;
-        if (p.x < p.y) p.xy = p.yx;
-        if (p.x < p.z) p.xz = p.zx;
-        if (p.y < p.z) p.yz = p.zy;
+        // 幹 or 枝
+        float branch = sdfCylinder(base, 1.0 * scale, 0.1 * scale);
+        d = smoothMin(d, branch, 0.15 * scale);
 
-        c = a1;
-        dist = length(p - a1);
-        d = length(p - a2);
-        if (d < dist)
-        {
-            c = a2;
-            dist = d;
-        }
+        // 枝の先端に移動
+        base.y -= 1.0 * scale;
 
-        d = length(p - a3);
-        if (d < dist)
-        {
-            c = a3;
-            dist = d;
-        }
+        // 左
+        float3 left = base;
+        left.xy = mul(rotate2d(+0.4 + i * 0.1), left.xy);
+        float leftBranch = sdfCylinder(left, 0.7 * scale, 0.07 * scale);
+        d = smoothMin(d, leftBranch, 0.15 * scale);
 
-        d = length(p - a4);
-        if (d < dist)
-        {
-            c = a4;
-            dist = d;
-        }
+        // 右
+        float3 right = base;
+        right.xy = mul(rotate2d(-0.4 - i * 0.1), right.xy);
+        float rightBranch = sdfCylinder(right, 0.7 * scale, 0.07 * scale);
+        d = smoothMin(d, rightBranch, 0.15 * scale);
 
-        p = Scale * p - c * (Scale - 1.0);
-        n++;
+        // 細くなる
+        scale *= 0.7;
     }
 
-    return length(p) * pow(Scale, float(-n));
+    // 葉
+    float3 tip = base;
+    float leaves = length(tip - float3(0, -0.2, 0)) - 0.3 * scale;
+    d = smoothMin(d, leaves, 0.2);
+
+    return d;
 }
 
 float sdfO(float3 p)
 {
-    return max(DE(p, 15), -sdfSphere(p, 5.0));
+    // p.zx = safe_pmod(p.zx, 12.0);
+    // return sdfSphere(p - float3(0, 0, 5), 1.0);
+
+    return sdfP(p);
+    // return max(DE(p), -sdfSphere(p, 5.0));
     // return smoothMin(DE(p, 5), DE(p, 10), 0.5 + 0.5 * sin(g_time * 3.0));
 }
 
