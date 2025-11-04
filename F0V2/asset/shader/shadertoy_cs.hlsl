@@ -85,7 +85,7 @@ float3x3 rotateY(float angle)
 float2x2 rotate2d(float a)
 {
     const float s = sin(a), c = cos(a);
-    return float2x2(c, s, -s, c);
+    return float2x2(c, -s, s, c);
 }
 
 float2 pmod(float2 p, float r)
