@@ -19,12 +19,11 @@ cbuffer Shadertoy_b10 : register(b0)
 {
     float2 g_screenResolution;
     float2 g_mousePosition;
-    float2 g_mouseUV;
     float g_time;
 }
 
 // -----------------------------------------------
-// math
+// random
 
 float hash31(float3 p)
 {
@@ -32,25 +31,23 @@ float hash31(float3 p)
     return frac(sin(h) * 43758.5453123);
 }
 
-float smoothMin(float a, float b, float k)
-{
-    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
-    return lerp(b, a, h) - k * h * (1.0 - h);
-}
-
 // -----------------------------------------------
 // matrix
 
-float3x3 rollPitchYaw(float roll, float pitch, float yaw)
+// Roll-Pitch-Yaw行列を作成
+float3x3 rotateRollPitchYaw(float roll, float pitch, float yaw)
 {
-    float cp = cos(pitch), sp = sin(pitch); // X
-    float sr = sin(roll), cr = cos(roll); // Z
-    float sy = sin(yaw), cy = cos(yaw); // Y
+    float cp = cos(pitch);
+    float sp = sin(pitch);
+    float sr = sin(roll);
+    float cr = cos(roll);
+    float sy = sin(yaw);
+    float cy = cos(yaw);
 
     return float3x3(
-        cr * cy - sr * sp * sy, -sr * cp, cr * sy + sr * sp * cy,
-        sr * cy + cr * sp * sy, cr * cp, sr * sy - cr * sp * cy,
-        -cp * sy, sp, cp * cy
+        cp * cy, (sr * sp * cy) - (cr * sy), (cr * sp * cy) + (sr * sy),
+        cp * sy, (sr * sp * sy) + (cr * cy), (cr * sp * sy) - (sr * cy),
+        -sp, sr * cp, cr * cp
     );
 }
 
@@ -82,22 +79,6 @@ float3x3 rotateY(float angle)
     );
 }
 
-float2x2 rotate2d(float a)
-{
-    const float s = sin(a), c = cos(a);
-    return float2x2(c, s, -s, c);
-}
-
-float2 pmod(float2 p, float r)
-{
-    float a = atan2(p.y, p.x) + PI / r;
-
-    const float n = 2.0 * PI / r;
-    a = floor(a / n) * n;
-
-    return mul(p, rotate2d(-a));
-}
-
 // -----------------------------------------------
 // material
 
@@ -113,7 +94,7 @@ MatData getMatData(float mat)
     MatData r;
     if (mat == MAT_SOLID)
     {
-        r.albedo = float3(0.15, 0.67, 0.97);
+        r.albedo = float3(0.04, 1, 0.86);
     }
     else
     {
@@ -151,6 +132,12 @@ float sdfBox(float3 p, float3 b)
     return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0);
 }
 
+float2x2 rotate(float a)
+{
+    float s = sin(a), c = cos(a);
+    return float2x2(c, s, -s, c);
+}
+
 // https://www.shadertoy.com/view/ltS3W3
 float sdfMenger(float3 p)
 {
@@ -167,7 +154,7 @@ float sdfMenger(float3 p)
     const float rotX = 5.0 * sin(time * 0.01);
     const float rotY = 5.0 * sin(time * 0.0057);
     const float rotZ = 5.0 * sin(time * 0.0266);
-    const float3x3 rot = rollPitchYaw(rotX, rotY, rotZ);
+    const float3x3 rot = rotateRollPitchYaw(rotX, rotY, rotZ);
 
     // 反復折り返し
     [unroll]
@@ -201,57 +188,6 @@ float sdfMenger(float3 p)
     return distance;
 }
 
-float DE(float3 p, int Iterations)
-{
-    p = p - float3(0, 0, 2.0);
-
-    float3 a1 = float3(1, 1, 1);
-    float3 a2 = float3(-1, -1, 1);
-    float3 a3 = float3(1, -1, -1);
-    float3 a4 = float3(-1, 1, -1);
-    float3 c;
-    int n = 0;
-    float dist, d;
-
-    const float Scale = 2.0;
-    while (n < Iterations)
-    {
-        c = a1;
-        dist = length(p - a1);
-        d = length(p - a2);
-        if (d < dist)
-        {
-            c = a2;
-            dist = d;
-        }
-
-        d = length(p - a3);
-        if (d < dist)
-        {
-            c = a3;
-            dist = d;
-        }
-
-        d = length(p - a4);
-        if (d < dist)
-        {
-            c = a4;
-            dist = d;
-        }
-
-        p = Scale * p - c * (Scale - 1.0);
-        n++;
-    }
-
-    return length(p) * pow(Scale, float(-n));
-}
-
-float sdfO(float3 p)
-{
-    return DE(p, g_mouseUV.x * 10);
-    // return smoothMin(DE(p, 5), DE(p, 10), 0.5 + 0.5 * sin(g_time * 3.0));
-}
-
 // float sdfTree(float3 p)
 // {
 //     float scale = 0.8;
@@ -281,14 +217,14 @@ SdfAndMat scanSdf(float3 pos)
     //     result.mat = 1.0;
     // }
 
-    float sdO;
+    float sdMenger;
     {
-        sdO = sdfO(pos);
+        sdMenger = sdfMenger(pos);
     }
 
-    if (sdO < result.sdf)
+    if (sdMenger < result.sdf)
     {
-        result.sdf = sdO;
+        result.sdf = sdMenger;
         result.mat = 1.0;
     }
 
@@ -369,23 +305,23 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     // Diffuse term
     float NoL = saturate(dot(N, L));
 
+    // Soft shadow
+    float shadow = softShadow(pos + N * 1e-2, L, 0.1, 20.0);
+
     // Specular term (Phong)
     float3 reflectDir = reflect(-L, N);
     float spec = pow(saturate(dot(viewDir, reflectDir)), 32.0);
 
     // Combine
-    // float3 diffuse = albedo * NoL;
-    float3 diffuse = albedo * NoL + float3(0.7, 1.0, 1.0) * (1.0 - NoL) * 0.9;
+    float3 diffuse = albedo * NoL;
     float3 specular = spec * float3(1.0, 0.9, 0.8);
 
     float3 color = (diffuse + specular);
-
-    // Soft shadow
-    // float shadow = softShadow(pos + N * 1e-2, L, 0.1, 20.0);
-    // color *= shadow;
+    color.b *= shadow;
+    color.r *= 2.0f - shadow;
 
     // Ambient term
-    // color += V3(0.3);
+    color += albedo * 0.1;
 
     return color;
 }
@@ -408,7 +344,7 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
     {
         // 背景色
         float tbg = 0.5 * (rayDir.y + 1.0);
-        color = lerp(float3(0.7, 0.9, 1.0), float3(0.1, 0.2, 0.5), tbg);
+        color = lerp(float3(0.2, 0.4, 0.5), float3(1.0, 0.9, 0.7), tbg);
     }
 
     // float3 fogColor = float3(0.5, 0.7, 0.9);
@@ -433,15 +369,13 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-    const float roll = sin(g_time) * (HALF_PI * 0.125f);
-    const float pitch = sin(g_time * 0.9 + 0.1) * (HALF_PI * 0.125f);
-    const float3x3 cameraMat = rollPitchYaw(roll, pitch, 0);
+    const float3x3 cameraMat = rotateY(sin(g_time) * (HALF_PI * 0.25f));
 
     float2 screenPos2 = (pixelF - g_screenResolution * 0.5) / g_screenResolution.y;
     screenPos2 *= 1.5f;
 
     float3 screenPos3 = float3(screenPos2, 1.0);
-    // screenPos3 = mul(cameraMat, screenPos3);
+    screenPos3 = mul(cameraMat, screenPos3);
 
     const float3 eyePos = float3(0, 0, 0);
 

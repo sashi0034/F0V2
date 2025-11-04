@@ -34,6 +34,7 @@ namespace
     {
         Float2 g_screenResolution{};
         Float2 g_mousePosition{};
+        Float2 g_mouseUV{};
         float g_time{};
     };
 
@@ -208,6 +209,10 @@ struct Testbed_Shadertoy_impl
         const Float2 textureSize = texture.size().cast<Float2>();
         s_rsc->cb.shadertoy->g_screenResolution = textureSize;
         s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (textureSize / Screen::Size().cast<Float2>());
+        s_rsc->cb.shadertoy->g_mouseUV =
+            Math::Clamp2D(s_rsc->cb.shadertoy->g_mousePosition / textureSize,
+                          Float2{},
+                          Float2{1.0f, 1.0f});
         s_rsc->cb.shadertoy->g_time += s_stopTime ? 0.0f : InGameDeltaTime();
         s_rsc->cb.shadertoy.upload();
 
@@ -268,10 +273,11 @@ struct Testbed_Shadertoy_impl
                 }
             }
 
-            ImGui::Begin("System Settings");
+            ImGui::Begin("Shadertoy Settings");
 
-            ImGui::Text("Press Space to Toggle UI");
+            ImGui::Text(std::format("Mouse UV: {:.02}", s_rsc->cb.shadertoy->g_mouseUV).c_str());
 
+            // -----------------------------------------------
             ImGui::Separator();
 
             ImGui::Checkbox("Native Resolution", &s_nativeResolution);
@@ -295,7 +301,9 @@ struct Testbed_Shadertoy_impl
             {
                 ImGui::BeginDisabled(not s_sleep);
 
+                ImGui::Indent();
                 ImGui::Checkbox("Long Sleep", &s_longSleep);
+                ImGui::Unindent();
 
                 ImGui::EndDisabled();
             }
@@ -306,6 +314,15 @@ struct Testbed_Shadertoy_impl
             {
                 System::Sleep(s_longSleep ? 500 : 100);
             }
+
+            // -----------------------------------------------
+            ImGui::Separator();
+
+            ImGui::Text("Press");
+
+            ImGui::BulletText("'Space' to Toggle UI");
+
+            ImGui::BulletText("'Tab' to Toggle Window Size");
 
             ImGui::End();
         }

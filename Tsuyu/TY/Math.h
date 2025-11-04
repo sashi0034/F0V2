@@ -138,6 +138,25 @@ namespace TY
             return value;
         }
 
+        template <typename T>
+        constexpr T Clamp2D(const T& value, const T& min, const T& max) noexcept
+        {
+            T result;
+            result.x = Clamp(value.x, min.x, max.x);
+            result.y = Clamp(value.y, min.y, max.y);
+            return result;
+        }
+
+        template <typename T>
+        constexpr T Clamp3D(const T& value, const T& min, const T& max) noexcept
+        {
+            T result;
+            result.x = Clamp(value.x, min.x, max.x);
+            result.y = Clamp(value.y, min.y, max.y);
+            result.z = Clamp(value.z, min.z, max.z);
+            return result;
+        }
+
         constexpr double Lerp(double v1, double v2, double f) noexcept
         {
             return (v1 + (v2 - v1) * f);

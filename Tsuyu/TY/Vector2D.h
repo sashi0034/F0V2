@@ -296,3 +296,53 @@ namespace TY
 
     using SizeF = Float2;
 }
+
+// -----------------------------------------------
+
+template <typename T>
+struct std::formatter<TY::Vector2D<T>>
+{
+    char presentation = 'p';
+    std::string elem_fmt;
+
+    constexpr auto parse(std::format_parse_context& ctx)
+    {
+        auto it = ctx.begin();
+
+        if (it != ctx.end() && (*it == 'p' || *it == 'b' || *it == 'c' || *it == 'd'))
+        {
+            presentation = *it++;
+        }
+
+        const auto start = it;
+        while (it != ctx.end() && *it != '}')
+        {
+            ++it;
+        }
+
+        elem_fmt.assign(start, it);
+
+        return it;
+    }
+
+    auto format(const TY::Vector2D<T>& v, std::format_context& ctx) const
+    {
+        const std::string inner = std::format("{{:{}}}", elem_fmt);
+
+        const std::string fx = std::vformat(inner, std::make_format_args(v.x));
+        const std::string fy = std::vformat(inner, std::make_format_args(v.y));
+
+        switch (presentation)
+        {
+        case 'b': // Brackets
+            return std::format_to(ctx.out(), "[{}, {}]", fx, fy);
+        case 'c': // Comma
+            return std::format_to(ctx.out(), "{}, {}", fx, fy);
+        case 'd': // Detailed
+            return std::format_to(ctx.out(), "Vector2D(x={}, y={})", fx, fy);
+        case 'p': // Parentheses
+        default:
+            return std::format_to(ctx.out(), "({}, {})", fx, fy);
+        }
+    }
+};
