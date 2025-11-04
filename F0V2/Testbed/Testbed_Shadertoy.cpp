@@ -291,11 +291,20 @@ struct Testbed_Shadertoy_impl
             static bool s_sleep{};;
             ImGui::Checkbox("Sleep", &s_sleep);
 
+            static bool s_longSleep{};
+            {
+                ImGui::BeginDisabled(not s_sleep);
+
+                ImGui::Checkbox("Long Sleep", &s_longSleep);
+
+                ImGui::EndDisabled();
+            }
+
             ImGui::Checkbox("Stop Time", &s_stopTime);
 
             if (s_sleep)
             {
-                System::Sleep(500);
+                System::Sleep(s_longSleep ? 500 : 100);
             }
 
             ImGui::End();

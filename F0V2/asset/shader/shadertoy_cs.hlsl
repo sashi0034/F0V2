@@ -200,38 +200,55 @@ float sdfMenger(float3 p)
     return distance;
 }
 
-float sdfO_i(float3 p, float speed, float radius)
+float DE(float3 p, int Iterations)
 {
-    // const float3 center = float3(5, 2, 5);
-    const float3 center = float3(0, 1, 1e-5);
+    p = p - float3(0, 0, 2.0);
+    p = mul(rollPitchYaw(g_time * 1.0, g_time * 2.0, g_time * 3.0), p);
 
-    p.y = abs(p.y);
-    p.xz = mul(rotate2d(g_time * speed * 0.1), p.xz);
+    float3 a1 = float3(1, 1, 1);
+    float3 a2 = float3(-1, -1, 1);
+    float3 a3 = float3(1, -1, -1);
+    float3 a4 = float3(-1, 1, -1);
+    float3 c;
+    int n = 0;
+    float dist, d;
 
-    p -= center;
+    const float Scale = 2.0;
+    while (n < Iterations)
+    {
+        c = a1;
+        dist = length(p - a1);
+        d = length(p - a2);
+        if (d < dist)
+        {
+            c = a2;
+            dist = d;
+        }
 
-    // p.zx = pmod(p.zx, 36);
+        d = length(p - a3);
+        if (d < dist)
+        {
+            c = a3;
+            dist = d;
+        }
 
-    const float r = 24;
-    const float a0 = atan2(p.x, p.z) + PI / r;
+        d = length(p - a4);
+        if (d < dist)
+        {
+            c = a4;
+            dist = d;
+        }
 
-    const float n = 2.0 * PI / r;
-    const float a = floor(a0 / n) * n;
+        p = Scale * p - c * (Scale - 1.0);
+        n++;
+    }
 
-    p.zx = mul(p.zx, rotate2d(-a));
-
-    float3 offset = float3(0, 1, 10 + sin(a0 * 2.0 * floor(a / n) + g_time * speed) * 0.5);
-    radius += 0.25 * sin((a0 + g_time) * 2);
-    return sdfSphere(p - offset, radius);
+    return length(p) * pow(Scale, float(-n));
 }
 
 float sdfO(float3 p)
 {
-    float d = sdfO_i(p, 5, 1);
-    d = smoothMin(d, sdfO_i(p, 2, 0.75), 0.25);
-    d = smoothMin(d, sdfO_i(p, 0.5, 1.125), 0.25);
-    d = smoothMin(d, sdfO_i(p, 3, 1.25), 0.25);
-    return d;
+    return smoothMin(DE(p, 5), DE(p, 10), 0.5 + 0.5 * sin(g_time * 3.0));
 }
 
 // float sdfTree(float3 p)
@@ -367,7 +384,7 @@ float3 applyLight(float3 pos, float3 N, float3 viewDir, float3 albedo)
     // color *= shadow;
 
     // Ambient term
-    // color += albedo * 0.1;
+    // color += V3(0.3);
 
     return color;
 }
@@ -423,7 +440,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     screenPos2 *= 1.5f;
 
     float3 screenPos3 = float3(screenPos2, 1.0);
-    screenPos3 = mul(cameraMat, screenPos3);
+    // screenPos3 = mul(cameraMat, screenPos3);
 
     const float3 eyePos = float3(0, 0, 0);
 
