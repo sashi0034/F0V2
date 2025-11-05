@@ -229,57 +229,53 @@ float sdfMenger(float3 p)
     return distance;
 }
 
-// http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
+static float g_mandelbulb_t0;
+
+// https://www.shadertoy.com/view/MdXSWn
 float sdfP(float3 p)
 {
-    // p.zx = frac((p.zx + V2(20.0)) / 40.0) * 40.0 - V2(20.0);
-    p.zx = center_repeat(p.zx, 50.0);
+    p.zx = safe_pmod(p.zx, 5.0);
 
-    p.zx = pmod(p.zx, 5.0);
-    p.zy = pmod(p.zy, 5.0);
+    p.z -= 2.0;
 
-    // p = abs(p);
-    //
-    // if (p.z < p.y) p.zy = p.yz;
-    // if (p.z < p.x) p.zx = p.xz;
-    // if (p.y < p.x) p.yx = p.xy;
+    p.xyz = p.xzy;
+    float3 z = p;
+    float3 dz = V3(0.0);
+    float power = 8.0;
+    float r, theta, phi;
+    float dr = 1.0;
 
-    p -= float3(0, 0, 10);
-    // p.zy = mul(rotate2d(g_time), p.zy);
-
-    float h = 2.0;
-    float r = 0.1;
-    float d = sdfCylinder(p, h, r);
-    const float Scale = 0.8;
-    const int Iterations = 20;
-    for (int i = 0; i < Iterations; i++)
+    float t0 = 1.0;
+    for (int i = 0; i < 7; ++i)
     {
-        if (i == Iterations - 1)
+        r = length(z);
+        if (r > 2.0)
         {
-            float d_ = smoothMin(d, sdfCylinder(p, h, r), 0.1);
-            d = lerp(d, d_, 0.5);
-            break;
-        }
-        else
-        {
-            d = smoothMin(d, sdfCylinder(p, h, r), 0.1);
+            continue;
         }
 
-        p = abs(p);
-        // p.xz = abs(p.xz);
-        p.y -= h;
-        p.zx = mul(rotate2d(HALF_PI * (0.2 + 0.1 * sin(g_time * 3.0))), p.zx);
-        p.xy = mul(rotate2d(0.5), p.xy);
+        theta = atan(z.y / z.x);
+        phi = asin(z.z / r);
+        dr = pow(r, power - 1.0) * dr * power + 1.0;
 
-        h *= Scale;
-        r *= Scale;
+        r = pow(r, power);
+        theta = theta * power;
+        phi = phi * power;
+
+        z = r * float3(cos(theta) * cos(phi), sin(theta) * cos(phi), sin(phi)) + p;
+        z.z -= sin(5.0 * g_time);
+
+        t0 = min(t0, r);
     }
 
-    return d;
+    g_mandelbulb_t0 = t0;
+
+    return 0.5 * log(r) * r / dr;
 }
 
 float sdfO(float3 p)
 {
+    return sdfP(p);
     return max(sdfP(p), -sdfSphere(p, 5.0));
 
     // return max(DE(p), -sdfSphere(p, 5.0));
@@ -396,6 +392,8 @@ float softShadow(float3 ro, float3 rd, float mint, float k)
 
 float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos)
 {
+    float t0 = g_mandelbulb_t0;
+
     const float3 N = scanNormal(hitPos);
 
     const float3 viewDir = normalize(eyePos - hitPos);
@@ -411,7 +409,10 @@ float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos)
     float spec = pow(saturate(dot(viewDir, reflectDir)), 32.0);
 
     // Combine
-    float3 diffuse = float3(0.78, 0.97, 0.1) * NoL + float3(0.13, 0.53, 0.13) * (1 - NoL);
+
+    float3 c = lerp(float3(0.65, 0.37, 0.63), float3(0.94, 0.6, 0.24), 0.5 + 0.5 * sin(2.0 * t0));
+
+    float3 diffuse = c * NoL + float3(0.18, 0.04, 0.24) * (1 - NoL);
     float3 specular = spec * float3(1.0, 0.9, 0.8);
 
     float3 color = (diffuse + specular);
@@ -439,7 +440,7 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
     {
         // 背景色
         float tbg = 0.5 * (rayDir.y + 1.0);
-        color = lerp(float3(0.2, 0.5, 0.1), float3(0.9, 1.0, 0.7), tbg);
+        color = lerp(float3(0.93, 0.55, 0.26), float3(0.67, 0.78, 0.91), tbg);
     }
 
     // float3 fogColor = float3(0.5, 0.7, 0.9);
@@ -465,8 +466,8 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     }
 
     const float roll = sin(g_time) * (HALF_PI * 0.125f);
-    const float pitch = g_time * 0.3; // sin(g_time * 0.9 + 0.1) * (HALF_PI * 0.125f);
-    const float3x3 cameraMat = rollPitchYaw(roll, pitch, 0);
+    const float pitch = sin(g_time * 0.9 + 0.1) * (HALF_PI * 0.125f);
+    const float3x3 cameraMat = rollPitchYaw(roll, pitch, sin(g_time));
 
     float2 screenPos2 = (pixelF - g_screenResolution * 0.5) / g_screenResolution.y;
     screenPos2 *= float2(1.0, -1.0);
