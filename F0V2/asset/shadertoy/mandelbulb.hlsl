@@ -3,15 +3,15 @@
 #define HALF_PI (PI * 0.5)
 
 #define FAR_DIST 1e+4f
-#define MAX_RAYMARCH 64
+#define MAX_RAYMARCH 50
 
 #define V2(x) float2((x), (x))
 #define V3(x) float3((x), (x), (x))
 
 #define SQ(x) ((x) * (x))
 
-#define repeat(p, span) ((frac((p) / (span)) - 0.5) * (span))
-#define center_repeat(p, span) (frac(((p) + (span) * 0.5) / (span)) * (span) - (span) * 0.5)
+#define repeat(p, span) ((frac(p / span) - 0.5) * span)
+#define center_repeat(p, span) (frac((p + span * 0.5) / span) * span - span * 0.5)
 
 // 出力
 RWTexture2D<float4> g_output : register(u0);
@@ -122,10 +122,7 @@ float2 safe_pmod(float2 p, float r)
 // -----------------------------------------------
 // material
 
-typedef float MatId;
-
-static const MatId MAT_SOLID = 1.0;
-static const MatId MAT_VEHICLE = 2.0;
+static const float MAT_SOLID = 1.0;
 
 // TODO: Remove this?
 struct MatData
@@ -154,7 +151,7 @@ MatData getMatData(float mat)
 struct SdfAndMat
 {
     float sdf;
-    MatId mat;
+    float mat;
 };
 
 SdfAndMat emptySdfAndMat()
@@ -168,12 +165,6 @@ SdfAndMat emptySdfAndMat()
 float sdfSphere(float3 p, float r)
 {
     return length(p) - r;
-}
-
-float sdSquare(float2 p, float r)
-{
-    float2 d = abs(p) - V2(r);
-    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
 float sdfBox(float3 p, float3 b)
@@ -238,79 +229,57 @@ float sdfMenger(float3 p)
     return distance;
 }
 
-float L(float3 p)
-{
-    float3 b = abs(frac(p + float3(0, 0.5, 0)) - 0.5);
-    float3 c = abs(frac(p + 0.5) - 0.5);
-    return 0.033 - min(
-        max(b.x - 0.46, b.y),
-        0.08 - max(c.x, c.y)
-    );
-}
-
-// scene1 vehicle/drone SDF (accurate reconstruction)
-float sdfV(float3 p)
-{
-    const float offset = 1.0;
-    p.zx -= 5.0;
-
-    if (p.y < 0) p *= -1;
-
-    if (p.x < p.z) p.xz = p.zx;
-
-    p.z = center_repeat(p.z, offset * 5.0);
-
-    p.y -= 0.25;
-
-    p.x -= g_time * 2.0;
-    float x0 = p.x;
-
-    p.x = center_repeat(p.x, offset);
-
-    float d = smoothMin(sdfBox(p + float3(0, 0.1 * sin(x0), 0), 0.1), sdfSphere(p, 0.1), 0.15);
-
-    return d;
-}
+static float g_mandelbulb_t0;
 
 // https://www.shadertoy.com/view/MdXSWn
 float sdfP(float3 p)
 {
-    const float center = 1.5;
-    p -= V3(center);
+    p.zx = safe_pmod(p.zx, 5.0);
 
-    float sd1;
+    p.z -= 2.0;
+
+    p.xyz = p.xzy;
+    float3 z = p;
+    float3 dz = V3(0.0);
+    float power = 8.0;
+    float r, theta, phi;
+    float dr = 1.0;
+
+    float t0 = 1.0;
+    for (int i = 0; i < 7; ++i)
     {
-        float3 p_ = center_repeat(p, center * 2);
+        r = length(z);
+        if (r > 2.0)
+        {
+            continue;
+        }
 
-        float sdX = sdSquare(p_.yz, 0.2);
-        float sdY = sdSquare(p_.zx, 0.2);
-        float sdZ = sdSquare(p_.xy, 0.2);
+        theta = atan(z.y / z.x);
+        phi = asin(z.z / r);
+        dr = pow(r, power - 1.0) * dr * power + 1.0;
 
-        sd1 = min(min(sdX, sdY), sdZ);
+        r = pow(r, power);
+        theta = theta * power;
+        phi = phi * power;
+
+        z = r * float3(cos(theta) * cos(phi), sin(theta) * cos(phi), sin(phi)) + p;
+        z.z -= sin(5.0 * g_time);
+
+        t0 = min(t0, r);
     }
 
-    float sd2;
-    {
-        float3 p_ = center_repeat(p, 0.5);
+    g_mandelbulb_t0 = t0;
 
-        float sdX = length(p_.yz) - 0.1;
-        float sdY = length(p_.zx) - 0.1;
-        float sdZ = length(p_.xy) - 0.1;
-
-        sd2 = min(min(sdX, sdY), sdZ);
-    }
-
-    // float sdX = length(p.yz) - 0.1;
-    // float sdY = length(p.zx) - 0.1;
-    // float sdZ = length(p.xy) - 0.1;
-
-    return max(sd1, -sd2);
+    return 0.5 * log(r) * r / dr;
 }
 
 float sdfO(float3 p)
 {
     return sdfP(p);
-    // return max(sdfP(p), -sdfSphere(p, 5.0));
+    return max(sdfP(p), -sdfSphere(p, 5.0));
+
+    // return max(DE(p), -sdfSphere(p, 5.0));
+    // return smoothMin(DE(p, 5), DE(p, 10), 0.5 + 0.5 * sin(g_time * 3.0));
 }
 
 float sdfTree(float3 p)
@@ -342,18 +311,15 @@ SdfAndMat scanSdf(float3 pos)
     //     result.mat = 1.0;
     // }
 
-    float sdO = sdfO(pos);
+    float sdO;
+    {
+        sdO = sdfO(pos);
+    }
+
     if (sdO < result.sdf)
     {
         result.sdf = sdO;
         result.mat = 1.0;
-    }
-
-    float sdV = sdfV(pos);
-    if (sdV < result.sdf)
-    {
-        result.sdf = sdV;
-        result.mat = MAT_VEHICLE;
     }
 
     return result;
@@ -424,8 +390,10 @@ float softShadow(float3 ro, float3 rd, float mint, float k)
     return clamp(result, 0.0, 1.0);
 }
 
-float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
+float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos)
 {
+    float t0 = g_mandelbulb_t0;
+
     const float3 N = scanNormal(hitPos);
 
     const float3 viewDir = normalize(eyePos - hitPos);
@@ -442,28 +410,19 @@ float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
 
     // Combine
 
-    float3 diffuse;
-    if (matId == MAT_SOLID)
-    {
-        diffuse = float3(0.83, 0.7, 0.24) * NoL + float3(0.18, 0.04, 0.24) * (1.0 - NoL);
-        diffuse += V3(0.1) * NoL;
-    }
-    else
-    {
-        diffuse = float3(0.85, 0.17, 0.26) * NoL + float3(0.33, 0.04, 0.18) * (1.0 - NoL);
-        diffuse += V3(0.1) * NoL;
-    }
+    float3 c = lerp(float3(0.65, 0.37, 0.63), float3(0.94, 0.6, 0.24), 0.5 + 0.5 * sin(2.0 * t0));
 
+    float3 diffuse = c * NoL + float3(0.18, 0.04, 0.24) * (1 - NoL);
     float3 specular = spec * float3(1.0, 0.9, 0.8);
 
     float3 color = (diffuse + specular);
 
     // Soft shadow
-    // float shadow = softShadow(hitPos + N * 0.1, L, 0.1, 20.0);
+    // float shadow = softShadow(pos + N * 1e-2, L, 0.1, 20.0);
     // color *= shadow;
 
     // Ambient term
-    // color += V3(0.1);
+    color += V3(0.1);
 
     return color;
 }
@@ -473,28 +432,23 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
     float3 color = float3(0, 0, 0);
     RaycastResult r = raycast(eyePos, rayDir);
 
-    // 背景色
-    float tbg = 0.5 * (rayDir.y + 1.0);
-    float3 bc = lerp(float3(0.93, 0.55, 0.26), float3(0.67, 0.78, 0.91), tbg);
-
-    if (r.d.mat == MAT_SOLID ||
-        r.d.mat == MAT_VEHICLE)
+    if (r.d.mat == MAT_SOLID)
     {
-        color = phongLight(eyePos, rayDir, r.pos, r.d.mat);
-
-        float t = length(r.pos - eyePos);
-
-        float fogStart = 5.0;
-        float fogEnd = 20.0;
-
-        float fogFactor = saturate((t - fogStart) / (fogEnd - fogStart));
-
-        color = lerp(color, bc, fogFactor);
+        color = phongLight(eyePos, rayDir, r.pos);
     }
     else
     {
-        color = bc;
+        // 背景色
+        float tbg = 0.5 * (rayDir.y + 1.0);
+        color = lerp(float3(0.93, 0.55, 0.26), float3(0.67, 0.78, 0.91), tbg);
     }
+
+    // float3 fogColor = float3(0.5, 0.7, 0.9);
+    // float fogDensity = 0.05;
+    //
+    // const float t = distance(eyePos, r.pos);
+    // float fogFactor = 1.0 - exp(-t * fogDensity);
+    // color = lerp(color, fogColor, fogFactor);
 
     return float4(color, 1);
 }
