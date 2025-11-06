@@ -119,6 +119,45 @@ float2 safe_pmod(float2 p, float r)
     return result;
 }
 
+// from sRGB to Linear
+float3 sRGB2L(float3 srgb)
+{
+    float3 cutoff = step(srgb, float3(0.04045, 0.04045, 0.04045));
+    float3 higher = pow((srgb + float3(0.055, 0.055, 0.055)) / 1.055, float3(2.4, 2.4, 2.4));
+    float3 lower = srgb / 12.92;
+    float3 linear_ = lerp(higher, lower, cutoff);
+    return linear_;
+}
+
+float3 sRGB2L(float r, float g, float b)
+{
+    return sRGB2L(float3(r, g, b));
+}
+
+// from sRGB to Linear (approximate)
+float3 sRGB2L_(float3 srgb)
+{
+    return srgb * (srgb * (srgb * 0.305306011 + 0.682171111) + 0.012522878);
+}
+
+// from Linear to sRGB
+float3 L2sRGB(float3 rgb)
+{
+    float3 lt = step(float3(0.0031308, 0.0031308, 0.0031308), rgb);
+    float3 low = rgb * 12.92;
+    float3 high = 1.055 * pow(rgb, 1.0 / 2.4) - 0.055;
+    return lerp(low, high, lt);
+}
+
+// from Linear to sRGB (approximate)
+float3 L2sRGB_(float3 linear_)
+{
+    float3 x1 = sqrt(linear_);
+    float3 x2 = sqrt(x1);
+    float3 x3 = sqrt(x2);
+    return 0.662002687 * x1 + 0.684122060 * x2 - 0.323583601 * x3 - 0.0225411470 * linear_;
+}
+
 // -----------------------------------------------
 // material
 
@@ -446,16 +485,16 @@ float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
     float3 diffuse;
     if (matId == MAT_SOLID)
     {
-        diffuse = float3(0.83, 0.7, 0.24) * NoL + float3(0.18, 0.04, 0.24) * (1.0 - NoL);
+        diffuse = sRGB2L(0.83, 0.7, 0.24) * NoL + sRGB2L(0.18, 0.04, 0.24) * (1.0 - NoL);
         diffuse += V3(0.1) * NoL;
     }
     else
     {
-        diffuse = float3(0.85, 0.17, 0.26) * NoL + float3(0.33, 0.04, 0.18) * (1.0 - NoL);
+        diffuse = sRGB2L(0.85, 0.17, 0.26) * NoL + sRGB2L(0.33, 0.04, 0.18) * (1.0 - NoL);
         diffuse += V3(0.1) * NoL;
     }
 
-    float3 specular = spec * float3(1.0, 0.9, 0.8);
+    float3 specular = spec * sRGB2L(1.0, 0.9, 0.8);
 
     float3 color = (diffuse + specular);
 
@@ -476,7 +515,7 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
 
     // 背景色
     float tbg = 0.5 * (rayDir.y + 1.0);
-    float3 bc = lerp(float3(0.93, 0.55, 0.26), float3(0.67, 0.78, 0.91), tbg);
+    float3 bc = lerp(sRGB2L(0.93, 0.55, 0.26), sRGB2L(0.67, 0.78, 0.91), tbg);
 
     if (r.d.mat == MAT_SOLID ||
         r.d.mat == MAT_VEHICLE)
@@ -497,7 +536,7 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
         color = bc;
     }
 
-    return float4(color, 1);
+    return float4(L2sRGB_(color), 1);
 }
 
 // -----------------------------------------------
