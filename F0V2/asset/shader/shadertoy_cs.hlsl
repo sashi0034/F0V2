@@ -309,8 +309,9 @@ float sdfP(float3 p)
 
 float sdfO(float3 p)
 {
-    return sdfP(p);
-    // return max(sdfP(p), -sdfSphere(p, 5.0));
+    // return max(max(sdfP(p), -sdfSphere(p, 7.5)), sdfSphere(p, 10.0));
+    // return sdfP(p);
+    return max(sdfP(p), -sdfSphere(p, 7.5));
 }
 
 float sdfTree(float3 p)

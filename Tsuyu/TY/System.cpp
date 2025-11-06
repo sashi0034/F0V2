@@ -4,7 +4,6 @@
 #include "AssertObject.h"
 #include "detail/EngineTimer.h"
 #include "detail/EngineCore.h"
-#include "detail/RenderContext_singleton.h"
 
 using namespace TY::detail;
 
@@ -67,10 +66,5 @@ namespace TY
     void System::ModalError(const std::string& message)
     {
         MessageBoxA(nullptr, message.c_str(), "assertion failed", MB_OK | MB_ICONERROR);
-    }
-
-    IGpuMemoryUsage& System::GpuMemoryUsage()
-    {
-        return RenderContext_singleton::GpuMemoryUsage();
     }
 }

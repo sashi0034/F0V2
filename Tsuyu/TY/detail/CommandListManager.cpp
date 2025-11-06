@@ -35,8 +35,20 @@ struct CommandListManager::Impl
     {
         ComPtr<ID3D12CommandAllocator> commandAllocator{};
         ComPtr<ID3D12GraphicsCommandList> commandList{};
+
         UINT64 fenceValue{};
         bool needFence{};
+
+        ComPtr<ID3D12QueryHeap> timestampQuery{};
+        ComPtr<ID3D12Resource> timestampBuffer{};
+
+        UINT64* mappedTimestamps{}; // [0]: start, [1]: end
+        float lastExecutionMilliseconds{};
+
+        bool isFirstExecution() const
+        {
+            return not needFence;
+        }
     };
 
     Array<frame_resource> m_frameResources{RenderContext_singleton::FrameBufferCount};
@@ -87,6 +99,28 @@ struct CommandListManager::Impl
             }
 
             rsc.fenceValue = i;
+
+            // -----------------------------------------------
+
+            D3D12_QUERY_HEAP_DESC heapDesc{};
+            heapDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+            heapDesc.Count = 2; // start / end
+            device->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&rsc.timestampQuery));
+
+            D3D12_RESOURCE_DESC bufDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(UINT64) * 2);
+            auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
+            if (const HRESULT hr = device->CreateCommittedResource(
+                    &heapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &bufDesc,
+                    D3D12_RESOURCE_STATE_COPY_DEST,
+                    nullptr,
+                    IID_PPV_ARGS(&rsc.timestampBuffer));
+                FAILED(hr))
+            {
+                LogError("CreateCommittedResource failed: {}", hr);
+                return;
+            }
         }
 
         // コマンドキューを生成
@@ -122,22 +156,38 @@ struct CommandListManager::Impl
         m_valid = true;
     }
 
+    ~Impl()
+    {
+        for (auto& frameResource : m_frameResources)
+        {
+            if (frameResource.mappedTimestamps)
+            {
+                frameResource.timestampBuffer->Unmap(0, nullptr);
+                frameResource.mappedTimestamps = nullptr;
+            }
+        }
+    }
+
     // void CloseAndFlush(const Impl* lastCommandList)
     void CloseAndAdvance()
     {
         auto& currentResource = m_frameResources[m_frameResourceIndex];
 
-        currentResource.commandList->Close();
+        // 打刻終了
+        if (not currentResource.isFirstExecution())
+        {
+            currentResource.commandList->EndQuery(currentResource.timestampQuery.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 1);
+            currentResource.commandList->ResolveQueryData(
+                currentResource.timestampQuery.Get(),
+                D3D12_QUERY_TYPE_TIMESTAMP,
+                0,
+                2,
+                currentResource.timestampBuffer.Get(),
+                0);
+        }
 
-        // if (lastCommandList)
-        // {
-        //     const auto& previousFrameResource =
-        //         lastCommandList->m_frameResources[lastCommandList->previousFrameResourceIndex()];
-        //     if (previousFrameResource.needFence)
-        //     {
-        //         m_commandQueue->Wait(lastCommandList->m_fence.Get(), previousFrameResource.fenceValue);
-        //     }
-        // }
+        // コマンドリスト終了
+        currentResource.commandList->Close();
 
         ID3D12CommandList* commandLists[] = {currentResource.commandList.Get()};
         m_commandQueue->ExecuteCommandLists(1, commandLists);
@@ -146,7 +196,9 @@ struct CommandListManager::Impl
         currentResource.fenceValue += RenderContext_singleton::FrameBufferCount;
         m_commandQueue->Signal(m_fence.Get(), currentResource.fenceValue);
 
+        // current
         // -----------------------------------------------
+        // next
 
         m_frameResourceIndex = (m_frameResourceIndex + 1) % RenderContext_singleton::FrameBufferCount;
 
@@ -162,11 +214,34 @@ struct CommandListManager::Impl
 
         nextResource.needFence = true;
 
+        // プロファイリング結果の取得
+        {
+            if (not nextResource.mappedTimestamps)
+            {
+                nextResource.timestampBuffer->Map(0, nullptr, reinterpret_cast<void**>(&nextResource.mappedTimestamps));
+            }
+
+            if (nextResource.mappedTimestamps)
+            {
+                UINT64 start = nextResource.mappedTimestamps[0];
+                UINT64 end = nextResource.mappedTimestamps[1];
+
+                UINT64 freq{};
+                m_commandQueue->GetTimestampFrequency(&freq);
+
+                nextResource.lastExecutionMilliseconds =
+                    1000.0f * static_cast<float>(end - start) / static_cast<float>(freq);
+            }
+        }
+
         // コマンドアロケータのリセット
         nextResource.commandAllocator->Reset();
 
         // コマンドリストのリセット
         nextResource.commandList->Reset(nextResource.commandAllocator.Get(), nullptr);
+
+        // 打刻開始
+        nextResource.commandList->EndQuery(nextResource.timestampQuery.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 0);
     }
 
     void WaitLastFlush()
@@ -224,5 +299,10 @@ namespace TY::detail
     ID3D12CommandQueue* CommandListManager::getCommandQueue() const
     {
         return p_impl ? p_impl->m_commandQueue.Get() : nullptr;
+    }
+
+    float CommandListManager::lastExecutionMilliseconds() const
+    {
+        return p_impl ? p_impl->m_frameResources[p_impl->m_frameResourceIndex].lastExecutionMilliseconds : 0.0;
     }
 }

@@ -6,6 +6,7 @@
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/DynamicTexture.h"
 #include "TY/Gamepad.h"
+#include "TY/GpuMetrics.h"
 #include "TY/Graphics3D.h"
 #include "TY/InlineComponent.h"
 #include "TY/Intersects3D.h"
@@ -650,7 +651,7 @@ struct Testbed_Collision3_impl
                 System::Sleep(500);
             }
 
-            ImGui::Text("VRAM Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
+            ImGui::Text("VRAM Usage: %.2f MB", GpuMetrics::MemoryUsage().estimateLocalUsageInMB());
 
             ImGui::End();
         }

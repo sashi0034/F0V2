@@ -28,6 +28,8 @@ namespace TY::detail
 
         ID3D12CommandQueue* getCommandQueue() const;
 
+        float lastExecutionMilliseconds() const;
+
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl;

@@ -18,7 +18,5 @@ namespace TY
         void ModalError(const std::wstring& message);
 
         void ModalError(const std::string& message);
-
-        IGpuMemoryUsage& GpuMemoryUsage();
     }
 }

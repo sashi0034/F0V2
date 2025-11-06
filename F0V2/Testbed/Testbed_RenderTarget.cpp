@@ -3,6 +3,7 @@
 
 #include "TY/DiskTexture.h"
 #include "TY/DynamicTexture.h"
+#include "TY/GpuMetrics.h"
 #include "TY/Graphics3D.h"
 #include "TY/Image.h"
 #include "TY/KeyboardInput.h"
@@ -128,7 +129,7 @@ void Testbed_RenderTarget()
         {
             ImGui::Begin("System Settings");
 
-            ImGui::Text("VRAM Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
+            ImGui::Text("VRAM Usage: %.2f MB", GpuMetrics::MemoryUsage().estimateLocalUsageInMB());
 
             ImGui::End();
         }

@@ -7,6 +7,7 @@
 #include "GM/DebugService.h"
 #include "Race/RaceScene.h"
 #include "TY/ActorContainer.h"
+#include "TY/GpuMetrics.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/System.h"
@@ -154,7 +155,7 @@ private:
         }
         ImGui::PopStyleColor();
 
-        ImGui::Text("GPU Memory Usage: %.2f MB", System::GpuMemoryUsage().estimateLocalUsageInMB());
+        ImGui::Text("GPU Memory Usage: %.2f MB", GpuMetrics::MemoryUsage().estimateLocalUsageInMB());
 
         ImGui::Text("Mouse Position: (%.2f, %.2f)", Mouse::PosF().x, Mouse::PosF().y);
 

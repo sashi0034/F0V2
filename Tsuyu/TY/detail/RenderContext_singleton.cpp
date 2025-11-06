@@ -543,8 +543,13 @@ namespace TY::detail
         return s_renderContext.m_flushTimestamp;
     }
 
-    IGpuMemoryUsage& RenderContext_singleton::GpuMemoryUsage()
+    IGpuMemoryUsage& RenderContext_singleton::MemoryUsage()
     {
         return s_renderContext.m_gpuMemoryUsage;
+    }
+
+    float RenderContext_singleton::LastExecutionMilliseconds()
+    {
+        return s_renderContext.m_drawCommandList.lastExecutionMilliseconds();
     }
 }

@@ -11,6 +11,7 @@
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
 #include "TY/GameTime.h"
+#include "TY/GpuMetrics.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/InlineComponent.h"
 #include "TY/KeyboardInput.h"
@@ -273,7 +274,9 @@ struct Testbed_Shadertoy_impl
                 }
             }
 
-            ImGui::Begin("Shadertoy Settings");
+            ImGui::Begin("Shadertoy Window");
+
+            ImGui::Text(std::format("GPU Execution time: {:.02f} ms", GpuMetrics::LastExecutionMilliseconds()).c_str());
 
             ImGui::Text(std::format("Mouse UV: {:.02}", s_rsc->cb.shadertoy->g_mouseUV).c_str());
 

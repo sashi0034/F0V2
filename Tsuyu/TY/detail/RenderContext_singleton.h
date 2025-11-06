@@ -70,6 +70,8 @@ namespace TY::detail
 
         size_t GetFlushTimestamp();
 
-        IGpuMemoryUsage& GpuMemoryUsage();
+        IGpuMemoryUsage& MemoryUsage();
+
+        float LastExecutionMilliseconds();
     }
 }
