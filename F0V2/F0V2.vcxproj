@@ -162,6 +162,7 @@
     <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
+    <ClCompile Include="Race\RaceDrawManager.cpp" />
     <ClCompile Include="Testbed\Testbed_Shadertoy.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
     <ClCompile Include="Editor\EditorNodeTool.cpp" />
@@ -234,6 +235,8 @@
     <Content Include="Race\Player\Player_template.h.txt" />
     <Content Include="Race\Stage\Stage_template.cpp.txt" />
     <Content Include="Race\Stage\Stage_template.h.txt" />
+    <Content Include="Race\Race_template.cpp.txt" />
+    <Content Include="Race\Race_template.h.txt" />
     <Content Include="Race\Toys\Toy_template.h.txt" />
     <Content Include="Testbed\Testbed_template.cpp.txt" />
     <Content Include="Testbed\Testbed_template.h.txt" />
@@ -279,6 +282,8 @@
     <ClInclude Include="CB\Lambert.h" />
     <ClInclude Include="CB\Skydome.h" />
     <ClInclude Include="GamePalette.h" />
+    <ClInclude Include="Race\IRaceDrawer.h" />
+    <ClInclude Include="Race\RaceDrawManager.h" />
     <ClInclude Include="Testbed\Testbed_Shadertoy.h" />
     <ClInclude Include="Testbed\Testbed_ShadertoyPS.h" />
     <ClInclude Include="Editor\EditorScene.h" />

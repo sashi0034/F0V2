@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "IRaceDrawer.h"
 #include "Machine/MachineManager.h"
 #include "Machine/MachinePhysicsUnit.h"
 
@@ -17,6 +18,9 @@ namespace Race
 
         virtual RaceContextContent& state() = 0;
         virtual const RaceContextContent& state() const = 0;
+
+        virtual void registerDrawer(const std::shared_ptr<IRaceDrawer>& drawer) = 0;
+        virtual void unregisterDrawer(const IRaceDrawer* drawer) = 0;
 
         virtual StageManager& stageManager() = 0;
         virtual const StageManager& stageManager() const = 0;

@@ -4,6 +4,7 @@
 #include "IRaceContext.h"
 #include "RaceCameraController.h"
 #include "RaceContextContent.h"
+#include "RaceDrawManager.h"
 #include "Ai/CharacterAi.h"
 #include "Ai/SpatialAi.h"
 #include "Common/RaceSharedState.h"
@@ -26,9 +27,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 {
     ActorContainer m_children{};
 
-    CoroutineActor m_coro{};
-
     RaceContextContent m_state{};
+
+    RaceDrawManager m_drawManager{};
 
     StageManager m_stageManager{};
 
@@ -60,6 +61,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     void Init()
     {
+        m_drawManager = m_children.birth(RaceDrawManager());
+        m_drawManager.init();
+
         m_stageManager = m_children.birth(StageManager());
         m_stageManager.init();
 
@@ -130,6 +134,16 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     const RaceContextContent& state() const override
     {
         return m_state;
+    }
+
+    void registerDrawer(const std::shared_ptr<IRaceDrawer>& drawer) override
+    {
+        m_drawManager.registerDrawer(drawer);
+    }
+
+    void unregisterDrawer(const IRaceDrawer* drawer) override
+    {
+        m_drawManager.unregisterDrawer(drawer);
     }
 
     StageManager& stageManager() override

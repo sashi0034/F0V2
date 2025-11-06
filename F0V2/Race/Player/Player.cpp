@@ -30,7 +30,7 @@ namespace
 #endif
 }
 
-struct Player::Impl : GameObjectBase
+struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceDrawer
 {
     ActorContainer m_children{};
 
@@ -42,6 +42,8 @@ struct Player::Impl : GameObjectBase
 
     void Init()
     {
+        GetRaceContext().registerDrawer(shared_from_this());
+
         ModelBuffer model = ModelBuffer{
             PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, Palette::CornflowerBlue)
         };
@@ -94,13 +96,30 @@ private:
     {
         // 前フレームの camera & 前フレームの Player 描画方式
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix()).draw();
+        (void)m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
 
         updatePhysics();
 
-        drawUI();
-
         debugUI();
+    }
+
+    void prepareDrawParameters(RaceDrawParameters& config, bool init) const override
+    {
+        if (init)
+        {
+            config.drawForward = true;
+            config.draw2D = true;
+        }
+    }
+
+    void drawForward() const override
+    {
+        m_drawer.draw();
+    }
+
+    void draw2D() const override
+    {
+        drawUI();
     }
 
     void resetPhysicsState()
@@ -289,6 +308,8 @@ private:
     void killed() override
     {
         m_children.killEach();
+
+        GetRaceContext().unregisterDrawer(this);
     }
 
     std::u32string name() const override
