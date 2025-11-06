@@ -291,7 +291,7 @@ struct Testbed_Shadertoy_impl
 
                 ImGui::BulletText(std::format("[1]:    {:.02f} ms", GpuMetrics::LastExecutionMilliseconds()).c_str());
 
-                ImGui::BulletText(std::format("[1-30]: {:.02f} ms", s_measuredTime).c_str());
+                ImGui::BulletText(std::format("[1:30]: {:.02f} ms", s_measuredTime).c_str());
             }
 
             ImGui::Text(std::format("Mouse UV: {:.02}", s_rsc->cb.shadertoy->g_mouseUV).c_str());

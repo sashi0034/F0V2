@@ -160,7 +160,7 @@ namespace
     std::pair s_visibleBvhRange{0, 0};
 }
 
-struct StageManager::Impl : GameObjectBase
+struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceDrawer
 {
     ActorContainer m_children{};
 
@@ -180,6 +180,8 @@ struct StageManager::Impl : GameObjectBase
 
     void Init()
     {
+        GetRaceContext().registerDrawer(shared_from_this());
+
         auto skydome_b4 = ConstantBufferWrapper<Skydome_b10>{};
         skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
         skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
@@ -245,23 +247,6 @@ struct StageManager::Impl : GameObjectBase
 private:
     void update() override
     {
-        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextContent().camera.eyePosition())).draw();
-
-        for (int x = -5; x <= 5; ++x)
-        {
-            for (int z = -5; z <= 5; ++z)
-            {
-                m_groundPlaneDrawer
-                    .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, g_sharedState->groundPositionY, z * 100.0f}))
-                    .draw();
-            }
-        }
-
-        for (int i = 0; i < m_courseDrawers.size(); ++i)
-        {
-            m_courseDrawers[i].draw();
-        }
-
         auto& segments = g_sharedState->courseSegments;
 
         // コース中心を線分で描画
@@ -347,6 +332,34 @@ private:
         }
     }
 
+    void prepareDrawParameters(RaceDrawParameters& config, bool init) const override
+    {
+        if (init)
+        {
+            config.drawForward = true;
+        }
+    }
+
+    void drawForward() const override
+    {
+        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextContent().camera.eyePosition())).draw();
+
+        for (int x = -5; x <= 5; ++x)
+        {
+            for (int z = -5; z <= 5; ++z)
+            {
+                m_groundPlaneDrawer
+                    .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, g_sharedState->groundPositionY, z * 100.0f}))
+                    .draw();
+            }
+        }
+
+        for (int i = 0; i < m_courseDrawers.size(); ++i)
+        {
+            m_courseDrawers[i].draw();
+        }
+    }
+
     void debugUI()
     {
         ImGui::Begin("Stage Manager");
@@ -366,6 +379,8 @@ private:
     void killed() override
     {
         m_children.killEach();
+
+        GetRaceContext().unregisterDrawer(this);
     }
 
     std::u32string name() const override

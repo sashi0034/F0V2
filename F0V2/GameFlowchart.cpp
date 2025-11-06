@@ -172,7 +172,7 @@ private:
 
             ImGui::BulletText(std::format("[1]:    {:.02f} ms", GpuMetrics::LastExecutionMilliseconds()).c_str());
 
-            ImGui::BulletText(std::format("[1-30]: {:.02f} ms", s_measuredTime).c_str());
+            ImGui::BulletText(std::format("[1:30]: {:.02f} ms", s_measuredTime).c_str());
         }
 
         ImGui::Text("Mouse Position: (%.2f, %.2f)", Mouse::PosF().x, Mouse::PosF().y);

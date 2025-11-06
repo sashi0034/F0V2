@@ -25,7 +25,7 @@ namespace
 #endif
 }
 
-struct CharacterAi::Impl : ActorBase
+struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
 {
 #if defined(_DEBUG)
     std::string m_debugName = "CharacterAi";
@@ -41,6 +41,8 @@ struct CharacterAi::Impl : ActorBase
 
     void Init(int aiId)
     {
+        GetRaceContext().registerDrawer(shared_from_this());
+
         m_aiId = aiId;
         m_logicState.m_aiId = aiId;
         m_debugName += "#" + std::to_string(aiId);
@@ -89,7 +91,7 @@ private:
     void update() override
     {
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix()).draw();
+        (void)m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
 
 #if defined(_DEBUG)
         if (s_stopInput)
@@ -118,6 +120,19 @@ private:
         ImmediateDrawer::Global().draw();
 
         debugUI();
+    }
+
+    void prepareDrawParameters(RaceDrawParameters& config, bool init) const override
+    {
+        if (init)
+        {
+            config.drawForward = true;
+        }
+    }
+
+    void drawForward() const override
+    {
+        m_drawer.draw();
     }
 
     void resetPhysicsState()
@@ -212,6 +227,8 @@ private:
     void killed() override
     {
         m_children.killEach();
+
+        GetRaceContext().unregisterDrawer(this);
     }
 };
 
