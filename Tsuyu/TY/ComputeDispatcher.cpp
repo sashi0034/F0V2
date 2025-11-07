@@ -14,10 +14,14 @@ struct ComputeDispatcher::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
+    Array<ShaderResourceType> m_srvList{};
+
     Array<UnorderedAccessType> m_uavList{};
 
     Impl(const ComputeDispatcherParams& params)
     {
+        m_srvList = params.srv;
+
         m_uavList = params.uav;
 
         auto descriptorHeap = DescriptorHeapParams{
@@ -42,6 +46,14 @@ struct ComputeDispatcher::Impl
 
     void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const
     {
+        for (auto& srv : m_srvList)
+        {
+            if (srv.isHolds<DepthBufferHandle>())
+            {
+                srv.get<DepthBufferHandle>().transitionResourceState(D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            }
+        }
+
         for (auto& uav : m_uavList)
         {
             if (uav.isHolds<UnorderedTextureHandle>())

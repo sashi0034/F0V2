@@ -48,10 +48,15 @@ namespace
                 .setSize(Screen::Size())
                 .setClearColor(ColorF32{0.0f, 0.0f});
 
+            m_outputTarget =
+                RenderTargetParams{}
+                .setRtvAndClearColor(m_nativeResolution);
+
             m_nativeResolutionDispatcher =
                 ComputeDispatcherParams{}
                 .setCS(Asset_shader::scenery1_cs)
                 .setCbv({m_cb})
+                .setSrv({m_outputTarget.getDepthBuffer()})
                 .setUav({m_nativeResolution});
         }
 
@@ -69,13 +74,14 @@ namespace
             m_nativeResolutionDispatcher.dispatch(threadGroup.x, threadGroup.y);
         }
 
-        UnorderedRenderTargetTexture GetOutputBuffer() const
+        RenderTarget GetOutputTarget() const
         {
-            return m_nativeResolution; // FIXME: m_outputBuffer にする
+            return m_outputTarget; // FIXME: m_outputTarget にする
         }
 
     private:
         // UnorderedRenderTargetTexture m_outputBuffer{}; // TODO
+        RenderTarget m_outputTarget{};
 
         ConstantBufferWrapper<Scenery_b10> m_cb{};
         UnorderedRenderTargetTexture m_nativeResolution{};
@@ -95,15 +101,9 @@ struct RaceDrawManager::Impl : ActorBase
 
     SceneryDrawer m_sceneryDrawer{};
 
-    RenderTarget m_outputTarget{};
-
     void Init()
     {
         m_sceneryDrawer.Init();
-
-        m_outputTarget = RenderTarget{
-            RenderTargetParams{}.setRtvAndClearColor(m_sceneryDrawer.GetOutputBuffer())
-        };
     }
 
     void Unregister(const IRaceDrawer* drawer)
@@ -131,7 +131,7 @@ private:
 
         // フォワードレンダリング
         {
-            auto bind = m_outputTarget.scopedBind();
+            auto bind = m_sceneryDrawer.GetOutputTarget().scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
             {
@@ -152,7 +152,7 @@ private:
 
         // 書き出し
         {
-            Immediate2D::Texture(m_outputTarget.asTexture()).resized(Screen::Size()).pushAuto();
+            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget().asTexture()).resized(Screen::Size()).pushAuto();
             ImmediateDrawer::Global().draw();
         }
 

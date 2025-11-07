@@ -109,13 +109,13 @@ namespace
         return true;
     }
 
-    bool createShaderResourceViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const ShaderResourceType& sr)
+    bool createShaderResourceViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const ShaderResourceType& srv)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         ID3D12Resource* p_resource{};
-        if (sr.isHolds<TextureHandle>())
+        if (srv.isHolds<TextureHandle>())
         {
-            const auto& t = sr.get<TextureHandle>();
+            const auto& t = srv.get<TextureHandle>();
             const auto texture =
                 t.isEmpty() ? EnginePresetAsset::GetWhiteTexture() : t;
 
@@ -126,9 +126,9 @@ namespace
 
             p_resource = texture.getResource();
         }
-        else if (sr.isHolds<StructuredBuffer>())
+        else if (srv.isHolds<StructuredBuffer>())
         {
-            const auto& t = sr.get<StructuredBuffer>();
+            const auto& t = srv.get<StructuredBuffer>();
             const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer();
 
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -140,6 +140,18 @@ namespace
             srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
             p_resource = rsc.getBuffer();
+        }
+        else if (srv.isHolds<DepthBufferHandle>())
+        {
+            const auto& dsv = srv.get<DepthBufferHandle>();
+            assert(not dsv.isEmpty()); // TODO: placeholder
+
+            srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            p_resource = dsv.getResource();
         }
         else
         {
@@ -354,7 +366,8 @@ struct DescriptorHeap::Impl
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
         const auto incrementSize =
-            RenderContext_singleton::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            RenderContext_singleton::GetDevice()->GetDescriptorHandleIncrementSize(
+                D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
         heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
@@ -381,7 +394,8 @@ struct DescriptorHeap::Impl
         heapHandle.ptr += m_handleOffsets[tableId][materialId];
 
         const auto incrementSize =
-            RenderContext_singleton::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            RenderContext_singleton::GetDevice()->GetDescriptorHandleIncrementSize(
+                D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
         heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();

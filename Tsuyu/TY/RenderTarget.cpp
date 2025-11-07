@@ -29,8 +29,8 @@ struct RenderTarget::Impl
     ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap{};
     ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap{};
 
-    TextureHandle m_rtvResource{};
-    ComPtr<ID3D12Resource> m_dsvResource{};
+    TextureHandle m_rtvHandle{};
+    DepthBufferHandle m_dsvHandle{};
 
     // RenderTargetParams m_params{};
 
@@ -43,7 +43,7 @@ struct RenderTarget::Impl
 
         m_viewport.size = m_size;
 
-        m_rtvResource = params.rtv;
+        m_rtvHandle = params.rtv;
 
         if (not CreateInternal(params))
         {
@@ -59,7 +59,7 @@ struct RenderTarget::Impl
         RenderContext_singleton::SafeDisposeRenderResource(m_dsvDescriptorHeap);
 
         // EngineRenderContext::SafeDisposeRenderResource(m_rtvResource);
-        RenderContext_singleton::SafeDisposeRenderResource(m_dsvResource);
+        // RenderContext_singleton::SafeDisposeRenderResource(m_dsvHandle);
     }
 
     bool CreateInternal(const RenderTargetParams& params)
@@ -73,10 +73,10 @@ struct RenderTarget::Impl
             resourceDesc.Height = m_size.y;
             resourceDesc.DepthOrArraySize = 1;
             resourceDesc.MipLevels = 1;
-            resourceDesc.Format = DXGI_FORMAT_D32_FLOAT; // TODO: Support stencil
+            resourceDesc.Format = DXGI_FORMAT_R32_TYPELESS; // TODO: Support stencil
             resourceDesc.SampleDesc = {1, 0};
             resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-            resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+            resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL; // | D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
@@ -91,14 +91,14 @@ struct RenderTarget::Impl
                     &resourceDesc,
                     D3D12_RESOURCE_STATE_DEPTH_WRITE,
                     &clearValue,
-                    IID_PPV_ARGS(m_dsvResource.ReleaseAndGetAddressOf()));
+                    IID_PPV_ARGS(m_dsvHandle.assignResourceAddress(D3D12_RESOURCE_STATE_DEPTH_WRITE)));
                 FAILED(hr))
             {
                 LogError(std::format("RenderTarget: Failed to create depth stencil resource: {}", hr));
                 return false;
             }
 
-            m_dsvResource->SetName(L"RenderTarget::m_dsvResource");
+            m_dsvHandle.getResource()->SetName(L"RenderTarget::m_dsvResource");
         }
 
         // -----------------------------------------------
@@ -120,7 +120,7 @@ struct RenderTarget::Impl
             auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
             device->CreateRenderTargetView(
-                m_rtvResource.getResource(),
+                m_rtvHandle.getResource(),
                 nullptr,
                 rtvHandle);
 
@@ -137,10 +137,14 @@ struct RenderTarget::Impl
                 return false;
             }
 
+            D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+            dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+
             const auto dsvHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
             device->CreateDepthStencilView(
-                m_dsvResource.Get(),
-                nullptr,
+                m_dsvHandle.getResource(),
+                &dsvDesc,
                 dsvHandle);
         }
 
@@ -174,8 +178,9 @@ struct RenderTarget::Impl
     {
         const auto commandList = RenderContext_singleton::TargetCommandList();
 
-        const auto previousResourceState = m_rtvResource.getResourceState();
-        m_rtvResource.transitionResourceState(D3D12_RESOURCE_STATE_RENDER_TARGET);
+        const auto previousResourceState = m_rtvHandle.getResourceState();
+        m_rtvHandle.transitionResourceState(D3D12_RESOURCE_STATE_RENDER_TARGET);
+        m_dsvHandle.transitionResourceState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
         auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
@@ -193,7 +198,7 @@ struct RenderTarget::Impl
         return ScopedRenderTarget{
             [this, commandList, previousResourceState]
             {
-                m_rtvResource.transitionResourceState(previousResourceState);
+                m_rtvHandle.transitionResourceState(previousResourceState);
 
                 if (s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl.get() != this)
                 {
@@ -284,7 +289,12 @@ namespace TY
 
     TextureHandle RenderTarget::asTexture() const
     {
-        return p_impl->m_rtvResource;
+        return p_impl ? p_impl->m_rtvHandle : TextureHandle{};
+    }
+
+    DepthBufferHandle RenderTarget::getDepthBuffer() const
+    {
+        return p_impl ? p_impl->m_dsvHandle : DepthBufferHandle{};
     }
 
     RenderTarget RenderTarget::Current()

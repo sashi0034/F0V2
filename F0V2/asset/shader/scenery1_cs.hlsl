@@ -13,6 +13,8 @@
 #define repeat(p, span) ((frac((p) / (span)) - 0.5) * (span))
 #define center_repeat(p, span) (frac(((p) + (span) * 0.5) / (span)) * (span) - (span) * 0.5)
 
+Texture2D<float> g_depthBuffer : register(t0);
+
 // 出力
 RWTexture2D<float4> g_output : register(u0);
 
@@ -321,7 +323,7 @@ float sdfP(float3 p)
 
     float sd1;
     {
-        float3 p_ = center_repeat(p, center * 2);
+        float3 p_ = center_repeat(p, center * 25);
 
         float sdX = sdSquare(p_.yz, 0.2);
         float sdY = sdSquare(p_.zx, 0.2);
@@ -414,14 +416,16 @@ float3 scanNormal(float3 pos)
 struct RaycastResult
 {
     float3 pos;
+    bool reachedLimit;
     SdfAndMat d;
 };
 
-RaycastResult raycast(float3 pos, float3 dir)
+RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
 {
     RaycastResult r;
     r.pos = 0;
     r.d = emptySdfAndMat();
+    r.reachedLimit = false;
 
     float t = 0;
     for (int i = 0; i < MAX_RAYMARCH; ++i)
@@ -436,7 +440,11 @@ RaycastResult raycast(float3 pos, float3 dir)
         }
 
         t += d.sdf;
-        if (t > FAR_DIST) break;
+        if (t > distanceLimit)
+        {
+            r.reachedLimit = true;
+            break;
+        }
     }
 
     return r;
@@ -510,10 +518,14 @@ float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
     return color;
 }
 
-float4 rayMarch(float3 eyePos, float3 rayDir)
+float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit)
 {
     float3 color = float3(0, 0, 0);
-    RaycastResult r = raycast(eyePos, rayDir);
+    RaycastResult r = raycast(eyePos, rayDir, distanceLimit);
+    if (r.reachedLimit)
+    {
+        return float4(0, 0, 0, 0);
+    }
 
     // 背景色
     float tbg = 0.5 * (rayDir.y + 1.0);
@@ -527,9 +539,9 @@ float4 rayMarch(float3 eyePos, float3 rayDir)
         float t = length(r.pos - eyePos);
 
         float fogStart = 5.0;
-        float fogEnd = 20.0;
+        float fogEnd = 100.0;
 
-        float fogFactor = saturate((t - fogStart) / (fogEnd - fogStart));
+        float fogFactor = 0.0; // saturate((t - fogStart) / (fogEnd - fogStart));
 
         color = lerp(color, bc, fogFactor);
     }
@@ -553,22 +565,30 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-    if (g_output[pixel].a != 0)
-    {
-        return;
-    }
+    // if (g_depthBuffer[pixel] != 1.0)
+    // {
+    //     return;
+    // }
 
-    const float2 targetInNdc = float2(2.0, 2.0) * pixelF / g_outputResolution + float2(-1.0, -1.0);
+    float3 targetInNdc;
+    targetInNdc.xy = float2(2.0, 2.0) * pixelF / g_outputResolution + float2(-1.0, -1.0);
+    targetInNdc.z = g_depthBuffer[pixel];
 
-    const float4 targetInClip = float4(targetInNdc, 1.0f, 1.0f);
+    const float4 targetInClip = float4(targetInNdc, 1.0f);
 
     float4 targetInView = mul(g_projectionMatrixInv, targetInClip);
     targetInView /= targetInView.w;
+
+    const float distanceLimit = length(targetInView);
 
     float3 targetInWorld = mul(g_viewMatrixInv, targetInView).xyz;
     float3 eyePosInWorld = mul(g_viewMatrixInv, float4(0, 0, 0, 1)).xyz;
 
     const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 
-    g_output[pixel] = rayMarch(eyePosInWorld, rayDir);
+    const float4 hit = rayMarch(eyePosInWorld, rayDir, distanceLimit);
+    if (hit.a > 0)
+    {
+        g_output[pixel] = hit;
+    }
 }

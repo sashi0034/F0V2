@@ -1,11 +1,13 @@
 #pragma once
+
+#include "DepthStencilHandle.h"
 #include "StructuredBuffer.h"
 #include "TextureHandle.h"
 #include "Variant.h"
 
 namespace TY
 {
-    class ShaderResourceType : public Variant<TextureHandle, StructuredBuffer>
+    class ShaderResourceType : public Variant<TextureHandle, StructuredBuffer, DepthBufferHandle>
     {
     public:
         using Variant::Variant;

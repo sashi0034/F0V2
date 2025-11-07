@@ -170,6 +170,7 @@
     <ClInclude Include="TY\BitmapFont.h" />
     <ClInclude Include="TY\ComputeDispatcher.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
+    <ClInclude Include="TY\DepthStencilHandle.h" />
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
     <ClInclude Include="TY\detail\SceneState3D_singleton.h" />
     <ClInclude Include="TY\DiskTexture.h" />
@@ -338,6 +339,7 @@
     <ClCompile Include="TY\BitmapFont.cpp" />
     <ClCompile Include="TY\ComputeDispatcher.cpp" />
     <ClCompile Include="TY\ConstantBuffer.cpp" />
+    <ClCompile Include="TY\DepthStencilHandle.cpp" />
     <ClCompile Include="TY\detail\GpuMemoryUsage.cpp" />
     <ClCompile Include="TY\detail\SceneState3D_singleton.cpp" />
     <ClCompile Include="TY\DiskTexture.cpp" />

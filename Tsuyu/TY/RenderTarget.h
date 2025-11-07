@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Color.h"
+#include "DepthStencilHandle.h"
 #include "RenderTargetTexture.h"
 #include "ScopedDefer.h"
 #include "TextureDrawer.h"
@@ -53,6 +54,9 @@ namespace TY
 
         [[nodiscard]]
         TextureHandle asTexture() const;
+
+        [[nodiscard]]
+        DepthBufferHandle getDepthBuffer() const;
 
         [[nodiscard]]
         static RenderTarget Current();
