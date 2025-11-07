@@ -353,8 +353,8 @@ float sdfP(float3 p)
 float sdfO(float3 p)
 {
     // return max(max(sdfP(p), -sdfSphere(p, 7.5)), sdfSphere(p, 10.0));
-    // return sdfP(p);
-    return max(sdfP(p), -sdfSphere(p, 7.5));
+    return sdfP(p);
+    // return max(sdfP(p), -sdfSphere(p, 7.5));
 }
 
 float sdfTree(float3 p)
@@ -390,7 +390,7 @@ SdfAndMat scanSdf(float3 pos)
     if (sdO < result.sdf)
     {
         result.sdf = sdO;
-        result.mat = 1.0;
+        result.mat = MAT_SOLID;
     }
 
     float sdV = sdfV(pos);
@@ -415,17 +415,17 @@ float3 scanNormal(float3 pos)
 
 struct RaycastResult
 {
+    bool hit;
     float3 pos;
-    bool reachedLimit;
     SdfAndMat d;
 };
 
 RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
 {
     RaycastResult r;
+    r.hit = false;
     r.pos = 0;
     r.d = emptySdfAndMat();
-    r.reachedLimit = false;
 
     float t = 0;
     for (int i = 0; i < MAX_RAYMARCH; ++i)
@@ -434,6 +434,7 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
         SdfAndMat d = scanSdf(p);
         if (d.sdf < 1e-2)
         {
+            r.hit = true;
             r.pos = p;
             r.d = d;
             break;
@@ -442,7 +443,6 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
         t += d.sdf;
         if (t > distanceLimit)
         {
-            r.reachedLimit = true;
             break;
         }
     }
@@ -518,11 +518,11 @@ float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
     return color;
 }
 
-float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit)
+float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlreadyExists)
 {
     float3 color = float3(0, 0, 0);
     RaycastResult r = raycast(eyePos, rayDir, distanceLimit);
-    if (r.reachedLimit)
+    if (!r.hit && pixelAlreadyExists)
     {
         return float4(0, 0, 0, 0);
     }
@@ -586,7 +586,8 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 
-    const float4 hit = rayMarch(eyePosInWorld, rayDir, distanceLimit);
+    const bool pixelAlreadyExists = g_depthBuffer[pixel] != 1.0; // フォワードレンダリング時点で値が書き込まれているか
+    const float4 hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
     if (hit.a > 0)
     {
         g_output[pixel] = hit;
