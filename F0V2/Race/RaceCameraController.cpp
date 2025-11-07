@@ -111,6 +111,11 @@ private:
 
         ImGui::Checkbox("Use Debug Camera", &s_useDebugCamera);
 
+        if (ImGui::Button("Reset Debug Camera"))
+        {
+            s_debugCamera.reset();
+        }
+
         ImGui::Checkbox("Fix Camera Up", &s_fixedCameraUp);
 
         ImGui::End();

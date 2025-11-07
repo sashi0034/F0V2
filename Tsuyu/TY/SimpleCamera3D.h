@@ -12,7 +12,7 @@ namespace TY
 
         void reset();
 
-        void reset(const Float3& eyePosition, const Float3& targetPosition = {}, Float3 upDirection = {0, 1, 0});
+        void reset(const Float3& eyePosition, const Float3& targetPosition = {0, 0, 1}, Float3 upDirection = {0, 1, 0});
 
         void setEyeAndTarget(const Float3& eyePosition, const Float3& targetPosition);
 

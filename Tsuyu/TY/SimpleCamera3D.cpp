@@ -78,6 +78,7 @@ namespace TY
     SimpleCamera3D::SimpleCamera3D() :
         p_impl(std::make_shared<Impl>())
     {
+        reset(Float3{});
         p_impl->ApplyMatrix();
     }
 

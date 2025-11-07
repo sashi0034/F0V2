@@ -571,7 +571,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     // }
 
     float3 targetInNdc;
-    targetInNdc.xy = float2(2.0, 2.0) * pixelF / g_outputResolution + float2(-1.0, -1.0);
+    targetInNdc.xy = float2(2.0, -2.0) * pixelF / g_outputResolution + float2(-1.0, 1.0);
     targetInNdc.z = g_depthBuffer[pixel];
 
     const float4 targetInClip = float4(targetInNdc, 1.0f);
