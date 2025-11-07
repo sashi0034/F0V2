@@ -42,9 +42,23 @@ class AssetSpec:
 # 例: テクスチャ系を追加したい場合
 # AssetSpec("Asset_texture", ("asset", "texture"), ("**/*.png", "**/*.jpg"))
 ASSET_SPECS: List[AssetSpec] = [
-    AssetSpec("Asset_shader", "ShaderPathWrapper", ("asset", "shader"), ("**/*.hlsl",)),
+    AssetSpec("Asset_shader", "GraphicsShaderPathWrapper", ("asset", "shader"), ("**/*.hlsl",)),
     AssetSpec("Asset_model", "ModelPathWrapper", ("asset", "model"), ("**/*.obj",)),
 ]
+
+
+def _shader_typename_from_stem(stem: str, default: str) -> str:
+    """
+    ファイル名末尾のサフィックスから shader 用のラッパ型を決定する
+    """
+    low = stem.lower()
+    if low.endswith("_ps"):
+        return "PixelShaderPathWrapper"
+    if low.endswith("_vs"):
+        return "VertexShaderPathWrapper"
+    if low.endswith("_cs"):
+        return "ComputeShaderPathWrapper"
+    return default
 
 
 # -----------------------------------------------
@@ -102,15 +116,15 @@ def iter_files(base: Path, patterns: Iterable[str]) -> Iterable[Path]:
 # -----------------------------------------------
 # Emission
 
-def emit_namespace(namespace: str, typename: str, entries: List[Tuple[str, str]]) -> str:
+def emit_namespace(namespace: str, entries: List[Tuple[str, str, str]]) -> str:
     """
     Build C++ namespace block.
-    entries: list of (identifier, path_string)
+    entries: list of (identifier, path_string, typename) それぞれのエントリが個別の型を持てる
     """
     lines = []
     lines.append(f"namespace {namespace}")
     lines.append("{")
-    for ident, relpath in entries:
+    for ident, relpath, typename in entries:
         lines.append(f'    {CPP_VALUE_DECL} {typename} {ident}{{"{relpath}"}};')
     lines.append("}")
     lines.append("")  # trailing newline
@@ -120,17 +134,22 @@ def emit_namespace(namespace: str, typename: str, entries: List[Tuple[str, str]]
 # -----------------------------------------------
 # Main
 
-def build_entries_for_spec(root: Path, spec: AssetSpec) -> List[Tuple[str, str]]:
-    """AssetSpec に基づいて (identifier, relpath) のリストを作る。"""
+def build_entries_for_spec(root: Path, spec: AssetSpec) -> List[Tuple[str, str, str]]:
+    """AssetSpec に基づいて (identifier, relpath, typename) のリストを作る。"""
     base = root.joinpath(*spec.subdir)
     files = iter_files(base, spec.globs)
 
     used: set[str] = set()
-    entries: List[Tuple[str, str]] = []
+    entries: List[Tuple[str, str, str]] = []
     for p in files:
         ident = make_identifier(p.stem, used)
         rel = to_posix_rel(root, p)
-        entries.append((ident, rel))
+        # shader の場合のみ末尾による型分岐
+        if spec.namespace == "Asset_shader":
+            typename = _shader_typename_from_stem(p.stem, spec.typename)
+        else:
+            typename = spec.typename
+        entries.append((ident, rel, typename))
 
     # ソートはパスで安定化
     entries.sort(key=lambda kv: kv[1])
@@ -142,7 +161,7 @@ def main() -> None:
     root = find_root_dir(cwd, ROOT_DIR_NAME)
 
     # すべてのカテゴリを処理
-    ns_to_entries: Dict[str, List[Tuple[str, str]]] = {}
+    ns_to_entries: Dict[str, List[Tuple[str, str, str]]] = {}
     for spec in ASSET_SPECS:
         ns_to_entries[spec.namespace] = build_entries_for_spec(root, spec)
 
@@ -157,7 +176,7 @@ def main() -> None:
     for spec in ASSET_SPECS:
         entries = ns_to_entries[spec.namespace]
         if entries:
-            header_lines.append(emit_namespace(spec.namespace, spec.typename, entries))
+            header_lines.append(emit_namespace(spec.namespace, entries))
         else:
             header_lines.append(f"namespace {spec.namespace} {{}}\n")
 

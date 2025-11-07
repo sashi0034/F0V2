@@ -33,7 +33,7 @@ namespace
 
     struct Shadertoy_b10
     {
-        Float2 g_screenResolution{};
+        Float2 g_outputResolution{};
         Float2 g_mousePosition{};
         Float2 g_mouseUV{};
         float g_time{};
@@ -208,7 +208,7 @@ struct Testbed_Shadertoy_impl
     void draw3D(const TextureHandle& texture, const ComputeDispatcher& dispatcher)
     {
         const Float2 textureSize = texture.size().cast<Float2>();
-        s_rsc->cb.shadertoy->g_screenResolution = textureSize;
+        s_rsc->cb.shadertoy->g_outputResolution = textureSize;
         s_rsc->cb.shadertoy->g_mousePosition = Mouse::PosF() * (textureSize / Screen::Size().cast<Float2>());
         s_rsc->cb.shadertoy->g_mouseUV =
             Math::Clamp2D(s_rsc->cb.shadertoy->g_mousePosition / textureSize,

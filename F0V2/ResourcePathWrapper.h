@@ -49,7 +49,13 @@ namespace TY
         std::string m_path;
     };
 
-    using ShaderPathWrapper = ResourcePathWrapper<GraphicsShaderCache>;
+    using VertexShaderPathWrapper = ResourcePathWrapper<VertexShaderCache>;
+
+    using PixelShaderPathWrapper = ResourcePathWrapper<PixelShaderCache>;
+
+    using GraphicsShaderPathWrapper = ResourcePathWrapper<GraphicsShaderCache>;
+
+    using ComputeShaderPathWrapper = ResourcePathWrapper<ComputeShaderCache>;
 
     using ModelPathWrapper = ResourcePathWrapper<ModelBufferCache>;
 }

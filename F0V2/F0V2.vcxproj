@@ -162,6 +162,7 @@
     <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
+    <Content Include="asset\shader\scenery1_cs.hlsl" />
     <ClCompile Include="Race\RaceDrawManager.cpp" />
     <ClCompile Include="Testbed\Testbed_Shadertoy.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />

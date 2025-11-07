@@ -9,7 +9,10 @@ namespace
 {
     struct CommonResourceCache : IInlineComponent
     {
+        VertexShaderCache::cache_type vertexShaderCache{};
+        PixelShaderCache::cache_type pixelShaderCache{};
         GraphicsShaderCache::cache_type graphicsShaderCache{};
+        ComputeShaderCache::cache_type computeShaderCache{};
         ModelBufferCache::cache_type modelBufferCache{};
     };
 
@@ -18,12 +21,27 @@ namespace
 
 namespace TY
 {
-    ModelBuffer detail::DefaultModelBufferCacheLoader(const std::string& path)
+    VertexShader VertexShaderCache::LoadDefault(const std::string& path)
     {
-        return ModelBuffer(ModelLoader::Load(path));
+        return VertexShader(ShaderParams::VS(path));
     }
 
-    GraphicsShader GraphicsShaderCache::DefaultLoad(const std::string& path)
+    VertexShaderCache::cache_type& VertexShaderCache::operator()() const
+    {
+        return s_commonResourceCache->vertexShaderCache;
+    }
+
+    PixelShader PixelShaderCache::LoadDefault(const std::string& path)
+    {
+        return PixelShader(ShaderParams::PS(path));
+    }
+
+    PixelShaderCache::cache_type& PixelShaderCache::operator()() const
+    {
+        return s_commonResourceCache->pixelShaderCache;
+    }
+
+    GraphicsShader GraphicsShaderCache::LoadDefault(const std::string& path)
     {
         return GraphicsShader::VS_PS(path);
     }
@@ -33,9 +51,19 @@ namespace TY
         return s_commonResourceCache->graphicsShaderCache;
     }
 
-    ModelBuffer ModelBufferCache::DefaultLoad(const std::string& path)
+    ComputeShader ComputeShaderCache::LoadDefault(const std::string& path)
     {
-        return detail::DefaultModelBufferCacheLoader(path);
+        return ComputeShader(ShaderParams::CS(path));
+    }
+
+    ComputeShaderCache::cache_type& ComputeShaderCache::operator()() const
+    {
+        return s_commonResourceCache->computeShaderCache;
+    }
+
+    ModelBuffer ModelBufferCache::LoadDefault(const std::string& path)
+    {
+        return ModelBuffer(ModelLoader::Load(path));
     }
 
     ModelBufferCache::cache_type& ModelBufferCache::operator()() const

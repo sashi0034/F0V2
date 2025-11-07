@@ -5,17 +5,20 @@
 
 namespace Asset_shader
 {
-    static const inline ShaderPathWrapper blinn_phong{"asset/shader/blinn_phong.hlsl"};
-    static const inline ShaderPathWrapper default2d{"asset/shader/default2d.hlsl"};
-    static const inline ShaderPathWrapper dynamic_ocean{"asset/shader/dynamic_ocean.hlsl"};
-    static const inline ShaderPathWrapper lambert{"asset/shader/lambert.hlsl"};
-    static const inline ShaderPathWrapper model{"asset/shader/model.hlsl"};
-    static const inline ShaderPathWrapper phong{"asset/shader/phong.hlsl"};
-    static const inline ShaderPathWrapper phong_shadow{"asset/shader/phong_shadow.hlsl"};
-    static const inline ShaderPathWrapper r32_float_visualizer{"asset/shader/r32_float_visualizer.hlsl"};
-    static const inline ShaderPathWrapper shadow_caster{"asset/shader/shadow_caster.hlsl"};
-    static const inline ShaderPathWrapper simple_compute{"asset/shader/simple_compute.hlsl"};
-    static const inline ShaderPathWrapper skydome{"asset/shader/skydome.hlsl"};
+    static const inline GraphicsShaderPathWrapper blinn_phong{"asset/shader/blinn_phong.hlsl"};
+    static const inline GraphicsShaderPathWrapper default2d{"asset/shader/default2d.hlsl"};
+    static const inline GraphicsShaderPathWrapper dynamic_ocean{"asset/shader/dynamic_ocean.hlsl"};
+    static const inline GraphicsShaderPathWrapper lambert{"asset/shader/lambert.hlsl"};
+    static const inline GraphicsShaderPathWrapper model{"asset/shader/model.hlsl"};
+    static const inline GraphicsShaderPathWrapper phong{"asset/shader/phong.hlsl"};
+    static const inline GraphicsShaderPathWrapper phong_shadow{"asset/shader/phong_shadow.hlsl"};
+    static const inline GraphicsShaderPathWrapper r32_float_visualizer{"asset/shader/r32_float_visualizer.hlsl"};
+    static const inline ComputeShaderPathWrapper scenery1_cs{"asset/shader/scenery1_cs.hlsl"};
+    static const inline ComputeShaderPathWrapper shadertoy_cs{"asset/shader/shadertoy_cs.hlsl"};
+    static const inline PixelShaderPathWrapper shadertoy_ps{"asset/shader/shadertoy_ps.hlsl"};
+    static const inline GraphicsShaderPathWrapper shadow_caster{"asset/shader/shadow_caster.hlsl"};
+    static const inline GraphicsShaderPathWrapper simple_compute{"asset/shader/simple_compute.hlsl"};
+    static const inline GraphicsShaderPathWrapper skydome{"asset/shader/skydome.hlsl"};
 }
 
 namespace Asset_model

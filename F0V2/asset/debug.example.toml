@@ -4,6 +4,8 @@ fixed_course_path = "asset/edit/sandbox_course.toml"
 
 ai_count = 29
 
+fix_ai_color = false
+
 draw_physics_lines = false
 
-fix_ai_color = false
+draw_scenery = true

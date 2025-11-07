@@ -12,7 +12,7 @@ SamplerState g_sampler0 : register(s0);
 
 cbuffer Shadertoy_b10 : register(b10)
 {
-    float2 g_screenResolution;
+    float2 g_outputResolution;
     float2 g_mousePosition;
 }
 
@@ -176,7 +176,7 @@ float4 PS(PSInput input) : SV_TARGET
     float2 inputPosition = input.position.xy;
 
     float2 screenPos2 = inputPosition.xy;
-    screenPos2 = (screenPos2 - g_screenResolution * 0.5) / g_screenResolution.y;
+    screenPos2 = (screenPos2 - g_outputResolution * 0.5) / g_outputResolution.y;
 
     float3 screenPos3 = float3(screenPos2.x, screenPos2.y, 0.0);
     float3 eyePos = float3(0, 0, -5);
@@ -188,7 +188,7 @@ float4 PS(PSInput input) : SV_TARGET
 
     // -----------------------------------------------
 
-    float2 mousePos2 = (g_mousePosition - g_screenResolution * 0.5) / g_screenResolution.y;
+    float2 mousePos2 = (g_mousePosition - g_outputResolution * 0.5) / g_outputResolution.y;
 
     float lightTheta = mousePos2.x * PI;
     float lightPhi = mousePos2.y * PI;

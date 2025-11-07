@@ -54,36 +54,56 @@ namespace TY
         std::unordered_map<std::string, T> m_cache{};
     };
 
-    namespace detail
+    struct VertexShaderCache
     {
-        GraphicsShader DefaultGraphicsShaderCacheLoader(const std::string& path);
+        static VertexShader LoadDefault(const std::string& path);
 
-        ModelBuffer DefaultModelBufferCacheLoader(const std::string& path);
-    }
+        using cache_type = ResourceCache<VertexShader, LoadDefault>;
+
+        cache_type& operator ()() const;
+    };
+
+    struct PixelShaderCache
+    {
+        static PixelShader LoadDefault(const std::string& path);
+
+        using cache_type = ResourceCache<PixelShader, LoadDefault>;
+
+        cache_type& operator ()() const;
+    };
 
     struct GraphicsShaderCache
     {
-        static GraphicsShader DefaultLoad(const std::string& path);
+        static GraphicsShader LoadDefault(const std::string& path);
 
-        using cache_type = ResourceCache<GraphicsShader, DefaultLoad>;
+        using cache_type = ResourceCache<GraphicsShader, LoadDefault>;
+
+        cache_type& operator ()() const;
+    };
+
+    struct ComputeShaderCache
+    {
+        static ComputeShader LoadDefault(const std::string& path);
+
+        using cache_type = ResourceCache<ComputeShader, LoadDefault>;
 
         cache_type& operator ()() const;
     };
 
     struct ModelBufferCache
     {
-        static ModelBuffer DefaultLoad(const std::string& path);
+        static ModelBuffer LoadDefault(const std::string& path);
 
-        using cache_type = ResourceCache<ModelBuffer, detail::DefaultModelBufferCacheLoader>;
+        using cache_type = ResourceCache<ModelBuffer, LoadDefault>;
 
         cache_type& operator ()() const;
     };
 
     struct FontObjectCache
     {
-        static ModelBuffer DefaultLoad(const std::string& path);
+        static ModelBuffer LoadDefault(const std::string& path);
 
-        using cache_type = ResourceCache<ModelBuffer, DefaultLoad>;
+        using cache_type = ResourceCache<ModelBuffer, LoadDefault>;
 
         cache_type& operator ()() const;
     };

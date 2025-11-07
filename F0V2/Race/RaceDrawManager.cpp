@@ -1,10 +1,19 @@
 ﻿#include "pch.h"
 #include "RaceDrawManager.h"
 
+#include "Asset.generated.h"
 #include "IRaceDrawer.h"
 #include "TY/ActorContainer.h"
+#include "TY/ComputeDispatcher.h"
+#include "TY/ConstantBufferWrapper.h"
+#include "TY/Immediate2D.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/Logger.h"
 #include "TY/ModelDrawer.h"
+#include "TY/RenderTargetTexture.h"
+#include "TY/Screen.h"
+#include "TY/System.h"
+#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -15,6 +24,52 @@ namespace
         std::shared_ptr<IRaceDrawer> drawer;
         bool initialized{};
         RaceDrawParameters parameters{};
+    };
+
+    struct Scenery_b10
+    {
+        Float2 g_outputResolution{};
+        Float2 g_mousePosition{};
+        Float2 g_mouseUV{};
+        float g_time{};
+    };
+
+    class SceneryDrawer
+    {
+    public:
+        void Init()
+        {
+            m_nativeResolution =
+                RenderTargetTextureParams()
+                .setSize(Screen::Size())
+                .setClearColor(ColorF32{0.0f, 1.0f});
+
+            m_nativeResolutionDispatcher =
+                ComputeDispatcherParams{}
+                .setCS(Asset_shader::scenery1_cs)
+                .setCbv({m_cb})
+                .setUav({m_nativeResolution});
+        }
+
+        void Draw()
+        {
+            m_cb->g_outputResolution = Screen::Size();
+            m_cb->g_time = System::Time();
+            m_cb.upload();
+
+            auto& texture = m_nativeResolution;
+            const Size textureSize = texture.size();
+            const Size threadGroup = (textureSize + Size{7, 7}) / 8;
+            m_nativeResolutionDispatcher.dispatch(threadGroup.x, threadGroup.y);
+
+            Immediate2D::Texture(texture).resized(Screen::Size()).pushAuto();
+            ImmediateDrawer::Global().draw();
+        }
+
+    private:
+        ConstantBufferWrapper<Scenery_b10> m_cb{};
+        UnorderedRenderTargetTexture m_nativeResolution{};
+        ComputeDispatcher m_nativeResolutionDispatcher{};
     };
 }
 
@@ -28,8 +83,11 @@ struct RaceDrawManager::Impl : ActorBase
 
     Array<DrawerElement> m_drawers{};
 
+    SceneryDrawer m_sceneryDrawer{};
+
     void Init()
     {
+        m_sceneryDrawer.Init();
     }
 
     void Unregister(const IRaceDrawer* drawer)
@@ -61,6 +119,13 @@ private:
             {
                 m_drawers[i].drawer->drawForward();
             }
+        }
+
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("draw_scenery"))
+#endif
+        {
+            m_sceneryDrawer.Draw();
         }
 
         for (int i = 0; i < m_drawers.size(); ++i)
