@@ -318,36 +318,54 @@ float sdfV(float3 p)
 // https://www.shadertoy.com/view/MdXSWn
 float sdfP(float3 p)
 {
-    const float center = 1.5;
-    p -= V3(center);
+    // p.zx = frac((p.zx + V2(20.0)) / 40.0) * 40.0 - V2(20.0);
 
-    float sd1;
+    const float Scale0 = 0.05;
+    p *= Scale0;
+    
+    p.zx = center_repeat(p.zx, 50.0);
+
+    p.zx = pmod(p.zx, 5.0);
+    p.zy = pmod(p.zy, 5.0);
+
+    // p = abs(p);
+    //
+    // if (p.z < p.y) p.zy = p.yz;
+    // if (p.z < p.x) p.zx = p.xz;
+    // if (p.y < p.x) p.yx = p.xy;
+
+    p -= float3(0, 0, 10);
+    // p.zy = mul(rotate2d(g_time), p.zy);
+
+    float h = 2.0;
+    float r = 0.1;
+    float d = sdfCylinder(p, h, r);
+    const float Scale = 0.8;
+    const int Iterations = 20;
+    for (int i = 0; i < Iterations; i++)
     {
-        float3 p_ = center_repeat(p, center * 25);
+        if (i == Iterations - 1)
+        {
+            float d_ = smoothMin(d, sdfCylinder(p, h, r), 0.1);
+            d = lerp(d, d_, 0.5);
+            break;
+        }
+        else
+        {
+            d = smoothMin(d, sdfCylinder(p, h, r), 0.1);
+        }
 
-        float sdX = sdSquare(p_.yz, 0.2);
-        float sdY = sdSquare(p_.zx, 0.2);
-        float sdZ = sdSquare(p_.xy, 0.2);
+        p = abs(p);
+        // p.xz = abs(p.xz);
+        p.y -= h;
+        p.zx = mul(rotate2d(HALF_PI * (0.2 + 0.1 * sin(g_time * 3.0))), p.zx);
+        p.xy = mul(rotate2d(0.5), p.xy);
 
-        sd1 = min(min(sdX, sdY), sdZ);
+        h *= Scale;
+        r *= Scale;
     }
 
-    float sd2;
-    {
-        float3 p_ = center_repeat(p, 0.5);
-
-        float sdX = length(p_.yz) - 0.1;
-        float sdY = length(p_.zx) - 0.1;
-        float sdZ = length(p_.xy) - 0.1;
-
-        sd2 = min(min(sdX, sdY), sdZ);
-    }
-
-    // float sdX = length(p.yz) - 0.1;
-    // float sdY = length(p.zx) - 0.1;
-    // float sdZ = length(p.xy) - 0.1;
-
-    return max(sd1, -sd2);
+    return d / Scale0;
 }
 
 float sdfO(float3 p)
