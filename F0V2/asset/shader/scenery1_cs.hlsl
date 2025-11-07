@@ -21,8 +21,10 @@ RWTexture2D<float4> g_output : register(u0);
 //
 // SamplerState g_sampler0 : register(s0);
 
-cbuffer Shadertoy_b10 : register(b0)
+cbuffer Scenery_b10 : register(b0)
 {
+    float4x4 g_projectionMatrixInv;
+    float4x4 g_viewMatrixInv;
     float2 g_outputResolution;
     float2 g_mousePosition;
     float2 g_mouseUV;
@@ -556,22 +558,17 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-    const float roll = sin(g_time) * (HALF_PI * 0.125f);
-    const float pitch = sin(g_time * 0.9 + 0.1) * (HALF_PI * 0.125f);
-    const float3x3 cameraMat = rollPitchYaw(roll, pitch, sin(g_time));
+    const float2 targetInNdc = float2(2.0, 2.0) * pixelF / g_outputResolution + float2(-1.0, -1.0);
 
-    float2 screenPos2 = (pixelF - g_outputResolution * 0.5) / g_outputResolution.y;
-    screenPos2 *= float2(1.0, -1.0);
-    screenPos2 *= 1.5f;
+    const float4 targetInClip = float4(targetInNdc, 1.0f, 1.0f);
 
-    float3 screenPos3 = float3(screenPos2, 1.0);
-    screenPos3 = mul(cameraMat, screenPos3);
+    float4 targetInView = mul(g_projectionMatrixInv, targetInClip);
+    targetInView /= targetInView.w;
 
-    const float3 eyePos = float3(0, 0, 0);
+    float3 targetInWorld = mul(g_viewMatrixInv, targetInView).xyz;
+    float3 eyePosInWorld = mul(g_viewMatrixInv, float4(0, 0, 0, 1)).xyz;
 
-    const float3 rayDir = normalize(screenPos3 - eyePos);
+    const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 
-    // -----------------------------------------------
-
-    g_output[pixel] = rayMarch(eyePos, rayDir);
+    g_output[pixel] = rayMarch(eyePosInWorld, rayDir);
 }

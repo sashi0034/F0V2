@@ -46,9 +46,19 @@ namespace TY
         SceneState3D_singleton::SetViewMatrix(viewMatrix);
     }
 
+    Mat4x4 Graphics3D::ViewMatrix()
+    {
+        return SceneState3D_singleton::GetViewMatrix();
+    }
+
     void Graphics3D::SetProjectionMatrix(const Mat4x4& projectionMatrix)
     {
         SceneState3D_singleton::SetProjectionMatrix(projectionMatrix);
+    }
+
+    Mat4x4 Graphics3D::ProjectionMatrix()
+    {
+        return SceneState3D_singleton::GetProjectionMatrix();
     }
 
     Mat4x4 Graphics3D::WorldToProjection()

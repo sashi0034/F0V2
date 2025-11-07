@@ -17,60 +17,71 @@ namespace TY
 
         explicit Mat4x4(Quaternion q);
 
-        [[nodiscard]] Mat4x4 translated(const Float3& v) const
+        [[nodiscard]]
+        Mat4x4 translated(const Float3& v) const
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(v.x, v.y, v.z));
         }
 
-        [[nodiscard]] Mat4x4 translatedX(const Float3& v) const
+        [[nodiscard]]
+        Mat4x4 translatedX(const Float3& v) const
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(v.x, 0.0f, 0.0f));
         }
 
-        [[nodiscard]] Mat4x4 translatedY(const Float3& v) const
+        [[nodiscard]]
+        Mat4x4 translatedY(const Float3& v) const
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(0.0f, v.y, 0.0f));
         }
 
-        [[nodiscard]] Mat4x4 translatedZ(const Float3& v) const
+        [[nodiscard]]
+        Mat4x4 translatedZ(const Float3& v) const
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixTranslation(0.0f, 0.0f, v.z));
         }
 
-        [[nodiscard]] Mat4x4 translated(float x, float y, float z) const
+        [[nodiscard]]
+        Mat4x4 translated(float x, float y, float z) const
         {
             return DirectX::XMMatrixMultiply(
                 mat, DirectX::XMMatrixTranslation(x, y, z));
         }
 
-        [[nodiscard]] Mat4x4 scaled(const Float3& v) const
+        [[nodiscard]]
+        Mat4x4 scaled(const Float3& v) const
         {
             return DirectX::XMMatrixMultiply(
                 mat, DirectX::XMMatrixScaling(v.x, v.y, v.z));
         }
 
-        [[nodiscard]] Mat4x4 scaled(float x, float y, float z) const
+        [[nodiscard]]
+        Mat4x4 scaled(float x, float y, float z) const
         {
             return DirectX::XMMatrixMultiply(
                 mat, DirectX::XMMatrixScaling(x, y, z));
         }
 
-        [[nodiscard]] Mat4x4 rotatedX(float angle) const
+        [[nodiscard]]
+        Mat4x4 rotatedX(float angle) const
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixRotationX(angle));
         }
 
-        [[nodiscard]] Mat4x4 rotatedY(float angle) const
+        [[nodiscard]]
+        Mat4x4 rotatedY(float angle) const
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixRotationY(angle));
         }
 
-        [[nodiscard]] Mat4x4 rotatedZ(float angle) const
+        [[nodiscard]]
+        Mat4x4 rotatedZ(float angle) const
         {
             return DirectX::XMMatrixMultiply(mat, DirectX::XMMatrixRotationZ(angle));
         }
 
-        [[nodiscard]] Mat4x4 __vectorcall rotated(Quaternion quaternion) const;
+        [[nodiscard]]
+        Mat4x4 __vectorcall rotated(Quaternion quaternion) const;
 
         [[nodiscard]]
         Mat4x4 __vectorcall transposed() const;
@@ -81,7 +92,8 @@ namespace TY
         [[nodiscard]]
         float determinant() const;
 
-        [[nodiscard]] Float3 translation() const
+        [[nodiscard]]
+        Float3 translation() const
         {
             using namespace DirectX;
 
@@ -92,9 +104,11 @@ namespace TY
             };
         }
 
-        [[nodiscard]] Float3 eulerRotation() const;
+        [[nodiscard]]
+        Float3 eulerRotation() const;
 
-        [[nodiscard]] Vector3D<float> up() const
+        [[nodiscard]]
+        Vector3D<float> up() const
         {
             using namespace DirectX;
 
@@ -105,7 +119,8 @@ namespace TY
             };
         }
 
-        [[nodiscard]] Vector3D<float> right() const
+        [[nodiscard]]
+        Vector3D<float> right() const
         {
             using namespace DirectX;
 
@@ -116,7 +131,8 @@ namespace TY
             };
         }
 
-        [[nodiscard]] Vector3D<float> forward() const
+        [[nodiscard]]
+        Vector3D<float> forward() const
         {
             using namespace DirectX;
 
@@ -133,13 +149,15 @@ namespace TY
         [[nodiscard]]
         float at1(int row, int col) const;
 
-        [[nodiscard]] Mat4x4 operator*(const Mat4x4& rhs) const
+        [[nodiscard]]
+        Mat4x4 operator*(const Mat4x4& rhs) const
         {
             return Mat4x4{mat * rhs.mat};
         }
 
         template <typename T>
-        [[nodiscard]] Vector3D<T> operator*(const Vector3D<T>& rhs) const
+        [[nodiscard]]
+        Vector3D<T> operator*(const Vector3D<T>& rhs) const
         {
             return Vector3D<T>{XMVector3Transform(rhs.toXMV(), mat)};
         }
@@ -147,32 +165,40 @@ namespace TY
         [[nodiscard]]
         Float3 transformPoint(Float3 pos) const noexcept;
 
-        [[nodiscard]] static Mat4x4 Identity()
+        [[nodiscard]]
+        static Mat4x4 Identity()
         {
             return Mat4x4{DirectX::XMMatrixIdentity()};
         }
 
         /// @brief 透視投影行列を生成する (左手座標系)
         template <typename T>
-        [[nodiscard]] static Mat4x4 LookAt(const Vector3D<T>& eye, const Vector3D<T>& target, const Vector3D<T>& up)
+        [[nodiscard]]
+        static Mat4x4 LookAt(const Vector3D<T>& eye, const Vector3D<T>& target, const Vector3D<T>& up)
         {
             return Mat4x4{DirectX::XMMatrixLookAtLH(eye.toXMV(), target.toXMV(), up.toXMV())};
         }
 
-        [[nodiscard]] static Mat4x4 PerspectiveFov(
+        [[nodiscard]]
+        static Mat4x4 PerspectiveFov(
             float fov, float aspect, float nearZ, float farZ)
         {
             return Mat4x4{DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ)};
         }
 
-        [[nodiscard]] static Mat4x4 Translate(const Float3& v) noexcept;
+        [[nodiscard]]
+        static Mat4x4 Translate(const Float3& v) noexcept;
 
-        [[nodiscard] ] static Mat4x4 Scale(const Float3& v) noexcept;
+        [[nodiscard]]
+        static Mat4x4 Scale(const Float3& v) noexcept;
 
-        [[nodiscard]] static Mat4x4 Rotate(Quaternion quaternion) noexcept;
+        [[nodiscard]]
+        static Mat4x4 Rotate(Quaternion quaternion) noexcept;
 
-        [[nodiscard]] static Mat4x4 RollPitchYaw(Float3 angles);
+        [[nodiscard]]
+        static Mat4x4 RollPitchYaw(Float3 angles);
 
-        [[nodiscard]] static Mat4x4 RollPitchYaw(float roll, float pitch, float yaw);
+        [[nodiscard]]
+        static Mat4x4 RollPitchYaw(float roll, float pitch, float yaw);
     };
 }

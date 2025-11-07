@@ -6,6 +6,7 @@
 #include "TY/ActorContainer.h"
 #include "TY/ComputeDispatcher.h"
 #include "TY/ConstantBufferWrapper.h"
+#include "TY/Graphics3D.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/Logger.h"
@@ -29,6 +30,8 @@ namespace
 
     struct Scenery_b10
     {
+        Mat4x4 g_projectionMatrixInv{};
+        Mat4x4 g_viewMatrixInv{};
         Float2 g_outputResolution{};
         Float2 g_mousePosition{};
         Float2 g_mouseUV{};
@@ -54,6 +57,8 @@ namespace
 
         void Draw()
         {
+            m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
+            m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
             m_cb->g_outputResolution = Screen::Size();
             m_cb->g_time = System::Time();
             m_cb.upload();
