@@ -10,6 +10,7 @@
 #include "TY/ImmediateDrawer.h"
 #include "TY/Logger.h"
 #include "TY/ModelDrawer.h"
+#include "TY/RenderTarget.h"
 #include "TY/RenderTargetTexture.h"
 #include "TY/Screen.h"
 #include "TY/System.h"
@@ -42,7 +43,7 @@ namespace
             m_nativeResolution =
                 RenderTargetTextureParams()
                 .setSize(Screen::Size())
-                .setClearColor(ColorF32{0.0f, 1.0f});
+                .setClearColor(ColorF32{0.0f, 0.0f});
 
             m_nativeResolutionDispatcher =
                 ComputeDispatcherParams{}
@@ -61,12 +62,16 @@ namespace
             const Size textureSize = texture.size();
             const Size threadGroup = (textureSize + Size{7, 7}) / 8;
             m_nativeResolutionDispatcher.dispatch(threadGroup.x, threadGroup.y);
+        }
 
-            Immediate2D::Texture(texture).resized(Screen::Size()).pushAuto();
-            ImmediateDrawer::Global().draw();
+        UnorderedRenderTargetTexture GetOutputBuffer() const
+        {
+            return m_nativeResolution; // FIXME: m_outputBuffer にする
         }
 
     private:
+        // UnorderedRenderTargetTexture m_outputBuffer{}; // TODO
+
         ConstantBufferWrapper<Scenery_b10> m_cb{};
         UnorderedRenderTargetTexture m_nativeResolution{};
         ComputeDispatcher m_nativeResolutionDispatcher{};
@@ -85,9 +90,15 @@ struct RaceDrawManager::Impl : ActorBase
 
     SceneryDrawer m_sceneryDrawer{};
 
+    RenderTarget m_outputTarget{};
+
     void Init()
     {
         m_sceneryDrawer.Init();
+
+        m_outputTarget = RenderTarget{
+            RenderTargetParams{}.setRtvAndClearColor(m_sceneryDrawer.GetOutputBuffer())
+        };
     }
 
     void Unregister(const IRaceDrawer* drawer)
@@ -113,19 +124,31 @@ private:
             m_drawers[i].initialized = true;
         }
 
-        for (int i = 0; i < m_drawers.size(); ++i)
+        // フォワードレンダリング
         {
-            if (m_drawers[i].parameters.drawForward)
+            auto bind = m_outputTarget.scopedBind();
+
+            for (int i = 0; i < m_drawers.size(); ++i)
             {
-                m_drawers[i].drawer->drawForward();
+                if (m_drawers[i].parameters.drawForward)
+                {
+                    m_drawers[i].drawer->drawForward();
+                }
             }
         }
 
+        // レイマーチング
 #if defined(_DEBUG)
         if (GetDebugTomlValue<bool>("draw_scenery"))
 #endif
         {
             m_sceneryDrawer.Draw();
+        }
+
+        // 書き出し
+        {
+            Immediate2D::Texture(m_outputTarget.asTexture()).resized(Screen::Size()).pushAuto();
+            ImmediateDrawer::Global().draw();
         }
 
         for (int i = 0; i < m_drawers.size(); ++i)

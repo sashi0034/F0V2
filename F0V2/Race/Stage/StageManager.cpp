@@ -19,6 +19,7 @@
 #include "TY/MipmappedDynamicTexture.h"
 #include "TY/Utils.h"
 #include "TY_Extension/GameObjectBase.h"
+#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -342,6 +343,22 @@ private:
 
     void drawForward() const override
     {
+        drawPlaceholderScenery();
+
+        for (int i = 0; i < m_courseDrawers.size(); ++i)
+        {
+            m_courseDrawers[i].draw();
+        }
+    }
+
+    void drawPlaceholderScenery() const
+    {
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("draw_scenery"))
+        {
+            return;
+        }
+#endif
         m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextContent().camera.eyePosition())).draw();
 
         for (int x = -5; x <= 5; ++x)
@@ -352,11 +369,6 @@ private:
                     .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, g_sharedState->groundPositionY, z * 100.0f}))
                     .draw();
             }
-        }
-
-        for (int i = 0; i < m_courseDrawers.size(); ++i)
-        {
-            m_courseDrawers[i].draw();
         }
     }
 

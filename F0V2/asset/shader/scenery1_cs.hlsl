@@ -551,6 +551,11 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
+    if (g_output[pixel].a != 0)
+    {
+        return;
+    }
+
     const float roll = sin(g_time) * (HALF_PI * 0.125f);
     const float pitch = sin(g_time * 0.9 + 0.1) * (HALF_PI * 0.125f);
     const float3x3 cameraMat = rollPitchYaw(roll, pitch, sin(g_time));
