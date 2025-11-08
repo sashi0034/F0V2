@@ -31,7 +31,7 @@ void Main()
 
     InitImmediatePrintAddon();
 
-#if 1
+#if 0
     Testbed_WaveTest();
 #else
     using namespace TY;

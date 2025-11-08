@@ -322,7 +322,7 @@ float sdfP(float3 p)
 
     const float Scale0 = 0.05;
     p *= Scale0;
-    
+
     p.zx = center_repeat(p.zx, 50.0);
 
     p.zx = pmod(p.zx, 5.0);
@@ -599,8 +599,8 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     const float distanceLimit = length(targetInView);
 
-    float3 targetInWorld = mul(g_viewMatrixInv, targetInView).xyz;
-    float3 eyePosInWorld = mul(g_viewMatrixInv, float4(0, 0, 0, 1)).xyz;
+    const float3 targetInWorld = mul(g_viewMatrixInv, targetInView).xyz;
+    const float3 eyePosInWorld = mul(g_viewMatrixInv, float4(0, 0, 0, 1)).xyz;
 
     const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 

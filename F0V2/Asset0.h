@@ -9,9 +9,14 @@ namespace Asset0
 
     SdfFont RocknRoll_Sdf();
 
+    // TODO: Remove this font later?
     BitmapFont ZXProto_24_Bitmap();
 
     SdfFont ZXProto_Sdf();
+
+    BitmapFont Audiowide_24_Bitmap();
+
+    SdfFont Audiowide_Sdf();
 
     BitmapFont MPlus1_16_Bitmap();
 
@@ -29,6 +34,10 @@ namespace Immediate2D_Text
     Immediate2D::Text ZXProto_24_Bitmap(const std::u32string& text);
 
     Immediate2D::Text ZXProto_Sdf(const std::u32string& text);
+
+    Immediate2D::Text Audiowide_24_Bitmap(const std::u32string& text);
+
+    Immediate2D::Text Audiowide_Sdf(const std::u32string& text);
 
     Immediate2D::Text MPlus1_16_Bitmap(const std::u32string& text);
 

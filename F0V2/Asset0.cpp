@@ -15,6 +15,10 @@ namespace
 
         SdfFont m_ZXProto_Sdf_font{};
 
+        BitmapFont m_Audiowide_24_bitmap{};
+
+        SdfFont m_Audiowide_Sdf_font{};
+
         BitmapFont m_MPlus1_16_bitmap{};
 
         BitmapFont m_MPlus1_24_bitmap{};
@@ -36,6 +40,14 @@ namespace
             m_ZXProto_24_bitmap = BitmapFont(zxProtoPath, 24);
 
             m_ZXProto_Sdf_font = SdfFont(zxProtoPath, 48);
+
+            // -----------------------------------------------
+
+            const std::string AudiowidePath = "asset/font/Audiowide/Audiowide-Regular.ttf";
+
+            m_Audiowide_24_bitmap = BitmapFont(AudiowidePath, 24);
+
+            m_Audiowide_Sdf_font = SdfFont(AudiowidePath, 48);
 
             // -----------------------------------------------
 
@@ -74,6 +86,16 @@ namespace Asset0
         return s_asset0state->m_ZXProto_Sdf_font;
     }
 
+    BitmapFont Audiowide_24_Bitmap()
+    {
+        return s_asset0state->m_Audiowide_24_bitmap;
+    }
+
+    SdfFont Audiowide_Sdf()
+    {
+        return s_asset0state->m_Audiowide_Sdf_font;
+    }
+
     BitmapFont MPlus1_16_Bitmap()
     {
         return s_asset0state->m_MPlus1_16_bitmap;
@@ -110,6 +132,16 @@ namespace Immediate2D_Text
     Immediate2D::Text ZXProto_Sdf(const std::u32string& text)
     {
         return Immediate2D::Text(Asset0::ZXProto_Sdf(), text);
+    }
+
+    Immediate2D::Text Audiowide_24_Bitmap(const std::u32string& text)
+    {
+        return Immediate2D::Text(Asset0::Audiowide_24_Bitmap(), text);
+    }
+
+    Immediate2D::Text Audiowide_Sdf(const std::u32string& text)
+    {
+        return Immediate2D::Text(Asset0::Audiowide_Sdf(), text);
     }
 
     Immediate2D::Text MPlus1_16_Bitmap(const std::u32string& text)
