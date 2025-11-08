@@ -1,7 +1,8 @@
 ﻿#include "pch.h"
 #include "Shader.h"
 
-#include <d3dcompiler.h>
+#include <dxcapi.h>
+#pragma comment(lib, "dxcompiler.lib")
 
 #include "AssertObject.h"
 #include "FileWatcher.h"
@@ -60,45 +61,108 @@ struct TY::Shader_impl : IEngineHotReloadable
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
-
         DisposeRenderResource();
 
-        const auto filepath = ToUtf16(m_params.filepath);
-        const auto compileResult = D3DCompileFromFile(
-            filepath.c_str(),
-            m_macros.empty() ? nullptr : m_macros.data(),
-            D3D_COMPILE_STANDARD_FILE_INCLUDE,
-            m_params.entryPoint.c_str(),
-            m_target.data(),
-            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, // FIXME
-            0,
-            m_shaderBlob.ReleaseAndGetAddressOf(),
-            m_errorBlob.ReleaseAndGetAddressOf()
-        );
+        const std::wstring filepath = ToUtf16(m_params.filepath);
 
-        if (SUCCEEDED(compileResult))
+        // DXC 初期化
+        ComPtr<IDxcUtils> utils;
+        ComPtr<IDxcCompiler3> compiler;
+        ComPtr<IDxcIncludeHandler> includeHandler;
+        HRESULT hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils));
+        if (FAILED(hr))
         {
+            LogError.writeln(L"Shader: Failed to create DxcUtils.");
             return;
         }
 
-        // -----------------------------------------------
-
-        if (m_shaderBlob != nullptr)
+        hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler));
+        if (FAILED(hr))
         {
-            m_shaderBlob->Release();
+            LogError.writeln(L"Shader: Failed to create DxcCompiler.");
+            return;
         }
 
-        std::wstring message = L"Shader: failed to compile: ";
-        if (compileResult == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
+        utils->CreateDefaultIncludeHandler(&includeHandler);
+
+        // ソース読み込み
+        ComPtr<IDxcBlobEncoding> sourceBlob;
+        hr = utils->LoadFile(filepath.c_str(), nullptr, &sourceBlob);
+        if (FAILED(hr))
         {
-            message += L"File not found.";
-        }
-        else
-        {
-            message += ToUtf16(GetErrorMessage());
+            LogError.writeln(L"Shader: File not found: " + filepath);
+            return;
         }
 
-        LogError.writeln(message);
+        DxcBuffer sourceBuffer{};
+        sourceBuffer.Ptr = sourceBlob->GetBufferPointer();
+        sourceBuffer.Size = sourceBlob->GetBufferSize();
+        sourceBuffer.Encoding = DXC_CP_ACP;
+
+        // コンパイル引数
+        std::wstring entryPointW = ToUtf16(m_params.entryPoint);
+        std::wstring targetW = ToUtf16(m_target);
+
+        std::vector<LPCWSTR> args = {
+            filepath.c_str(), // Source file name
+            L"-E", entryPointW.c_str(),
+            L"-T", targetW.c_str(),
+            L"-Zi", // Debug info
+            L"-Qembed_debug", // Embed debug info in DXIL
+            L"-Od", // Disable optimization for debugging
+            L"-Zpr", // Row-major matrices
+        };
+
+#ifdef _DEBUG
+        args.push_back(L"-DDEBUG");
+#endif
+
+        // コンパイル実行
+        ComPtr<IDxcResult> result;
+        hr = compiler->Compile(
+            &sourceBuffer,
+            args.data(),
+            static_cast<uint32_t>(args.size()),
+            includeHandler.Get(),
+            IID_PPV_ARGS(&result)
+        );
+
+        if (FAILED(hr) || result == nullptr)
+        {
+            LogError.writeln(L"DXC compile failed to execute: " + filepath);
+            return;
+        }
+
+        // エラー出力
+        ComPtr<IDxcBlobUtf8> errors;
+        result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), nullptr);
+        if (errors && errors->GetStringLength() > 0)
+        {
+            std::string msg = errors->GetStringPointer();
+            LogError.writeln(L"Shader: Compile error: " + ToUtf16(msg));
+        }
+
+        HRESULT status;
+        result->GetStatus(&status);
+        if (FAILED(status))
+        {
+            LogError.writeln(L"Shader: Compile failed (DXC): " + filepath);
+            return;
+        }
+
+        // 出力 (DXIL Blob)
+        ComPtr<IDxcBlob> shaderBlob;
+        result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
+        if (!shaderBlob)
+        {
+            LogError.writeln(L"Shader: Compile succeeded but no object returned: " + filepath);
+            return;
+        }
+
+        ComPtr<ID3DBlob> dxilBlob;
+        shaderBlob.As(&dxilBlob);
+
+        m_shaderBlob = dxilBlob;
     }
 };
 
@@ -124,7 +188,7 @@ namespace TY
     }
 
     VertexShader::VertexShader(const ShaderParams& params)
-        : p_impl{std::make_shared<Shader_impl>(params, "vs_5_0"sv)}
+        : p_impl{std::make_shared<Shader_impl>(params, "vs_6_0"sv)}
     {
 #if defined(_DEBUG)
         EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
@@ -158,7 +222,7 @@ namespace TY
     }
 
     PixelShader::PixelShader(const ShaderParams& params)
-        : p_impl{std::make_shared<Shader_impl>(params, "ps_5_0"sv)}
+        : p_impl{std::make_shared<Shader_impl>(params, "ps_6_0"sv)}
     {
 #if defined(_DEBUG)
         EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});
@@ -214,7 +278,7 @@ namespace TY
     }
 
     ComputeShader::ComputeShader(const ShaderParams& params)
-        : p_impl(std::make_shared<Shader_impl>(params, "cs_5_0"sv))
+        : p_impl(std::make_shared<Shader_impl>(params, "cs_6_0"sv))
     {
 #if defined(_DEBUG)
         EngineHotReloader::TrackAsset(p_impl, {FileWatcher(p_impl->m_params.filepath).timestamp()});

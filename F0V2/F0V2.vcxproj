@@ -123,6 +123,11 @@
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxcompiler.dll" "$(OutDir)"
+xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -147,6 +152,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%BOOST_LIBRARYDIR%;</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxcompiler.dll" "$(OutDir)"
+xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\external\imgui\imgui_demo.cpp">
