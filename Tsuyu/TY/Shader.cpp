@@ -133,7 +133,7 @@ struct TY::Shader_impl : IEngineHotReloadable
 
         if (FAILED(hr) || result == nullptr)
         {
-            LogError.writeln(L"DXC compile failed to execute: " + filepath);
+            LogError.writeln(L"Shader: DXC compilation failed to start: " + filepath + L".");
             return;
         }
 
@@ -143,14 +143,14 @@ struct TY::Shader_impl : IEngineHotReloadable
         if (errors && errors->GetStringLength() > 0)
         {
             std::string msg = errors->GetStringPointer();
-            LogError.writeln(L"Shader: Compile error: " + ToUtf16(msg));
+            LogError.writeln(L"Shader: DXC compilation errors:\n" + ToUtf16(msg));
         }
 
         HRESULT status;
         result->GetStatus(&status);
         if (FAILED(status))
         {
-            LogError.writeln(L"Shader: Compile failed (DXC): " + filepath);
+            LogError.writeln(L"Shader: DXC compilation failed: " + filepath + L".");
             return;
         }
 
@@ -159,7 +159,7 @@ struct TY::Shader_impl : IEngineHotReloadable
         result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
         if (!shaderBlob)
         {
-            LogError.writeln(L"Shader: Compile succeeded but no object returned: " + filepath);
+            LogError.writeln(L"Shader: DXC compilation produced no object: " + filepath + L".");
             return;
         }
 
