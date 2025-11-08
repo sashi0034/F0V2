@@ -22,7 +22,9 @@
 
 void Main()
 {
+#if defined(_DEBUG)
     InitLivePPAddon();
+#endif
 
     InitDebugTomlValueAddon();
 

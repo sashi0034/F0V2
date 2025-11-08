@@ -175,6 +175,7 @@ private:
 
     void debugUI()
     {
+#if defined(_DEBUG)
         ImGui::Begin("Player");
 
         ImGui::Checkbox("Stop Move", &s_stopMove);
@@ -254,6 +255,7 @@ private:
         }
 
         ImGui::End();
+#endif
     }
 
     void drawUI() const

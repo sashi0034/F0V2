@@ -107,6 +107,7 @@ private:
 
     void debugUI()
     {
+#if defined(_DEBUG)
         ImGui::Begin("Camera Controller");
 
         ImGui::Checkbox("Use Debug Camera", &s_useDebugCamera);
@@ -118,7 +119,8 @@ private:
 
         ImGui::Checkbox("Fix Camera Up", &s_fixedCameraUp);
 
-        ImGui::End();
+        ImGui::End(); 
+#endif
     }
 };
 

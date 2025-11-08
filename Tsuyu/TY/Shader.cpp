@@ -104,17 +104,21 @@ struct TY::Shader_impl : IEngineHotReloadable
         std::wstring targetW = ToUtf16(m_target);
 
         std::vector<LPCWSTR> args = {
-            filepath.c_str(), // Source file name
+            filepath.c_str(),
             L"-E", entryPointW.c_str(),
             L"-T", targetW.c_str(),
-            L"-Zi", // Debug info
-            L"-Qembed_debug", // Embed debug info in DXIL
-            L"-Od", // Disable optimization for debugging
             L"-Zpr", // Row-major matrices
         };
 
-#ifdef _DEBUG
-        args.push_back(L"-DDEBUG");
+#ifdef defined(_DEBUG)
+        args.insert(args.end(), {
+                        L"-Zi",
+                        L"-Qembed_debug",
+                        L"-Od",
+                        L"-DDEBUG",
+                    });
+#else
+        args.push_back(L"-O3");
 #endif
 
         // コンパイル実行

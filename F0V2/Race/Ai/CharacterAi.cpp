@@ -45,7 +45,10 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
 
         m_aiId = aiId;
         m_logicState.m_aiId = aiId;
+
+#if defined(_DEBUG)
         m_debugName += "#" + std::to_string(aiId);
+#endif
 
         auto color = Palette::List()[Random::Int(0, Palette::List().size() - 1)];
 #if defined(_DEBUG)
@@ -151,6 +154,7 @@ private:
 
     void debugUI()
     {
+#if defined(_DEBUG)
         if (m_aiId != 0)
         {
             return;
@@ -222,6 +226,7 @@ private:
         }
 
         ImGui::End();
+#endif
     }
 
     void killed() override
