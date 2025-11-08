@@ -14,13 +14,13 @@ SamplerComparisonState g_shadowMapSampler : register(s1);
 
 cbuffer SceneState : register(b0)
 {
-    float4x4 g_projectionMatrix;
-    float4x4 g_viewMatrix;
+    column_major float4x4 g_projectionMatrix;
+    column_major float4x4 g_viewMatrix;
 }
 
 cbuffer ModelState : register(b1)
 {
-    float4x4 g_worldMatrix;
+    column_major float4x4 g_worldMatrix;
 }
 
 cbuffer ModelMaterial : register(b2)
@@ -41,7 +41,7 @@ cbuffer PhongLight : register(b10)
 
 cbuffer ShadowMap : register(b11)
 {
-    float4x4 g_worldToShadowProjection[SHADOW_MAP_COUNT];
+    column_major float4x4 g_worldToShadowProjection[SHADOW_MAP_COUNT];
 }
 
 struct PSInput

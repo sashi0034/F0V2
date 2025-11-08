@@ -6,13 +6,13 @@ SamplerState g_sampler0 : register(s0);
 
 cbuffer SceneState : register(b0)
 {
-    float4x4 g_projectionMatrix;
-    float4x4 g_viewMatrix;
+    column_major float4x4 g_projectionMatrix;
+    column_major float4x4 g_viewMatrix;
 }
 
 cbuffer ModelState : register(b1)
 {
-    float4x4 g_worldMatrix;
+    column_major float4x4 g_worldMatrix;
 }
 
 cbuffer ModelMaterial : register(b2)

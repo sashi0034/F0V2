@@ -25,8 +25,8 @@ RWTexture2D<float4> g_output : register(u0);
 
 cbuffer Scenery_b10 : register(b0)
 {
-    float4x4 g_projectionMatrixInv;
-    float4x4 g_viewMatrixInv;
+    column_major float4x4 g_projectionMatrixInv;
+    column_major float4x4 g_viewMatrixInv;
     float2 g_outputResolution;
     float2 g_mousePosition;
     float2 g_mouseUV;

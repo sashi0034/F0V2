@@ -4,13 +4,13 @@ SamplerState g_sampler0 : register(s0);
 
 cbuffer SceneState : register(b0)
 {
-    float4x4 g_projectionMatrix;
-    float4x4 g_viewMatrix;
+    column_major float4x4 g_projectionMatrix;
+    column_major float4x4 g_viewMatrix;
 }
 
 cbuffer ModelState : register(b1)
 {
-    float4x4 g_worldMatrix;
+    column_major float4x4 g_worldMatrix;
 }
 
 cbuffer ModelMaterial : register(b2)
@@ -46,7 +46,7 @@ float4 PS(PSInput input) : SV_TARGET
 {
     const float z = input.position.z;
 
-    const float3 texColor = g_texture0.Sample(g_sampler0, input.uv);
+    const float3 texColor = g_texture0.Sample(g_sampler0, input.uv).rgb;
     // const float3 texColor = float3(input.uv.x, input.uv.y, 0);
 
     return float4(texColor * input.color * z, 1.0);

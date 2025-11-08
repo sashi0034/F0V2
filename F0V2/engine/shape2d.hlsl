@@ -11,8 +11,8 @@ struct PSInput
 
 cbuffer SceneState : register(b0)
 {
-    float4x4 g_projectionMatrix;
-    float4x4 g_viewMatrix;
+    row_major float4x4 g_projectionMatrix;
+    row_major float4x4 g_viewMatrix;
 }
 
 cbuffer ImmediateDrawer : register(b1)

@@ -173,59 +173,24 @@ static const float Dither4x4[4][4] = {
 
 float4 PS(PSInput input) : SV_TARGET
 {
-    float2 inputPosition = input.position.xy;
+    // ウェーブ情報
+    uint lane = WaveGetLaneIndex();
+    uint count = WaveGetLaneCount();
 
-    float2 screenPos2 = inputPosition.xy;
-    screenPos2 = (screenPos2 - g_outputResolution * 0.5) / g_outputResolution.y;
+    // 2x2 Quad 内の座標（0 or 1）
+    uint2 pix = (uint2)input.position.xy; // SV_Position.xy を整数化
+    uint2 qofs = pix & 1; // (x&1, y&1)
 
-    float3 screenPos3 = float3(screenPos2.x, screenPos2.y, 0.0);
-    float3 eyePos = float3(0, 0, -5);
+    // ヘルパー判定（SM 6.6+）
+    bool helper = IsHelperLane();
 
-    // screenPos3 = mul(cameraMat, screenPos3);
-    // eyePos = mul(cameraMat, eyePos);
-
-    float3 rayDir = normalize(screenPos3 - eyePos);
-
-    // -----------------------------------------------
-
-    float2 mousePos2 = (g_mousePosition - g_outputResolution * 0.5) / g_outputResolution.y;
-
-    float lightTheta = mousePos2.x * PI;
-    float lightPhi = mousePos2.y * PI;
-    float3 lightDir = float3(
-        cos(lightTheta) * cos(lightPhi),
-        sin(lightPhi),
-        sin(lightTheta) * cos(lightPhi)
+    // タイル感を見るための簡易色
+    float3 rgb = float3(
+        (lane % 32) / 31.0, // ウェーブ内順序
+        float((pix.x & 7u) | ((pix.y & 7u) << 3)) / 127.0, // 8x8 の折返し感
+        (qofs.x + 2 * qofs.y) / 3.0
     );
 
-    RaycastResult r = scanRaycast(eyePos, rayDir);
-
-    float3 color = float3(0, 0.3, 1);
-    if (r.d.mat > 0)
-    {
-        float3 normal = scanNormal(r.pos);
-        // color = normal * 0.5 + 0.5;
-
-        // simple lambert
-        float diff = max(dot(normal, lightDir), 0.0);
-
-        int2 pixelPos = int2(fmod(input.position.xy, 4.0));
-        float threshold = Dither4x4[pixelPos.y][pixelPos.x] / 16.0f;
-
-        if (diff >= threshold)
-        {
-            color = float3(1, 0.3, 0) * diff;
-        }
-    }
-
-    // if ((input.position.x + input.position.y) % 2 == 0)
-    // {
-    //     color.rgb = float3(1, 0.1, 0);
-    // }
-    // else
-    // {
-    //     color.rgb = float3(0, 0.1, 1);
-    // }
-
-    return float4(color, 1.0);
+    if (helper) rgb *= 0.3;
+    return float4(rgb, 1);
 }

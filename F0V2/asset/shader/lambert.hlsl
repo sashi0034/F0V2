@@ -4,13 +4,13 @@ SamplerState g_sampler0 : register(s0);
 
 cbuffer SceneState : register(b0)
 {
-    float4x4 g_projectionMatrix;
-    float4x4 g_viewMatrix;
+    column_major float4x4 g_projectionMatrix;
+    column_major float4x4 g_viewMatrix;
 }
 
 cbuffer ModelState : register(b1)
 {
-    float4x4 g_worldMatrix;
+    column_major float4x4 g_worldMatrix;
 }
 
 cbuffer ModelMaterial : register(b2)
@@ -42,7 +42,7 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
     result.position = mul(g_viewMatrix, result.position);
     result.position = mul(g_projectionMatrix, result.position);
 
-    result.normal = normalize(mul(g_worldMatrix, normal.xyz));
+    result.normal = normalize(mul((float3x3)g_worldMatrix, normal.xyz));
 
     result.uv = uv;
     return result;
