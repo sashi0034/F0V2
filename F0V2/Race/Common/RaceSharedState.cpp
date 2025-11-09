@@ -21,18 +21,18 @@ namespace Race
             .setFormat(DXGI_FORMAT_R16G16B16A16_FLOAT) // TODO: DXGI_FORMAT_R10G10B10A2_UNORM?
             .setClearColor(ColorF32{0.0f, 0.0f, 0.0f, 0.0f});
 
-        gbuffer.linearDepth =
+        gbuffer.viewDistance =
             RenderTargetTextureParams()
             .setSize(gbufferSize)
             .setFormat(DXGI_FORMAT_R32_FLOAT)
-            .setClearColor(ColorF32{1.0f, 0.0f, 0.0f, 0.0f});
+            .setClearColor(ColorF32{fovFarZ, 0.0f, 0.0f, 0.0f}); // FIXME?
 
         gbufferTarget =
             RenderTargetParams{}
             .setTargetList({
                 gbuffer.albedo,
                 gbuffer.normal,
-                gbuffer.linearDepth
+                gbuffer.viewDistance
             });
     }
 }

@@ -56,8 +56,8 @@ namespace
                 .setSrv({
                     g_sharedState->gbuffer.albedo,
                     g_sharedState->gbuffer.normal,
-                    g_sharedState->gbuffer.linearDepth,
-                    g_sharedState->gbufferTarget.getDepthBuffer()
+                    g_sharedState->gbuffer.viewDistance,
+                    // g_sharedState->gbufferTarget.getDepthBuffer()
                 })
                 .setUav({m_outputTexture});
         }

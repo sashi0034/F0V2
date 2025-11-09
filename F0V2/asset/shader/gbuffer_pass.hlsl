@@ -25,7 +25,7 @@ struct PSInput
 {
     float4 position : SV_POSITION;
     float3 normal : NORMAL;
-    float linearDepth : TEXCOORD0; // [near, far]
+    float viewDistance : TEXCOORD0; // [near, far]
     float2 uv : TEXCOORD1;
 };
 
@@ -36,7 +36,7 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
     result.position = mul(g_worldMatrix, position);
     result.position = mul(g_viewMatrix, result.position);
 
-    result.linearDepth = result.position.z;
+    result.viewDistance = length(result.position);
 
     result.position = mul(g_projectionMatrix, result.position);
 
@@ -51,7 +51,7 @@ struct PSOutput
 {
     float4 albedoBuffer : SV_TARGET0;
     float4 normalBuffer : SV_TARGET1;
-    float linearDepthBuffer : SV_TARGET2;
+    float viewDistanceBuffer : SV_TARGET2;
 };
 
 PSOutput PS(PSInput input)
@@ -62,7 +62,7 @@ PSOutput PS(PSInput input)
 
     output.normalBuffer = float4(normalize(input.normal) * 0.5 + 0.5, 1.0);
 
-    output.linearDepthBuffer = input.linearDepth;
+    output.viewDistanceBuffer = input.viewDistance;
 
     return output;
 }

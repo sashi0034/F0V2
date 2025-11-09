@@ -15,8 +15,8 @@
 
 Texture2D<float4> g_albedoBuffer : register(t0);
 Texture2D<float4> g_normalBuffer : register(t1);
-Texture2D<float> g_linearDepthBuffer : register(t2);
-Texture2D<float> g_depthBuffer : register(t3);
+Texture2D<float> g_viewDistanceBuffer : register(t2);
+// Texture2D<float> g_depthBuffer : register(t3);
 
 // 出力
 RWTexture2D<float4> g_output : register(u0);
@@ -586,7 +586,8 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-    // g_output[pixel].rgb = g_linearDepthBuffer[pixel] / 100.0;
+    // g_output[pixel].rgb = g_depthBuffer[pixel] / 100.0;
+    // g_output[pixel].a = g_albedoBuffer[pixel].a;
     // return;
 
     // g_output[pixel] = g_albedoBuffer[pixel];
@@ -599,14 +600,14 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     float3 targetInNdc;
     targetInNdc.xy = float2(2.0, -2.0) * pixelF / g_outputResolution + float2(-1.0, 1.0);
-    targetInNdc.z = g_depthBuffer[pixel];
+    targetInNdc.z = 1.0; // g_depthBuffer[pixel];
 
     const float4 targetInClip = float4(targetInNdc, 1.0f);
 
     float4 targetInView = mul(g_projectionMatrixInv, targetInClip);
     targetInView /= targetInView.w;
 
-    const float distanceLimit = length(targetInView);
+    // const float distanceLimit = length(targetInView);
 
     const float3 targetInWorld = mul(g_viewMatrixInv, targetInView).xyz;
     const float3 eyePosInWorld = mul(g_viewMatrixInv, float4(0, 0, 0, 1)).xyz;
@@ -614,7 +615,8 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 
     const bool pixelAlreadyExists = g_albedoBuffer[pixel].a != 0.0; // フォワードレンダリング時点で値が書き込まれているか
-    // const float distanceLimit = ag_linearDepthBuffer[pixel];
+    const float distanceLimit = g_viewDistanceBuffer[pixel];
+
     const float4 hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
     if (hit.a > 0)
     {

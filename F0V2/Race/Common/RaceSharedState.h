@@ -18,7 +18,7 @@ namespace Race
         {
             UnorderedRenderTargetTexture albedo;
             UnorderedRenderTargetTexture normal;
-            UnorderedRenderTargetTexture linearDepth;
+            UnorderedRenderTargetTexture viewDistance;
         } gbuffer{};
 
         RenderTarget gbufferTarget{};
