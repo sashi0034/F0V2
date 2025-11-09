@@ -11,10 +11,11 @@ namespace TY
 
     struct RenderTargetParams
     {
-        Array<TextureHandle> target_rtvHandles{};
+        Array<TextureHandle> rtvHandles{};
 
-        Array<ColorF32> target_clearColors{};
+        Array<ColorF32> rtvClearColors{};
 
+        // TODO: Rename?
         RenderTargetParams& setTargetList(const Array<RenderTargetTexture>& list);
 
         RenderTargetParams& setTarget(const RenderTargetTexture& rtv_);
@@ -54,11 +55,15 @@ namespace TY
         [[nodiscard]]
         ScopedRenderTarget scopedBind() const;
 
+        // TODO: Rename?
         [[nodiscard]]
         TextureHandle getFrontTarget() const;
 
         [[nodiscard]]
         DepthBufferHandle getDepthBuffer() const;
+
+        [[nodiscard]]
+        Array<GraphicsFormat> getRtvFormats() const;
 
         [[nodiscard]]
         static RenderTarget Current();

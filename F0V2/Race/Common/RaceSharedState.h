@@ -2,6 +2,7 @@
 #include "CourseData.h"
 #include "TY/Array.h"
 #include "TY/InlineComponent.h"
+#include "TY/RenderTarget.h"
 
 namespace Race
 {
@@ -12,6 +13,17 @@ namespace Race
         float fovFarZ = 1000.0f;
 
         Array<CourseSegment> courseSegments{};
+
+        struct
+        {
+            UnorderedRenderTargetTexture albedo;
+            UnorderedRenderTargetTexture normal;
+            UnorderedRenderTargetTexture linearDepth;
+        } gbuffer{};
+
+        RenderTarget gbufferTarget{};
+
+        RaceSharedState();
     };
 
     inline InlineComponent<RaceSharedState> g_sharedState{};

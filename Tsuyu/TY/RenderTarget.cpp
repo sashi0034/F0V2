@@ -29,7 +29,10 @@ struct RenderTarget::Impl
     ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap{};
 
     Array<TextureHandle> m_rtvHandles{};
-    Array<ColorF32> m_clearColors{};
+    Array<ColorF32> m_rtvClearColors{};
+
+    Array<DXGI_FORMAT> m_rtvFormats{};
+    Array<D3D12_CPU_DESCRIPTOR_HANDLE> m_rtvDescriptorHandles{};
 
     DepthBufferHandle m_dsvHandle{};
 
@@ -37,18 +40,18 @@ struct RenderTarget::Impl
 
     Impl(const RenderTargetParams& params)
     {
-        const auto& rtvHandles = params.target_rtvHandles;
+        const auto& rtvHandles = params.rtvHandles;
         if (rtvHandles.size() == 0)
         {
             LogError("RenderTarget: No RTVs specified");
             return;
         }
 
-        if (rtvHandles.size() != params.target_clearColors.size())
+        if (rtvHandles.size() != params.rtvClearColors.size())
         {
             LogError("RenderTarget: RTV count and clear color count do not match: {} RTVs, {} clear colors",
                      rtvHandles.size(),
-                     params.target_clearColors.size());
+                     params.rtvClearColors.size());
             return;
         }
 
@@ -60,9 +63,11 @@ struct RenderTarget::Impl
                 LogError("RenderTarget: All RTVs must have the same size");
                 return;
             }
+
+            m_rtvFormats.push_back(rtv.getFormat());
         }
 
-        m_clearColors = params.target_clearColors;
+        m_rtvClearColors = params.rtvClearColors;
         m_size = rtvHandles[0].size();
 
         m_viewport.size = m_size;
@@ -130,7 +135,7 @@ struct RenderTarget::Impl
         {
             D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
             heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            heapDesc.NumDescriptors = params.target_rtvHandles.size();
+            heapDesc.NumDescriptors = params.rtvHandles.size();
             heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
             if (const HRESULT hr = device->CreateDescriptorHeap(
@@ -142,13 +147,14 @@ struct RenderTarget::Impl
             }
 
             auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-            for (int i = 0; i < params.target_rtvHandles.size(); ++i)
+            for (int i = 0; i < params.rtvHandles.size(); ++i)
             {
                 device->CreateRenderTargetView(
                     m_rtvHandles[i].getResource(),
                     nullptr,
                     rtvHandle);
 
+                m_rtvDescriptorHandles.push_back(rtvHandle);
                 rtvHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
             }
 
@@ -213,21 +219,22 @@ struct RenderTarget::Impl
 
         m_dsvHandle.transitionResourceState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
-        auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-        const auto dsvHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-        commandList->OMSetRenderTargets(m_rtvHandles.size(), &rtvHandle, false, &dsvHandle);
+        const auto dsvDescriptorHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+
+        commandList->OMSetRenderTargets(
+            m_rtvDescriptorHandles.size(),
+            m_rtvDescriptorHandles.data(),
+            false,
+            &dsvDescriptorHandle);
 
         // ClearRenderTargetView()
         for (int i = 0; i < m_rtvHandles.size(); ++i)
         {
-            auto& clearColor = m_clearColors[i];
-            commandList->ClearRenderTargetView(rtvHandle, clearColor.getPointer(), 0, nullptr);
-
-            rtvHandle.ptr +=
-                RenderContext_singleton::GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+            auto& clearColor = m_rtvClearColors[i];
+            commandList->ClearRenderTargetView(m_rtvDescriptorHandles[i], clearColor.getPointer(), 0, nullptr);
         }
 
-        commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        commandList->ClearDepthStencilView(dsvDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
         CommandSetViewportAndScissorsRect();
 
@@ -256,10 +263,13 @@ struct RenderTarget::Impl
 
                 const auto& prev = s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl;
 
-                const auto prevRtvHandle = prev->m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-                const auto prevDsvHandle = prev->m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+                const auto prevDsvDescriptorHandle = prev->m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
-                commandList->OMSetRenderTargets(prev->m_rtvHandles.size(), &prevRtvHandle, false, &prevDsvHandle);
+                commandList->OMSetRenderTargets(
+                    prev->m_rtvDescriptorHandles.size(),
+                    prev->m_rtvDescriptorHandles.data(),
+                    false,
+                    &prevDsvDescriptorHandle);
                 prev->CommandSetViewportAndScissorsRect();
             }
         };
@@ -270,13 +280,13 @@ namespace TY
 {
     RenderTargetParams& RenderTargetParams::setTargetList(const Array<RenderTargetTexture>& list)
     {
-        target_rtvHandles.clear();
-        target_clearColors.clear();
+        rtvHandles.clear();
+        rtvClearColors.clear();
 
         for (const auto& rtv : list)
         {
-            target_rtvHandles.push_back(rtv);
-            target_clearColors.push_back(rtv.clearColor());
+            rtvHandles.push_back(rtv);
+            rtvClearColors.push_back(rtv.clearColor());
         }
 
         return *this;
@@ -284,8 +294,8 @@ namespace TY
 
     RenderTargetParams& RenderTargetParams::setTarget(const RenderTargetTexture& rtv_)
     {
-        target_rtvHandles = {rtv_};
-        target_clearColors = {rtv_.clearColor()};
+        rtvHandles = {rtv_};
+        rtvClearColors = {rtv_.clearColor()};
         return *this;
     }
 
@@ -297,8 +307,8 @@ namespace TY
     RenderTargetParams& RenderTargetParams::setTarget_unsafe(
         const TextureHandle& rtv_, const ColorF32& clearColor_)
     {
-        target_rtvHandles = {rtv_};
-        target_clearColors = {clearColor_};
+        rtvHandles = {rtv_};
+        rtvClearColors = {clearColor_};
         return *this;
     }
 
@@ -352,6 +362,11 @@ namespace TY
     DepthBufferHandle RenderTarget::getDepthBuffer() const
     {
         return p_impl ? p_impl->m_dsvHandle : DepthBufferHandle{};
+    }
+
+    Array<GraphicsFormat> RenderTarget::getRtvFormats() const
+    {
+        return p_impl ? p_impl->m_rtvFormats : Array<DXGI_FORMAT>{};
     }
 
     RenderTarget RenderTarget::Current()

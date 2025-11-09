@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "GraphicsOptions.h"
 
+#include "RenderTarget.h"
+
 namespace TY
 {
     GraphicsSamplerOptions& GraphicsSamplerOptions::setAddress(GraphicsAddressMode mode)
@@ -104,5 +106,10 @@ namespace TY
         settings.rasterizer = GraphicsRasterizerOptions::Default3D();
         settings.depth = GraphicsDepthOptions::Default3D();
         return settings;
+    }
+
+    GraphicsOptions GraphicsOptions::FromTarget(const RenderTarget& target)
+    {
+        return Default3D().setRtvFormats(target.getRtvFormats());
     }
 }

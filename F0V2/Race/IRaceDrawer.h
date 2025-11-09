@@ -15,7 +15,7 @@ namespace Race
 
         virtual void prepareDrawParameters(RaceDrawParameters& config, bool init) const = 0;
 
-        virtual void drawForward() const
+        virtual void drawGBuffer() const
         {
         }
 

@@ -3,6 +3,7 @@
 
 #include "Asset.generated.h"
 #include "IRaceDrawer.h"
+#include "Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ComputeDispatcher.h"
 #include "TY/ConstantBufferWrapper.h"
@@ -43,21 +44,22 @@ namespace
     public:
         void Init()
         {
-            m_nativeResolution =
+            m_outputTexture =
                 RenderTargetTextureParams()
-                .setSize(Screen::Size())
+                .setSize(g_sharedState->gbufferTarget.size())
                 .setClearColor(ColorF32{0.0f, 0.0f});
 
-            m_outputTarget =
-                RenderTargetParams{}
-                .setTarget(m_nativeResolution);
-
-            m_nativeResolutionDispatcher =
+            m_dispatcher =
                 ComputeDispatcherParams{}
                 .setCS(Asset_shader::scenery1_cs)
                 .setCbv({m_cb})
-                .setSrv({m_outputTarget.getDepthBuffer()})
-                .setUav({m_nativeResolution});
+                .setSrv({
+                    g_sharedState->gbuffer.albedo,
+                    g_sharedState->gbuffer.normal,
+                    g_sharedState->gbuffer.linearDepth,
+                    g_sharedState->gbufferTarget.getDepthBuffer()
+                })
+                .setUav({m_outputTexture});
         }
 
         void Draw()
@@ -68,24 +70,20 @@ namespace
             m_cb->g_time = System::Time();
             m_cb.upload();
 
-            auto& texture = m_nativeResolution;
-            const Size textureSize = texture.size();
-            const Size threadGroup = (textureSize + Size{7, 7}) / 8;
-            m_nativeResolutionDispatcher.dispatch(threadGroup.x, threadGroup.y);
+            const Size rtvSize = g_sharedState->gbufferTarget.size();
+            const Size threadGroup = (rtvSize + Size{7, 7}) / 8;
+            m_dispatcher.dispatch(threadGroup.x, threadGroup.y);
         }
 
-        RenderTarget GetOutputTarget() const
+        RenderTargetTexture GetOutputTarget() const
         {
-            return m_outputTarget; // FIXME: m_outputTarget にする
+            return m_outputTexture;
         }
 
     private:
-        // UnorderedRenderTargetTexture m_outputBuffer{}; // TODO
-        RenderTarget m_outputTarget{};
-
         ConstantBufferWrapper<Scenery_b10> m_cb{};
-        UnorderedRenderTargetTexture m_nativeResolution{};
-        ComputeDispatcher m_nativeResolutionDispatcher{};
+        UnorderedRenderTargetTexture m_outputTexture{};
+        ComputeDispatcher m_dispatcher{};
     };
 }
 
@@ -129,15 +127,15 @@ private:
             m_drawers[i].initialized = true;
         }
 
-        // フォワードレンダリング
+        // GBuffer パス
         {
-            auto bind = m_sceneryDrawer.GetOutputTarget().scopedBind();
+            auto bind = g_sharedState->gbufferTarget.scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
             {
                 if (m_drawers[i].parameters.drawForward)
                 {
-                    m_drawers[i].drawer->drawForward();
+                    m_drawers[i].drawer->drawGBuffer();
                 }
             }
         }
@@ -152,7 +150,7 @@ private:
 
         // 書き出し
         {
-            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget().getFrontTarget()).resized(Screen::Size()).pushAuto();
+            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget()).resized(Screen::Size()).pushAuto();
             ImmediateDrawer::Global().draw();
         }
 

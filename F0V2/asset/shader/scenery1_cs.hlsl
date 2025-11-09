@@ -13,7 +13,10 @@
 #define repeat(p, span) ((frac((p) / (span)) - 0.5) * (span))
 #define center_repeat(p, span) (frac(((p) + (span) * 0.5) / (span)) * (span) - (span) * 0.5)
 
-Texture2D<float> g_depthBuffer : register(t0);
+Texture2D<float4> g_albedoBuffer : register(t0);
+Texture2D<float4> g_normalBuffer : register(t1);
+Texture2D<float> g_linearDepthBuffer : register(t2);
+Texture2D<float> g_depthBuffer : register(t3);
 
 // 出力
 RWTexture2D<float4> g_output : register(u0);
@@ -583,6 +586,12 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
+    // g_output[pixel].rgb = g_linearDepthBuffer[pixel] / 100.0;
+    // return;
+
+    // g_output[pixel] = g_albedoBuffer[pixel];
+    // return;
+
     // if (g_depthBuffer[pixel] != 1.0)
     // {
     //     return;
@@ -604,10 +613,15 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 
-    const bool pixelAlreadyExists = g_depthBuffer[pixel] != 1.0; // フォワードレンダリング時点で値が書き込まれているか
+    const bool pixelAlreadyExists = g_albedoBuffer[pixel].a != 0.0; // フォワードレンダリング時点で値が書き込まれているか
+    // const float distanceLimit = ag_linearDepthBuffer[pixel];
     const float4 hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
     if (hit.a > 0)
     {
         g_output[pixel] = hit;
+    }
+    else
+    {
+        g_output[pixel] = g_albedoBuffer[pixel];
     }
 }

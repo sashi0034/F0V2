@@ -6,6 +6,7 @@
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
+#include "Race/Common/RaceSharedState.h"
 #include "Race/Machine/MachinePhysics.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
@@ -51,8 +52,8 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
         m_drawer =
             ModelDrawerParams{}
             .setModel(model)
-            .setShader(Asset_shader::lambert)
-            .setCbv10AndLater({GetRaceContextContent().cb.lambert});
+            .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
+            .setShader(Asset_shader::gbuffer_pass);
 
         resetPhysicsProps();
         resetPhysicsState();
@@ -112,7 +113,7 @@ private:
         }
     }
 
-    void drawForward() const override
+    void drawGBuffer() const override
     {
         m_drawer.draw();
     }
