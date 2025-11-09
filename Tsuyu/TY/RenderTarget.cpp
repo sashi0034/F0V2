@@ -29,21 +29,36 @@ struct RenderTarget::Impl
     ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap{};
     ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap{};
 
-    TextureHandle m_rtvHandle{};
+    Array<TextureHandle> m_rtvHandles{};
     DepthBufferHandle m_dsvHandle{};
 
     // RenderTargetParams m_params{};
 
     Impl(const RenderTargetParams& params)
     {
-        const auto& rtv = params.rtv;
+        const auto& rtvHandles = params.rtvHandles;
+        if (rtvHandles.size() == 0)
+        {
+            LogError("RenderTarget: No RTVs specified");
+            return;
+        }
+
+        const Size firstRtvSize = rtvHandles[0].size();
+        for (const auto& rtv : rtvHandles)
+        {
+            if (rtv.size() != firstRtvSize)
+            {
+                LogError("RenderTarget: All RTVs must have the same size");
+                return;
+            }
+        }
 
         m_clearColor = params.clearColor;
-        m_size = rtv.size();
+        m_size = rtvHandles[0].size();
 
         m_viewport.size = m_size;
 
-        m_rtvHandle = params.rtv;
+        m_rtvHandles = rtvHandles;
 
         if (not CreateInternal(params))
         {
@@ -67,16 +82,16 @@ struct RenderTarget::Impl
         const auto device = RenderContext_singleton::GetDevice();
 
         {
-            CD3DX12_RESOURCE_DESC resourceDesc{};
-            resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-            resourceDesc.Width = m_size.x;
-            resourceDesc.Height = m_size.y;
-            resourceDesc.DepthOrArraySize = 1;
-            resourceDesc.MipLevels = 1;
-            resourceDesc.Format = DXGI_FORMAT_R32_TYPELESS; // TODO: Support stencil
-            resourceDesc.SampleDesc = {1, 0};
-            resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-            resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL; // | D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+            CD3DX12_RESOURCE_DESC dsvDesc{};
+            dsvDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+            dsvDesc.Width = m_size.x;
+            dsvDesc.Height = m_size.y;
+            dsvDesc.DepthOrArraySize = 1;
+            dsvDesc.MipLevels = 1;
+            dsvDesc.Format = DXGI_FORMAT_R32_TYPELESS; // TODO: Support stencil
+            dsvDesc.SampleDesc = {1, 0};
+            dsvDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+            dsvDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL; // | D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 
             const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
@@ -88,7 +103,7 @@ struct RenderTarget::Impl
             if (const HRESULT hr = device->CreateCommittedResource(
                     &heapProperties,
                     D3D12_HEAP_FLAG_NONE,
-                    &resourceDesc,
+                    &dsvDesc,
                     D3D12_RESOURCE_STATE_DEPTH_WRITE,
                     &clearValue,
                     IID_PPV_ARGS(m_dsvHandle.assignResourceAddress(D3D12_RESOURCE_STATE_DEPTH_WRITE)));
@@ -106,25 +121,27 @@ struct RenderTarget::Impl
         {
             D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
             heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            heapDesc.NumDescriptors = 1; // TODO: MRT
+            heapDesc.NumDescriptors = params.rtvHandles.size();
             heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
             if (const HRESULT hr = device->CreateDescriptorHeap(
                     &heapDesc, IID_PPV_ARGS(m_rtvDescriptorHeap.ReleaseAndGetAddressOf()));
                 FAILED(hr))
             {
-                LogError(std::format("RenderTarget: Failed to create descriptor heap: {}", hr));
+                LogError(std::format("RenderTarget: Failed to create m_rtvDescriptorHeap: {}", hr));
                 return false;
             }
 
             auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+            for (int i = 0; i < params.rtvHandles.size(); ++i)
+            {
+                device->CreateRenderTargetView(
+                    m_rtvHandles[i].getResource(),
+                    nullptr,
+                    rtvHandle);
 
-            device->CreateRenderTargetView(
-                m_rtvHandle.getResource(),
-                nullptr,
-                rtvHandle);
-
-            rtvHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+                rtvHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+            }
 
             // -----------------------------------------------
 
@@ -133,7 +150,7 @@ struct RenderTarget::Impl
                     &heapDesc, IID_PPV_ARGS(m_dsvDescriptorHeap.ReleaseAndGetAddressOf()));
                 FAILED(hr))
             {
-                LogError(std::format("RenderTarget: Failed to create descriptor heap: {}", hr));
+                LogError(std::format("RenderTarget: Failed to create m_dsvDescriptorHeap: {}", hr));
                 return false;
             }
 
@@ -178,8 +195,13 @@ struct RenderTarget::Impl
     {
         const auto commandList = RenderContext_singleton::TargetCommandList();
 
-        const auto previousResourceState = m_rtvHandle.getResourceState(); // FIXME?
-        m_rtvHandle.transitionResourceState(D3D12_RESOURCE_STATE_RENDER_TARGET);
+        Array<D3D12_RESOURCE_STATES> previousResourceStates(m_rtvHandles.size()); // FIXME: 使用直前で各々使いたい State にすべきかも
+        for (int i = 0; i < m_rtvHandles.size(); ++i)
+        {
+            previousResourceStates[i] = m_rtvHandles[i].getResourceState();
+            m_rtvHandles[i].transitionResourceState(D3D12_RESOURCE_STATE_RENDER_TARGET);
+        }
+
         m_dsvHandle.transitionResourceState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
         auto rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -196,9 +218,12 @@ struct RenderTarget::Impl
         CommandSetViewportAndScissorsRect();
 
         return ScopedRenderTarget{
-            [this, commandList, previousResourceState]
+            [this, commandList, previousResourceStates]
             {
-                m_rtvHandle.transitionResourceState(previousResourceState);
+                for (int i = 0; i < m_rtvHandles.size(); ++i)
+                {
+                    m_rtvHandles[i].transitionResourceState(previousResourceStates[i]);
+                }
 
                 if (s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl.get() != this)
                 {
@@ -226,7 +251,7 @@ namespace TY
 {
     RenderTargetParams& RenderTargetParams::setRtvAndClearColor(const RenderTargetTexture& rtv_)
     {
-        rtv = rtv_;
+        rtvHandles = {rtv_};
         clearColor = rtv_.clearColor();
         return *this;
     }
@@ -239,7 +264,7 @@ namespace TY
     RenderTargetParams& RenderTargetParams::setRtvAndClearColor_unsafe(
         const TextureHandle& rtv_, const ColorF32& clearColor_)
     {
-        rtv = rtv_;
+        rtvHandles = {rtv_};
         clearColor = clearColor_;
 
         return *this;
@@ -287,9 +312,9 @@ namespace TY
         return p_impl->ScopedBind();
     }
 
-    TextureHandle RenderTarget::asTexture() const
+    TextureHandle RenderTarget::getFrontTarget() const
     {
-        return p_impl ? p_impl->m_rtvHandle : TextureHandle{};
+        return p_impl && not p_impl->m_rtvHandles.empty() ? p_impl->m_rtvHandles[0] : TextureHandle{};
     }
 
     DepthBufferHandle RenderTarget::getDepthBuffer() const

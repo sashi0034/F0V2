@@ -79,7 +79,7 @@ void Testbed_RenderTarget()
 
     TextureDrawer renderTargetTexture{
         {
-            .texture = renderTarget.asTexture(),
+            .texture = renderTarget.getFrontTarget(),
             .shader = {
                 .vs = default2dVS,
                 .ps = default2dPS,

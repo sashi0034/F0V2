@@ -216,7 +216,7 @@ struct Testbed_ImmediateDrawer_impl
         m_miniMapDrawer = TextureDrawer{
             TextureDrawerParams{}
             .setShader(m_shaders.default2d)
-            .setTexture(m_miniMap.asTexture())
+            .setTexture(m_miniMap.getFrontTarget())
         };
     }
 

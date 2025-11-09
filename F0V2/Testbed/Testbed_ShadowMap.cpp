@@ -218,7 +218,7 @@ struct Testbed_ShadowMap_impl
         {
             m_shadowMapDebugDrawers[i] = TextureDrawer{
                 TextureDrawerParams{}
-                .setTexture(m_shadowMaps[i].asTexture())
+                .setTexture(m_shadowMaps[i].getFrontTarget())
                 .setShader(s_resource->r32_float_visualizer)
             };
         }
@@ -274,9 +274,9 @@ struct Testbed_ShadowMap_impl
             }))
             .setCbv10AndLater({s_resource->phongLight, s_resource->shadowMap_cb})
             .setSrv10AndLater({
-                m_shadowMaps[0].asTexture(),
-                m_shadowMaps[1].asTexture(),
-                m_shadowMaps[2].asTexture()
+                m_shadowMaps[0].getFrontTarget(),
+                m_shadowMaps[1].getFrontTarget(),
+                m_shadowMaps[2].getFrontTarget()
             })
         };
     }

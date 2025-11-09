@@ -152,7 +152,7 @@ private:
 
         // 書き出し
         {
-            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget().asTexture()).resized(Screen::Size()).pushAuto();
+            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget().getFrontTarget()).resized(Screen::Size()).pushAuto();
             ImmediateDrawer::Global().draw();
         }
 

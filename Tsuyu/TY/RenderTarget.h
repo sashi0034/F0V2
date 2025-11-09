@@ -11,7 +11,7 @@ namespace TY
 
     struct RenderTargetParams
     {
-        TextureHandle rtv{};
+        Array<TextureHandle> rtvHandles{};
 
         ColorF32 clearColor{};
 
@@ -53,7 +53,7 @@ namespace TY
         ScopedRenderTarget scopedBind() const;
 
         [[nodiscard]]
-        TextureHandle asTexture() const;
+        TextureHandle getFrontTarget() const;
 
         [[nodiscard]]
         DepthBufferHandle getDepthBuffer() const;
