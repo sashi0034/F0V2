@@ -45,8 +45,10 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
     {
         GetRaceContext().registerDrawer(shared_from_this());
 
-        ModelBuffer model = ModelBuffer{
-            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, Palette::CornflowerBlue)
+        const ModelBuffer model = ModelBuffer{
+            PrimitiveModel3D::Capsule(
+                machine().state.m_radius, machine().state.m_height,
+                Palette::CornflowerBlue.sRGBToLinear())
         };
 
         m_drawer =

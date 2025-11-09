@@ -3,6 +3,19 @@
 
 #include "Math.h"
 
+namespace
+{
+    double sRGBToLinear(double x)
+    {
+        return ((x < 0.04045) ? (x / 12.92) : std::pow((x + 0.055) / 1.055, 2.4));
+    }
+
+    double linearToSRGB(double x)
+    {
+        return ((x < 0.0031308) ? (12.92 * x) : (1.055 * std::pow(x, (1.0 / 2.4)) - 0.055));
+    }
+}
+
 namespace TY
 {
     ColorF32 ColorF32::lerp(const ColorF32& other, float rate) const
@@ -15,6 +28,26 @@ namespace TY
         };
     }
 
+    ColorF32 ColorF32::linearToSRGB() const
+    {
+        return ColorF32{
+            static_cast<float>(::linearToSRGB(static_cast<double>(r))),
+            static_cast<float>(::linearToSRGB(static_cast<double>(g))),
+            static_cast<float>(::linearToSRGB(static_cast<double>(b))),
+            a
+        };
+    }
+
+    ColorF32 ColorF32::sRGBToLinear() const
+    {
+        return ColorF32{
+            static_cast<float>(::sRGBToLinear(static_cast<double>(r))),
+            static_cast<float>(::sRGBToLinear(static_cast<double>(g))),
+            static_cast<float>(::sRGBToLinear(static_cast<double>(b))),
+            a
+        };
+    }
+
     ColorF32 ColorF32::operator*(float factor) const
     {
         return ColorF32{
@@ -22,6 +55,26 @@ namespace TY
             Math::Clamp(g * factor, 0.0f, 1.0f),
             Math::Clamp(b * factor, 0.0f, 1.0f),
             Math::Clamp(a * factor, 0.0f, 1.0f)
+        };
+    }
+
+    ColorF32 sRGB(float r, float g, float b)
+    {
+        return ColorF32{
+            static_cast<float>(::sRGBToLinear(static_cast<double>(r))),
+            static_cast<float>(::sRGBToLinear(static_cast<double>(g))),
+            static_cast<float>(::sRGBToLinear(static_cast<double>(b))),
+            1.0f
+        };
+    }
+
+    ColorF32 sRGB(Float3 rgb)
+    {
+        return ColorF32{
+            static_cast<float>(::sRGBToLinear(static_cast<double>(rgb.x))),
+            static_cast<float>(::sRGBToLinear(static_cast<double>(rgb.y))),
+            static_cast<float>(::sRGBToLinear(static_cast<double>(rgb.z))),
+            1.0f
         };
     }
 

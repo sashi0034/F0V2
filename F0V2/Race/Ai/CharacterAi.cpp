@@ -60,7 +60,7 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
 #endif
 
         static const auto s_modelData =
-            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, color);
+            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, color.sRGBToLinear());
 
         auto modelData = s_modelData;
         modelData.materials[0].parameters.diffuse = color.toFloat3();
