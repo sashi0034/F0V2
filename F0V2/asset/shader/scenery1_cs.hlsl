@@ -3,7 +3,7 @@
 #define HALF_PI (PI * 0.5)
 
 #define FAR_DIST 1e+4f
-#define MAX_RAYMARCH 64
+#define MAX_RAYMARCH 128
 
 #define V2(x) float2((x), (x))
 #define V3(x) float3((x), (x), (x))
@@ -474,67 +474,39 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
 // -----------------------------------------------
 // lighting
 
-float softShadow(float3 ro, float3 rd, float mint, float k)
+float3 computeSkyColor(float3 V)
 {
-    float result = 1.0;
-    float t = mint;
-
-    [loop]
-    for (int i = 0; i < 48; i++)
-    {
-        float h = scanSdf(ro + rd * t).sdf;
-        h = max(h, 0.0);
-        result = min(result, k * h / t);
-        t += clamp(h, 0.01, 0.5);
-        if (t > FAR_DIST)
-        {
-            break;
-        }
-    }
-
-    return clamp(result, 0.0, 1.0);
+    const float t = 0.5 * (-V.y + 1.0);
+    return lerp(sRGB2L(0.93, 0.55, 0.26), sRGB2L(0.67, 0.78, 0.91), t);
 }
 
-float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
+float3 computeLight(float3 N, float3 V, float3 diffuse, float viewDistance)
 {
-    const float3 N = scanNormal(hitPos);
-
-    const float3 viewDir = normalize(eyePos - hitPos);
-
     // Light direction
-    float3 L = normalize(float3(-0.5, 1.0, -0.5));
+    const float3 L = normalize(float3(-0.5, 1.0, -0.5));
 
     // Diffuse term
-    float NoL = saturate(dot(N, L));
+    const float NoL = saturate(dot(N, L));
+    const float3 diffuseTerm = diffuse * NoL;
 
     // Specular term (Phong)
-    float3 reflectDir = reflect(-L, N);
-    float spec = pow(saturate(dot(viewDir, reflectDir)), 32.0);
+    const float3 R = reflect(-L, N);
+    const float specularFactor = pow(saturate(dot(V, R)), 32.0);
 
     // Combine
+    const float3 specularTerm = specularFactor * sRGB2L(1.0, 0.9, 0.8);
 
-    float3 diffuse;
-    if (matId == MAT_SOLID)
-    {
-        diffuse = sRGB2L(0.83, 0.7, 0.24) * NoL + sRGB2L(0.18, 0.04, 0.24) * (1.0 - NoL);
-        diffuse += V3(0.1) * NoL;
-    }
-    else
-    {
-        diffuse = sRGB2L(0.85, 0.17, 0.26) * NoL + sRGB2L(0.33, 0.04, 0.18) * (1.0 - NoL);
-        diffuse += V3(0.1) * NoL;
-    }
-
-    float3 specular = spec * sRGB2L(1.0, 0.9, 0.8);
-
-    float3 color = (diffuse + specular);
-
-    // Soft shadow
-    // float shadow = softShadow(hitPos + N * 0.1, L, 0.1, 20.0);
-    // color *= shadow;
+    float3 color = diffuseTerm + specularTerm;
 
     // Ambient term
-    // color += V3(0.1);
+    color += float3(0.10, 0.05, 0.10);
+
+    float fogStart = 10.0;
+    float fogEnd = 500.0;
+
+    float fogFactor = saturate((viewDistance - fogStart) / (fogEnd - fogStart));
+
+    color = lerp(color, computeSkyColor(V), fogFactor);
 
     return color;
 }
@@ -542,33 +514,35 @@ float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
 float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlreadyExists)
 {
     float3 color = float3(0, 0, 0);
+
     RaycastResult r = raycast(eyePos, rayDir, distanceLimit);
     if (!r.hit && pixelAlreadyExists)
     {
         return float4(0, 0, 0, 0);
     }
 
-    // 背景色
-    float tbg = 0.5 * (rayDir.y + 1.0);
-    float3 bc = lerp(sRGB2L(0.93, 0.55, 0.26), sRGB2L(0.67, 0.78, 0.91), tbg);
+    const float3 V = -rayDir;
 
     if (r.d.mat == MAT_SOLID ||
         r.d.mat == MAT_VEHICLE)
     {
-        color = phongLight(eyePos, rayDir, r.pos, r.d.mat);
+        float3 diffuse;
+        if (r.d.mat == MAT_SOLID)
+        {
+            diffuse = sRGB2L(0.83, 0.7, 0.24);
+        }
+        else
+        {
+            diffuse = sRGB2L(0.85, 0.17, 0.26);
+        }
 
-        float t = length(r.pos - eyePos);
+        const float3 N = scanNormal(r.pos);
 
-        float fogStart = 5.0;
-        float fogEnd = 100.0;
-
-        float fogFactor = 0.0; // saturate((t - fogStart) / (fogEnd - fogStart));
-
-        color = lerp(color, bc, fogFactor);
+        color = computeLight(N, V, diffuse, length(r.pos - eyePos));
     }
     else
     {
-        color = bc;
+        color = computeSkyColor(V);
     }
 
     return float4(L2sRGB_(color), 1);
@@ -624,6 +598,12 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     }
     else
     {
-        g_output[pixel] = g_albedoBuffer[pixel];
+        const float3 N = g_normalBuffer[pixel].rgb * 2.0 - 1.0;
+        const float3 V = -rayDir;
+
+        g_output[pixel] = float4(
+            computeLight(N, V, g_albedoBuffer[pixel].rgb, distanceLimit),
+            1.0
+        );
     }
 }
