@@ -50,7 +50,7 @@ namespace
 
             m_outputTarget =
                 RenderTargetParams{}
-                .setRtvAndClearColor(m_nativeResolution);
+                .setTarget(m_nativeResolution);
 
             m_nativeResolutionDispatcher =
                 ComputeDispatcherParams{}

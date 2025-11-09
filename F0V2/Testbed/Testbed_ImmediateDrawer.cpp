@@ -210,7 +210,7 @@ struct Testbed_ImmediateDrawer_impl
 
         m_miniMap = RenderTarget{
             RenderTargetParams{}
-            .setRtvAndClearColor(RtvParams{}.setSize({256, 256}).setClearColor(ColorF32{0.0f, 1.0f}))
+            .setTarget(RtvParams{}.setSize({256, 256}).setClearColor(ColorF32{0.0f, 1.0f}))
         };
 
         m_miniMapDrawer = TextureDrawer{

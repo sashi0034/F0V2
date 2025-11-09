@@ -11,15 +11,17 @@ namespace TY
 
     struct RenderTargetParams
     {
-        Array<TextureHandle> rtvHandles{};
+        Array<TextureHandle> target_rtvHandles{};
 
-        ColorF32 clearColor{};
+        Array<ColorF32> target_clearColors{};
 
-        RenderTargetParams& setRtvAndClearColor(const RenderTargetTexture& rtv_);
+        RenderTargetParams& setTargetList(const Array<RenderTargetTexture>& list);
 
-        RenderTargetParams& setRtvAndClearColor(const RtvParams& rtv_);
+        RenderTargetParams& setTarget(const RenderTargetTexture& rtv_);
 
-        RenderTargetParams& setRtvAndClearColor_unsafe(const TextureHandle& rtv_, const ColorF32& clearColor_);
+        RenderTargetParams& setTarget(const RtvParams& rtv_);
+
+        RenderTargetParams& setTarget_unsafe(const TextureHandle& rtv_, const ColorF32& clearColor_);
     };
 
     class ScopedRenderTarget : public ScopedDefer

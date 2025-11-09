@@ -207,7 +207,7 @@ struct Testbed_ShadowMap_impl
         {
             m_shadowMaps[i] = RenderTarget{
                 RenderTargetParams()
-                .setRtvAndClearColor(RtvParams()
+                .setTarget(RtvParams()
                                      .setSize(Size{2048, 2048})
                                      .setClearColor(ColorF32{1.0f, 1.0f})
                                      .setFormat(shadowMapFormat))
