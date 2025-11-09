@@ -228,7 +228,7 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
             {
                 Graphics3D::DrawLines(buffer.vertexBuffer3D, buffer.indexBuffer, buffer.indexCount);
             }
-            else
+            else // 2D
             {
                 Graphics3D::DrawTriangles(buffer.vertexBuffer2D, buffer.indexBuffer, buffer.indexCount);
             }

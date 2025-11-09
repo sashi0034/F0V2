@@ -56,7 +56,8 @@ namespace TY::ImmediateDrawer_detail
     {
         return state_type{
             .psoParams = getDefaultPsoParams(is3D, descriptorTable),
-            .descriptor = {}
+            .descriptor = {},
+            .is3D = is3D,
         };
     }
 
@@ -92,6 +93,7 @@ namespace TY::ImmediateDrawer_detail
         if (m_current.is3D)
         {
             getNext().psoParams = getDefaultPsoParams(false, m_current.psoParams.descriptorTable);
+            getNext().is3D = false;
             // TODO: 2D から設定引き継ぎ?
         }
     }
@@ -101,6 +103,7 @@ namespace TY::ImmediateDrawer_detail
         if (not m_current.is3D)
         {
             getNext().psoParams = getDefaultPsoParams(true, m_current.psoParams.descriptorTable);
+            getNext().is3D = true;
             // TODO: 3D から設定引き継ぎ?
         }
     }
