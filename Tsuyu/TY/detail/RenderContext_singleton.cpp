@@ -302,6 +302,8 @@ private:
             TextureHandle backBuffer{};
             m_swapChain->GetBuffer(i, IID_PPV_ARGS(backBuffer.assignResourceAddress(D3D12_RESOURCE_STATE_PRESENT)));
 
+            backBuffer.transitionResourceState(D3D12_RESOURCE_STATE_PRESENT); // FIXME: 表示前に遷移すべきかも
+
             m_backBuffers[i] =
                 RenderTargetParams{}
                 .setRtvAndClearColor_unsafe(backBuffer, m_clearColor);

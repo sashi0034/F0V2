@@ -48,9 +48,9 @@ struct RenderTargetTexture::Impl
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
-                D3D12_RESOURCE_STATE_PRESENT,
+                D3D12_RESOURCE_STATE_RENDER_TARGET,
                 &clearValue,
-                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_PRESENT)));
+                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_RENDER_TARGET)));
             FAILED(hr))
         {
             LogError(std::format("RenderTargetTexture: Failed to create texture resource: {:08x}", hr));

@@ -178,7 +178,7 @@ struct RenderTarget::Impl
     {
         const auto commandList = RenderContext_singleton::TargetCommandList();
 
-        const auto previousResourceState = m_rtvHandle.getResourceState();
+        const auto previousResourceState = m_rtvHandle.getResourceState(); // FIXME?
         m_rtvHandle.transitionResourceState(D3D12_RESOURCE_STATE_RENDER_TARGET);
         m_dsvHandle.transitionResourceState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
