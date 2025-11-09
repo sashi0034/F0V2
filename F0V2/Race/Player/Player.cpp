@@ -294,7 +294,7 @@ private:
             const auto evaluation = GetRaceContext().machineManager().getEvaluation(m_machineId);
             const int rank1 = evaluation.rank + 1;
             const int totalMachines = GetRaceContext().machineManager().machineList().size();
-            Immediate2D_Text::RocknRoll_Sdf(
+            Immediate2D_Text::Audiowide_Sdf(
                     ToUtf32(std::format("{} / {}", rank1, totalMachines))
                 )
                 .setSize(40.0f)
