@@ -88,7 +88,6 @@ struct ImmediateDrawer::Impl : RenderEvent::Lister
     }
 
     // TODO: 複雑になってきたのでリファクタリングしたい
-    // 最近 ConstantBuffer のフレーム内における複数 upload に対応したのでそれを利用する
 
     void Push(const Immediate2D::shape_type& shape)
     {

@@ -128,8 +128,7 @@ namespace TY::ImmediateDrawer_detail
             return m_next.value();
         }
 
-        m_next = state_type::Default(false, m_current.psoParams.descriptorTable);
-        m_next->descriptor = m_current.descriptor;
+        m_next = m_current;
         return m_next.value();
     }
 }
