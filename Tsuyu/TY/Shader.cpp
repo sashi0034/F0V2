@@ -133,7 +133,7 @@ struct TY::Shader_impl : IEngineHotReloadable
 
         if (FAILED(hr) || result == nullptr)
         {
-            LogError.writeln(L"Shader: DXC compilation failed to start: " + filepath + L".");
+            LogError.writeln(L"Shader: DXC compilation failed to start: " + filepath);
             return;
         }
 
@@ -143,14 +143,14 @@ struct TY::Shader_impl : IEngineHotReloadable
         if (errors && errors->GetStringLength() > 0)
         {
             std::string msg = errors->GetStringPointer();
-            LogError.writeln(L"Shader: DXC compilation errors:\n" + ToUtf16(msg));
+            LogError.writeln(L"Shader: DXC compilation errors: " + filepath + L"\n" + ToUtf16(msg));
         }
 
         HRESULT status;
         result->GetStatus(&status);
         if (FAILED(status))
         {
-            LogError.writeln(L"Shader: DXC compilation failed: " + filepath + L".");
+            LogError.writeln(L"Shader: DXC compilation failed: " + filepath);
             return;
         }
 
