@@ -6,6 +6,7 @@
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
+#include "Race/Common/RaceSharedState.h"
 #include "Race/Machine/MachinePhysics.h"
 #include "TY/ActorContainer.h"
 #include "TY/ImmediateDrawer.h"
@@ -59,7 +60,7 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
 #endif
 
         static const auto s_modelData =
-            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, color);
+            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, color.sRGBToLinear());
 
         auto modelData = s_modelData;
         modelData.materials[0].parameters.diffuse = color.toFloat3();
@@ -69,8 +70,8 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
         m_drawer =
             ModelDrawerParams{}
             .setModel(model)
-            .setShader(Asset_shader::lambert)
-            .setCbv10AndLater({GetRaceContextContent().cb.lambert});
+            .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
+            .setShader(Asset_shader::gbuffer_pass);;
 
         resetPhysicsProps();
         resetPhysicsState();
@@ -133,7 +134,7 @@ private:
         }
     }
 
-    void drawForward() const override
+    void drawGBuffer() const override
     {
         m_drawer.draw();
     }

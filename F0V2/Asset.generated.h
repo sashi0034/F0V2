@@ -8,6 +8,7 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper blinn_phong{"asset/shader/blinn_phong.hlsl"};
     static const inline GraphicsShaderPathWrapper default2d{"asset/shader/default2d.hlsl"};
     static const inline GraphicsShaderPathWrapper dynamic_ocean{"asset/shader/dynamic_ocean.hlsl"};
+    static const inline GraphicsShaderPathWrapper gbuffer_pass{"asset/shader/gbuffer_pass.hlsl"};
     static const inline GraphicsShaderPathWrapper lambert{"asset/shader/lambert.hlsl"};
     static const inline GraphicsShaderPathWrapper model{"asset/shader/model.hlsl"};
     static const inline GraphicsShaderPathWrapper phong{"asset/shader/phong.hlsl"};
@@ -19,6 +20,7 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper shadow_caster{"asset/shader/shadow_caster.hlsl"};
     static const inline GraphicsShaderPathWrapper simple_compute{"asset/shader/simple_compute.hlsl"};
     static const inline GraphicsShaderPathWrapper skydome{"asset/shader/skydome.hlsl"};
+    static const inline GraphicsShaderPathWrapper wave_test{"asset/shader/wave_test.hlsl"};
 }
 
 namespace Asset_model

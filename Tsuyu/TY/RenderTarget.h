@@ -11,15 +11,18 @@ namespace TY
 
     struct RenderTargetParams
     {
-        TextureHandle rtv{};
+        Array<TextureHandle> rtvHandles{};
 
-        ColorF32 clearColor{};
+        Array<ColorF32> rtvClearColors{};
 
-        RenderTargetParams& setRtvAndClearColor(const RenderTargetTexture& rtv_);
+        // TODO: Rename?
+        RenderTargetParams& setTargetList(const Array<RenderTargetTexture>& list);
 
-        RenderTargetParams& setRtvAndClearColor(const RtvParams& rtv_);
+        RenderTargetParams& setTarget(const RenderTargetTexture& rtv_);
 
-        RenderTargetParams& setRtvAndClearColor_unsafe(const TextureHandle& rtv_, const ColorF32& clearColor_);
+        RenderTargetParams& setTarget(const RtvParams& rtv_);
+
+        RenderTargetParams& setTarget_unsafe(const TextureHandle& rtv_, const ColorF32& clearColor_);
     };
 
     class ScopedRenderTarget : public ScopedDefer
@@ -52,11 +55,15 @@ namespace TY
         [[nodiscard]]
         ScopedRenderTarget scopedBind() const;
 
+        // TODO: Rename?
         [[nodiscard]]
-        TextureHandle asTexture() const;
+        TextureHandle getFrontTarget() const;
 
         [[nodiscard]]
         DepthBufferHandle getDepthBuffer() const;
+
+        [[nodiscard]]
+        Array<GraphicsFormat> getRtvFormats() const;
 
         [[nodiscard]]
         static RenderTarget Current();

@@ -74,12 +74,12 @@ void Testbed_RenderTarget()
     constexpr Size renderTargetSize{640, 640};
     RenderTarget renderTarget{
         RenderTargetParams()
-        .setRtvAndClearColor(RtvParams().setSize(renderTargetSize).setClearColor(ColorF32{1, 1, 0.5, 1}))
+        .setTarget(RtvParams().setSize(renderTargetSize).setClearColor(ColorF32{1, 1, 0.5, 1}))
     };
 
     TextureDrawer renderTargetTexture{
         {
-            .texture = renderTarget.asTexture(),
+            .texture = renderTarget.getFrontTarget(),
             .shader = {
                 .vs = default2dVS,
                 .ps = default2dPS,

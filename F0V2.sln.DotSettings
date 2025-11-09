@@ -98,4 +98,5 @@ namespace $NS$
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Scope/=CF7C2F2066E462418ABD91975B64021C/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Scope/=CF7C2F2066E462418ABD91975B64021C/CustomProperties/=mask/@EntryIndexedValue">*.cpp</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=BA97F997D3636044BCBD521D921B444D/Scope/=CF7C2F2066E462418ABD91975B64021C/Type/@EntryValue">InFileWithMask</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=gbuffer/@EntryIndexedValue">True</s:Boolean>
 </wpf:ResourceDictionary>

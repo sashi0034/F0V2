@@ -41,18 +41,36 @@ namespace TY
 
         explicit constexpr ColorF32(std::string_view code);
 
+        [[nodiscard]]
         ColorF32 lerp(const ColorF32& other, float rate) const;
 
+        [[nodiscard]]
+        ColorF32 linearToSRGB() const;
+
+        [[nodiscard]]
+        ColorF32 sRGBToLinear() const;
+
+        [[nodiscard]]
         float* getPointer() { return &r; }
 
+        [[nodiscard]]
         Float3 toFloat3() const { return Float3{r, g, b}; }
 
+        [[nodiscard]]
         Float4 toFloat4() const { return Float4{r, g, b, a}; }
 
+        [[nodiscard]]
         constexpr ColorU8 toColorU8() const;
 
+        [[nodiscard]]
         ColorF32 operator*(float factor) const;
     };
+
+    [[nodiscard]]
+    ColorF32 sRGB(float r, float g, float b);
+
+    [[nodiscard]]
+    ColorF32 sRGB(Float3 rgb);
 
     struct ColorU8
     {

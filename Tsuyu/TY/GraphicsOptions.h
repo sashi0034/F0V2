@@ -99,6 +99,8 @@ namespace TY
         LineList
     };
 
+    class RenderTarget;
+
     struct GraphicsOptions
     {
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
@@ -122,5 +124,7 @@ namespace TY
         bool operator ==(const GraphicsOptions& other) const = default;
 
         static GraphicsOptions Default3D();
+
+        static GraphicsOptions FromTarget(const RenderTarget& target);
     };
 }

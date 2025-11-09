@@ -3,7 +3,7 @@
 #define HALF_PI (PI * 0.5)
 
 #define FAR_DIST 1e+4f
-#define MAX_RAYMARCH 64
+#define MAX_RAYMARCH 128
 
 #define V2(x) float2((x), (x))
 #define V3(x) float3((x), (x), (x))
@@ -13,7 +13,10 @@
 #define repeat(p, span) ((frac((p) / (span)) - 0.5) * (span))
 #define center_repeat(p, span) (frac(((p) + (span) * 0.5) / (span)) * (span) - (span) * 0.5)
 
-Texture2D<float> g_depthBuffer : register(t0);
+Texture2D<float4> g_albedoBuffer : register(t0);
+Texture2D<float4> g_normalBuffer : register(t1);
+Texture2D<float> g_viewDistanceBuffer : register(t2);
+// Texture2D<float> g_depthBuffer : register(t3);
 
 // 出力
 RWTexture2D<float4> g_output : register(u0);
@@ -359,7 +362,7 @@ float sdfP(float3 p)
         // p.xz = abs(p.xz);
         p.y -= h;
         p.zx = mul(rotate2d(HALF_PI * (0.2 + 0.1 * sin(g_time * 3.0))), p.zx);
-        p.xy = mul(rotate2d(0.5), p.xy);
+        p.xy = mul(rotate2d(0.45), p.xy);
 
         h *= Scale;
         r *= Scale;
@@ -411,12 +414,12 @@ SdfAndMat scanSdf(float3 pos)
         result.mat = MAT_SOLID;
     }
 
-    float sdV = sdfV(pos);
-    if (sdV < result.sdf)
-    {
-        result.sdf = sdV;
-        result.mat = MAT_VEHICLE;
-    }
+    // float sdV = sdfV(pos);
+    // if (sdV < result.sdf)
+    // {
+    //     result.sdf = sdV;
+    //     result.mat = MAT_VEHICLE;
+    // }
 
     return result;
 }
@@ -471,67 +474,59 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
 // -----------------------------------------------
 // lighting
 
-float softShadow(float3 ro, float3 rd, float mint, float k)
+float3 computeSkyColor(float3 V)
 {
-    float result = 1.0;
-    float t = mint;
-
-    [loop]
-    for (int i = 0; i < 48; i++)
-    {
-        float h = scanSdf(ro + rd * t).sdf;
-        h = max(h, 0.0);
-        result = min(result, k * h / t);
-        t += clamp(h, 0.01, 0.5);
-        if (t > FAR_DIST)
-        {
-            break;
-        }
-    }
-
-    return clamp(result, 0.0, 1.0);
+    const float t = 0.5 * (-V.y + 1.0);
+    return lerp(sRGB2L(0.93, 0.55, 0.26), sRGB2L(0.67, 0.78, 0.91), t);
 }
 
-float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
+struct LightParameters
 {
-    const float3 N = scanNormal(hitPos);
+    float3 dir;
+    float3 color;
+};
 
-    const float3 viewDir = normalize(eyePos - hitPos);
+static const int NUM_LIGHTS = 4;
 
-    // Light direction
-    float3 L = normalize(float3(-0.5, 1.0, -0.5));
+static const LightParameters k_lightList[NUM_LIGHTS] = {
+    {normalize(float3(-0.4, 1.0, -0.3)), sRGB2L(1.0, 0.95, 0.85) * 0.5},
+    {normalize(float3(0.5, 1.0, 0.4)), sRGB2L(0.8, 0.9, 1.0) * 0.4},
+    {normalize(float3(-0.3, -0.6, 0.6)), sRGB2L(0.9, 1.0, 0.9) * 0.3},
+    {normalize(float3(0.4, -0.5, -0.5)), sRGB2L(1.0, 0.8, 0.9) * 0.3},
+};
 
-    // Diffuse term
-    float NoL = saturate(dot(N, L));
+float3 computeLight(float3 N, float3 V, float3 albedo, float viewDistance)
+{
+    float3 light = V3(0.0f);
 
-    // Specular term (Phong)
-    float3 reflectDir = reflect(-L, N);
-    float spec = pow(saturate(dot(viewDir, reflectDir)), 32.0);
+    for (int i = 0; i < NUM_LIGHTS; ++i)
+    {
+        // Light direction
+        const float3 L = k_lightList[i].dir;
+
+        // Diffuse term
+        const float NoL = saturate(dot(N, L));
+        const float3 diffuseTerm = k_lightList[i].color * NoL;
+
+        // Specular term (Phong)
+        const float3 R = reflect(-L, N);
+        const float specularFactor = pow(saturate(dot(V, R)), 32.0);
+        const float3 specularTerm = k_lightList[i].color * specularFactor;
+
+        light += diffuseTerm + specularTerm;
+    }
 
     // Combine
+    const float3 ambientTerm = float3(0.10, 0.05, 0.10);
+    float3 color = albedo * (light + ambientTerm);
 
-    float3 diffuse;
-    if (matId == MAT_SOLID)
-    {
-        diffuse = sRGB2L(0.83, 0.7, 0.24) * NoL + sRGB2L(0.18, 0.04, 0.24) * (1.0 - NoL);
-        diffuse += V3(0.1) * NoL;
-    }
-    else
-    {
-        diffuse = sRGB2L(0.85, 0.17, 0.26) * NoL + sRGB2L(0.33, 0.04, 0.18) * (1.0 - NoL);
-        diffuse += V3(0.1) * NoL;
-    }
+    // Fog
+    float fogStart = 10.0;
+    float fogEnd = 500.0;
 
-    float3 specular = spec * sRGB2L(1.0, 0.9, 0.8);
+    float fogFactor = saturate((viewDistance - fogStart) / (fogEnd - fogStart));
 
-    float3 color = (diffuse + specular);
-
-    // Soft shadow
-    // float shadow = softShadow(hitPos + N * 0.1, L, 0.1, 20.0);
-    // color *= shadow;
-
-    // Ambient term
-    // color += V3(0.1);
+    color = lerp(color, computeSkyColor(V), fogFactor);
 
     return color;
 }
@@ -539,36 +534,38 @@ float3 phongLight(float3 eyePos, float3 rayDir, float3 hitPos, MatId matId)
 float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlreadyExists)
 {
     float3 color = float3(0, 0, 0);
+
     RaycastResult r = raycast(eyePos, rayDir, distanceLimit);
     if (!r.hit && pixelAlreadyExists)
     {
         return float4(0, 0, 0, 0);
     }
 
-    // 背景色
-    float tbg = 0.5 * (rayDir.y + 1.0);
-    float3 bc = lerp(sRGB2L(0.93, 0.55, 0.26), sRGB2L(0.67, 0.78, 0.91), tbg);
+    const float3 V = -rayDir;
 
     if (r.d.mat == MAT_SOLID ||
         r.d.mat == MAT_VEHICLE)
     {
-        color = phongLight(eyePos, rayDir, r.pos, r.d.mat);
+        float3 diffuse;
+        if (r.d.mat == MAT_SOLID)
+        {
+            diffuse = sRGB2L(0.83, 0.7, 0.24);
+        }
+        else
+        {
+            diffuse = sRGB2L(0.85, 0.17, 0.26);
+        }
 
-        float t = length(r.pos - eyePos);
+        const float3 N = scanNormal(r.pos);
 
-        float fogStart = 5.0;
-        float fogEnd = 100.0;
-
-        float fogFactor = 0.0; // saturate((t - fogStart) / (fogEnd - fogStart));
-
-        color = lerp(color, bc, fogFactor);
+        color = computeLight(N, V, diffuse, length(r.pos - eyePos));
     }
     else
     {
-        color = bc;
+        color = computeSkyColor(V);
     }
 
-    return float4(L2sRGB_(color), 1);
+    return float4(color, 1);
 }
 
 // -----------------------------------------------
@@ -583,6 +580,13 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
+    // g_output[pixel].rgb = g_depthBuffer[pixel] / 100.0;
+    // g_output[pixel].a = g_albedoBuffer[pixel].a;
+    // return;
+
+    // g_output[pixel] = g_albedoBuffer[pixel];
+    // return;
+
     // if (g_depthBuffer[pixel] != 1.0)
     // {
     //     return;
@@ -590,24 +594,37 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     float3 targetInNdc;
     targetInNdc.xy = float2(2.0, -2.0) * pixelF / g_outputResolution + float2(-1.0, 1.0);
-    targetInNdc.z = g_depthBuffer[pixel];
+    targetInNdc.z = 1.0; // g_depthBuffer[pixel];
 
     const float4 targetInClip = float4(targetInNdc, 1.0f);
 
     float4 targetInView = mul(g_projectionMatrixInv, targetInClip);
     targetInView /= targetInView.w;
 
-    const float distanceLimit = length(targetInView);
+    // const float distanceLimit = length(targetInView);
 
     const float3 targetInWorld = mul(g_viewMatrixInv, targetInView).xyz;
     const float3 eyePosInWorld = mul(g_viewMatrixInv, float4(0, 0, 0, 1)).xyz;
 
     const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 
-    const bool pixelAlreadyExists = g_depthBuffer[pixel] != 1.0; // フォワードレンダリング時点で値が書き込まれているか
+    const bool pixelAlreadyExists = g_albedoBuffer[pixel].a != 0.0; // フォワードレンダリング時点で値が書き込まれているか
+    const float distanceLimit = g_viewDistanceBuffer[pixel];
+
     const float4 hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
+    float3 rgb;
     if (hit.a > 0)
     {
-        g_output[pixel] = hit;
+        rgb = hit;
     }
+    else
+    {
+        // レイマーチングでヒットしなかった場合、GBuffer からライティング計算
+        const float3 N = g_normalBuffer[pixel].rgb * 2.0 - 1.0;
+        const float3 V = -rayDir;
+
+        rgb = computeLight(N, V, g_albedoBuffer[pixel].rgb, distanceLimit);
+    }
+
+    g_output[pixel] = float4(L2sRGB_(rgb), 1.0);
 }

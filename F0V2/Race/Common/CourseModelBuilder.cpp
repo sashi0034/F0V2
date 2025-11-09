@@ -210,7 +210,7 @@ namespace
         model.materials.push_back({
             .name = "plain",
             .parameters = {
-                .diffuse = Float3::One() * 0.5f
+                .diffuse = sRGB(Float3::One() * 0.5f).toFloat3()
             }
         });
     }
@@ -383,7 +383,7 @@ namespace
         model.materials.push_back({
             .name = "plain",
             .parameters = {
-                .diffuse = Float3::One() * 0.5f
+                .diffuse = sRGB(Float3::One() * 0.5f).toFloat3()
             }
         });
     }
@@ -593,7 +593,7 @@ namespace
         model.materials.push_back({
             .name = "plain",
             .parameters = {
-                .diffuse = Float3::One() * 0.5f
+                .diffuse = sRGB(Float3::One() * 0.5f).toFloat3()
             }
         });
     }
@@ -647,7 +647,7 @@ namespace
         model.materials.push_back({
             .name = "barrier",
             .parameters = {
-                .diffuse = Float3{0.97f, 0.53f, 0.00f}
+                .diffuse = sRGB(0.97f, 0.53f, 0.00f).toFloat3()
             }
         });
     }
@@ -707,7 +707,7 @@ namespace
         model.materials.push_back({
             .name = "boost_pad",
             .parameters = {
-                .diffuse = Float3{0.63, 0.03, 1}
+                .diffuse = sRGB(0.63, 0.03, 1).toFloat3()
             }
         });
     }
@@ -767,7 +767,7 @@ namespace
         model.materials.push_back({
             .name = "jump_pad",
             .parameters = {
-                .diffuse = Float3{0.96, 0.73, 0}
+                .diffuse = sRGB(0.96, 0.73, 0).toFloat3()
             }
         });
     }

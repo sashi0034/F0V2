@@ -207,7 +207,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         m_groundPlaneDrawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{100.0f, 100.0f}))
-            .setShader(Asset_shader::model)
+            .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
+            .setShader(Asset_shader::gbuffer_pass)
         };
 
         // -----------------------------------------------
@@ -228,8 +229,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
                 m_courseDrawers.push_back(
                     ModelDrawerParams{}
                     .setModel(courseModel)
-                    .setShader(Asset_shader::lambert)
-                    .setCbv10AndLater({GetRaceContextContent().cb.lambert}));
+                    .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
+                    .setShader(Asset_shader::gbuffer_pass));
             }
 
             m_triangleCount += colliders.back().groundTris.size();
@@ -341,7 +342,7 @@ private:
         }
     }
 
-    void drawForward() const override
+    void drawGBuffer() const override
     {
         drawPlaceholderScenery();
 

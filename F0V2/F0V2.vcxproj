@@ -174,6 +174,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <Content Include="asset\shader\scenery1_cs.hlsl" />
     <Content Include="asset\shader\wave_test.hlsl" />
+    <Content Include="asset\shader\gbuffer_pass.hlsl" />
     <ClCompile Include="Race\RaceDrawManager.cpp" />
     <ClCompile Include="Testbed\Testbed_WaveTest.cpp" />
     <ClCompile Include="Testbed\Testbed_Shadertoy.cpp" />
@@ -224,7 +225,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\font\RocknRoll\README-JP.md" />
     <Content Include="asset\font\RocknRoll\README.md" />
     <Content Include="asset\font\RocknRoll\RocknRollOne-Regular.ttf" />
-    <Content Include="asset\script\asset_register.py" />
+    <Content Include="asset\script\register_asset.py" />
     <Content Include="asset\script\insert_template.py" />
     <Content Include="asset\script\mass_rename.py" />
     <Content Include="asset\shader\blinn_phong.hlsl" />
