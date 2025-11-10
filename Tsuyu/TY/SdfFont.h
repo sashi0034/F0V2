@@ -10,6 +10,9 @@ namespace TY
         int atlasPadding{1};
         int atlasSize{2048};
         int sdfMargin{8};
+
+        /// @brief 数値の等幅量
+        int tabularFigures{};
     };
 
     class SdfFont

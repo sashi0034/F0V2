@@ -151,6 +151,8 @@ struct SdfFont::Impl : RenderEvent::Lister
 
     int m_sdfMargin{};
 
+    int m_tabularFigures{};
+
     Grid<uint8_t> m_atlasImage{};
 
     DynamicTexture m_atlasTexture{};
@@ -177,7 +179,10 @@ struct SdfFont::Impl : RenderEvent::Lister
     // *********************
 
     Impl(const std::string& filepath, int fontSize, const SdfFontOptions& options)
-        : m_fontSize(fontSize), m_atlasPadding(options.atlasPadding), m_sdfMargin(options.sdfMargin)
+        : m_fontSize(fontSize),
+          m_atlasPadding(options.atlasPadding),
+          m_sdfMargin(options.sdfMargin),
+          m_tabularFigures(options.tabularFigures)
     {
         m_cursor.pos = Point{m_atlasPadding, m_atlasPadding};
 
@@ -220,6 +225,16 @@ struct SdfFont::Impl : RenderEvent::Lister
         glyph.top = glyphSlot->bitmap_top + m_sdfMargin;
         glyph.xAdvance = glyphSlot->advance.x / 64.0f;
         glyph.yAdvance = glyphSlot->advance.y / 64.0f;
+
+        if (m_tabularFigures > 0 && (U'0' <= codePoint && codePoint <= U'9'))
+        {
+            // 数値の等幅処理
+            const float fixedWidth = static_cast<float>(m_tabularFigures);
+            const float actualWidth = glyph.xAdvance;
+            const float offset = (fixedWidth - actualWidth) * 0.5f;
+            glyph.xAdvance = fixedWidth;
+            glyph.left += offset;
+        }
 
         // -----------------------------------------------
 

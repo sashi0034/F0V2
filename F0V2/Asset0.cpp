@@ -47,7 +47,7 @@ namespace
 
             m_Audiowide_24_bitmap = BitmapFont(AudiowidePath, 24);
 
-            m_Audiowide_Sdf_font = SdfFont(AudiowidePath, 48);
+            m_Audiowide_Sdf_font = SdfFont(AudiowidePath, 48, SdfFontOptions{.tabularFigures = 48});
 
             // -----------------------------------------------
 

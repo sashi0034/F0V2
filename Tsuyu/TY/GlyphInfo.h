@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Integer2D.h"
+#include "Vector2D.h"
 
 namespace TY
 {
@@ -9,9 +10,9 @@ namespace TY
     {
         GlyphIndex glyphIndex{};
 
-        int16_t left{};
+        float left{};
 
-        int16_t top{};
+        float top{};
 
         int16_t width{};
 
@@ -25,9 +26,9 @@ namespace TY
 
         // -----------------------------------------------
 
-        Point baselineOffset() const
+        Float2 baselineOffset() const
         {
-            return Point{left, -top};
+            return Float2{left, -top};
         }
 
         Size size() const

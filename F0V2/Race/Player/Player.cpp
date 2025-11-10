@@ -265,7 +265,7 @@ private:
     {
         // スピードメーター
         Immediate2D_Text::Audiowide_Sdf(
-                ToUtf32(std::format("{:.1f} km/h", machine().state.m_velocity.length() * 10.0f)))
+                ToUtf32(std::format("{:.0f} km/h", machine().state.m_velocity.length() * 10.0f)))
             .setPosition(Screen::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
             .setSize(28.0f)
             .pushAuto();
