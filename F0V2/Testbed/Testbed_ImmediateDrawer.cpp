@@ -210,13 +210,13 @@ struct Testbed_ImmediateDrawer_impl
 
         m_miniMap = RenderTarget{
             RenderTargetParams{}
-            .setTarget(RtvParams{}.setSize({256, 256}).setClearColor(ColorF32{0.0f, 1.0f}))
+            .setRtv(RtvParams{}.setSize({256, 256}).setClearColor(ColorF32{0.0f, 1.0f}))
         };
 
         m_miniMapDrawer = TextureDrawer{
             TextureDrawerParams{}
             .setShader(m_shaders.default2d)
-            .setTexture(m_miniMap.getFrontTarget())
+            .setTexture(m_miniMap.getFrontRtv())
         };
     }
 

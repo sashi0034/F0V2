@@ -207,7 +207,7 @@ struct Testbed_ShadowMap_impl
         {
             m_shadowMaps[i] = RenderTarget{
                 RenderTargetParams()
-                .setTarget(RtvParams()
+                .setRtv(RtvParams()
                                      .setSize(Size{2048, 2048})
                                      .setClearColor(ColorF32{1.0f, 1.0f})
                                      .setFormat(shadowMapFormat))
@@ -218,7 +218,7 @@ struct Testbed_ShadowMap_impl
         {
             m_shadowMapDebugDrawers[i] = TextureDrawer{
                 TextureDrawerParams{}
-                .setTexture(m_shadowMaps[i].getFrontTarget())
+                .setTexture(m_shadowMaps[i].getFrontRtv())
                 .setShader(s_resource->r32_float_visualizer)
             };
         }
@@ -274,9 +274,9 @@ struct Testbed_ShadowMap_impl
             }))
             .setCbv10AndLater({s_resource->phongLight, s_resource->shadowMap_cb})
             .setSrv10AndLater({
-                m_shadowMaps[0].getFrontTarget(),
-                m_shadowMaps[1].getFrontTarget(),
-                m_shadowMaps[2].getFrontTarget()
+                m_shadowMaps[0].getFrontRtv(),
+                m_shadowMaps[1].getFrontRtv(),
+                m_shadowMaps[2].getFrontRtv()
             })
         };
     }

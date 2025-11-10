@@ -29,7 +29,7 @@ namespace Race
 
         gbufferTarget =
             RenderTargetParams{}
-            .setTargetList({
+            .setRtvList({
                 gbuffer.albedo,
                 gbuffer.normal,
                 gbuffer.viewDistance
@@ -41,7 +41,7 @@ namespace Race
 
         shadowMap =
             RenderTargetParams()
-            .setTarget(
+            .setRtv(
                 RtvParams{}
                 .setSize(shadowMapSize)
                 .setClearColor(ColorF32{1.0f, 1.0f}) // FIXME?

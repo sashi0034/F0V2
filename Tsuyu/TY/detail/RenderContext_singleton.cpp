@@ -306,7 +306,7 @@ private:
 
             m_backBuffers[i] =
                 RenderTargetParams{}
-                .setTarget_unsafe(backBuffer, m_clearColor);
+                .setRtv_unsafe(backBuffer, m_clearColor);
         }
     }
 

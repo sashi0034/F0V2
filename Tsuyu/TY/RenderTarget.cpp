@@ -278,7 +278,7 @@ struct RenderTarget::Impl
 
 namespace TY
 {
-    RenderTargetParams& RenderTargetParams::setTargetList(const Array<RenderTargetTexture>& list)
+    RenderTargetParams& RenderTargetParams::setRtvList(const Array<RenderTargetTexture>& list)
     {
         rtvHandles.clear();
         rtvClearColors.clear();
@@ -292,19 +292,19 @@ namespace TY
         return *this;
     }
 
-    RenderTargetParams& RenderTargetParams::setTarget(const RenderTargetTexture& rtv_)
+    RenderTargetParams& RenderTargetParams::setRtv(const RenderTargetTexture& rtv_)
     {
         rtvHandles = {rtv_};
         rtvClearColors = {rtv_.clearColor()};
         return *this;
     }
 
-    RenderTargetParams& RenderTargetParams::setTarget(const RtvParams& rtv_)
+    RenderTargetParams& RenderTargetParams::setRtv(const RtvParams& rtv_)
     {
-        return setTarget(RenderTargetTexture(rtv_));
+        return setRtv(RenderTargetTexture(rtv_));
     }
 
-    RenderTargetParams& RenderTargetParams::setTarget_unsafe(
+    RenderTargetParams& RenderTargetParams::setRtv_unsafe(
         const TextureHandle& rtv_, const ColorF32& clearColor_)
     {
         rtvHandles = {rtv_};
@@ -354,7 +354,7 @@ namespace TY
         return p_impl->ScopedBind();
     }
 
-    TextureHandle RenderTarget::getFrontTarget() const
+    TextureHandle RenderTarget::getFrontRtv() const
     {
         return p_impl && not p_impl->m_rtvHandles.empty() ? p_impl->m_rtvHandles[0] : TextureHandle{};
     }

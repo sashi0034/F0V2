@@ -70,7 +70,7 @@ namespace
                     g_sharedState->gbuffer.normal,
                     g_sharedState->gbuffer.viewDistance,
                     g_sharedState->gbufferTarget.getDepthBuffer(),
-                    g_sharedState->shadowMap.getFrontTarget(),
+                    g_sharedState->shadowMap.getFrontRtv(),
                 })
                 .setUav({m_outputTexture});
         }
