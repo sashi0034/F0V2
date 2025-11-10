@@ -23,6 +23,8 @@ namespace TY
         int axis_rx{2};
         int axis_ry{3};
 
+        void writeToTomlFile(const std::string& path) const;
+
         static GamepadMapping FromTomlFile(const std::string& path);
     };
 }

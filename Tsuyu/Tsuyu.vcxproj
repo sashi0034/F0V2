@@ -343,6 +343,7 @@
     <ClCompile Include="TY\detail\GpuMemoryUsage.cpp" />
     <ClCompile Include="TY\detail\SceneState3D_singleton.cpp" />
     <ClCompile Include="TY\DiskTexture.cpp" />
+    <ClCompile Include="TY\GamepadInputState.cpp" />
     <ClCompile Include="TY\GpuMetrics.cpp" />
     <ClCompile Include="TY\MipmappedDynamicTexture.cpp" />
     <ClCompile Include="TY\Palette.cpp" />

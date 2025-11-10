@@ -13,12 +13,55 @@ namespace
 
 namespace TY
 {
+    void GamepadMapping::writeToTomlFile(const std::string& path) const
+    {
+        toml::table t;
+
+        t.insert("a", a);
+        t.insert("b", b);
+        t.insert("x", x);
+        t.insert("y", y);
+        t.insert("lb", lb);
+        t.insert("rb", rb);
+        t.insert("lt", lt);
+        t.insert("rt", rt);
+        t.insert("menu", menu);
+        t.insert("view", view);
+        t.insert("axis_lx", axis_lx);
+        t.insert("axis_ly", axis_ly);
+        t.insert("axis_rx", axis_rx);
+        t.insert("axis_ry", axis_ry);
+
+        try
+        {
+            std::ofstream stream(path);
+            if (not stream)
+            {
+                LogError("GamepadMapping::writeToTomlFile(): Failed to open file '{}'", path);
+                return;
+            }
+
+            stream << t;
+        }
+        catch (const std::exception& e)
+        {
+            LogError("GamepadMapping::writeToTomlFile(): Exception: {}", e.what());
+        }
+    }
+
     GamepadMapping GamepadMapping::FromTomlFile(const std::string& path)
     {
-        toml::table t = toml::parse_file(path);
-        if (t.empty())
+        toml::table t;
+        try
         {
-            LogError.writeln(std::format("GamepadMapping::FromToml: Failed to parse TOML file at '{}'", path));
+            t = toml::parse_file(path);
+        }
+        catch (const toml::parse_error& err)
+        {
+            LogError("GamepadMapping::FromTomlFile(): Failed to open or parse TOML file at '{}': {}",
+                     path,
+                     err.description());
+            return defaultMapping;
         }
 
         GamepadMapping m;

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Array.h"
 #include "Vector2D.h"
 
 namespace TY
@@ -25,5 +26,9 @@ namespace TY
         GamepadButtonState povRight{};
 
         axes_type axes;
+
+        Array<int> getDownButtonIndexes() const;
+
+        Array<int> getActiveAxisIndexes(float threshold = 0.5f) const;
     };
 }

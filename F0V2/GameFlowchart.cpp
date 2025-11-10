@@ -5,9 +5,12 @@
 #include "GamePalette.h"
 #include "Editor/EditorScene.h"
 #include "GM/DebugService.h"
+#include "GM/GamepadConfigModal.h"
 #include "Race/RaceScene.h"
 #include "TY/ActorContainer.h"
+#include "TY/Gamepad.h"
 #include "TY/GpuMetrics.h"
+#include "TY/KeyboardInput.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/System.h"
@@ -16,6 +19,8 @@
 
 namespace
 {
+    std::string gamepadConfigPath = "save/gamepad.toml";
+
     struct IFlowchart
     {
         virtual ~IFlowchart() = default;
@@ -89,12 +94,19 @@ struct F0V2::GameFlowchart::Impl : GameObjectBase
 
     void Init()
     {
+        MainGamepad.registerMapping(GamepadMapping::FromTomlFile(gamepadConfigPath));
+
         restartFlowchart();
     }
 
 private:
     void update() override
     {
+        if (KeyF2.down())
+        {
+            GM::LaunchGamepadConfigModal(gamepadConfigPath);
+        }
+
         if (not m_flowchartCoroutine.isAlive())
         {
             restartFlowchart();
