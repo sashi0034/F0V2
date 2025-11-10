@@ -13,9 +13,12 @@ namespace Race
 
         void uploadWorldMatrix(const Mat4x4& worldMatrix) const;
 
+        void drawShadowMap() const;
+
         void drawGBuffer() const;
 
     private:
+        ModelDrawer m_shadowDrawer{};
         ModelDrawer m_gbufferDrawer{};
     };
 }

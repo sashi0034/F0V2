@@ -137,7 +137,7 @@ namespace
 
         GraphicsShader skydome{GraphicsShader::VS_PS("asset/shader/skydome.hlsl")};
 
-        GraphicsShader shadowMapCaster{GraphicsShader::VS_PS("asset/shader/shadow_caster.hlsl")};
+        GraphicsShader shadowMapCaster{GraphicsShader::VS_PS("asset/shader/shadow_caster_old.hlsl")};
 
         GraphicsShader r32_float_visualizer{GraphicsShader::VS_PS("asset/shader/r32_float_visualizer.hlsl")};
 

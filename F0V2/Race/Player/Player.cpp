@@ -106,6 +106,11 @@ private:
         }
     }
 
+    void drawShadowMap() const override
+    {
+        m_drawer.drawShadowMap();
+    }
+
     void drawGBuffer() const override
     {
         m_drawer.drawGBuffer();

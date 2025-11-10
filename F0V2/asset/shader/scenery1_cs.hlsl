@@ -13,23 +13,26 @@
 #define repeat(p, span) ((frac((p) / (span)) - 0.5) * (span))
 #define center_repeat(p, span) (frac(((p) + (span) * 0.5) / (span)) * (span) - (span) * 0.5)
 
+SamplerState g_sampler0 : register(s0);
+
 Texture2D<float4> g_albedoBuffer : register(t0);
+
 Texture2D<float4> g_normalBuffer : register(t1);
+
 Texture2D<float> g_viewDistanceBuffer : register(t2);
-// Texture2D<float> g_depthBuffer : register(t3);
+
+Texture2D<float> g_depthBuffer : register(t3);
+
+Texture2D<float4> g_shadowMap : register(t4);
 
 // 出力
 RWTexture2D<float4> g_output : register(u0);
-
-// 入力
-// Texture2D<float4> g_texture0 : register(t0);
-//
-// SamplerState g_sampler0 : register(s0);
 
 cbuffer Scenery_b10 : register(b0)
 {
     column_major float4x4 g_projectionMatrixInv;
     column_major float4x4 g_viewMatrixInv;
+    column_major float4x4 g_worldToShadowProjection;
     float2 g_outputResolution;
     float2 g_mousePosition;
     float2 g_mouseUV;
@@ -495,7 +498,7 @@ static const LightParameters k_lightList[NUM_LIGHTS] = {
     {normalize(float3(0.4, -0.5, -0.5)), sRGB2L(1.0, 0.8, 0.9) * 0.3},
 };
 
-float3 computeLight(float3 N, float3 V, float3 albedo, float viewDistance)
+float3 computeLight(float3 worldPos, float3 N, float3 V, float3 albedo, float viewDistance)
 {
     float3 light = V3(0.0f);
 
@@ -514,6 +517,21 @@ float3 computeLight(float3 N, float3 V, float3 albedo, float viewDistance)
         const float3 specularTerm = k_lightList[i].color * specularFactor;
 
         light += diffuseTerm + specularTerm;
+    }
+
+    // Shadow
+    const float4 shadowP = mul(g_worldToShadowProjection, float4(worldPos, 1));
+    const float2 shadowUV = (shadowP.xy / shadowP.w) * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
+    if (all(0.0 <= shadowUV) && all(shadowUV <= 1.0))
+    {
+        const float currentDepth = shadowP.z / shadowP.w;
+        const float shadowDepth = g_shadowMap.SampleLevel(g_sampler0, shadowUV, 0.0).r; // FIXME: Use SampleCmpLevelZero
+
+        if (shadowDepth < currentDepth - 1e-5f)
+        {
+            // FIXME
+            light *= 0.5;
+        }
     }
 
     // Combine
@@ -558,7 +576,7 @@ float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlr
 
         const float3 N = scanNormal(r.pos);
 
-        color = computeLight(N, V, diffuse, length(r.pos - eyePos));
+        color = computeLight(r.pos, N, V, diffuse, length(r.pos - eyePos));
     }
     else
     {
@@ -580,6 +598,22 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
+#if 0
+    // シャドウマップのデバッグ
+    float2 uv = (pixelF + 0.5) / g_outputResolution;
+    float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
+    if (shadow != 1.0)
+    {
+        g_output[pixel] = float4(1.0, 0.0, 0.0, 1.0);
+    }
+    else
+    {
+        g_output[pixel] = float4(0.0, 0.0, 0.0, 1.0);
+    }
+
+    return;
+#endif
+
     // g_output[pixel].rgb = g_depthBuffer[pixel] / 100.0;
     // g_output[pixel].a = g_albedoBuffer[pixel].a;
     // return;
@@ -594,7 +628,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     float3 targetInNdc;
     targetInNdc.xy = float2(2.0, -2.0) * pixelF / g_outputResolution + float2(-1.0, 1.0);
-    targetInNdc.z = 1.0; // g_depthBuffer[pixel];
+    targetInNdc.z = g_depthBuffer[pixel]; // 1.0
 
     const float4 targetInClip = float4(targetInNdc, 1.0f);
 
@@ -615,7 +649,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     float3 rgb;
     if (hit.a > 0)
     {
-        rgb = hit;
+        rgb = hit.rgb;
     }
     else
     {
@@ -623,7 +657,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         const float3 N = g_normalBuffer[pixel].rgb * 2.0 - 1.0;
         const float3 V = -rayDir;
 
-        rgb = computeLight(N, V, g_albedoBuffer[pixel].rgb, distanceLimit);
+        rgb = computeLight(targetInWorld, N, V, g_albedoBuffer[pixel].rgb, distanceLimit);
     }
 
     g_output[pixel] = float4(L2sRGB_(rgb), 1.0);

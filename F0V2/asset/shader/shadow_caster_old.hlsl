@@ -1,0 +1,48 @@
+Texture2D<float4> g_texture0 : register(t0);
+
+SamplerState g_sampler0 : register(s0);
+
+cbuffer SceneState : register(b0)
+{
+    column_major float4x4 g_projectionMatrix;
+    column_major float4x4 g_viewMatrix;
+}
+
+cbuffer ModelState : register(b1)
+{
+    column_major float4x4 g_worldMatrix;
+}
+
+cbuffer ModelMaterial : register(b2)
+{
+    float3 g_ambient;
+    float3 g_diffuse;
+    float3 g_specular;
+    float g_shininess;
+}
+
+cbuffer ShadowCaster : register(b10)
+{
+    column_major float4x4 g_worldToShadowProjection;
+}
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+};
+
+PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCOORD)
+{
+    PSInput result;
+
+    result.position = mul(g_worldMatrix, position);
+    result.position = mul(g_worldToShadowProjection, result.position);
+
+    return result;
+}
+
+float4 PS(PSInput input) : SV_TARGET
+{
+    const float z = input.position.z; // perspective divide to get depth value
+    return float4(z, z, z, 1.0);
+}

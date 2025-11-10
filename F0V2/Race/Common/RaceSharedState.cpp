@@ -34,5 +34,18 @@ namespace Race
                 gbuffer.normal,
                 gbuffer.viewDistance
             });
+
+        // -----------------------------------------------
+
+        constexpr Size shadowMapSize = Size{2048, 2048};
+
+        shadowMap =
+            RenderTargetParams()
+            .setTarget(
+                RtvParams{}
+                .setSize(shadowMapSize)
+                .setClearColor(ColorF32{1.0f, 1.0f}) // FIXME?
+                .setFormat(DXGI_FORMAT_R32_FLOAT)
+            );
     }
 }

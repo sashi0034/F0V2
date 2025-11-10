@@ -30,6 +30,13 @@ namespace Race
 
         const ModelBuffer model = ModelBuffer{s_machineDrawerCache->shapeBuffer, materials};
 
+        m_shadowDrawer =
+            ModelDrawerParams{}
+            .setModel(model)
+            .setOptions(GraphicsOptions::FromTarget(g_sharedState->shadowMap))
+            .setShader(Asset_shader::shadow_caster)
+            .setCbv10AndLater({g_sharedState->cb.shadowCaster});
+
         m_gbufferDrawer =
             ModelDrawerParams{}
             .setModel(model)
@@ -39,7 +46,13 @@ namespace Race
 
     void MachineDrawer::uploadWorldMatrix(const Mat4x4& worldMatrix) const
     {
+        (void)m_shadowDrawer.uploadWorldMatrix(worldMatrix);
         (void)m_gbufferDrawer.uploadWorldMatrix(worldMatrix);
+    }
+
+    void MachineDrawer::drawShadowMap() const
+    {
+        m_shadowDrawer.draw();
     }
 
     void MachineDrawer::drawGBuffer() const

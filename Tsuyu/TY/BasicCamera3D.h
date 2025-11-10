@@ -19,6 +19,11 @@ namespace TY
             return m_targetPosition;
         }
 
+        Float3 upDirection() const
+        {
+            return m_upDirection;
+        }
+
         const Mat4x4& viewMatrix() const
         {
             return m_viewMatrix;
@@ -32,6 +37,7 @@ namespace TY
     private:
         Float3 m_eyePosition{};
         Float3 m_targetPosition{};
+        Float3 m_upDirection{0.0f, 1.0f, 0.0f};
 
         Mat4x4 m_viewMatrix{};
         Mat4x4 m_worldMatrix{};

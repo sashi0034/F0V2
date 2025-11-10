@@ -5,6 +5,7 @@
 
 namespace Race
 {
+    // TODO: g_sharedState に統一
     struct RaceContextContent
     {
         BasicCamera3D camera{};

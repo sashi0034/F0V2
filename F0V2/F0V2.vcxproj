@@ -173,6 +173,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <Content Include="asset\shader\scenery1_cs.hlsl" />
+    <Content Include="asset\shader\shadow_caster_old.hlsl" />
     <Content Include="asset\shader\wave_test.hlsl" />
     <Content Include="asset\shader\gbuffer_pass.hlsl" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
@@ -296,6 +297,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\fsr1\ffx_fsr1.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="CB\Lambert.h" />
+    <ClInclude Include="CB\ShadowCaster.h" />
     <ClInclude Include="CB\Skydome.h" />
     <ClInclude Include="GamePalette.h" />
     <ClInclude Include="GM\GamepadConfigModal.h" />

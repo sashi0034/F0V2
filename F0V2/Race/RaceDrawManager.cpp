@@ -2,7 +2,9 @@
 #include "RaceDrawManager.h"
 
 #include "Asset.generated.h"
+#include "IRaceContext.h"
 #include "IRaceDrawer.h"
+#include "RaceContextContent.h"
 #include "Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ComputeDispatcher.h"
@@ -33,6 +35,7 @@ namespace
     {
         Mat4x4 g_projectionMatrixInv{};
         Mat4x4 g_viewMatrixInv{};
+        Mat4x4 g_worldToShadowProjection{};
         Float2 g_outputResolution{};
         Float2 g_mousePosition{};
         Float2 g_mouseUV{};
@@ -57,7 +60,8 @@ namespace
                     g_sharedState->gbuffer.albedo,
                     g_sharedState->gbuffer.normal,
                     g_sharedState->gbuffer.viewDistance,
-                    // g_sharedState->gbufferTarget.getDepthBuffer()
+                    g_sharedState->gbufferTarget.getDepthBuffer(),
+                    g_sharedState->shadowMap.getFrontTarget(),
                 })
                 .setUav({m_outputTexture});
         }
@@ -66,6 +70,7 @@ namespace
         {
             m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
             m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
+            m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
             m_cb->g_outputResolution = Screen::Size();
             m_cb->g_time = System::Time();
             m_cb.upload();
@@ -127,6 +132,18 @@ private:
             m_drawers[i].initialized = true;
         }
 
+        // Shadow パス
+        {
+            updateShadowMapMatrix();
+
+            auto bind = g_sharedState->shadowMap.scopedBind();
+
+            for (int i = 0; i < m_drawers.size(); ++i)
+            {
+                m_drawers[i].drawer->drawShadowMap();
+            }
+        }
+
         // GBuffer パス
         {
             auto bind = g_sharedState->gbufferTarget.scopedBind();
@@ -161,6 +178,36 @@ private:
                 m_drawers[i].drawer->draw2D();
             }
         }
+    }
+
+    void updateShadowMapMatrix()
+    {
+        // const Mat4x4 cameraMatrix = GetRaceContextContent().camera.worldMatrix();
+
+        // TODO
+
+        const Float3 cameraEye = GetRaceContextContent().camera.eyePosition();
+
+        const Float3 lightDirection = -GetRaceContextContent().camera.upDirection();
+
+        const auto shadowEyePosition = cameraEye - lightDirection * 100.0f;
+
+        const auto shadowProjection = Mat4x4::PerspectiveFov(
+            45.0_deg,
+            1.0f,
+            0.1f,
+            500.0f
+        );
+
+        const auto shadowView = Mat4x4::LookAt(
+            shadowEyePosition,
+            cameraEye,
+            Float3{0.0f, 1.0f, 0.0f}
+        );
+
+        const auto shadowViewProjection = shadowView * shadowProjection;
+        g_sharedState->cb.shadowCaster->g_worldToShadowProjection = shadowViewProjection;
+        g_sharedState->cb.shadowCaster.upload();
     }
 
     float orderPriority() const override

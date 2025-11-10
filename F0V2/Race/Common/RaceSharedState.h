@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "CourseData.h"
+#include "CB/ShadowCaster.h"
 #include "TY/Array.h"
+#include "TY/ConstantBufferWrapper.h"
 #include "TY/InlineComponent.h"
 #include "TY/RenderTarget.h"
 
@@ -22,6 +24,13 @@ namespace Race
         } gbuffer{};
 
         RenderTarget gbufferTarget{};
+
+        struct
+        {
+            ConstantBufferWrapper<CB::ShadowCaster_b10> shadowCaster{};
+        } cb{};
+
+        RenderTarget shadowMap{};
 
         RaceSharedState();
     };

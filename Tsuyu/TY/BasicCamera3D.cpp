@@ -9,10 +9,12 @@ namespace TY
 
         m_targetPosition = targetPosition;
 
+        m_upDirection = upDirection;
+
         m_viewMatrix = Mat4x4::LookAt(
             m_eyePosition,
             m_targetPosition,
-            upDirection
+            m_upDirection
         );
 
         m_worldMatrix = m_viewMatrix.transposed();
