@@ -300,12 +300,13 @@ private:
             const Float2 bottomLeft = Screen::RectF().bl().movedBy(40.0f, -160.0f);
             constexpr SizeF barSize{320.0f, 12.0f};
             Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
-                .setColor(ColorF32{0.1f})
+                .setColor(ColorF32{0.2f})
                 .pushAuto();
             Immediate2D::RoundRect{
-                    RectF{bottomLeft, Alignment9::BottomLeft, barSize.withX(barSize.x * barRate)}.stretched(-0.5f)
+                    RectF{bottomLeft, Alignment9::BottomLeft, barSize.withX(barSize.x * barRate)}
+                    .stretched(-4.0f, -1.0f)
                 }
-                .setColor(Palette::GoldenRod)
+                .setColor(Palette::CornflowerBlue)
                 .pushAuto();
             drawLabelText(ToUtf32("{}", static_cast<int>(machine().state.m_durability)),
                           20.0f,
@@ -319,9 +320,20 @@ private:
             const auto evaluation = GetRaceContext().machineManager().getEvaluation(m_machineId);
             const int rank1 = evaluation.rank + 1;
             const int totalMachines = GetRaceContext().machineManager().machineList().size();
-            drawLabelText(ToUtf32(std::format("{} / {}", rank1, totalMachines)),
-                          40.0f,
-                          Screen::TopCenterF().movedBy(0.0f, 50.0f),
+            drawLabelText(ToUtf32(std::format("{}", rank1)),
+                          64.0f,
+                          Screen::TopCenterF().movedY(40.0f),
+                          Alignment9::TopCenter);
+
+            Immediate2D::Rect{
+                    RectF{Screen::TopCenterF().movedY(110.0f), Alignment9::MiddleCenter, SizeF{152.0f, 4.0f}}
+                }
+                .setColor(ColorF32{0.15f})
+                .pushAuto();
+
+            drawLabelText(ToUtf32(std::format("{}", totalMachines)),
+                          32.0f,
+                          Screen::TopCenterF().movedY(112.0f),
                           Alignment9::TopCenter);
         }
 
