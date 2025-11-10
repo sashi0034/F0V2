@@ -527,7 +527,7 @@ float3 computeLight(float3 worldPos, float3 N, float3 V, float3 albedo, float vi
         const float currentDepth = shadowP.z / shadowP.w;
         const float shadowDepth = g_shadowMap.SampleLevel(g_sampler0, shadowUV, 0.0).r; // FIXME: Use SampleCmpLevelZero
 
-        if (shadowDepth < currentDepth - 1e-5f)
+        if (shadowDepth < currentDepth - 1e-3f)
         {
             // FIXME
             light *= 0.5;
@@ -600,18 +600,22 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
 #if 0
     // シャドウマップのデバッグ
-    float2 uv = (pixelF + 0.5) / g_outputResolution;
-    float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
-    if (shadow != 1.0)
+    const float debugMapSize = 800.0;
+    if (all(pixelF < debugMapSize))
     {
-        g_output[pixel] = float4(1.0, 0.0, 0.0, 1.0);
-    }
-    else
-    {
-        g_output[pixel] = float4(0.0, 0.0, 0.0, 1.0);
-    }
+        float2 uv = (pixelF + 0.5) / debugMapSize;
+        float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
+        if (shadow != 1.0)
+        {
+            g_output[pixel] = float4(1.0, 0.0, 0.0, 1.0);
+        }
+        else
+        {
+            g_output[pixel] = float4(0.0, 0.0, 0.0, 1.0);
+        }
 
-    return;
+        return;
+    }
 #endif
 
     // g_output[pixel].rgb = g_depthBuffer[pixel] / 100.0;

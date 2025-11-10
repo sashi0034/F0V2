@@ -12,8 +12,6 @@
 #include "Stage/StageManager.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
-#include "TY/Screen.h"
-#include "TY_Extension/CoroutineActor.h"
 #include "Util/DebugTomlValue.h"
 
 using namespace Race;
@@ -94,19 +92,6 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     void update() override
     {
         m_cameraController.update();
-
-        Graphics3D::SetViewMatrix(m_state.camera.viewMatrix());
-
-        {
-            auto projectionMat = Mat4x4::PerspectiveFov(
-                75.0_deg,
-                Screen::Size().horizontalAspectRatio(),
-                0.1f,
-                g_sharedState->fovFarZ
-            );
-
-            Graphics3D::SetProjectionMatrix(projectionMat);
-        }
 
         m_children.updateEach();
 

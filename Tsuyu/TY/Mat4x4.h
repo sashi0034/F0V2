@@ -172,19 +172,14 @@ namespace TY
         }
 
         /// @brief 透視投影行列を生成する (左手座標系)
-        template <typename T>
         [[nodiscard]]
-        static Mat4x4 LookAt(const Vector3D<T>& eye, const Vector3D<T>& target, const Vector3D<T>& up)
-        {
-            return Mat4x4{DirectX::XMMatrixLookAtLH(eye.toXMV(), target.toXMV(), up.toXMV())};
-        }
+        static Mat4x4 LookAt(const Float3& eye, const Float3& target, const Float3& up);
 
         [[nodiscard]]
-        static Mat4x4 PerspectiveFov(
-            float fov, float aspect, float nearZ, float farZ)
-        {
-            return Mat4x4{DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ)};
-        }
+        static Mat4x4 PerspectiveFov(float fov, float aspect, float nearZ, float farZ);
+
+        [[nodiscard]]
+        static Mat4x4 Orthographic(float width, float height, float nearZ, float farZ);
 
         [[nodiscard]]
         static Mat4x4 Translate(const Float3& v) noexcept;

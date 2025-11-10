@@ -25,7 +25,7 @@ namespace Race
             RenderTargetTextureParams()
             .setSize(gbufferSize)
             .setFormat(DXGI_FORMAT_R32_FLOAT)
-            .setClearColor(ColorF32{fovFarZ, 0.0f, 0.0f, 0.0f}); // FIXME?
+            .setClearColor(ColorF32{farDepth, 0.0f, 0.0f, 0.0f}); // FIXME?
 
         gbufferTarget =
             RenderTargetParams{}

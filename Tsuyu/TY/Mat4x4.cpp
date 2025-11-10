@@ -88,6 +88,21 @@ namespace TY
         };
     }
 
+    Mat4x4 Mat4x4::LookAt(const Float3& eye, const Float3& target, const Float3& up)
+    {
+        return Mat4x4{DirectX::XMMatrixLookAtLH(eye.toXMV(), target.toXMV(), up.toXMV())};
+    }
+
+    Mat4x4 Mat4x4::PerspectiveFov(float fov, float aspect, float nearZ, float farZ)
+    {
+        return Mat4x4{DirectX::XMMatrixPerspectiveFovLH(fov, aspect, nearZ, farZ)};
+    }
+
+    Mat4x4 Mat4x4::Orthographic(float width, float height, float nearZ, float farZ)
+    {
+        return Mat4x4{DirectX::XMMatrixOrthographicLH(width, height, nearZ, farZ)};
+    }
+
     Mat4x4 Mat4x4::Translate(const Float3& v) noexcept
     {
         return DirectX::XMMatrixTranslation(v.x, v.y, v.z);

@@ -12,7 +12,11 @@ namespace Race
     {
         float groundPositionY = -50.0f;
 
-        float fovFarZ = 1000.0f;
+        float fov = 75.0_deg;
+
+        float nearDepth = 0.1f;
+
+        float farDepth = 1000.0f;
 
         Array<CourseSegment> courseSegments{};
 

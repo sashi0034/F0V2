@@ -126,6 +126,22 @@ struct RaceDrawManager::Impl : ActorBase
 private:
     void update() override
     {
+        // カメラ行列適応
+        {
+            Graphics3D::SetViewMatrix(GetRaceContextContent().camera.viewMatrix());
+
+            {
+                auto projectionMat = Mat4x4::PerspectiveFov(
+                    g_sharedState->fov,
+                    Screen::Size().horizontalAspectRatio(),
+                    g_sharedState->nearDepth,
+                    g_sharedState->farDepth
+                );
+
+                Graphics3D::SetProjectionMatrix(projectionMat);
+            }
+        }
+
         for (int i = 0; i < m_drawers.size(); ++i)
         {
             m_drawers[i].drawer->prepareDrawParameters(m_drawers[i].parameters, not m_drawers[i].initialized);
@@ -182,31 +198,97 @@ private:
 
     void updateShadowMapMatrix()
     {
-        // const Mat4x4 cameraMatrix = GetRaceContextContent().camera.worldMatrix();
-
-        // TODO
+        const Mat4x4 cameraMatrix = GetRaceContextContent().camera.worldMatrix();
+        const Float3 cameraForward = cameraMatrix.forward();
+        const Float3 cameraRight = cameraMatrix.right();
+        const Float3 cameraUp = cameraMatrix.up();
 
         const Float3 cameraEye = GetRaceContextContent().camera.eyePosition();
 
+        // カメラ方向を光源とする
         const Float3 lightDirection = -GetRaceContextContent().camera.upDirection();
 
-        const auto shadowEyePosition = cameraEye - lightDirection * 100.0f;
+        const Float3 shadowCenter = cameraEye;
 
-        const auto shadowProjection = Mat4x4::PerspectiveFov(
-            45.0_deg,
-            1.0f,
-            0.1f,
-            500.0f
+        const Float3 shadowEyePosition = shadowCenter - lightDirection * 200.0f;
+
+        // 平行投影
+        constexpr float orthoSize = 50.0f;
+        constexpr float nearDepth = 0.1f;
+        constexpr float farDepth = 500.0f;
+        const auto shadowProjection = Mat4x4::Orthographic(
+            orthoSize * 2.0f, // width
+            orthoSize * 2.0f, // height
+            nearDepth,
+            farDepth
         );
 
         const auto shadowView = Mat4x4::LookAt(
             shadowEyePosition,
-            cameraEye,
+            shadowCenter,
             Float3{0.0f, 1.0f, 0.0f}
         );
 
         const auto shadowViewProjection = shadowView * shadowProjection;
-        g_sharedState->cb.shadowCaster->g_worldToShadowProjection = shadowViewProjection;
+
+        //                 /|                ---
+        //                / |                 |
+        //               /  |                 |
+        //              /   |                 | farHalfH 
+        //             /|   |  ---            |
+        //            / |   |   | nearHalfH   |
+        // cameraEye |--|---|  ---           ---
+        //            \ |   |
+        //             \|   |
+        //              \   |
+        //               \  |
+        //                \ |
+        //                 \|
+
+        const float cameraFov = g_sharedState->fov;
+        const float cameraNearDepth = g_sharedState->nearDepth;
+
+        // NOTE: カスケード化する場合はこの値を調節する
+        constexpr float cropFarDepth = orthoSize; // g_sharedState->farDepth;
+
+        const float nearHalfH = tanf(cameraFov / 2.0f) * cameraNearDepth;
+        const float nearHalfW = nearHalfH * Screen::Size().horizontalAspectRatio();
+
+        const float farHalfH = tanf(cameraFov / 2.0f) * cropFarDepth;
+        const float farHalfW = farHalfH * Screen::Size().horizontalAspectRatio();
+
+        const Float3 nearCenter = cameraEye + cameraForward * cameraNearDepth;
+        const Float3 farCenter = cameraEye + cameraForward * cropFarDepth;
+
+        std::array<Float3, 8> frustumCorners{};
+        frustumCorners[0] = nearCenter + cameraRight * nearHalfW - cameraUp * nearHalfH;
+        frustumCorners[1] = nearCenter + cameraRight * nearHalfW + cameraUp * nearHalfH;
+        frustumCorners[2] = nearCenter - cameraRight * nearHalfW + cameraUp * nearHalfH;
+        frustumCorners[3] = nearCenter - cameraRight * nearHalfW - cameraUp * nearHalfH;
+        frustumCorners[4] = farCenter + cameraRight * farHalfW - cameraUp * farHalfH;
+        frustumCorners[5] = farCenter + cameraRight * farHalfW + cameraUp * farHalfH;
+        frustumCorners[6] = farCenter - cameraRight * farHalfW + cameraUp * farHalfH;
+        frustumCorners[7] = farCenter - cameraRight * farHalfW - cameraUp * farHalfH;
+
+        Float3 minP{FLT_MAX, FLT_MAX, FLT_MAX};
+        Float3 maxP{-FLT_MAX, -FLT_MAX, -FLT_MAX};
+        for (auto& corner : frustumCorners)
+        {
+            corner = shadowViewProjection.transformPoint(corner);
+            minP = MinVector3(minP, corner);
+            maxP = MaxVector3(maxP, corner);
+        }
+
+        // クロップ行列を作成
+        Float2 scaling = Float2{2.0f, 2.0f} / (maxP.xy() - minP.xy());
+        Float2 translation = -(minP.xy() + maxP.xy()) * Float2{0.5f, 0.5f} * scaling;
+        Mat4x4 cropMatrix = Mat4x4::Identity();
+        cropMatrix.mat.r[0].m128_f32[0] = scaling.x;
+        cropMatrix.mat.r[1].m128_f32[1] = scaling.y;
+        cropMatrix.mat.r[3].m128_f32[0] = translation.x;
+        cropMatrix.mat.r[3].m128_f32[1] = translation.y;
+
+        g_sharedState->cb.shadowCaster->g_worldToShadowProjection = shadowViewProjection * cropMatrix;
         g_sharedState->cb.shadowCaster.upload();
     }
 

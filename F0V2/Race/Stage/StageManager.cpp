@@ -186,12 +186,12 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         auto skydome_b4 = ConstantBufferWrapper<Skydome_b10>{};
         skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
         skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
-        skydome_b4->sphereRadius = g_sharedState->fovFarZ;
+        skydome_b4->sphereRadius = g_sharedState->farDepth;
         skydome_b4.upload();
 
         m_skydomeDrawer = ModelDrawer{
             ModelDrawerParams{}
-            .setModel(PrimitiveModel3D::Sphere(g_sharedState->fovFarZ, ColorF32{0.5, 0.7, 1.0}))
+            .setModel(PrimitiveModel3D::Sphere(g_sharedState->farDepth, ColorF32{0.5, 0.7, 1.0}))
             .setShader(Asset_shader::skydome)
             .setOptions(GraphicsOptions::Default3D()
                         .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
