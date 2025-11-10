@@ -199,6 +199,8 @@ namespace TY
                 Float2 posBR;
                 Float2 uvTL;
                 Float2 uvBR;
+
+                RectF rect() const;
             };
 
             Array<character_type> characters{};

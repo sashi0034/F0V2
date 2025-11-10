@@ -303,6 +303,11 @@ namespace TY
         (void)activeImmediateDrawer().push(*this);
     }
 
+    RectF Immediate2D::CachedText::character_type::rect() const
+    {
+        return RectF{posTL, posBR - posTL};
+    }
+
     void Immediate2D::CachedText::pushAuto()
     {
         (void)activeImmediateDrawer().push(*this);

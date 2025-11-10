@@ -30,6 +30,33 @@ namespace
 #if defined(_DEBUG)
     bool s_stopMove{};
 #endif
+
+    void drawLabelText(const std::u32string& text, float size, const Float2& pos, Alignment9 alignment)
+    {
+        auto t = Immediate2D_Text::Audiowide_Sdf(text)
+                 .setSize(size)
+                 .setPosition(pos, alignment)
+                 .setColor(Palette::LightSteelBlue)
+                 .cache();
+
+        Immediate2D::RoundRect{t.region.stretched(8.0f, -4.0f)}
+            .setColor(ColorF32{0.15f})
+            .pushAuto();
+
+        for (int i = 0; i < t.characters.size(); ++i)
+        {
+            if (text[i] == U' ')
+            {
+                continue;
+            }
+
+            Immediate2D::RoundRect{t.characters[i].rect()}
+                .setColor(ColorF32{0.15f})
+                .pushAuto();
+        }
+
+        t.pushAuto();
+    }
 }
 
 struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceDrawer
@@ -260,11 +287,11 @@ private:
     void drawUI() const
     {
         // スピードメーター
-        Immediate2D_Text::Audiowide_Sdf(
-                ToUtf32(std::format("{:.0f} km/h", machine().state.m_velocity.length() * 10.0f)))
-            .setPosition(Screen::SizeF().movedBy(-20.0f, -12.0f), Alignment9::BottomRight)
-            .setSize(28.0f)
-            .pushAuto();
+        drawLabelText(ToUtf32(std::format("{:.0f} km/h", machine().state.m_velocity.length() * 10.0f)),
+                      28.0f,
+                      Screen::SizeF().movedBy(-20.0f, -12.0f),
+
+                      Alignment9::BottomRight);
 
         // -----------------------------------------------
         // 耐久値バー
@@ -280,11 +307,10 @@ private:
                 }
                 .setColor(Palette::GoldenRod)
                 .pushAuto();
-            Immediate2D_Text::Audiowide_Sdf(ToUtf32("{}", static_cast<int>(machine().state.m_durability)))
-                .setSize(20.0f)
-                .setPosition(bottomLeft.movedBy(barSize.x, -barSize.y - 4.0f), Alignment9::BottomRight)
-                .setColor(Palette::LightSteelBlue)
-                .pushAuto();
+            drawLabelText(ToUtf32("{}", static_cast<int>(machine().state.m_durability)),
+                          20.0f,
+                          bottomLeft.movedBy(barSize.x, -barSize.y - 4.0),
+                          Alignment9::BottomRight);
         }
 
         // -----------------------------------------------
@@ -293,13 +319,10 @@ private:
             const auto evaluation = GetRaceContext().machineManager().getEvaluation(m_machineId);
             const int rank1 = evaluation.rank + 1;
             const int totalMachines = GetRaceContext().machineManager().machineList().size();
-            Immediate2D_Text::Audiowide_Sdf(
-                    ToUtf32(std::format("{} / {}", rank1, totalMachines))
-                )
-                .setSize(40.0f)
-                .setPosition(Screen::TopCenterF().movedY(80.0f), Alignment9::TopCenter)
-                .setColor(Palette::LightSteelBlue)
-                .pushAuto();
+            drawLabelText(ToUtf32(std::format("{} / {}", rank1, totalMachines)),
+                          40.0f,
+                          Screen::TopCenterF().movedBy(0.0f, 50.0f),
+                          Alignment9::TopCenter);
         }
 
         // -----------------------------------------------
