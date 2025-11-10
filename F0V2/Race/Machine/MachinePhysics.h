@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "LapProgress.h"
+#include "MachineConstants.h"
 #include "TY_Extension/Pose.h"
 #include "Util/PositiveValue.h"
 
@@ -7,9 +8,9 @@ namespace Race
 {
     struct MachinePhysicsState
     {
-        float m_radius = 1;
+        float m_radius = MachineRadius;
 
-        float m_height = 2;
+        float m_height = MachineHeight;
 
         Pose m_pose{};
 

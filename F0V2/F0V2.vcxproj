@@ -176,6 +176,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\shader\wave_test.hlsl" />
     <Content Include="asset\shader\gbuffer_pass.hlsl" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
+    <ClCompile Include="Race\Machine\MachineDrawer.cpp" />
     <ClCompile Include="Race\RaceDrawManager.cpp" />
     <ClCompile Include="Testbed\Testbed_WaveTest.cpp" />
     <ClCompile Include="Testbed\Testbed_Shadertoy.cpp" />
@@ -299,6 +300,8 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="GamePalette.h" />
     <ClInclude Include="GM\GamepadConfigModal.h" />
     <ClInclude Include="Race\IRaceDrawer.h" />
+    <ClInclude Include="Race\Machine\MachineConstants.h" />
+    <ClInclude Include="Race\Machine\MachineDrawer.h" />
     <ClInclude Include="Race\RaceDrawManager.h" />
     <ClInclude Include="Testbed\Testbed_WaveTest.h" />
     <ClInclude Include="Testbed\Testbed_Shadertoy.h" />

@@ -7,6 +7,7 @@
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
 #include "Race/Common/RaceSharedState.h"
+#include "Race/Machine/MachineDrawer.h"
 #include "Race/Machine/MachinePhysics.h"
 #include "TY/ActorContainer.h"
 #include "TY/ImmediateDrawer.h"
@@ -36,7 +37,7 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
 
     ActorContainer m_children{};
 
-    ModelDrawer m_drawer{};
+    MachineDrawer m_drawer{};
 
     CharacterAiLogicState m_logicState{};
 
@@ -58,20 +59,7 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
             color = Palette::SandyBrown;
         }
 #endif
-
-        static const auto s_modelData =
-            PrimitiveModel3D::Capsule(machine().state.m_radius, machine().state.m_height, color.sRGBToLinear());
-
-        auto modelData = s_modelData;
-        modelData.materials[0].parameters.diffuse = color.toFloat3();
-
-        const ModelBuffer model = ModelBuffer{modelData};
-
-        m_drawer =
-            ModelDrawerParams{}
-            .setModel(model)
-            .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
-            .setShader(Asset_shader::gbuffer_pass);;
+        m_drawer = MachineDrawer(color.sRGBToLinear());
 
         resetPhysicsProps();
         resetPhysicsState();
@@ -95,7 +83,7 @@ private:
     void update() override
     {
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        (void)m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
+        m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
 
 #if defined(_DEBUG)
         if (s_stopInput)
@@ -136,7 +124,7 @@ private:
 
     void drawGBuffer() const override
     {
-        m_drawer.draw();
+        m_drawer.drawGBuffer();
     }
 
     void resetPhysicsState()

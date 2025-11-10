@@ -7,6 +7,7 @@
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
 #include "Race/Common/RaceSharedState.h"
+#include "Race/Machine/MachineDrawer.h"
 #include "Race/Machine/MachinePhysics.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
@@ -35,7 +36,7 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
 {
     ActorContainer m_children{};
 
-    ModelDrawer m_drawer{};
+    MachineDrawer m_drawer{};
 
     Float3 m_cameraUp{0, 1, 0};
 
@@ -45,17 +46,7 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
     {
         GetRaceContext().registerDrawer(shared_from_this());
 
-        const ModelBuffer model = ModelBuffer{
-            PrimitiveModel3D::Capsule(
-                machine().state.m_radius, machine().state.m_height,
-                Palette::CornflowerBlue.sRGBToLinear())
-        };
-
-        m_drawer =
-            ModelDrawerParams{}
-            .setModel(model)
-            .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
-            .setShader(Asset_shader::gbuffer_pass);
+        m_drawer = MachineDrawer(Palette::CornflowerBlue.sRGBToLinear());
 
         resetPhysicsProps();
         resetPhysicsState();
@@ -99,7 +90,7 @@ private:
     {
         // 前フレームの camera & 前フレームの Player 描画方式
         static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        (void)m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
+        m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
 
         updatePhysics();
 
@@ -117,7 +108,7 @@ private:
 
     void drawGBuffer() const override
     {
-        m_drawer.draw();
+        m_drawer.drawGBuffer();
     }
 
     void draw2D() const override
