@@ -3,6 +3,7 @@
 #include "DescriptorTable.h"
 #include "ShaderRegisterStart.h"
 #include "TY/Array.h"
+#include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"
 
 namespace TY::detail
@@ -12,6 +13,8 @@ namespace TY::detail
     struct ComputePipelineStateParams
     {
         ComputeShader computeShader;
+
+        Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
         Array<DescriptorTableElement> descriptorTable;
 

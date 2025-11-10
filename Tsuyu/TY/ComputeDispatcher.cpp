@@ -37,6 +37,7 @@ struct ComputeDispatcher::Impl
         m_pso = ComputePipelineState{
             ComputePipelineStateParams{
                 .computeShader = params.cs,
+                .samplers = params.samplers,
                 .descriptorTable = descriptorHeap.table
             }
         };
@@ -92,6 +93,12 @@ namespace TY
     ComputeDispatcherParams& ComputeDispatcherParams::setCS(const ComputeShader& cs_)
     {
         cs = cs_;
+        return *this;
+    }
+
+    ComputeDispatcherParams& ComputeDispatcherParams::setSamplers(const Array<GraphicsSamplerOptions>& samplers_)
+    {
+        samplers = samplers_;
         return *this;
     }
 

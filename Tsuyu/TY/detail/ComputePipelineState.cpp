@@ -87,9 +87,7 @@ private:
     bool createPipelineState(const ComputePipelineStateParams& params)
     {
         m_rootSignature = RootSignature(RootSignatureParams{
-            .samplers = {
-                GraphicsSamplerOptions{}
-            },
+            .samplers = params.samplers,
             .descriptorTable = params.descriptorTable,
             .explicitRegisterStarts = params.explicitRegisterStarts
         });

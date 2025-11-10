@@ -2,6 +2,7 @@
 #include "Array.h"
 #include "CbvSrvUav.h"
 #include "ConstantBufferArray.h"
+#include "GraphicsOptions.h"
 #include "Shader.h"
 
 namespace TY
@@ -10,6 +11,8 @@ namespace TY
     {
         ComputeShader cs{};
 
+        Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
+
         Array<ConstantBufferArrayImpl> cbv{}; // from b0
 
         Array<ShaderResourceType> srv{}; // from t0
@@ -17,6 +20,8 @@ namespace TY
         Array<UnorderedAccessType> uav{}; // from u0
 
         ComputeDispatcherParams& setCS(const ComputeShader& cs_);
+
+        ComputeDispatcherParams& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
 
         ComputeDispatcherParams& setCbv(const Array<ConstantBufferArrayImpl>& cbv_);
 

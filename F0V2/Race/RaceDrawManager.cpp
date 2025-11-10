@@ -55,6 +55,15 @@ namespace
             m_dispatcher =
                 ComputeDispatcherParams{}
                 .setCS(Asset_shader::scenery1_cs)
+                .setSamplers({
+                    GraphicsSamplerOptions{}
+                    .setAddress(GraphicsAddressMode::Border)
+                    .setFilter(GraphicsFilterMode::Linear),
+                    GraphicsSamplerOptions{}
+                    .setFilter(GraphicsFilterMode::Linear)
+                    .setComparison(GraphicsComparisonFunction::Greater)
+                    .setMaxAnisotropy(1)
+                })
                 .setCbv({m_cb})
                 .setSrv({
                     g_sharedState->gbuffer.albedo,

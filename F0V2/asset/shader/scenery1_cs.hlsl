@@ -15,6 +15,8 @@
 
 SamplerState g_sampler0 : register(s0);
 
+SamplerComparisonState g_shadowMapSampler : register(s1);
+
 Texture2D<float4> g_albedoBuffer : register(t0);
 
 Texture2D<float4> g_normalBuffer : register(t1);
@@ -525,13 +527,15 @@ float3 computeLight(float3 worldPos, float3 N, float3 V, float3 albedo, float vi
     if (all(0.0 <= shadowUV) && all(shadowUV <= 1.0))
     {
         const float currentDepth = shadowP.z / shadowP.w;
-        const float shadowDepth = g_shadowMap.SampleLevel(g_sampler0, shadowUV, 0.0).r; // FIXME: Use SampleCmpLevelZero
 
-        if (shadowDepth < currentDepth - 1e-3f)
-        {
-            // FIXME
-            light *= 0.5;
-        }
+        // const float shadowDepth = g_shadowMap.SampleLevel(g_sampler0, shadowUV, 0.0).r; // FIXME: Use SampleCmpLevelZero
+        // if (shadowDepth < currentDepth - 1e-3f)
+        // {
+        //     light *= 0.5;
+        // }
+
+        const float shadowValue = g_shadowMap.SampleCmpLevelZero(g_shadowMapSampler, shadowUV, currentDepth - 1e-3f);
+        light *= lerp(1.0f, 0.5f, shadowValue);
     }
 
     // Combine
