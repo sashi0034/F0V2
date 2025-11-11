@@ -36,6 +36,8 @@ namespace Race
 
         RenderTarget shadowMap{};
 
+        bool isRaceStarted{};
+
         RaceSharedState();
     };
 

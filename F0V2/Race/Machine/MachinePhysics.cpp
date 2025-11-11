@@ -4,6 +4,7 @@
 #include "MachineMoveResolver.h"
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
+#include "Race/Common/RaceSharedState.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/GameStep.h"
 #include "TY/GameTime.h"
@@ -180,6 +181,11 @@ namespace Race
 
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
+        if (not g_sharedState->isRaceStarted)
+        {
+            return;
+        }
+
         // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);
         Float3 gravity = state.m_gravity; // TODO: 地面方向の成分を除去
         state.m_velocity += gravity * 50.0f * InGameDeltaTime();

@@ -4,12 +4,15 @@
 #include "Asset0.h"
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
+#include "Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/Palette.h"
 #include "TY/Screen.h"
 #include "TY/Utils.h"
+#include "TY_Extension/AwaiterContext.h"
+#include "Util/ImmediatePrint.h"
 
 using namespace Race;
 
@@ -51,14 +54,48 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     ActorContainer m_children{};
 
+    int m_countdown{};
+
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
+
+        StartCoroutine(m_children, [this](AwaiterContext& await)
+        {
+            runRaceFlow(await);
+        });
     }
 
 private:
     void update() override
     {
+        m_children.updateEach();
+
+        if (m_countdown > 0)
+        {
+            ImmediatePrint_MiddleCenter("countdown: {}", m_countdown);
+        }
+    }
+
+    void runRaceFlow(AwaiterContext& await)
+    {
+        g_sharedState->isRaceStarted = false;
+
+        m_countdown = 3;
+
+        await.waitForTime(1.0f);
+
+        m_countdown--;
+
+        await.waitForTime(1.0f);
+
+        m_countdown--;
+
+        await.waitForTime(1.0f);
+
+        m_countdown--;
+
+        g_sharedState->isRaceStarted = true;
     }
 
     void drawHud() const override
