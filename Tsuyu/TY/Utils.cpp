@@ -5,6 +5,19 @@
 
 namespace TY
 {
+    std::string ToLowercase(std::string_view str)
+    {
+        std::string result;
+        result.reserve(str.size());
+
+        for (char c : str)
+        {
+            result.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
+        }
+
+        return result;
+    }
+
     std::wstring ToUtf16(std::string_view str)
     {
         // Get the required buffer size for the wide string

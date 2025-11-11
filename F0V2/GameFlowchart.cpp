@@ -15,8 +15,10 @@
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/System.h"
+#include "TY/Utils.h"
 #include "TY_Extension/AwaiterContext.h"
 #include "TY_Extension/GameObjectBase.h"
+#include "Util/DebugTomlValue.h"
 
 namespace
 {
@@ -147,12 +149,26 @@ private:
 
     void handleFlowchart(AwaiterContext& await)
     {
-        std::unique_ptr<IFlowchart> flowchart = std::make_unique<Flowcharts::RaceSetupFlowchart>();
-#if 0
-        const auto entryPoint = GetTomlDebugValueOf<String>(U"entry_point").lowercase();
-        if (entryPoint == U"Quest"_s.lowercase()) flowchart = std::make_unique<QuestFlowchart>();
-        else if (entryPoint == U"Exposition"_s.lowercase()) flowchart = std::make_unique<ExpositionFlowchart>();
+        std::unique_ptr<IFlowchart> flowchart{};
+#if defined(_DEBUG)
+        if (const auto entryPoint = ToLowercase(GetDebugTomlValue<std::string>("entry_point"));
+            not entryPoint.empty())
+        {
+            if (entryPoint == ToLowercase("Editor"))
+            {
+                flowchart = std::make_unique<Flowcharts::EditorFlowchart>();
+            }
+            else if (entryPoint == ToLowercase("RaceSetup"))
+            {
+                flowchart = std::make_unique<Flowcharts::RaceSetupFlowchart>();
+            }
+        }
 #endif
+
+        if (not flowchart)
+        {
+            flowchart = std::make_unique<Flowcharts::RaceSetupFlowchart>();;
+        }
 
         while (true)
         {
