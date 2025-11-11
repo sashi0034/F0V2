@@ -38,6 +38,8 @@ struct Flowcharts
     {
         std::unique_ptr<IFlowchart> EditorFlowchart::Process(AwaiterContext& await, ActorContainer& parent) override
         {
+            g_debugService.editorEnabled = true;
+
             auto editor = parent.birth(Editor::EditorScene());
             editor.init();
 

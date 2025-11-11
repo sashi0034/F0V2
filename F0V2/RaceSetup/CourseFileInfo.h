@@ -5,7 +5,7 @@ namespace RaceSetup
 {
     struct CourseFileInfo
     {
-        std::string filename;
+        std::string filepath;
         std::u32string displayName;
         std::u32string description1;
         std::u32string description2;

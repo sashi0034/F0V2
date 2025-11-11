@@ -4,6 +4,9 @@
 #include "Asset0.h"
 #include "CourseFileInfo.h"
 #include "Race/Common/AiRank.h"
+#include "Race/Common/CourseData.h"
+#include "Race/Common/CourseSegmentBuilder.h"
+#include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Gamepad.h"
 #include "TY/Immediate2D.h"
@@ -241,12 +244,23 @@ private:
             m_confirmed = confirmTriggered.value_or(false);
             if (m_confirmed)
             {
+                loadCourseData();
                 return;
             }
         }
 
         m_rowIndex += dir.y;
         m_rowIndex = Math::Clamp(m_rowIndex, 0, 2);
+    }
+
+    void loadCourseData()
+    {
+        const auto course = Race::LoadCourseData(GetAllCourseFileInfos()[m_selectedItem.courseIndex].filepath);
+
+        Array<Race::CourseSegment> segments{};
+        BuildCourseSegmentIfNeeded(segments, course.nodes);
+
+        Race::g_sharedState->courseSegments = std::move(segments);
     }
 
     void killed() override

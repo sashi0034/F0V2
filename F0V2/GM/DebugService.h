@@ -4,7 +4,7 @@ inline namespace GM_inline
 {
     struct DebugService
     {
-        bool editorEnabled{true};
+        bool editorEnabled{};
 
         float cameraSpeed{3.0f};
 
