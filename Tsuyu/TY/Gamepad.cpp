@@ -103,8 +103,8 @@ namespace TY
         return {rawState().axes[s_mapping.axis_rx], rawState().axes[s_mapping.axis_ry]};
     }
 
-    bool IsGamepadPreferred()
+    bool IsUsingGamepad()
     {
-        return EngineGamepad::IsGamepadPreferred();
+        return EngineGamepad::IsUsingGamepad();
     }
 }

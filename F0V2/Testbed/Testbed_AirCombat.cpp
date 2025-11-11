@@ -338,7 +338,7 @@ public:
         FighterBody::Input input{};
         input.roll = -SimpleInput::GetPlayerMovement2D().x;
         input.pitch = -SimpleInput::GetPlayerMovement2D().y;
-        input.speed = IsGamepadPreferred()
+        input.speed = IsUsingGamepad()
                           ? (MainGamepad.rt().pressed - MainGamepad.lt().pressed)
                           : (KeyUp.pressed() - KeyDown.pressed());
         m_body.Update(input);
@@ -356,7 +356,7 @@ public:
 
         ImGui::Separator();
 
-        ImGui::Text("%s", IsGamepadPreferred() ? "Gamepad" : "Keyboard & Mouse");
+        ImGui::Text("%s", IsUsingGamepad() ? "Gamepad" : "Keyboard & Mouse");
 
         m_body.DebugGUI();
 

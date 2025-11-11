@@ -34,7 +34,7 @@ namespace TY
     };
 
     [[nodiscard]]
-    bool IsGamepadPreferred();
+    bool IsUsingGamepad();
 
     inline constexpr GamepadInput MainGamepad{};
 }

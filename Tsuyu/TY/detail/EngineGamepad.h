@@ -13,6 +13,6 @@ namespace TY::detail
 
         const GamepadInputState& GetInputState();
 
-        bool IsGamepadPreferred();
+        bool IsUsingGamepad();
     };
 }
