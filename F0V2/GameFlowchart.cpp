@@ -1,18 +1,19 @@
 ﻿#include "pch.h"
 #include "GameFlowchart.h"
 
-#include "Asset.generated.h"
 #include "GamePalette.h"
 #include "Editor/EditorScene.h"
 #include "GM/DebugService.h"
 #include "GM/GamepadConfigModal.h"
 #include "Race/RaceScene.h"
+#include "Race/Common/CourseData.h"
+#include "Race/Common/CourseSegmentBuilder.h"
+#include "Race/Common/RaceSharedState.h"
 #include "RaceSetup/RaceSetupScene.h"
 #include "TY/ActorContainer.h"
 #include "TY/Gamepad.h"
 #include "TY/GpuMetrics.h"
 #include "TY/KeyboardInput.h"
-#include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/System.h"
 #include "TY/Utils.h"
@@ -30,6 +31,16 @@ namespace
 
         virtual std::unique_ptr<IFlowchart> Process(AwaiterContext& await, ActorContainer& parent) = 0;
     };
+
+    void loadCourseData(const std::string& courseFilepath)
+    {
+        const auto course = Race::LoadCourseData(courseFilepath);
+
+        Array<Race::CourseSegment> segments{};
+        BuildCourseSegmentIfNeeded(segments, course.nodes);
+
+        Race::g_sharedState->courseSegments = std::move(segments);
+    }
 }
 
 struct Flowcharts
@@ -74,6 +85,8 @@ struct Flowcharts
             {
                 return raceSetup.isConfirmed();
             });
+
+            loadCourseData(raceSetup.selectedCourseFilepath());
 
             raceSetup.kill();
 
@@ -163,6 +176,11 @@ private:
             else if (entryPoint == ToLowercase("RaceSetup"))
             {
                 flowchart = std::make_unique<Flowcharts::RaceSetupFlowchart>();
+            }
+            else if (entryPoint == ToLowercase("Race"))
+            {
+                loadCourseData(GetDebugTomlValue<std::string>("fixed_course_path"));
+                flowchart = std::make_unique<Flowcharts::RaceFlowchart>();
             }
         }
 #endif

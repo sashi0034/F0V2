@@ -244,23 +244,12 @@ private:
             m_confirmed = confirmTriggered.value_or(false);
             if (m_confirmed)
             {
-                loadCourseData();
                 return;
             }
         }
 
         m_rowIndex += dir.y;
         m_rowIndex = Math::Clamp(m_rowIndex, 0, 2);
-    }
-
-    void loadCourseData()
-    {
-        const auto course = Race::LoadCourseData(GetAllCourseFileInfos()[m_selectedItem.courseIndex].filepath);
-
-        Array<Race::CourseSegment> segments{};
-        BuildCourseSegmentIfNeeded(segments, course.nodes);
-
-        Race::g_sharedState->courseSegments = std::move(segments);
     }
 
     void killed() override
@@ -284,6 +273,12 @@ namespace RaceSetup
     bool RaceSetupScene::isConfirmed() const
     {
         return p_impl->m_confirmed;
+    }
+
+    std::string RaceSetupScene::selectedCourseFilepath() const
+    {
+        const auto& courseInfo = GetAllCourseFileInfos()[p_impl->m_selectedItem.courseIndex];
+        return courseInfo.filepath;
     }
 
     std::shared_ptr<ActorBase> RaceSetupScene::asActor() const

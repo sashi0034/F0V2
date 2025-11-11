@@ -12,6 +12,8 @@ namespace RaceSetup
 
         bool isConfirmed() const;
 
+        std::string selectedCourseFilepath() const;
+
         std::shared_ptr<ActorBase> asActor() const override;
 
     private:
