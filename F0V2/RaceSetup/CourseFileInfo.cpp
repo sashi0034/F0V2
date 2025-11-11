@@ -17,7 +17,7 @@ namespace RaceSetup
             .filename = "asset/course/course_smoothRoad.toml",
             .displayName = U"始まりの小惑星",
             .description1 = U"広大な平原と緩やかな丘陵が広がり、初心者に最適なコースです。",
-            .description2 = U"銀河連邦の広報ホログラムでも「安全・安心」が謳われている惑星です。",
+            .description2 = U"銀河連邦の広報ホログラムでも「安全・安心」と謳われています。",
             .difficulty = 1,
         });
 

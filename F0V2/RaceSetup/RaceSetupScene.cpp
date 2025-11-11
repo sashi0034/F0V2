@@ -12,6 +12,7 @@
 #include "TY/KeyboardInput.h"
 #include "TY/Palette.h"
 #include "TY/Screen.h"
+#include "TY/Utils.h"
 #include "Util/Utilities.h"
 
 using namespace RaceSetup;
@@ -23,6 +24,7 @@ namespace
         const std::u32string& icon,
         const std::u32string& leftMessage,
         const std::u32string& rightMessage,
+        int itemIndex,
         bool isActive)
     {
         const auto region = rowRegion.stretched(-4.0f);
@@ -50,6 +52,11 @@ namespace
             .setColor(ColorF32{isActive ? 0.9f : 0.5f})
             .pushAuto();
 
+        Immediate2D_Text::MPlus1_Sdf(ToUtf32(std::format("[{}]", itemIndex + 1)))
+            .setSize(24.0f)
+            .setPosition(columnRegions[1].middleRight().movedX(-64.0f), Alignment9::MiddleRight)
+            .setColor(ColorF32{isActive ? 0.9f : 0.5f})
+            .pushAuto();
         Immediate2D_Text::MPlus1_Sdf(rightMessage)
             .setSize(24.0f)
             .setPosition(columnRegions[1].center(), Alignment9::MiddleCenter)
@@ -148,10 +155,20 @@ private:
         };
         static_assert(aiDisplayItems.size() == static_cast<int>(Race::AiRank::Max));
 
-        drawItemRow(lineRegions[0], U"\U000F169E", U"AI つよさ", aiDisplayItems[m_selectedItem.aiRank], m_rowIndex == 0);
+        drawItemRow(lineRegions[0],
+                    U"\U000F169E",
+                    U"AI つよさ",
+                    aiDisplayItems[m_selectedItem.aiRank],
+                    m_selectedItem.aiRank,
+                    m_rowIndex == 0);
 
         const auto& courseInfo = GetAllCourseFileInfos()[m_selectedItem.courseIndex];
-        drawItemRow(lineRegions[1], U"\U000F0982", U"コース", courseInfo.displayName, m_rowIndex == 1);
+        drawItemRow(lineRegions[1],
+                    U"\U000F0982",
+                    U"コース",
+                    courseInfo.displayName,
+                    m_selectedItem.courseIndex,
+                    m_rowIndex == 1);
 
         std::u32string difficultyText{U"難易度:"};
         for (int i = 0; i < courseInfo.difficulty; ++i)
