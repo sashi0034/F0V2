@@ -4,7 +4,7 @@
 #include "ComponentManager_singleton.h"
 #include "EngineGamepad.h"
 #include "EngineHotReloader.h"
-#include "EngineImGUI.h"
+#include "ImGuiAdapter_singleton.h"
 #include "EngineKeyboardMouse.h"
 #include "EnginePresetAsset.h"
 #include "RenderContext_singleton.h"
@@ -76,7 +76,7 @@ struct EngineCoreImpl
 
         EngineGamepad::Init();
 
-        EngineImGui::Init();
+        ImGuiAdapter_singleton::Init();
 
         initPredefinedComponents();
     }
@@ -87,7 +87,7 @@ struct EngineCoreImpl
 
         RenderContext_singleton::NewFrame();
 
-        EngineImGui::NewFrame();
+        ImGuiAdapter_singleton::NewFrame();
 
         EngineTimer::Update();
 
@@ -114,7 +114,7 @@ struct EngineCoreImpl
     {
         ComponentManager_singleton::BeforeFlush();
 
-        EngineImGui::Render();
+        ImGuiAdapter_singleton::Render();
 
         RenderContext_singleton::Render();
 
@@ -139,7 +139,7 @@ struct EngineCoreImpl
 
         EngineGamepad::Shutdown();
 
-        EngineImGui::Shutdown();
+        ImGuiAdapter_singleton::Shutdown();
 
         ComponentManager_singleton::Shutdown();
 

@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "EngineImGUI.h"
+#include "ImGuiAdapter_singleton.h"
 
 #include "DescriptorHeap.h"
 #include "EngineCore.h"
@@ -11,7 +11,7 @@
 using namespace TY;
 using namespace TY::detail;
 
-struct EngineImGuiImpl
+struct ImGuiAdapterImpl
 {
     DescriptorHeap m_descriptorHeap{};
 
@@ -59,17 +59,17 @@ struct EngineImGuiImpl
 
 namespace
 {
-    EngineImGuiImpl s_imgui{};
+    ImGuiAdapterImpl s_imgui{};
 }
 
 namespace TY::detail
 {
-    void EngineImGui::Init()
+    void ImGuiAdapter_singleton::Init()
     {
         s_imgui.Init();
     }
 
-    void EngineImGui::NewFrame()
+    void ImGuiAdapter_singleton::NewFrame()
     {
         const auto windowSize = Window_singleton::GetSize();
         ImGuiIO& io = ImGui::GetIO();
@@ -83,7 +83,7 @@ namespace TY::detail
         ImGui::NewFrame();
     }
 
-    void EngineImGui::Render()
+    void ImGuiAdapter_singleton::Render()
     {
         ImGui::Render();
 
@@ -93,7 +93,7 @@ namespace TY::detail
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
     }
 
-    void EngineImGui::Shutdown()
+    void ImGuiAdapter_singleton::Shutdown()
     {
         ImGui_ImplDX12_Shutdown();
         ImGui_ImplWin32_Shutdown();

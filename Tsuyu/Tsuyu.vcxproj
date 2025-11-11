@@ -249,7 +249,7 @@
     <ClInclude Include="TY\detail\EngineCore.h" />
     <ClInclude Include="TY\detail\EngineEntryPoint.h" />
     <ClInclude Include="TY\detail\EngineHotReloader.h" />
-    <ClInclude Include="TY\detail\EngineImGUI.h" />
+    <ClInclude Include="TY\detail\ImGuiAdapter_singleton.h" />
     <ClInclude Include="TY\detail\EngineKeyboardMouse.h" />
     <ClInclude Include="TY\detail\EnginePresetAsset.h" />
     <ClInclude Include="TY\detail\RenderContext_singleton.h" />
@@ -402,7 +402,7 @@
     <ClCompile Include="TY\detail\EngineCore.cpp" />
     <ClCompile Include="TY\detail\EngineEntryPoint.cpp" />
     <ClCompile Include="TY\detail\EngineHotReloader.cpp" />
-    <ClCompile Include="TY\detail\EngineImGUI.cpp" />
+    <ClCompile Include="TY\detail\ImGuiAdapter_singleton.cpp" />
     <ClCompile Include="TY\detail\EngineKeyboardMouse.cpp" />
     <ClCompile Include="TY\detail\EnginePresetAsset.cpp" />
     <ClCompile Include="TY\detail\RenderContext_singleton.cpp" />

@@ -2,7 +2,7 @@
 
 namespace TY::detail
 {
-    namespace EngineImGui
+    namespace ImGuiAdapter_singleton
     {
         void Init();
 
