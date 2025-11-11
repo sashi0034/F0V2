@@ -16,6 +16,7 @@ namespace
 {
     void drawItemRow(
         const RectF& rowRegion,
+        const std::u32string& icon,
         const std::u32string& leftMessage,
         const std::u32string& rightMessage,
         bool isActive)
@@ -33,6 +34,12 @@ namespace
         }
 
         const auto columnRegions = Util::SliceRectByCount(region, 2, Direction2::Horizontal);
+        Immediate2D_Text::MPlus1_Sdf(icon)
+            .setSize(24.0f)
+            .setPosition(columnRegions[0].middleLeft().movedX(20.0f), Alignment9::MiddleLeft)
+            .setColor(ColorF32{isActive ? 0.9f : 0.5f})
+            .pushAuto();
+
         Immediate2D_Text::MPlus1_Sdf(leftMessage)
             .setSize(24.0f)
             .setPosition(columnRegions[0].center(), Alignment9::MiddleCenter)
@@ -94,7 +101,7 @@ private:
             .setColor(ColorF32{0.1f})
             .pushAuto();
 
-        const auto hudRegion = Screen::RectF().stretched(-400.0f, -280.0f);
+        const auto hudRegion = Screen::RectF().stretched(-400.0f, -320.0f);
 
         const auto [titleBarRegion, contentRegion] =
             hudRegion.separate(80.0f, Direction4::Up);
@@ -108,7 +115,7 @@ private:
             .setColor(ColorF32{0.2f})
             .pushAuto();
 
-        Immediate2D_Text::MPlus1_Sdf(U"レース選択")
+        Immediate2D_Text::MPlus1_Sdf(U"\U000F0B6E レース選択")
             .setSize(32.0f)
             .setPosition(titleBarRegion.center(), Alignment9::MiddleCenter)
             .setColor(ColorF32{0.9f})
@@ -117,20 +124,21 @@ private:
         const auto lineRegions =
             Util::SliceRectByLength(contentRegion.stretched(-20.0f, -32.0f), 48.0f, Direction2::Vertical);
 
-        drawItemRow(lineRegions[0], U"AI つよさ", U"ふつう", KeySpace.pressed());
+        drawItemRow(lineRegions[0], U"\U000F169E", U"AI つよさ", U"ふつう", KeySpace.pressed());
 
-        drawItemRow(lineRegions[1], U"コース", U"惑星ルビコン 6", KeySpace.pressed());
+        drawItemRow(lineRegions[1], U"\U000F0982", U"コース", U"惑星ルビコン 6", KeySpace.pressed());
 
         drawDescriptionRow(lineRegions[2], U"ここは強化人間-san がいる星です。");
 
-        drawDescriptionRow(lineRegions[3], U"難易度: ●★☆");
+        drawDescriptionRow(lineRegions[3], U"難易度: \U000F09A5 \U000F09A5 \U000F09A5");
 
-        Immediate2D::RoundRect{RectF{lineRegions[5].center(), Alignment9::MiddleCenter, SizeF{400.0f, 48.0f}}}
+        const auto& lastRowRegion = lineRegions[lineRegions.size() - 1];
+        Immediate2D::RoundRect{RectF{lastRowRegion.center(), Alignment9::MiddleCenter, SizeF{400.0f, 48.0f}}}
             .setColor(false ? Palette::RoyalBlue : ColorF32{1.0f}) // TODO
             .pushAuto();
-        Immediate2D_Text::MPlus1_Sdf(U"レース開始 !")
+        Immediate2D_Text::MPlus1_Sdf(U"\U000F1807 レース開始")
             .setSize(24.0f)
-            .setPosition(lineRegions[5].center(), Alignment9::MiddleCenter)
+            .setPosition(lastRowRegion.center(), Alignment9::MiddleCenter)
             .setColor(false ? ColorF32{1.0f} : ColorF32{0.1f}) // TODO
             .pushAuto();
 

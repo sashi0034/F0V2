@@ -22,6 +22,9 @@ namespace TY
 
         SdfFont(const std::string& filepath, int fontSize, const SdfFontOptions& options = {});
 
+        /// @brief フォールバック込みでフォントを作成
+        SdfFont(const Array<std::string>& filepaths, int fontSize, const SdfFontOptions& options = {});
+
         const GlyphInfo& fetchByCodePoint(char32_t codePoint) const;
 
         Array<GlyphInfo> fetchByString(const std::u32string& str) const;

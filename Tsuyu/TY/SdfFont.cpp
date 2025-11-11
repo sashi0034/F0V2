@@ -6,6 +6,7 @@
 #include "DynamicTexture.h"
 #include "GlyphInfo.h"
 #include "Grid.h"
+#include "InlineComponent.h"
 #include "Logger.h"
 #include "Rect.h"
 #include "detail/FreeTypeContext.h"
@@ -139,13 +140,50 @@ namespace
         }
 #endif
     }
+
+    class SdfFontCache : public IInlineComponent
+    {
+    private:
+        struct property_type
+        {
+            std::string path{};
+            int fontSize{};
+        };
+
+        Array<std::pair<property_type, FT_Face>> m_faceList{};
+
+    public:
+        FT_Face FetchFace(const std::string& path, int fontSize)
+        {
+            for (const auto& [prop, face] : m_faceList)
+            {
+                if (prop.path == path && prop.fontSize == fontSize)
+                {
+                    return face;
+                }
+            }
+
+            FT_Face face;
+            if (FT_New_Face(GetFreeType(), path.c_str(), 0, &face))
+            {
+                LogError("SdfFontCache: Failed to load font from file: " + path);
+                return nullptr;
+            }
+
+            FT_Set_Pixel_Sizes(face, 0, fontSize);
+            m_faceList.push_back({property_type{path, fontSize}, face});
+            return face;
+        }
+    };
+
+    InlineComponent<SdfFontCache> s_sdfFontCache{};
 }
 
 struct SdfFont::Impl : RenderEvent::Lister
 {
     int m_fontSize{};
 
-    FT_Face m_face{};
+    Array<FT_Face> m_faces{};
 
     int m_atlasPadding{};
 
@@ -178,7 +216,8 @@ struct SdfFont::Impl : RenderEvent::Lister
     // *=========*=========*
     // *********************
 
-    Impl(const std::string& filepath, int fontSize, const SdfFontOptions& options)
+    // TODO: Init() で初期化するようにする
+    Impl(const Array<std::string>& filepaths, int fontSize, const SdfFontOptions& options)
         : m_fontSize(fontSize),
           m_atlasPadding(options.atlasPadding),
           m_sdfMargin(options.sdfMargin),
@@ -186,13 +225,10 @@ struct SdfFont::Impl : RenderEvent::Lister
     {
         m_cursor.pos = Point{m_atlasPadding, m_atlasPadding};
 
-        if (FT_New_Face(GetFreeType(), filepath.c_str(), 0, &m_face))
+        for (const auto& filepath : filepaths)
         {
-            LogError("SdfFont: Failed to load font from file: " + filepath);
-            return;
+            m_faces.push_back(s_sdfFontCache->FetchFace(filepath, fontSize));
         }
-
-        FT_Set_Pixel_Sizes(m_face, 0, fontSize);
 
         m_atlasImage = Grid<uint8_t>(Size{options.atlasSize, options.atlasSize});
         m_atlasTexture = DynamicTexture(getAtlasImageView());
@@ -209,12 +245,35 @@ struct SdfFont::Impl : RenderEvent::Lister
 
         // -----------------------------------------------
 
-        if (FT_Load_Char(m_face, codePoint, FT_LOAD_RENDER))
+        FT_Face face = nullptr;
+        for (const auto& f : m_faces)
         {
-            return stubGlyph;
+            const FT_UInt glyphIndex = FT_Get_Char_Index(f, codePoint);
+            if (glyphIndex == 0)
+            {
+                // グリフが存在しない
+                continue;
+            }
+
+            if (FT_Load_Glyph(f, glyphIndex, FT_LOAD_RENDER))
+            {
+                // 読み込み失敗
+                continue;
+            }
+
+            face = f;
+            break;
         }
 
-        FT_GlyphSlot glyphSlot = m_face->glyph;
+        if (face == nullptr)
+        {
+            m_glyphTable[codePoint] = stubGlyph;
+            return m_glyphTable[codePoint];
+        }
+
+        // -----------------------------------------------
+
+        FT_GlyphSlot glyphSlot = face->glyph;
         FT_Bitmap& bitmap = glyphSlot->bitmap;
 
         GlyphInfo glyph{};
@@ -289,6 +348,8 @@ struct SdfFont::Impl : RenderEvent::Lister
 
     void beforeFlush() override
     {
+        // FIXME: 多分これだとフレーム最後でアップロードすることになって最初の描画が失敗しそう
+        // TODO: refreshIfNeeded() を実装する
         if (m_shouldUpdateAtlas)
         {
             m_atlasTexture.upload(getAtlasImageView());
@@ -310,7 +371,20 @@ private:
 namespace TY
 {
     SdfFont::SdfFont(const std::string& filepath, int fontSize, const SdfFontOptions& options)
-        : p_impl(std::make_shared<Impl>(filepath, fontSize, options))
+        : p_impl(std::make_shared<Impl>(Array<std::string>{filepath}, fontSize, options))
+    {
+        if (p_impl->m_valid)
+        {
+            RenderEvent::AddLister(p_impl);
+        }
+        else
+        {
+            p_impl.reset();
+        }
+    }
+
+    SdfFont::SdfFont(const Array<std::string>& filepaths, int fontSize, const SdfFontOptions& options)
+        : p_impl(std::make_shared<Impl>(filepaths, fontSize, options))
     {
         if (p_impl->m_valid)
         {

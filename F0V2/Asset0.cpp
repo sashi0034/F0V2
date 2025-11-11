@@ -27,11 +27,17 @@ namespace
 
         Asset0State()
         {
+            // https://pictogrammers.com/library/mdi/
+            const std::string materialDesignIconsPath =
+                "asset/font/MaterialDesignIcons/materialdesignicons-webfont.ttf";
+
+            // -----------------------------------------------
+
             const std::string rocknRollPath = "asset/font/RocknRoll/RocknRollOne-Regular.ttf";
 
             m_RocknRoll_24_bitmap = BitmapFont(rocknRollPath, 24);
 
-            m_RocknRoll_Sdf_font = SdfFont(rocknRollPath, 48);
+            m_RocknRoll_Sdf_font = SdfFont({rocknRollPath, materialDesignIconsPath}, 48);
 
             // -----------------------------------------------
 
@@ -39,7 +45,7 @@ namespace
 
             m_ZXProto_24_bitmap = BitmapFont(zxProtoPath, 24);
 
-            m_ZXProto_Sdf_font = SdfFont(zxProtoPath, 48);
+            m_ZXProto_Sdf_font = SdfFont({rocknRollPath, materialDesignIconsPath}, 48);
 
             // -----------------------------------------------
 
@@ -47,7 +53,8 @@ namespace
 
             m_Audiowide_24_bitmap = BitmapFont(AudiowidePath, 24);
 
-            m_Audiowide_Sdf_font = SdfFont(AudiowidePath, 48, SdfFontOptions{.tabularFigures = 48});
+            m_Audiowide_Sdf_font =
+                SdfFont({AudiowidePath, materialDesignIconsPath}, 48, SdfFontOptions{.tabularFigures = 48});
 
             // -----------------------------------------------
 
@@ -57,7 +64,7 @@ namespace
 
             m_MPlus1_24_bitmap = BitmapFont(mplus1Path, 24);
 
-            m_MPlus1_Sdf_font = SdfFont(mplus1Path, 48);
+            m_MPlus1_Sdf_font = SdfFont({mplus1Path, materialDesignIconsPath}, 48);
         }
     };
 
