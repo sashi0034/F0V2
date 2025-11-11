@@ -209,7 +209,8 @@ private:
         const Float3 cameraEye = GetRaceContextContent().camera.eyePosition();
 
         // カメラ方向を光源とする
-        const Float3 lightDirection = -GetRaceContextContent().camera.upDirection();
+        const Float3 lightDirection = -(cameraUp - cameraForward * 0.5f).normalized();
+        // -GetRaceContextContent().camera.upDirection();
 
         const Float3 shadowCenter = cameraEye;
 
