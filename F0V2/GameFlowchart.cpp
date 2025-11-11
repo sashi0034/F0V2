@@ -70,7 +70,7 @@ struct Flowcharts
 
             await.waitForTrue([this, &raceSetup]()
             {
-                return not raceSetup.isAlive();
+                return raceSetup.isConfirmed();
             });
 
             raceSetup.kill();

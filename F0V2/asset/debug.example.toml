@@ -3,7 +3,7 @@
 # editor, raceSetup, race
 entry_point = "editor"
 
-fixed_course_path = "asset/edit/sandbox_course.toml"
+fixed_course_path = "asset/course/sandbox_course.toml"
 
 ai_count = 29
 

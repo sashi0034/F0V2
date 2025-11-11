@@ -2,9 +2,13 @@
 #include "RaceSetupScene.h"
 
 #include "Asset0.h"
+#include "CourseFileInfo.h"
+#include "Race/Common/AiRank.h"
 #include "TY/ActorContainer.h"
+#include "TY/Gamepad.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
+#include "TY/InputUtils.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Palette.h"
 #include "TY/Screen.h"
@@ -90,6 +94,16 @@ struct RaceSetupScene::Impl : ActorBase
 
     ActorContainer m_children{};
 
+    int m_rowIndex{};
+
+    bool m_confirmed{};
+
+    struct
+    {
+        int aiRank{};
+        int courseIndex{};
+    } m_selectedItem;
+
     void Init()
     {
     }
@@ -97,6 +111,8 @@ struct RaceSetupScene::Impl : ActorBase
 private:
     void update() override
     {
+        handleInput();
+
         Immediate2D::Rect{Screen::RectF()}
             .setColor(ColorF32{0.1f})
             .pushAuto();
@@ -124,25 +140,96 @@ private:
         const auto lineRegions =
             Util::SliceRectByLength(contentRegion.stretched(-20.0f, -32.0f), 48.0f, Direction2::Vertical);
 
-        drawItemRow(lineRegions[0], U"\U000F169E", U"AI つよさ", U"ふつう", KeySpace.pressed());
+        constexpr std::array aiDisplayItems = {
+            U"やさしい",
+            U"ふつう",
+            U"強い",
+            U"最強",
+        };
+        static_assert(aiDisplayItems.size() == static_cast<int>(Race::AiRank::Max));
 
-        drawItemRow(lineRegions[1], U"\U000F0982", U"コース", U"惑星ルビコン 6", KeySpace.pressed());
+        drawItemRow(lineRegions[0], U"\U000F169E", U"AI つよさ", aiDisplayItems[m_selectedItem.aiRank], m_rowIndex == 0);
 
-        drawDescriptionRow(lineRegions[2], U"ここは強化人間-san がいる星です。");
+        const auto& courseInfo = GetAllCourseFileInfos()[m_selectedItem.courseIndex];
+        drawItemRow(lineRegions[1], U"\U000F0982", U"コース", courseInfo.displayName, m_rowIndex == 1);
 
-        drawDescriptionRow(lineRegions[3], U"難易度: \U000F09A5 \U000F09A5 \U000F09A5");
+        std::u32string difficultyText{U"難易度:"};
+        for (int i = 0; i < courseInfo.difficulty; ++i)
+        {
+            difficultyText += U" \U000F04CE";
+        }
 
-        const auto& lastRowRegion = lineRegions[lineRegions.size() - 1];
-        Immediate2D::RoundRect{RectF{lastRowRegion.center(), Alignment9::MiddleCenter, SizeF{400.0f, 48.0f}}}
-            .setColor(false ? Palette::RoyalBlue : ColorF32{1.0f}) // TODO
-            .pushAuto();
-        Immediate2D_Text::MPlus1_Sdf(U"\U000F1807 レース開始")
-            .setSize(24.0f)
-            .setPosition(lastRowRegion.center(), Alignment9::MiddleCenter)
-            .setColor(false ? ColorF32{1.0f} : ColorF32{0.1f}) // TODO
-            .pushAuto();
+        drawDescriptionRow(lineRegions[2], difficultyText);
+
+        drawDescriptionRow(lineRegions[3], courseInfo.description1);
+
+        drawDescriptionRow(lineRegions[4], courseInfo.description2);
+
+        // 開始ボタン
+        {
+            bool isActive = m_rowIndex == 2;
+            const auto& lastRowRegion = lineRegions[lineRegions.size() - 1];
+            Immediate2D::RoundRect{RectF{lastRowRegion.center(), Alignment9::MiddleCenter, SizeF{400.0f, 48.0f}}}
+                .setColor(isActive ? Palette::RoyalBlue : ColorF32{1.0f}) // TODO
+                .pushAuto();
+            Immediate2D_Text::MPlus1_Sdf(U"\U000F1807 レース開始")
+                .setSize(24.0f)
+                .setPosition(lastRowRegion.center(), Alignment9::MiddleCenter)
+                .setColor(isActive ? ColorF32{1.0f} : ColorF32{0.1f}) // TODO
+                .pushAuto();
+        }
 
         ImmediateDrawer::Global().draw();
+    }
+
+    void handleInput()
+    {
+        if (m_confirmed)
+        {
+            return;
+        }
+
+        std::optional<Direction4> dirOpt{};
+        std::optional<bool> confirmTriggered{};
+
+        if (IsUsingGamepad())
+        {
+            dirOpt = GamepadUtils::GetTriggeredDpad();
+            confirmTriggered = MainGamepad.a().down;
+        }
+        else
+        {
+            dirOpt = KeyboardUtils::GetTriggeredArrowOrWASD();
+            confirmTriggered = KeySpace.down();
+        }
+
+        Point dir{};
+        if (dirOpt.has_value())
+        {
+            dir = DirectionToPoint(*dirOpt);
+        }
+
+        if (m_rowIndex == 0)
+        {
+            m_selectedItem.aiRank =
+                Modulo(m_selectedItem.aiRank + dir.x, static_cast<int>(Race::AiRank::Max));
+        }
+        else if (m_rowIndex == 1)
+        {
+            m_selectedItem.courseIndex =
+                Modulo<int>(m_selectedItem.courseIndex + dir.x, GetAllCourseFileInfos().size());
+        }
+        else if (m_rowIndex == 2)
+        {
+            m_confirmed = confirmTriggered.value_or(false);
+            if (m_confirmed)
+            {
+                return;
+            }
+        }
+
+        m_rowIndex += dir.y;
+        m_rowIndex = Math::Clamp(m_rowIndex, 0, 2);
     }
 
     void killed() override
@@ -161,6 +248,11 @@ namespace RaceSetup
     void RaceSetupScene::init()
     {
         p_impl->Init();
+    }
+
+    bool RaceSetupScene::isConfirmed() const
+    {
+        return p_impl->m_confirmed;
     }
 
     std::shared_ptr<ActorBase> RaceSetupScene::asActor() const

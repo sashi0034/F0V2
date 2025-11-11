@@ -80,7 +80,7 @@ namespace
 
     // -----------------------------------------------
 
-    const std::string defaultCourseFilepath = "asset/edit/sandbox_course.toml";
+    const std::string defaultCourseFilepath = "asset/course/sandbox_course.toml";
 }
 
 struct EditorScene::Impl : ActorBase

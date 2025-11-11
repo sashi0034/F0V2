@@ -167,7 +167,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\.gitignore" />
     <Content Include="asset\debug.example.toml" />
     <Content Include="asset\debug.toml" />
-    <Content Include="asset\edit\.gitignore" />
     <Content Include="asset\fsr1\fsr1_easu.hlsl" />
     <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
@@ -177,6 +176,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\shader\wave_test.hlsl" />
     <Content Include="asset\shader\gbuffer_pass.hlsl" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
+    <ClCompile Include="RaceSetup\CourseFileInfo.cpp" />
     <ClCompile Include="RaceSetup\RaceSetupScene.cpp" />
     <ClCompile Include="Race\Machine\MachineDrawer.cpp" />
     <ClCompile Include="Race\RaceDrawManager.cpp" />
@@ -208,7 +208,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\RaceCameraController.cpp" />
     <ClCompile Include="Race\Stage\StageStaticCollider.cpp" />
     <ClCompile Include="Race\Stage\StageManager.cpp" />
-    <ClCompile Include="Race\Toys\ToyCinnamon.cpp" />
     <ClCompile Include="Testbed\Testbed_Collision1.cpp" />
     <ClCompile Include="Testbed\Testbed_Collision2.cpp" />
     <ClCompile Include="Testbed\Testbed_Collision3.cpp" />
@@ -257,7 +256,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="Race\Stage\Stage_template.h.txt" />
     <Content Include="Race\Race_template.cpp.txt" />
     <Content Include="Race\Race_template.h.txt" />
-    <Content Include="Race\Toys\Toy_template.h.txt" />
     <Content Include="Testbed\Testbed_template.cpp.txt" />
     <Content Include="Testbed\Testbed_template.h.txt" />
     <Content Include="engine\shape3d.hlsl" />
@@ -304,7 +302,9 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="CB\Skydome.h" />
     <ClInclude Include="GamePalette.h" />
     <ClInclude Include="GM\GamepadConfigModal.h" />
+    <ClInclude Include="RaceSetup\CourseFileInfo.h" />
     <ClInclude Include="RaceSetup\RaceSetupScene.h" />
+    <ClInclude Include="Race\Common\AiRank.h" />
     <ClInclude Include="Race\IRaceDrawer.h" />
     <ClInclude Include="Race\Machine\MachineConstants.h" />
     <ClInclude Include="Race\Machine\MachineDrawer.h" />
@@ -341,7 +341,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\RaceScene.h" />
     <ClInclude Include="Race\Stage\StageStaticCollider.h" />
     <ClInclude Include="Race\Stage\StageManager.h" />
-    <ClInclude Include="Race\Toys\ToyCinnamon.h" />
     <ClInclude Include="Testbed\Testbed_AirCombat.h" />
     <ClInclude Include="Testbed\Testbed_Basic3D.h" />
     <ClInclude Include="Testbed\Testbed_Collision1.h" />
@@ -380,7 +379,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="asset\edit\tmp\" />
     <Folder Include="asset\shadertoy\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

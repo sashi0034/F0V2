@@ -10,6 +10,8 @@ namespace RaceSetup
 
         void init();
 
+        bool isConfirmed() const;
+
         std::shared_ptr<ActorBase> asActor() const override;
 
     private:

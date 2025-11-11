@@ -176,6 +176,7 @@
     <ClInclude Include="TY\DiskTexture.h" />
     <ClInclude Include="TY\GpuMetrics.h" />
     <ClInclude Include="TY\IndexedTriangle.h" />
+    <ClInclude Include="TY\InputUtils.h" />
     <ClInclude Include="TY\MipmappedDynamicTexture.h" />
     <ClInclude Include="TY\IGpuMemoryUsage.h" />
     <ClInclude Include="TY\Palette.h" />
@@ -345,6 +346,7 @@
     <ClCompile Include="TY\DiskTexture.cpp" />
     <ClCompile Include="TY\GamepadInputState.cpp" />
     <ClCompile Include="TY\GpuMetrics.cpp" />
+    <ClCompile Include="TY\InputUtils.cpp" />
     <ClCompile Include="TY\MipmappedDynamicTexture.cpp" />
     <ClCompile Include="TY\Palette.cpp" />
     <ClCompile Include="TY\Periodic.cpp" />
