@@ -15,11 +15,12 @@ using namespace RaceSetup;
 namespace
 {
     void drawItemRow(
-        const RectF& region,
+        const RectF& rowRegion,
         const std::u32string& leftMessage,
         const std::u32string& rightMessage,
         bool isActive)
     {
+        const auto region = rowRegion.stretched(-4.0f);
         Immediate2D::RoundRect{region}
             .setColor(isActive ? Palette::RoyalBlue : ColorF32{1.0f})
             .pushAuto();
@@ -63,6 +64,15 @@ namespace
                 .pushAuto();
         }
     }
+
+    void drawDescriptionRow(const RectF& region, const std::u32string& desc)
+    {
+        Immediate2D_Text::MPlus1_Sdf(desc)
+            .setSize(24.0f)
+            .setPosition(region.middleLeft().movedX(80.0f), Alignment9::MiddleLeft)
+            .setColor(ColorF32{0.5f})
+            .pushAuto();
+    }
 }
 
 struct RaceSetupScene::Impl : ActorBase
@@ -84,7 +94,7 @@ private:
             .setColor(ColorF32{0.1f})
             .pushAuto();
 
-        const auto hudRegion = Screen::RectF().stretched(-400.0f, -200.0f);
+        const auto hudRegion = Screen::RectF().stretched(-400.0f, -280.0f);
 
         const auto [titleBarRegion, contentRegion] =
             hudRegion.separate(80.0f, Direction4::Up);
@@ -105,13 +115,24 @@ private:
             .pushAuto();
 
         const auto lineRegions =
-            Util::SliceRectByLength(contentRegion.stretched(-20.0f, -40.0f), 40.0f, Direction2::Vertical);
+            Util::SliceRectByLength(contentRegion.stretched(-20.0f, -32.0f), 48.0f, Direction2::Vertical);
 
-        {
-            auto& region = lineRegions[0];
+        drawItemRow(lineRegions[0], U"AI つよさ", U"ふつう", KeySpace.pressed());
 
-            drawItemRow(region, U"AI つよさ", U"ふつう", KeySpace.pressed());
-        }
+        drawItemRow(lineRegions[1], U"コース", U"惑星ルビコン 6", KeySpace.pressed());
+
+        drawDescriptionRow(lineRegions[2], U"ここは強化人間-san がいる星です。");
+
+        drawDescriptionRow(lineRegions[3], U"難易度: ●★☆");
+
+        Immediate2D::RoundRect{RectF{lineRegions[5].center(), Alignment9::MiddleCenter, SizeF{400.0f, 48.0f}}}
+            .setColor(false ? Palette::RoyalBlue : ColorF32{1.0f}) // TODO
+            .pushAuto();
+        Immediate2D_Text::MPlus1_Sdf(U"レース開始 !")
+            .setSize(24.0f)
+            .setPosition(lineRegions[5].center(), Alignment9::MiddleCenter)
+            .setColor(false ? ColorF32{1.0f} : ColorF32{0.1f}) // TODO
+            .pushAuto();
 
         ImmediateDrawer::Global().draw();
     }
