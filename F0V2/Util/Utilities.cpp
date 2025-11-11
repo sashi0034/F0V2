@@ -24,3 +24,9 @@ Array<RectF> Util::SliceRectByLength(const RectF& rect, float length, Direction2
 
     return result;
 }
+
+Array<RectF> Util::SliceRectByCount(const RectF& rect, int count, Direction2 dir)
+{
+    float length = dir == Direction2::Horizontal ? rect.size.x / count : rect.size.y / count;
+    return SliceRectByLength(rect, length, dir);
+}

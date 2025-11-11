@@ -6,6 +6,8 @@ namespace Util
 {
     Array<RectF> SliceRectByLength(const RectF& rect, float length, Direction2 dir);
 
+    Array<RectF> SliceRectByCount(const RectF& rect, int count, Direction2 dir);
+
     /// @brief enum の文字列を取得する
     /// @remarks enum の先頭は 0 から始まる必要がある
     template <typename Enum>
