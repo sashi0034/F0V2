@@ -346,7 +346,8 @@ namespace Race
         // -----------------------------------------------
 
 #if defined(_DEBUG)
-        if (props.machineId == g_debugService.monitorMachineId)
+        if (props.machineId == g_debugService.monitorMachineId &&
+            GetDebugTomlValue<bool>("print_diagnostics"))
         {
             ImmediatePrint_TopCenter(
                 "[{}] Lap: {}, Segment: {}, Strip: {}",

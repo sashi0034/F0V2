@@ -7,6 +7,7 @@
 #include "TY/Immediate2D.h"
 #include "TY/Immediate3D.h"
 #include "TY/Palette.h"
+#include "Util/DebugTomlValue.h"
 #include "Util/ImmediatePrint.h"
 
 using namespace Race;
@@ -191,7 +192,8 @@ namespace Race
         }
 
 #if defined(_DEBUG)
-        if (state.m_aiId == 0)
+        if (state.m_aiId == 0 &&
+            GetDebugTomlValue<bool>("print_diagnostics"))
         {
             ImmediatePrint_TopRight("[CharacterAi#{}]", state.m_aiId);
             ImmediatePrint_TopRight("targetWaypoint: {}", targetWaypoint.indexInList);
