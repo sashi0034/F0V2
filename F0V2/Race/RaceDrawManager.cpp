@@ -175,10 +175,7 @@ private:
 
             for (int i = 0; i < m_drawers.size(); ++i)
             {
-                if (m_drawers[i].parameters.drawForward)
-                {
-                    m_drawers[i].drawer->drawGBuffer();
-                }
+                m_drawers[i].drawer->drawGBuffer();
             }
         }
 
@@ -198,10 +195,7 @@ private:
 
         for (int i = 0; i < m_drawers.size(); ++i)
         {
-            if (m_drawers[i].parameters.draw2D)
-            {
-                m_drawers[i].drawer->draw2D();
-            }
+            m_drawers[i].drawer->drawHud();
         }
     }
 

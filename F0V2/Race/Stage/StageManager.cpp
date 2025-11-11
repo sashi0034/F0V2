@@ -334,14 +334,6 @@ private:
         }
     }
 
-    void prepareDrawParameters(RaceDrawParameters& config, bool init) const override
-    {
-        if (init)
-        {
-            config.drawForward = true;
-        }
-    }
-
     void drawGBuffer() const override
     {
         drawPlaceholderScenery();

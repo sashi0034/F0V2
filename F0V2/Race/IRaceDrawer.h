@@ -4,9 +4,7 @@ namespace Race
 {
     struct RaceDrawParameters
     {
-        // TODO: めんどくさいので skipForward, skip2D でやるほうがいいかも
-        bool drawForward{};
-        bool draw2D{};
+        // TODO: skipShadowMap など
     };
 
     class IRaceDrawer
@@ -14,7 +12,9 @@ namespace Race
     public:
         virtual ~IRaceDrawer() = default;
 
-        virtual void prepareDrawParameters(RaceDrawParameters& config, bool init) const = 0;
+        virtual void prepareDrawParameters(RaceDrawParameters& config, bool init) const
+        {
+        }
 
         virtual void drawShadowMap() const
         {
@@ -24,7 +24,7 @@ namespace Race
         {
         }
 
-        virtual void draw2D() const
+        virtual void drawHud() const
         {
         }
     };

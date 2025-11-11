@@ -124,15 +124,6 @@ private:
         debugUI();
     }
 
-    void prepareDrawParameters(RaceDrawParameters& config, bool init) const override
-    {
-        if (init)
-        {
-            config.drawForward = true;
-            config.draw2D = true;
-        }
-    }
-
     void drawShadowMap() const override
     {
         m_drawer.drawShadowMap();
@@ -143,7 +134,7 @@ private:
         m_drawer.drawGBuffer();
     }
 
-    void draw2D() const override
+    void drawHud() const override
     {
         drawUI();
     }
