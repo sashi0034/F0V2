@@ -49,7 +49,11 @@ struct ComputeDispatcher::Impl
     {
         for (auto& srv : m_srvList)
         {
-            if (srv.isHolds<DepthBufferHandle>())
+            if (srv.isHolds<TextureHandle>())
+            {
+                srv.get<TextureHandle>().transitionResourceState(D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            }
+            else if (srv.isHolds<DepthBufferHandle>())
             {
                 srv.get<DepthBufferHandle>().transitionResourceState(D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
             }

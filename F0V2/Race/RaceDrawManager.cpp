@@ -210,6 +210,7 @@ private:
 
         // カメラ方向を光源とする
         const Float3 lightDirection = -(cameraUp - cameraForward * 0.5f).normalized();
+        const Float3& lightRight = cameraRight;
         // -GetRaceContextContent().camera.upDirection();
 
         const Float3 shadowCenter = cameraEye;
@@ -230,7 +231,7 @@ private:
         const auto shadowView = Mat4x4::LookAt(
             shadowEyePosition,
             shadowCenter,
-            Float3{0.0f, 1.0f, 0.0f}
+            lightDirection.cross(lightRight).normalized()
         );
 
         const auto shadowViewProjection = shadowView * shadowProjection;
