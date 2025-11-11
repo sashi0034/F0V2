@@ -5,6 +5,7 @@
 #include "RaceCameraController.h"
 #include "RaceContextContent.h"
 #include "RaceDrawManager.h"
+#include "RaceFlowController.h"
 #include "Ai/CharacterAi.h"
 #include "Ai/SpatialAi.h"
 #include "Common/RaceSharedState.h"
@@ -28,6 +29,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     RaceContextContent m_state{};
 
     RaceDrawManager m_drawManager{};
+
+    RaceFlowController m_flowController{};
 
     StageManager m_stageManager{};
 
@@ -61,6 +64,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     {
         m_drawManager = m_children.birth(RaceDrawManager());
         m_drawManager.init();
+
+        m_flowController = m_children.birth(RaceFlowController());
+        m_flowController.init();
 
         m_stageManager = m_children.birth(StageManager());
         m_stageManager.init();
