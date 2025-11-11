@@ -7,6 +7,7 @@
 #include "GM/DebugService.h"
 #include "GM/GamepadConfigModal.h"
 #include "Race/RaceScene.h"
+#include "RaceSetup/RaceSetupScene.h"
 #include "TY/ActorContainer.h"
 #include "TY/Gamepad.h"
 #include "TY/GpuMetrics.h"
@@ -27,9 +28,10 @@ namespace
 
         virtual std::unique_ptr<IFlowchart> Process(AwaiterContext& await, ActorContainer& parent) = 0;
     };
+}
 
-    std::unique_ptr<IFlowchart> CreateRaceFlowchart();
-
+struct Flowcharts
+{
     struct EditorFlowchart : IFlowchart
     {
         std::unique_ptr<IFlowchart> EditorFlowchart::Process(AwaiterContext& await, ActorContainer& parent) override
@@ -51,9 +53,31 @@ namespace
 
             editor.kill();
 
-            return CreateRaceFlowchart();
+            return std::make_unique<RaceFlowchart>();
         }
     };
+
+    // -----------------------------------------------
+
+    struct RaceSetupFlowchart : IFlowchart
+    {
+        std::unique_ptr<IFlowchart> Process(AwaiterContext& await, ActorContainer& parent) override
+        {
+            auto raceSetup = parent.birth(RaceSetup::RaceSetupScene());
+            raceSetup.init();
+
+            await.waitForTrue([this, &raceSetup]()
+            {
+                return not raceSetup.isAlive();
+            });
+
+            raceSetup.kill();
+
+            return std::make_unique<RaceFlowchart>();
+        }
+    };
+
+    // -----------------------------------------------
 
     struct RaceFlowchart : IFlowchart
     {
@@ -79,12 +103,7 @@ namespace
             return std::make_unique<EditorFlowchart>();
         }
     };
-
-    std::unique_ptr<IFlowchart> CreateRaceFlowchart()
-    {
-        return std::make_unique<RaceFlowchart>();
-    }
-}
+};
 
 struct F0V2::GameFlowchart::Impl : GameObjectBase
 {
@@ -128,7 +147,7 @@ private:
 
     void handleFlowchart(AwaiterContext& await)
     {
-        std::unique_ptr<IFlowchart> flowchart = std::make_unique<EditorFlowchart>();
+        std::unique_ptr<IFlowchart> flowchart = std::make_unique<Flowcharts::RaceSetupFlowchart>();
 #if 0
         const auto entryPoint = GetTomlDebugValueOf<String>(U"entry_point").lowercase();
         if (entryPoint == U"Quest"_s.lowercase()) flowchart = std::make_unique<QuestFlowchart>();

@@ -1,12 +1,12 @@
 #pragma once
 #include "TY/ActorHandle.h"
 
-namespace Race
+namespace RaceSetup
 {
-    class Player_template : public ActorHandle
+    class RaceSetupScene : public ActorHandle
     {
     public:
-        Player_template();
+        RaceSetupScene();
 
         void init();
 

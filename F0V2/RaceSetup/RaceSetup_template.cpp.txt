@@ -3,17 +3,18 @@
 #include "TY/ActorContainer.h"
 #include "TY/ModelDrawer.h"
 
-using namespace Race;
+using namespace RaceSetup;
 
 namespace
 {
 }
 
-struct Player_template::Impl : ActorBase
+struct RaceSetup_template::Impl : ActorBase
 {
 #if defined(_DEBUG)
-    std::u32string m_debugName = U"Player_template";
+    std::u32string m_debugName = U"RaceSetup_template";
 #endif
+
     ActorContainer m_children{};
 
     ModelDrawer m_drawer{};
@@ -38,19 +39,19 @@ private:
     }
 };
 
-namespace Race
+namespace RaceSetup
 {
-    Player_template::Player_template() :
+    RaceSetup_template::RaceSetup_template() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void Player_template::init()
+    void RaceSetup_template::init()
     {
         p_impl->Init();
     }
 
-    std::shared_ptr<ActorBase> Player_template::asActor() const
+    std::shared_ptr<ActorBase> RaceSetup_template::asActor() const
     {
         return p_impl;
     }
