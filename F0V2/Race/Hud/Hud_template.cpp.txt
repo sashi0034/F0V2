@@ -1,0 +1,57 @@
+
+#include "Asset.generated.h"
+#include "TY/ActorContainer.h"
+#include "TY/ModelDrawer.h"
+
+using namespace Race;
+
+namespace
+{
+}
+
+struct Hud_template::Impl : ActorBase
+{
+#if defined(_DEBUG)
+    std::u32string m_debugName = U"Hud_template";
+#endif
+    ActorContainer m_children{};
+
+    ModelDrawer m_drawer{};
+
+    void Init()
+    {
+        m_drawer =
+            ModelDrawerParams{}
+            .setModel(Asset_model::cinnamon)
+            .setShader(Asset_shader::model);
+    }
+
+private:
+    void update() override
+    {
+        m_drawer.uploadWorldMatrix(Mat4x4::Identity()).draw();
+    }
+
+    void killed() override
+    {
+        m_children.killEach();
+    }
+};
+
+namespace Race
+{
+    Hud_template::Hud_template() :
+        p_impl(std::make_shared<Impl>())
+    {
+    }
+
+    void Hud_template::init()
+    {
+        p_impl->Init();
+    }
+
+    std::shared_ptr<ActorBase> Hud_template::asActor() const
+    {
+        return p_impl;
+    }
+}

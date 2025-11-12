@@ -1,174 +1,22 @@
 #include "pch.h"
 #include "RaceFlowController.h"
 
-#include "Asset0.h"
-#include "GamePalette.h"
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "Common/RaceSharedState.h"
+#include "Hud/Hud_DurabilityBar.h"
+#include "Hud/Hud_LabelText.h"
 #include "TY/ActorContainer.h"
-#include "TY/EaseActor.h"
-#include "TY/Easing.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
-#include "TY/Palette.h"
 #include "TY/Screen.h"
 #include "TY/Utils.h"
 #include "TY_Extension/AwaitContext.h"
-#include "Util/ImmediatePrint.h"
 
 using namespace Race;
 
 namespace
 {
-    void drawLabelText(
-        const std::u32string& text,
-        float size,
-        const Float2& pos,
-        Alignment9 alignment,
-        const std::optional<ColorF32>& colorOpt = std::nullopt)
-    {
-        auto t = Immediate2D_Text::Audiowide_Sdf(text)
-                 .setSize(size)
-                 .setPosition(pos, alignment)
-                 .setColor(colorOpt.value_or(Palette::LightSteelBlue))
-                 .cache();
-
-        Immediate2D::RoundRect{t.region.stretched(8.0f, -4.0f)}
-            .setColor(ColorF32{0.15f})
-            .pushAuto();
-
-        for (int i = 0; i < t.characters.size(); ++i)
-        {
-            if (text[i] == U' ')
-            {
-                continue;
-            }
-
-            Immediate2D::RoundRect{t.characters[i].rect()}
-                .setColor(ColorF32{0.15f})
-                .pushAuto();
-        }
-
-        t.pushAuto();
-    }
-
-    void drawSpecialText(const std::u32string& text, float size, const Float2& pos, Alignment9 alignment)
-    {
-        auto t = Immediate2D_Text::Audiowide_Sdf(text)
-                 .setSize(size)
-                 .setPosition(pos, alignment)
-                 .setColor(GamePalette::GamingGreen)
-                 .cache();
-
-        Immediate2D::RoundRect{
-                RectF{t.region.center(), Alignment9::MiddleCenter, SizeF{t.region.w + 64.0f, size * 0.75f}}
-            }
-            .setColor(ColorF32{0.15f})
-            .setRoundness(40.0f)
-            .pushAuto();
-
-        // Immediate2D::Path()
-        //     .append(t.region.middleLeft().movedX(-40.0f))
-        //     .append(t.region.topCenter().movedY(-20.0f))
-        //     .append(t.region.middleRight().movedX(40.0f))
-        //     .append(t.region.bottomCenter().movedY(20.0f))
-        //     .setThickness(40.0f)
-        //     .setColor(ColorF32{0.15f})
-        //     .asCycle()
-        //     .pushAuto();
-
-        for (int i = 0; i < t.characters.size(); ++i)
-        {
-            if (text[i] == U' ')
-            {
-                continue;
-            }
-
-            Immediate2D::RoundRect{t.characters[i].rect()}
-                .setColor(ColorF32{0.15f})
-                .setRoundness(20.0f)
-                .pushAuto();
-        }
-
-        t.pushAuto();
-    }
-
-    class DurabilityBarDrawer
-    {
-    public:
-        void Update(const MachinePhysicsUnit& machine)
-        {
-            m_children.updateEach();
-
-            if (m_actualMaxDurability == 0.0f)
-            {
-                m_actualDurability = machine.state.m_durability;
-                m_actualMaxDurability = machine.props.maxDurability;
-                m_displayDurability = m_actualDurability;
-                return;
-            }
-
-            if (m_actualDurability != machine.state.m_durability)
-            {
-                m_actualDurability = machine.state.m_durability;
-
-                m_animation.clear();
-                StartCoroutine(m_children, [this](AwaitContext& await)
-                {
-                    await.waitForTime(0.5s);
-
-                    StartEasing<EaseOutExpo>(m_children, m_displayDurability, m_actualDurability, 0.5s)
-                        >> m_animation;
-                }) >> m_animation;
-            }
-        }
-
-        void Draw() const
-        {
-            const Float2 bottomLeft = Screen::RectF().bl().movedBy(40.0f, -160.0f);
-            constexpr SizeF barSize{320.0f, 12.0f};
-            Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
-                .setColor(ColorF32{0.2f})
-                .pushAuto();
-
-            const float displayRate = Math::Clamp(m_displayDurability / m_actualMaxDurability, 0.0f, 1.0f);
-            const Float2 displaySize = barSize.withX(barSize.x * displayRate);
-            Immediate2D::RoundRect{
-                    RectF{bottomLeft, Alignment9::BottomLeft, displaySize}
-                    .stretched(-Min(4.0f, displaySize.x * 0.5f), -1.0f)
-                }
-                .setColor(Palette::Crimson)
-                .pushAuto();
-
-            const float actualRate = Math::Clamp(m_actualDurability / m_actualMaxDurability, 0.0f, 1.0f);
-            const Float2 actualSize = barSize.withX(barSize.x * actualRate);
-            Immediate2D::RoundRect{
-                    RectF{bottomLeft, Alignment9::BottomLeft, actualSize}
-                    .stretched(-Min(4.0f, actualSize.x * 0.5f), -1.0f)
-                }
-                .setColor(Palette::CornflowerBlue)
-                .pushAuto();
-
-            const auto labelColor =
-                actualSize.x + 1.0f < displaySize.x ? std::optional(Palette::Crimson) : std::nullopt;
-            drawLabelText(ToUtf32("{}", static_cast<int>(m_actualDurability)),
-                          20.0f,
-                          bottomLeft.movedBy(barSize.x, -barSize.y - 4.0),
-                          Alignment9::BottomRight,
-                          labelColor);
-        }
-
-    private:
-        ActorContainer m_children{};
-        ActorLifetimeScope m_animation{};
-
-        float m_actualDurability{};
-        float m_actualMaxDurability{};
-
-        float m_displayDurability{};
-    };
-
     enum class MajorBanner : uint8_t
     {
         None,
@@ -187,7 +35,7 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     ActorContainer m_children{};
 
-    DurabilityBarDrawer m_durabilityBarDrawer{};
+    Hud_DurabilityBar m_durabilityBar{};
 
     int m_countdown{};
 
@@ -203,14 +51,15 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
         {
             runRaceFlow(await);
         });
+
+        m_durabilityBar = m_children.birth(Hud_DurabilityBar());
+        m_durabilityBar.init();
     }
 
 private:
     void update() override
     {
         m_children.updateEach();
-
-        m_durabilityBarDrawer.Update(GetRaceContext().machineManager().machineList()[PlayerMachineId]);
     }
 
     void runRaceFlow(AwaitContext& await)
@@ -291,7 +140,7 @@ private:
         const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
 
         // スピードメーター
-        drawLabelText(ToUtf32(std::format("{:.0f} km/h", player.state.m_velocity.length() * 10.0f)),
+        DrawLabelText(ToUtf32(std::format("{:.0f} km/h", player.state.m_velocity.length() * 10.0f)),
                       28.0f,
                       Screen::SizeF().movedBy(-20.0f, -12.0f),
 
@@ -300,7 +149,7 @@ private:
         // -----------------------------------------------
         // 耐久値バー
         {
-            m_durabilityBarDrawer.Draw();
+            m_durabilityBar.draw();
         }
 
         // -----------------------------------------------
@@ -311,7 +160,7 @@ private:
             const auto evaluation = GetRaceContext().machineManager().getEvaluation(PlayerMachineId);
             const int rank1 = evaluation.rank + 1;
             const int totalMachines = GetRaceContext().machineManager().machineList().size();
-            drawLabelText(ToUtf32(std::format("{}", rank1)),
+            DrawLabelText(ToUtf32(std::format("{}", rank1)),
                           64.0f,
                           Screen::TopCenterF().movedY(40.0f),
                           Alignment9::TopCenter);
@@ -322,7 +171,7 @@ private:
                 .setColor(ColorF32{0.15f})
                 .pushAuto();
 
-            drawLabelText(ToUtf32(std::format("{}", totalMachines)),
+            DrawLabelText(ToUtf32(std::format("{}", totalMachines)),
                           32.0f,
                           Screen::TopCenterF().movedY(112.0f),
                           Alignment9::TopCenter);
@@ -339,7 +188,7 @@ private:
     {
         if (m_countdown > 0)
         {
-            drawSpecialText(
+            DrawSpecialLabelText(
                 ToUtf32("- {} -", m_countdown),
                 96.0f,
                 Screen::MiddleCenterF(), Alignment9::MiddleCenter);
@@ -347,35 +196,35 @@ private:
 
         if (m_majorBanner == MajorBanner::Go)
         {
-            drawSpecialText(
+            DrawSpecialLabelText(
                 ToUtf32("Go !", m_countdown),
                 96.0f,
                 Screen::MiddleCenterF(), Alignment9::MiddleCenter);
         }
         else if (m_majorBanner == MajorBanner::YouGotBoostPower)
         {
-            drawSpecialText(
+            DrawSpecialLabelText(
                 ToUtf32("You've Got Boost Power !"),
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
         }
         else if (m_majorBanner == MajorBanner::TheFinalLap)
         {
-            drawSpecialText(
+            DrawSpecialLabelText(
                 ToUtf32("The Final Lap !"),
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
         }
         else if (m_majorBanner == MajorBanner::Finish)
         {
-            drawSpecialText(
+            DrawSpecialLabelText(
                 ToUtf32("Finish !"),
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
 
             if (m_playerFinalRank != -1)
             {
-                drawSpecialText(
+                DrawSpecialLabelText(
                     ToUtf32("{} / {}", m_playerFinalRank + 1, GetRaceContext().machineManager().machineList().size()),
                     96.0f,
                     Screen::MiddleCenterF(), Alignment9::MiddleCenter);
