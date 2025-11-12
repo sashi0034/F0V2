@@ -55,7 +55,7 @@ namespace
                  .cache();
 
         Immediate2D::RoundRect{
-                RectF{t.region.center(), Alignment9::MiddleCenter, SizeF{t.region.w + 64.0f, 64.0f}}
+                RectF{t.region.center(), Alignment9::MiddleCenter, SizeF{t.region.w + 64.0f, size * 0.75f}}
             }
             .setColor(ColorF32{0.15f})
             .setRoundness(40.0f)
@@ -86,6 +86,15 @@ namespace
 
         t.pushAuto();
     }
+
+    enum class MajorBanner : uint8_t
+    {
+        None,
+        Go,
+        YouGotBoostPower,
+        TheFinalLap,
+        Finish,
+    };
 }
 
 struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
@@ -98,7 +107,9 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     int m_countdown{};
 
-    bool m_showGo{};
+    MajorBanner m_majorBanner{MajorBanner::None};
+
+    int m_playerFinalRank{-1};
 
     void Init()
     {
@@ -136,21 +147,65 @@ private:
 
         g_sharedState->isRaceStarted = true;
 
-        m_showGo = true;
-        StartCoroutine(m_children, [this](AwaitContext& await_)
-        {
-            await_.waitForTime(3.0f);
+        popupMajorBanner(MajorBanner::Go, 3.0f) >> await.lifetime();
 
-            m_showGo = false;
-        }) >> await.lifetime();
+        // -----------------------------------------------
+
+        await.waitForTrue([&]()
+        {
+            const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
+            return player.state.m_lapProgress.lapIndex == 1;
+        });
+
+        popupMajorBanner(MajorBanner::YouGotBoostPower, 5.0f) >> await.lifetime();
+
+        // -----------------------------------------------
+
+        await.waitForTrue([&]()
+        {
+            const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
+            return player.state.m_lapProgress.lapIndex == 2;
+        });
+
+        popupMajorBanner(MajorBanner::TheFinalLap, 5.0f) >> await.lifetime();
+
+        // -----------------------------------------------
+
+        await.waitForTrue([&]()
+        {
+            const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
+            return player.state.m_lapProgress.lapIndex == 3;
+        });
+
+        m_majorBanner = MajorBanner::Finish;
+
+        const int playerRank = GetRaceContext().machineManager().getEvaluation(PlayerMachineId).rank;
+
+        await.waitForTime(2.5s);
+
+        m_playerFinalRank = playerRank;
+    }
+
+    CoroutineActor popupMajorBanner(MajorBanner banner, float seconds)
+    {
+        m_majorBanner = banner;
+        return StartCoroutine(m_children, [this, banner, seconds](AwaitContext& await)
+        {
+            await.waitForTime(seconds);
+
+            if (m_majorBanner == banner)
+            {
+                m_majorBanner = MajorBanner::None;
+            }
+        });
     }
 
     void drawHud() const override
     {
-        const auto& machine = GetRaceContext().machineManager().machineList()[PlayerMachineId];
+        const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
 
         // スピードメーター
-        drawLabelText(ToUtf32(std::format("{:.0f} km/h", machine.state.m_velocity.length() * 10.0f)),
+        drawLabelText(ToUtf32(std::format("{:.0f} km/h", player.state.m_velocity.length() * 10.0f)),
                       28.0f,
                       Screen::SizeF().movedBy(-20.0f, -12.0f),
 
@@ -159,7 +214,7 @@ private:
         // -----------------------------------------------
         // 耐久値バー
         {
-            const float barRate = Math::Clamp(machine.state.m_durability / machine.props.maxDurability, 0.0f, 1.0f);
+            const float barRate = Math::Clamp(player.state.m_durability / player.props.maxDurability, 0.0f, 1.0f);
             const Float2 bottomLeft = Screen::RectF().bl().movedBy(40.0f, -160.0f);
             constexpr SizeF barSize{320.0f, 12.0f};
             Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
@@ -171,7 +226,7 @@ private:
                 }
                 .setColor(Palette::CornflowerBlue)
                 .pushAuto();
-            drawLabelText(ToUtf32("{}", static_cast<int>(machine.state.m_durability)),
+            drawLabelText(ToUtf32("{}", static_cast<int>(player.state.m_durability)),
                           20.0f,
                           bottomLeft.movedBy(barSize.x, -barSize.y - 4.0),
                           Alignment9::BottomRight);
@@ -179,6 +234,8 @@ private:
 
         // -----------------------------------------------
         // 順位
+
+        if (m_majorBanner != MajorBanner::Finish)
         {
             const auto evaluation = GetRaceContext().machineManager().getEvaluation(PlayerMachineId);
             const int rank1 = evaluation.rank + 1;
@@ -214,17 +271,44 @@ private:
             drawSpecialText(
                 ToUtf32("- {} -", m_countdown),
                 96.0f,
-                Screen::MiddleCenterF(),
-                Alignment9::MiddleCenter);
+                Screen::MiddleCenterF(), Alignment9::MiddleCenter);
         }
 
-        if (m_showGo)
+        if (m_majorBanner == MajorBanner::Go)
         {
             drawSpecialText(
                 ToUtf32("Go !", m_countdown),
                 96.0f,
-                Screen::MiddleCenterF(),
-                Alignment9::MiddleCenter);
+                Screen::MiddleCenterF(), Alignment9::MiddleCenter);
+        }
+        else if (m_majorBanner == MajorBanner::YouGotBoostPower)
+        {
+            drawSpecialText(
+                ToUtf32("You've Got Boost Power !"),
+                64.0f,
+                Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
+        }
+        else if (m_majorBanner == MajorBanner::TheFinalLap)
+        {
+            drawSpecialText(
+                ToUtf32("The Final Lap !"),
+                64.0f,
+                Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
+        }
+        else if (m_majorBanner == MajorBanner::Finish)
+        {
+            drawSpecialText(
+                ToUtf32("Finish !"),
+                64.0f,
+                Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
+
+            if (m_playerFinalRank != -1)
+            {
+                drawSpecialText(
+                    ToUtf32("{} / {}", m_playerFinalRank + 1, GetRaceContext().machineManager().machineList().size()),
+                    96.0f,
+                    Screen::MiddleCenterF(), Alignment9::MiddleCenter);
+            }
         }
     }
 
