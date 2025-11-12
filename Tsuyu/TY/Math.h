@@ -240,7 +240,11 @@ namespace TY
 
         float NormalizeAngle(float radian, float center);
 
-        inline double NormalizeAngle(double radian, double center);
+        double NormalizeAngle(double radian, double center);
+
+        float Smoothstep(float edge0, float edge1, float x);
+
+        double Smoothstep(double edge0, double edge1, double x);
     }
 
     inline namespace Literals

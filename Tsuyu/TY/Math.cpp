@@ -46,4 +46,16 @@ namespace TY
 
         return (radian - (Pi - center));
     }
+
+    float Math::Smoothstep(float edge0, float edge1, float x)
+    {
+        float t = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+        return t * t * (3.0f - 2.0f * t);
+    }
+
+    double Math::Smoothstep(double edge0, double edge1, double x)
+    {
+        double t = std::clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+        return t * t * (3.0 - 2.0 * t);
+    }
 }

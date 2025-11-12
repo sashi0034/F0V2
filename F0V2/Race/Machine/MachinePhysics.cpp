@@ -63,7 +63,7 @@ namespace
     }
 
     // TODO: 最適化
-    int findNearestStripIndex(const CourseSegment& segment, const Float3& position)
+    int findNearestStripIndex(const CourseSegment& segment, const Float3& position, float* outDistanceSq)
     {
         const auto& strips = segment.midwayStrips;
         std::pair<int, float> bestStrip{-1, FLT_MAX};
@@ -77,43 +77,53 @@ namespace
             }
         }
 
+        if (outDistanceSq)
+        {
+            *outDistanceSq = bestStrip.second;
+        }
+
         return bestStrip.first;
     }
 
-    SegmentAndStrip findNearestSegmentAndStrip(const Array<CourseSegment>& courseSegments, const Float3& position)
+    struct NearestSegmentAndStrip
+    {
+        int segmentIndex;
+        int stripIndex;
+        float distanceSq;
+
+        operator SegmentAndStrip() const
+        {
+            return SegmentAndStrip{segmentIndex, stripIndex};
+        }
+    };
+
+    NearestSegmentAndStrip findNearestSegmentAndStrip(
+        const Array<CourseSegment>& courseSegments, const Float3& position)
     {
         const int segmentId = findNearestSegmentIndex(courseSegments, position);
         const auto& segment = courseSegments[segmentId];
 
-        const int stripId = findNearestStripIndex(segment, position);
+        float distanceSq{};
+        const int stripId = findNearestStripIndex(segment, position, &distanceSq);
 
-        return SegmentAndStrip{segmentId, stripId};
+        return NearestSegmentAndStrip{segmentId, stripId, distanceSq};
     }
 
-    // TODO: 削除していいかも
-    const CourseStrip& getNextStrip(const Array<CourseSegment>& courseSegments, int segmentId, int stripId)
-    {
-        const auto& segment = courseSegments[segmentId];
-        if (stripId + 1 < segment.midwayStrips.size())
-        {
-            return segment.midwayStrips[stripId + 1];
-        }
-        else
-        {
-            const auto& nextSegment = courseSegments[(segmentId + 1) % courseSegments.size()];
-            return nextSegment.midwayStrips[1]; // [0] は segment.midwayStrips[^1] と同じなので [1] を返す
-        }
-    }
-
-    Float3 calculateGravity(const MachinePhysicsState& state, const SegmentAndStrip& targetSegmentAndStrip)
+    Float3 calculateGravity(const MachinePhysicsState& state, const NearestSegmentAndStrip& nearestSegmentAndStrip)
     {
         const Float3& position = state.m_pose.position;
 
+        if (nearestSegmentAndStrip.distanceSq >= Math::Square(50.0f))
+        {
+            // コースから遠すぎる場合は単純に鉛直下向きへ重力をかける
+            return Float3{0.0f, -1.0f, 0.0f};
+        }
+
         const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
 
-        const auto& targetSegment = courseSegments[targetSegmentAndStrip.segmentIndex];
+        const auto& targetSegment = courseSegments[nearestSegmentAndStrip.segmentIndex];
 
-        const auto& targetStrip = targetSegment.midwayStrips[targetSegmentAndStrip.stripIndex];
+        const auto& targetStrip = targetSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
 
         if (targetStrip.style == CourseSegmentStyle::Pipe)
         {
