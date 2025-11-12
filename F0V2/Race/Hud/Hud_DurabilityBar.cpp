@@ -47,23 +47,22 @@ struct Hud_DurabilityBar::Impl : ActorBase
             .setColor(ColorF32{0.2f})
             .pushAuto();
 
-        const float displayRate = Math::Clamp(m_displayDurability / m_actualMaxDurability, 0.0f, 1.0f);
-        const Float2 displaySize = barSize.withX(barSize.x * displayRate);
-        Immediate2D::RoundRect{
-                RectF{bottomLeft, Alignment9::BottomLeft, displaySize}
-                .stretched(-Min(4.0f, displaySize.x * 0.5f), -1.0f)
-            }
-            .setColor(Palette::Crimson)
-            .pushAuto();
-
-        const float actualRate = Math::Clamp(m_actualDurability / m_actualMaxDurability, 0.0f, 1.0f);
-        const Float2 actualSize = barSize.withX(barSize.x * actualRate);
-        Immediate2D::RoundRect{
-                RectF{bottomLeft, Alignment9::BottomLeft, actualSize}
-                .stretched(-Min(4.0f, actualSize.x * 0.5f), -1.0f)
-            }
-            .setColor(Palette::CornflowerBlue)
-            .pushAuto();
+        Float2 displaySize, actualSize;
+        if (m_actualDurability < m_displayDurability)
+        {
+            displaySize = drawBar(m_displayDurability, Palette::Crimson, bottomLeft, barSize);
+            actualSize = drawBar(m_actualDurability, Palette::CornflowerBlue, bottomLeft, barSize);
+        }
+        else if (m_displayDurability < m_actualDurability)
+        {
+            actualSize = drawBar(m_actualDurability, Palette::White, bottomLeft, barSize);
+            displaySize = drawBar(m_displayDurability, Palette::CornflowerBlue, bottomLeft, barSize);
+        }
+        else
+        {
+            actualSize = drawBar(m_actualDurability, Palette::CornflowerBlue, bottomLeft, barSize);
+            displaySize = actualSize;
+        }
 
         const auto labelColor =
             actualSize.x + 1.0f < displaySize.x ? std::optional(Palette::Crimson) : std::nullopt;
@@ -72,6 +71,19 @@ struct Hud_DurabilityBar::Impl : ActorBase
                       bottomLeft.movedBy(barSize.x, -barSize.y - 4.0),
                       Alignment9::BottomRight,
                       labelColor);
+    }
+
+    SizeF drawBar(float durability, const ColorF32& color, const Float2& bottomLeft, const Float2& barSize) const
+    {
+        const float rate = Math::Clamp(durability / m_actualMaxDurability, 0.0f, 1.0f);
+        const Float2 size = barSize.withX(barSize.x * rate);
+        Immediate2D::RoundRect{
+                RectF{bottomLeft, Alignment9::BottomLeft, size}
+                .stretched(-Min(4.0f, size.x * 0.5f), -1.0f)
+            }
+            .setColor(color)
+            .pushAuto();
+        return size;
     }
 
 private:
