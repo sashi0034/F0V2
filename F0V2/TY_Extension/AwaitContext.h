@@ -40,6 +40,7 @@ namespace TY
 
         void waitForExpired(std::weak_ptr<ActorBase> actor);
 
+        // TODO: Remove
         ActorLifetimeScope& lifetime();
 
         const ActorLifetimeScope& lifetime() const;

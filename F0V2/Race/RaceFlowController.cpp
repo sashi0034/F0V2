@@ -7,6 +7,8 @@
 #include "IRaceDrawer.h"
 #include "Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
+#include "TY/EaseActor.h"
+#include "TY/Easing.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/Palette.h"
@@ -19,12 +21,17 @@ using namespace Race;
 
 namespace
 {
-    void drawLabelText(const std::u32string& text, float size, const Float2& pos, Alignment9 alignment)
+    void drawLabelText(
+        const std::u32string& text,
+        float size,
+        const Float2& pos,
+        Alignment9 alignment,
+        const std::optional<ColorF32>& colorOpt = std::nullopt)
     {
         auto t = Immediate2D_Text::Audiowide_Sdf(text)
                  .setSize(size)
                  .setPosition(pos, alignment)
-                 .setColor(Palette::LightSteelBlue)
+                 .setColor(colorOpt.value_or(Palette::LightSteelBlue))
                  .cache();
 
         Immediate2D::RoundRect{t.region.stretched(8.0f, -4.0f)}
@@ -87,6 +94,81 @@ namespace
         t.pushAuto();
     }
 
+    class DurabilityBarDrawer
+    {
+    public:
+        void Update(const MachinePhysicsUnit& machine)
+        {
+            m_children.updateEach();
+
+            if (m_actualMaxDurability == 0.0f)
+            {
+                m_actualDurability = machine.state.m_durability;
+                m_actualMaxDurability = machine.props.maxDurability;
+                m_displayDurability = m_actualDurability;
+                return;
+            }
+
+            if (m_actualDurability != machine.state.m_durability)
+            {
+                m_actualDurability = machine.state.m_durability;
+
+                m_animation.clear();
+                StartCoroutine(m_children, [this](AwaitContext& await)
+                {
+                    await.waitForTime(0.5s);
+
+                    StartEasing<EaseOutExpo>(m_children, m_displayDurability, m_actualDurability, 0.5s)
+                        >> m_animation;
+                }) >> m_animation;
+            }
+        }
+
+        void Draw() const
+        {
+            const Float2 bottomLeft = Screen::RectF().bl().movedBy(40.0f, -160.0f);
+            constexpr SizeF barSize{320.0f, 12.0f};
+            Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
+                .setColor(ColorF32{0.2f})
+                .pushAuto();
+
+            const float displayRate = Math::Clamp(m_displayDurability / m_actualMaxDurability, 0.0f, 1.0f);
+            const Float2 displaySize = barSize.withX(barSize.x * displayRate);
+            Immediate2D::RoundRect{
+                    RectF{bottomLeft, Alignment9::BottomLeft, displaySize}
+                    .stretched(-Min(4.0f, displaySize.x * 0.5f), -1.0f)
+                }
+                .setColor(Palette::Crimson)
+                .pushAuto();
+
+            const float actualRate = Math::Clamp(m_actualDurability / m_actualMaxDurability, 0.0f, 1.0f);
+            const Float2 actualSize = barSize.withX(barSize.x * actualRate);
+            Immediate2D::RoundRect{
+                    RectF{bottomLeft, Alignment9::BottomLeft, actualSize}
+                    .stretched(-Min(4.0f, actualSize.x * 0.5f), -1.0f)
+                }
+                .setColor(Palette::CornflowerBlue)
+                .pushAuto();
+
+            const auto labelColor =
+                actualSize.x + 1.0f < displaySize.x ? std::optional(Palette::Crimson) : std::nullopt;
+            drawLabelText(ToUtf32("{}", static_cast<int>(m_actualDurability)),
+                          20.0f,
+                          bottomLeft.movedBy(barSize.x, -barSize.y - 4.0),
+                          Alignment9::BottomRight,
+                          labelColor);
+        }
+
+    private:
+        ActorContainer m_children{};
+        ActorLifetimeScope m_animation{};
+
+        float m_actualDurability{};
+        float m_actualMaxDurability{};
+
+        float m_displayDurability{};
+    };
+
     enum class MajorBanner : uint8_t
     {
         None,
@@ -104,6 +186,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 #endif
 
     ActorContainer m_children{};
+
+    DurabilityBarDrawer m_durabilityBarDrawer{};
 
     int m_countdown{};
 
@@ -125,6 +209,8 @@ private:
     void update() override
     {
         m_children.updateEach();
+
+        m_durabilityBarDrawer.Update(GetRaceContext().machineManager().machineList()[PlayerMachineId]);
     }
 
     void runRaceFlow(AwaitContext& await)
@@ -214,23 +300,7 @@ private:
         // -----------------------------------------------
         // 耐久値バー
         {
-            const float barRate = Math::Clamp(player.state.m_durability / player.props.maxDurability, 0.0f, 1.0f);
-            const Float2 bottomLeft = Screen::RectF().bl().movedBy(40.0f, -160.0f);
-            constexpr SizeF barSize{320.0f, 12.0f};
-            Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
-                .setColor(ColorF32{0.2f})
-                .pushAuto();
-            const Float2 gaugeSize = barSize.withX(barSize.x * barRate);
-            Immediate2D::RoundRect{
-                    RectF{bottomLeft, Alignment9::BottomLeft, gaugeSize}
-                    .stretched(-Min(4.0f, gaugeSize.x * 0.5f), -1.0f)
-                }
-                .setColor(Palette::CornflowerBlue)
-                .pushAuto();
-            drawLabelText(ToUtf32("{}", static_cast<int>(player.state.m_durability)),
-                          20.0f,
-                          bottomLeft.movedBy(barSize.x, -barSize.y - 4.0),
-                          Alignment9::BottomRight);
+            m_durabilityBarDrawer.Draw();
         }
 
         // -----------------------------------------------
