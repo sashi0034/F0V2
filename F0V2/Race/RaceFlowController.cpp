@@ -220,9 +220,10 @@ private:
             Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
                 .setColor(ColorF32{0.2f})
                 .pushAuto();
+            const Float2 gaugeSize = barSize.withX(barSize.x * barRate);
             Immediate2D::RoundRect{
-                    RectF{bottomLeft, Alignment9::BottomLeft, barSize.withX(barSize.x * barRate)}
-                    .stretched(-4.0f, -1.0f)
+                    RectF{bottomLeft, Alignment9::BottomLeft, gaugeSize}
+                    .stretched(-Min(4.0f, gaugeSize.x * 0.5f), -1.0f)
                 }
                 .setColor(Palette::CornflowerBlue)
                 .pushAuto();
