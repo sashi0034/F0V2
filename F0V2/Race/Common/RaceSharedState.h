@@ -38,6 +38,8 @@ namespace Race
 
         bool isRaceStarted{};
 
+        bool isRaceEnded{};
+
         RaceSharedState();
     };
 

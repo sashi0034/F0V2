@@ -220,6 +220,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="TY_Extension\Pose.cpp" />
     <ClCompile Include="TY_Extension\ResourceCache.cpp" />
     <ClCompile Include="TY_Extension\SerializeTransform.cpp" />
+    <ClCompile Include="TY_Extension\TaskUtils.cpp" />
     <ClCompile Include="Util\CatmullRom.cpp" />
     <ClCompile Include="Util\DebugTomlValue.cpp" />
     <ClCompile Include="Util\DebugUI.cpp" />
@@ -371,6 +372,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="TY_Extension\Pose.h" />
     <ClInclude Include="TY_Extension\ResourceCache.h" />
     <ClInclude Include="TY_Extension\SerializeTransform.h" />
+    <ClInclude Include="TY_Extension\TaskUtils.h" />
     <ClInclude Include="TY_Extension\Transform.h" />
     <ClInclude Include="Util\CatmullRom.h" />
     <ClInclude Include="Util\DebugTomlValue.h" />

@@ -94,6 +94,12 @@ namespace
             .setColor(ColorF32{0.5f})
             .pushAuto();
     }
+
+    struct
+    {
+        int aiRank{};
+        int courseIndex{};
+    } s_selectedItem;
 }
 
 struct RaceSetupScene::Impl : ActorBase
@@ -107,12 +113,6 @@ struct RaceSetupScene::Impl : ActorBase
     int m_rowIndex{};
 
     bool m_confirmed{};
-
-    struct
-    {
-        int aiRank{};
-        int courseIndex{};
-    } m_selectedItem;
 
     void Init()
     {
@@ -161,16 +161,16 @@ private:
         drawItemRow(lineRegions[0],
                     U"\U000F169E",
                     U"AI つよさ",
-                    aiDisplayItems[m_selectedItem.aiRank],
-                    m_selectedItem.aiRank,
+                    aiDisplayItems[s_selectedItem.aiRank],
+                    s_selectedItem.aiRank,
                     m_rowIndex == 0);
 
-        const auto& courseInfo = GetAllCourseFileInfos()[m_selectedItem.courseIndex];
+        const auto& courseInfo = GetAllCourseFileInfos()[s_selectedItem.courseIndex];
         drawItemRow(lineRegions[1],
                     U"\U000F0982",
                     U"コース",
                     courseInfo.displayName,
-                    m_selectedItem.courseIndex,
+                    s_selectedItem.courseIndex,
                     m_rowIndex == 1);
 
         std::u32string difficultyText{U"難易度:"};
@@ -231,13 +231,13 @@ private:
 
         if (m_rowIndex == 0)
         {
-            m_selectedItem.aiRank =
-                Modulo(m_selectedItem.aiRank + dir.x, static_cast<int>(Race::AiRank::Max));
+            s_selectedItem.aiRank =
+                Modulo(s_selectedItem.aiRank + dir.x, static_cast<int>(Race::AiRank::Max));
         }
         else if (m_rowIndex == 1)
         {
-            m_selectedItem.courseIndex =
-                Modulo<int>(m_selectedItem.courseIndex + dir.x, GetAllCourseFileInfos().size());
+            s_selectedItem.courseIndex =
+                Modulo<int>(s_selectedItem.courseIndex + dir.x, GetAllCourseFileInfos().size());
         }
         else if (m_rowIndex == 2)
         {
@@ -277,7 +277,7 @@ namespace RaceSetup
 
     std::string RaceSetupScene::selectedCourseFilepath() const
     {
-        const auto& courseInfo = GetAllCourseFileInfos()[p_impl->m_selectedItem.courseIndex];
+        const auto& courseInfo = GetAllCourseFileInfos()[s_selectedItem.courseIndex];
         return courseInfo.filepath;
     }
 

@@ -112,12 +112,19 @@ struct Flowcharts
                 }
 #endif
 
-                return not race.isAlive();
+                return Race::g_sharedState->isRaceEnded;
             });
 
             race.kill();
 
-            return std::make_unique<EditorFlowchart>();
+#if defined(_DEBUG)
+            if (g_debugService.editorEnabled)
+            {
+                return std::make_unique<EditorFlowchart>();
+            }
+#endif
+
+            return std::make_unique<RaceSetupFlowchart>();
         }
     };
 };

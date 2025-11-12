@@ -7,13 +7,17 @@
 #include "Hud/Hud_DurabilityBar.h"
 #include "Hud/Hud_LabelText.h"
 #include "TY/ActorContainer.h"
+#include "TY/Gamepad.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
+#include "TY/KeyboardInput.h"
 #include "TY/Palette.h"
 #include "TY/Screen.h"
 #include "TY/Utils.h"
 #include "TY_Extension/AwaitContext.h"
+#include "TY_Extension/TaskUtils.h"
 #include "Util/DebugTomlValue.h"
+#include "Util/ImmediatePrint.h"
 
 using namespace Race;
 
@@ -59,6 +63,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
     {
         GetRaceContext().registerDrawer(shared_from_this());
 
+        g_sharedState->isRaceEnded = false;
+
         m_raceFlowCoroutine = StartCoroutine(m_children, [this](AwaitContext& await)
         {
             processRaceFlow(await);
@@ -82,6 +88,8 @@ private:
             m_playerCrashed = true;
 
             popupMajorBanner(MajorBanner::YourMachineHasCrashed, U"Your Machine Has Crashed !", -1);
+
+            runCompleteProcess(3.0f);
         }
     }
 
@@ -132,6 +140,8 @@ private:
         await.waitForTime(2.5s);
 
         m_playerFinalRank = playerRank;
+
+        runCompleteProcess(5.0f);
     }
 
     void process321Go(AwaitContext& await)
@@ -194,6 +204,27 @@ private:
             {
                 m_majorBanner = MajorBanner::None;
             }
+        });
+    }
+
+    void runCompleteProcess(float waitSeconds)
+    {
+        StartCoroutine(m_children, [this, waitSeconds](AwaitContext& await)
+        {
+            await.waitForTime(waitSeconds);
+
+            (void)await.waitAnyTrue({
+                    // [0]
+                    []()
+                    {
+                        return IsUsingGamepad() ? KeyA.down() : KeySpace.down();
+                    },
+                    // [1]
+                    MakeTimeoutTask(30.0s)
+                }
+            );
+
+            g_sharedState->isRaceEnded = true;
         });
     }
 
