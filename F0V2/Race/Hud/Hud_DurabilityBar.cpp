@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Hud_DurabilityBar.h"
 
+#include "GamePalette.h"
 #include "Hud_LabelText.h"
 #include "Race/IRaceContext.h"
 #include "Race/Machine/MachineConstants.h"
@@ -41,8 +42,8 @@ struct Hud_DurabilityBar::Impl : ActorBase
 
     void Draw() const
     {
-        const Float2 bottomLeft = Screen::RectF().bl().movedBy(40.0f, -160.0f);
-        constexpr SizeF barSize{320.0f, 12.0f};
+        const Float2 bottomLeft = Screen::RectF().bl().movedBy(40.0f, -120.0f);
+        constexpr SizeF barSize{600.0f, 12.0f};
         Immediate2D::RoundRect{RectF{bottomLeft, Alignment9::BottomLeft, barSize}}
             .setColor(ColorF32{0.2f})
             .pushAuto();
@@ -71,6 +72,23 @@ struct Hud_DurabilityBar::Impl : ActorBase
                       bottomLeft.movedBy(barSize.x, -barSize.y - 4.0),
                       Alignment9::BottomRight,
                       labelColor);
+
+        DrawLabelText(U"Energy",
+                      20.0f,
+                      bottomLeft.movedY(-barSize.y - 4.0),
+                      Alignment9::BottomLeft,
+                      std::nullopt);
+
+        const auto& machine = GetRaceContext().machineManager().fetchMachine(PlayerMachineId);
+        if (machine.state.isBoostUnlocked())
+        {
+            DrawLabelText(
+                U"Boost Power",
+                20.0f,
+                bottomLeft.movedX(barSize.y + 4.0f),
+                Alignment9::TopLeft,
+                GamePalette::GamingGreen);
+        }
     }
 
     SizeF drawBar(float durability, const ColorF32& color, const Float2& bottomLeft, const Float2& barSize) const

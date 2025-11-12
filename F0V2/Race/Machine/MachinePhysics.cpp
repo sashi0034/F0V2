@@ -176,6 +176,11 @@ namespace Race
         return m_surfaceNormal.isZero();
     }
 
+    bool MachinePhysicsState::isBoostUnlocked() const
+    {
+        return ::isBoostUnlocked(*this);
+    }
+
     void SetupMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
         const auto startPosition = GetRaceContext().stageManager().getStartPosition(props.machineId);

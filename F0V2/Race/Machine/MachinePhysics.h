@@ -45,6 +45,9 @@ namespace Race
 
         [[nodiscard]]
         bool isHovering() const;
+
+        [[nodiscard]]
+        bool isBoostUnlocked() const;
     };
 
     using MachineId = int;
