@@ -109,11 +109,13 @@ namespace
         return NearestSegmentAndStrip{segmentId, stripId, distanceSq};
     }
 
+    constexpr float gravityDistanceThreshold = 50.0f;
+
     Float3 calculateGravity(const MachinePhysicsState& state, const NearestSegmentAndStrip& nearestSegmentAndStrip)
     {
         const Float3& position = state.m_pose.position;
 
-        if (nearestSegmentAndStrip.distanceSq >= Math::Square(50.0f))
+        if (nearestSegmentAndStrip.distanceSq >= Math::Square(gravityDistanceThreshold))
         {
             // コースから遠すぎる場合は単純に鉛直下向きへ重力をかける
             return Float3{0.0f, -1.0f, 0.0f};
@@ -121,28 +123,40 @@ namespace
 
         const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
 
-        const auto& targetSegment = courseSegments[nearestSegmentAndStrip.segmentIndex];
+        const auto& nearestSegment = courseSegments[nearestSegmentAndStrip.segmentIndex];
 
-        const auto& targetStrip = targetSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
+        const auto& nearestStrip = nearestSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
 
-        if (targetStrip.style == CourseSegmentStyle::Pipe)
+        if (nearestStrip.style == CourseSegmentStyle::Pipe)
         {
-            assert(not targetStrip.pipe.ringVectors[0].isZero());
+            assert(not nearestStrip.pipe.ringVectors[0].isZero());
 
-            const auto line = Line3D::FromPoints(targetStrip.center, targetStrip.center + targetStrip.toNext);
+            const auto line = Line3D::FromPoints(nearestStrip.center, nearestStrip.center + nearestStrip.toNext);
             const Float3 p = line.projectPoint(position);
             return (position - p).normalized();
         }
-        else if (targetStrip.style == CourseSegmentStyle::Cylinder)
+        else if (nearestStrip.style == CourseSegmentStyle::Cylinder)
         {
-            assert(not targetStrip.pipe.ringVectors[0].isZero());
+            assert(not nearestStrip.pipe.ringVectors[0].isZero());
 
-            const auto line = Line3D::FromPoints(targetStrip.center, targetStrip.center + targetStrip.toNext);
+            const auto line = Line3D::FromPoints(nearestStrip.center, nearestStrip.center + nearestStrip.toNext);
             const Float3 p = line.projectPoint(position);
             return (p - position).normalized();
         }
 
-        return -targetStrip.normal;
+        return -nearestStrip.normal;
+    }
+
+    bool isFallingOffCourse(const MachinePhysicsState& state, const NearestSegmentAndStrip& nearestSegmentAndStrip)
+    {
+        const auto& courseSegments = GetRaceContext().stageManager().courseSegments();
+
+        const auto& nearestSegment = courseSegments[nearestSegmentAndStrip.segmentIndex];
+
+        const auto& nearestStrip = nearestSegment.midwayStrips[nearestSegmentAndStrip.stripIndex];
+
+        // nearestStrip.y と比べてかなり下まで落ちているなら落下と判定
+        return nearestStrip.center.y - state.m_pose.position.y > gravityDistanceThreshold;
     }
 
     void applyInputAccel(MachinePhysicsState& state, const MachinePhysicsProps& props)
@@ -186,6 +200,11 @@ namespace Race
         return m_surfaceNormal.isZero();
     }
 
+    bool MachinePhysicsState::isHitDetectionEnabled() const
+    {
+        return not m_isRunningEventProcess;
+    }
+
     bool MachinePhysicsState::isBoostUnlocked() const
     {
         return ::isBoostUnlocked(*this);
@@ -213,7 +232,7 @@ namespace Race
 
     void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
-        if (not g_sharedState->isRaceStarted)
+        if (not g_sharedState->isRaceStarted || state.m_isRunningEventProcess)
         {
             return;
         }
@@ -302,6 +321,7 @@ namespace Race
         const auto nearestSegmentAndStrip = findNearestSegmentAndStrip(courseSegments, state.m_pose.position);
 
         // ラップ更新
+        // if (not state.isHovering())
         {
             state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, nearestSegmentAndStrip);
 
@@ -330,6 +350,9 @@ namespace Race
             }
 #endif
         }
+
+        // コース外で落下中か判定
+        state.m_isFallingOffCourse = isFallingOffCourse(state, nearestSegmentAndStrip);
 
         // -----------------------------------------------
 

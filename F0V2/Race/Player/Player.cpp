@@ -154,6 +154,7 @@ private:
 #endif
         {
             UpdateMachinePhysicsState(machine().state, machine().props);
+            GetRaceContext().machineManager().eventHandler().handleIfNeeded(machine().id());
         }
     }
 

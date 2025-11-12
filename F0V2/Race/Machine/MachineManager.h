@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "MachineEventHandler.h"
 #include "MachinePhysicsUnit.h"
 #include "TY/Array.h"
 #include "TY_Extension/GameObjectHandle.h"
@@ -22,6 +23,9 @@ namespace Race
         const MachineEvaluation& getEvaluation(MachineId id) const;
 
         const Array<MachinePhysicsUnit>& machineList() const;
+
+        MachineEventHandler& eventHandler();
+        const MachineEventHandler& eventHandler() const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 

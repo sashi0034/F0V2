@@ -181,6 +181,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Hud\Hud_DurabilityBar.cpp" />
     <ClCompile Include="Race\Hud\Hud_LabelText.cpp" />
     <ClCompile Include="Race\Machine\MachineDrawer.cpp" />
+    <ClCompile Include="Race\Machine\MachineEventHandler.cpp" />
     <ClCompile Include="Race\RaceDrawManager.cpp" />
     <ClCompile Include="Race\RaceFlowController.cpp" />
     <ClCompile Include="Testbed\Testbed_WaveTest.cpp" />
@@ -316,6 +317,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\IRaceDrawer.h" />
     <ClInclude Include="Race\Machine\MachineConstants.h" />
     <ClInclude Include="Race\Machine\MachineDrawer.h" />
+    <ClInclude Include="Race\Machine\MachineEventHandler.h" />
     <ClInclude Include="Race\RaceDrawManager.h" />
     <ClInclude Include="Race\RaceFlowController.h" />
     <ClInclude Include="Testbed\Testbed_WaveTest.h" />

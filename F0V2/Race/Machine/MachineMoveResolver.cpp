@@ -68,6 +68,12 @@ namespace
             }
 
             const auto& other = otherMachines[i];
+
+            if (not other.state.isHitDetectionEnabled())
+            {
+                continue;
+            }
+
             const Float3& otherPosition = other.state.m_pose.position;
             const Float3& otherForward = other.state.m_visualForwardVector;
             const float otherRadius = other.state.m_radius;
@@ -719,6 +725,8 @@ namespace
         state.m_surfaceToTriangle = hit.surfaceToTriangle;
 
         state.m_velocity = state.m_velocity - n * n.dot(state.m_velocity);
+
+        state.m_lastGroundContactLocation = state.m_lapProgress.segmentAndStrip();
     }
 }
 

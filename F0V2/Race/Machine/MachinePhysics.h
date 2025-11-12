@@ -8,6 +8,8 @@ namespace Race
 {
     struct MachinePhysicsState
     {
+        bool m_isRunningEventProcess{};
+
         float m_radius = MachineRadius;
 
         float m_height = MachineHeight;
@@ -40,11 +42,18 @@ namespace Race
 
         LapProgress m_reachedLapProgress{};
 
+        bool m_isFallingOffCourse{};
+
+        SegmentAndStrip m_lastGroundContactLocation{};
+
         [[nodiscard]]
         Float3 rightVector() const;
 
         [[nodiscard]]
         bool isHovering() const;
+
+        [[nodiscard]]
+        bool isHitDetectionEnabled() const;
 
         [[nodiscard]]
         bool isBoostUnlocked() const;

@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "MachineManager.h"
 
+#include "MachineEventHandler.h"
 #include "MachinePhysicsUnit.h"
 #include "TY/ActorContainer.h"
 #include "TY_Extension/GameObjectBase.h"
@@ -17,6 +18,8 @@ struct MachineManager::Impl : GameObjectBase
 
     ActorContainer m_children{};
 
+    MachineEventHandler m_eventHandler{};
+
     Array<MachinePhysicsUnit> m_physicsUnits{};
 
     Array<MachineEvaluation> m_evaluations{};
@@ -26,6 +29,9 @@ struct MachineManager::Impl : GameObjectBase
         m_initialized = true;
 
         m_physicsUnits.reserve(100);
+
+        m_eventHandler = m_children.birth(MachineEventHandler());
+        m_eventHandler.init();
     }
 
     void ResizeIfNeeded(MachineId id)
@@ -47,6 +53,8 @@ struct MachineManager::Impl : GameObjectBase
 private:
     void update() override
     {
+        m_children.updateEach();
+
         evaluateMachines();
     }
 
@@ -116,6 +124,16 @@ namespace Race
     const Array<MachinePhysicsUnit>& MachineManager::machineList() const
     {
         return p_impl->m_physicsUnits;
+    }
+
+    MachineEventHandler& MachineManager::eventHandler()
+    {
+        return p_impl->m_eventHandler;
+    }
+
+    const MachineEventHandler& MachineManager::eventHandler() const
+    {
+        return p_impl->m_eventHandler;
     }
 
     std::shared_ptr<GameObjectBase> MachineManager::asGameObject() const

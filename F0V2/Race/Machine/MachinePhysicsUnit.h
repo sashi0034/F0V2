@@ -7,5 +7,10 @@ namespace Race
     {
         MachinePhysicsState state{};
         MachinePhysicsProps props{};
+
+        MachineId id() const
+        {
+            return props.machineId;
+        }
     };
 }
