@@ -174,6 +174,8 @@
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
     <ClInclude Include="TY\detail\SceneState3D_singleton.h" />
     <ClInclude Include="TY\DiskTexture.h" />
+    <ClInclude Include="TY\EaseActor.h" />
+    <ClInclude Include="TY\Easing.h" />
     <ClInclude Include="TY\GpuMetrics.h" />
     <ClInclude Include="TY\IndexedTriangle.h" />
     <ClInclude Include="TY\InputUtils.h" />
@@ -344,6 +346,8 @@
     <ClCompile Include="TY\detail\GpuMemoryUsage.cpp" />
     <ClCompile Include="TY\detail\SceneState3D_singleton.cpp" />
     <ClCompile Include="TY\DiskTexture.cpp" />
+    <ClCompile Include="TY\EaseActor.cpp" />
+    <ClCompile Include="TY\Easing.cpp" />
     <ClCompile Include="TY\GamepadInputState.cpp" />
     <ClCompile Include="TY\GpuMetrics.cpp" />
     <ClCompile Include="TY\InputUtils.cpp" />
