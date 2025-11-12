@@ -17,7 +17,7 @@
 #include "TY/Mouse.h"
 #include "TY/System.h"
 #include "TY/Utils.h"
-#include "TY_Extension/AwaiterContext.h"
+#include "TY_Extension/AwaitContext.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "Util/DebugTomlValue.h"
 
@@ -29,7 +29,7 @@ namespace
     {
         virtual ~IFlowchart() = default;
 
-        virtual std::unique_ptr<IFlowchart> Process(AwaiterContext& await, ActorContainer& parent) = 0;
+        virtual std::unique_ptr<IFlowchart> Process(AwaitContext& await, ActorContainer& parent) = 0;
     };
 
     void loadCourseData(const std::string& courseFilepath)
@@ -47,7 +47,7 @@ struct Flowcharts
 {
     struct EditorFlowchart : IFlowchart
     {
-        std::unique_ptr<IFlowchart> EditorFlowchart::Process(AwaiterContext& await, ActorContainer& parent) override
+        std::unique_ptr<IFlowchart> EditorFlowchart::Process(AwaitContext& await, ActorContainer& parent) override
         {
             g_debugService.editorEnabled = true;
 
@@ -76,7 +76,7 @@ struct Flowcharts
 
     struct RaceSetupFlowchart : IFlowchart
     {
-        std::unique_ptr<IFlowchart> Process(AwaiterContext& await, ActorContainer& parent) override
+        std::unique_ptr<IFlowchart> Process(AwaitContext& await, ActorContainer& parent) override
         {
             auto raceSetup = parent.birth(RaceSetup::RaceSetupScene());
             raceSetup.init();
@@ -98,7 +98,7 @@ struct Flowcharts
 
     struct RaceFlowchart : IFlowchart
     {
-        std::unique_ptr<IFlowchart> Process(AwaiterContext& await, ActorContainer& parent) override
+        std::unique_ptr<IFlowchart> Process(AwaitContext& await, ActorContainer& parent) override
         {
             auto race = parent.birth(Race::RaceScene(true));
             race.init();
@@ -156,13 +156,13 @@ private:
     void restartFlowchart()
     {
         m_flowchartCoroutine.kill();
-        m_flowchartCoroutine = StartCoroutine(m_children, [this](AwaiterContext& await)
+        m_flowchartCoroutine = StartCoroutine(m_children, [this](AwaitContext& await)
         {
             handleFlowchart(await);
         });
     }
 
-    void handleFlowchart(AwaiterContext& await)
+    void handleFlowchart(AwaitContext& await)
     {
         std::unique_ptr<IFlowchart> flowchart{};
 #if defined(_DEBUG)

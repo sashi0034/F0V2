@@ -12,7 +12,7 @@
 #include "TY/Palette.h"
 #include "TY/Screen.h"
 #include "TY/Utils.h"
-#include "TY_Extension/AwaiterContext.h"
+#include "TY_Extension/AwaitContext.h"
 #include "Util/ImmediatePrint.h"
 
 using namespace Race;
@@ -104,7 +104,7 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
     {
         GetRaceContext().registerDrawer(shared_from_this());
 
-        StartCoroutine(m_children, [this](AwaiterContext& await)
+        StartCoroutine(m_children, [this](AwaitContext& await)
         {
             runRaceFlow(await);
         });
@@ -116,7 +116,7 @@ private:
         m_children.updateEach();
     }
 
-    void runRaceFlow(AwaiterContext& await)
+    void runRaceFlow(AwaitContext& await)
     {
         g_sharedState->isRaceStarted = false;
 
@@ -137,9 +137,9 @@ private:
         g_sharedState->isRaceStarted = true;
 
         m_showGo = true;
-        StartCoroutine(m_children, [this](AwaiterContext& await)
+        StartCoroutine(m_children, [this](AwaitContext& await_)
         {
-            await.waitForTime(3.0f);
+            await_.waitForTime(3.0f);
 
             m_showGo = false;
         });

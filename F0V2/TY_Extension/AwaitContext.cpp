@@ -1,16 +1,16 @@
 ﻿#include "pch.h"
-#include "AwaiterContext.h"
+#include "AwaitContext.h"
 
 using namespace TY;
 
 namespace TY
 {
-    AwaiterContext::AwaiterContext(std::reference_wrapper<CoroutineActor::yield_type> yield) :
+    AwaitContext::AwaitContext(std::reference_wrapper<CoroutineActor::yield_type> yield) :
         m_yield(yield)
     {
     }
 
-    void AwaiterContext::waitForFrames(int frames)
+    void AwaitContext::waitForFrames(int frames)
     {
         m_resumePoller = [&frames]() -> bool
         {
@@ -26,7 +26,7 @@ namespace TY
         yield();
     }
 
-    void AwaiterContext::waitForTime(double seconds, std::function<double()> deltaTime)
+    void AwaitContext::waitForTime(double seconds, std::function<double()> deltaTime)
     {
         m_resumePoller = [&seconds, deltaTime]() -> bool
         {
@@ -37,17 +37,17 @@ namespace TY
         yield();
     }
 
-    void AwaiterContext::waitForTime(Duration seconds, const std::function<double()>& deltaTime)
+    void AwaitContext::waitForTime(Duration seconds, const std::function<double()>& deltaTime)
     {
         waitForTime(seconds.count(), deltaTime);
     }
 
-    void AwaiterContext::waitForever()
+    void AwaitContext::waitForever()
     {
         waitForTrue([]() { return false; });
     }
 
-    void AwaiterContext::waitForTrue(const std::function<bool()>& poller)
+    void AwaitContext::waitForTrue(const std::function<bool()>& poller)
     {
         if (poller != nullptr && poller()) return;
 
@@ -56,7 +56,7 @@ namespace TY
         yield();
     }
 
-    int AwaiterContext::waitAnyTrue(const Array<std::function<bool()>>& pollers)
+    int AwaitContext::waitAnyTrue(const Array<std::function<bool()>>& pollers)
     {
         for (int i = 0; i < pollers.size(); ++i)
         {
@@ -82,18 +82,18 @@ namespace TY
         return result;
     }
 
-    void AwaiterContext::waitForExpired(const ActorHandle& actor)
+    void AwaitContext::waitForExpired(const ActorHandle& actor)
     {
         waitForExpired(actor.asActor());
     }
 
-    void AwaiterContext::waitForExpired(std::shared_ptr<ActorBase> actor)
+    void AwaitContext::waitForExpired(std::shared_ptr<ActorBase> actor)
     {
         const std::weak_ptr weakRef = actor;
         waitForExpired(weakRef);
     }
 
-    void AwaiterContext::waitForExpired(std::weak_ptr<ActorBase> actor)
+    void AwaitContext::waitForExpired(std::weak_ptr<ActorBase> actor)
     {
         const auto actorObject = actor.lock();
         if (not actorObject) return;
@@ -108,7 +108,7 @@ namespace TY
         yield();
     }
 
-    void AwaiterContext::yield()
+    void AwaitContext::yield()
     {
         CoroutineActor::yield_type& y = m_yield.get();
         y();

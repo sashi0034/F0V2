@@ -5,7 +5,7 @@
 
 namespace TY
 {
-    class AwaiterContext;
+    class AwaitContext;
 
     /// @brief boost::coroutine2 Wrapper
     class CoroutineActor : public ActorHandle
@@ -13,7 +13,7 @@ namespace TY
     public:
         using yield_type = boost::coroutines2::coroutine<void>::push_type;
         using caller_type = boost::coroutines2::coroutine<void>::pull_type;
-        using task_function = std::function<void(AwaiterContext&)>;
+        using task_function = std::function<void(AwaitContext&)>;
 
         explicit CoroutineActor();
 

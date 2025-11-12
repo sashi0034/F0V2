@@ -9,10 +9,10 @@
 namespace TY
 {
     /// @brief コルーチン停止に用いるためのコンテキスト
-    class AwaiterContext : Uncopyable
+    class AwaitContext : Uncopyable
     {
     public:
-        explicit AwaiterContext(std::reference_wrapper<CoroutineActor::yield_type> yield);
+        explicit AwaitContext(std::reference_wrapper<CoroutineActor::yield_type> yield);
 
         /// @brief 指定フレーム待機する
         void waitForFrames(int frames = 1);
@@ -47,10 +47,10 @@ namespace TY
     };
 
     /// @brief コルーチンのコンテキスト発行側で用いるためのオブジェクト
-    class AwaiterController final : public AwaiterContext
+    class AwaiterController final : public AwaitContext
     {
     public:
-        using AwaiterContext::AwaiterContext;
+        using AwaitContext::AwaitContext;
 
         /// @brief コルーチン再開可能であるかを調べる
         [[nodiscard]] bool validateResume();

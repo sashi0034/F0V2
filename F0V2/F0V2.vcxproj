@@ -260,7 +260,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="Testbed\Testbed_template.cpp.txt" />
     <Content Include="Testbed\Testbed_template.h.txt" />
     <Content Include="engine\shape3d.hlsl" />
-    <ClCompile Include="TY_Extension\AwaiterContext.cpp" />
+    <ClCompile Include="TY_Extension\AwaitContext.cpp" />
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
     <ClCompile Include="TY_Extension\LivePPAddon.cpp" />
     <Content Include="asset\shader\simple_compute.hlsl" />
@@ -356,7 +356,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="pch.h" />
     <ClInclude Include="Testbed\Testbed_RenderTarget.h" />
     <ClInclude Include="ResourcePathWrapper.h" />
-    <ClInclude Include="TY_Extension\AwaiterContext.h" />
+    <ClInclude Include="TY_Extension\AwaitContext.h" />
     <ClInclude Include="TY_Extension\CoroutineActor.h" />
     <ClInclude Include="TY_Extension\GameObjectBase.h" />
     <ClInclude Include="TY_Extension\GameObjectHandle.h" />
