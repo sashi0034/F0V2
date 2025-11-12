@@ -66,7 +66,9 @@ struct Hud_DurabilityBar::Impl : ActorBase
         }
 
         const auto labelColor =
-            actualSize.x + 1.0f < displaySize.x ? std::optional(Palette::Crimson) : std::nullopt;
+            actualSize.x + 1.0f < displaySize.x || m_displayDurability == 0.0f
+                ? std::optional(Palette::Crimson)
+                : std::nullopt;
         DrawLabelText(ToUtf32("{}", static_cast<int>(m_actualDurability)),
                       20.0f,
                       bottomLeft.movedBy(barSize.x, -barSize.y - 4.0),

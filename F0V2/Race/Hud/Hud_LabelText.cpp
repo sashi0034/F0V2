@@ -39,12 +39,17 @@ namespace Race
         t.pushAuto();
     }
 
-    void DrawSpecialLabelText(const std::u32string& text, float size, const Float2& pos, Alignment9 alignment)
+    void DrawSpecialLabelText(
+        const std::u32string& text,
+        float size,
+        const Float2& pos,
+        Alignment9 alignment,
+        const std::optional<ColorF32>& colorOpt)
     {
         auto t = Immediate2D_Text::Audiowide_Sdf(text)
                  .setSize(size)
                  .setPosition(pos, alignment)
-                 .setColor(GamePalette::GamingGreen)
+                 .setColor(colorOpt.value_or(GamePalette::GamingGreen))
                  .cache();
 
         Immediate2D::RoundRect{

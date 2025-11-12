@@ -511,8 +511,12 @@ namespace
 
         case GimmickTriangleAttribute::kind_t::PitZone: {
             // 回復
-            state.m_durability = PositiveF32(
-                Min<float>(props.maxDurability, state.m_durability + 500.0f * InGameDeltaTime()));
+            if (not state.isDead())
+            {
+                state.m_durability = PositiveF32(
+                    Min<float>(props.maxDurability, state.m_durability + 500.0f * InGameDeltaTime()));
+            }
+
             return;
         }
         }

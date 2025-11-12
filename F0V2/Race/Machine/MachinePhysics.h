@@ -48,6 +48,9 @@ namespace Race
 
         [[nodiscard]]
         bool isBoostUnlocked() const;
+
+        [[nodiscard]]
+        bool isDead() const;
     };
 
     using MachineId = int;

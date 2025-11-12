@@ -181,6 +181,11 @@ namespace Race
         return ::isBoostUnlocked(*this);
     }
 
+    bool MachinePhysicsState::isDead() const
+    {
+        return m_durability <= 0.0f;
+    }
+
     void SetupMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
         const auto startPosition = GetRaceContext().stageManager().getStartPosition(props.machineId);
@@ -207,13 +212,19 @@ namespace Race
         Float3 gravity = state.m_gravity; // TODO: 地面方向の成分を除去
         state.m_velocity += gravity * 50.0f * InGameDeltaTime();
 
-        if (props.input.accelPressed)
+        auto deviceInput = props.input;
+        if (state.isDead())
+        {
+            deviceInput = {};
+        }
+
+        if (deviceInput.accelPressed)
         {
             applyInputAccel(state, props);
         }
 
         constexpr float boostEnergyCost = 800.0f;
-        if (props.input.boostRequested &&
+        if (deviceInput.boostRequested &&
             isBoostUnlocked(state) &&
             state.m_durability > boostEnergyCost &&
             state.m_manualBoost < 0.5f)
@@ -244,7 +255,7 @@ namespace Race
         }
 
         // ドリフト操作
-        const float driftTrigger = props.input.driftTrigger; // state.isHovering() ? 0.0f : props.input.driftTrigger;
+        const float driftTrigger = deviceInput.driftTrigger; // state.isHovering() ? 0.0f : deviceInputt.driftTrigger;
         if (driftTrigger != 0.0f)
         {
             state.m_driftOffset += static_cast<float>(driftTrigger) * InGameDeltaTime();
@@ -315,7 +326,7 @@ namespace Race
         for (const float dt : StandardStep_60Hz())
         {
             // 左ジョイスティック操作
-            const float rightHandling = props.input.rightHandling;
+            const float rightHandling = deviceInput.rightHandling;
             float rightShift;
             if (state.m_driftOffset != 0.0f)
             {

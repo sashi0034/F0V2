@@ -9,6 +9,7 @@
 #include "TY/ActorContainer.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
+#include "TY/Palette.h"
 #include "TY/Screen.h"
 #include "TY/Utils.h"
 #include "TY_Extension/AwaitContext.h"
@@ -25,6 +26,7 @@ namespace
         YouGotBoostPower,
         TheFinalLap,
         Finish,
+        YourMachineHasCrashed,
     };
 }
 
@@ -38,6 +40,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     Hud_DurabilityBar m_durabilityBar{};
 
+    CoroutineActor m_raceFlowCoroutine{};
+
     int m_countdown{};
 
     MajorBanner m_majorBanner{MajorBanner::None};
@@ -48,11 +52,14 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     int m_playerFinalRank{-1};
 
+    bool m_raceFinished{};
+    bool m_playerCrashed{};
+
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
 
-        StartCoroutine(m_children, [this](AwaitContext& await)
+        m_raceFlowCoroutine = StartCoroutine(m_children, [this](AwaitContext& await)
         {
             processRaceFlow(await);
         });
@@ -65,6 +72,17 @@ private:
     void update() override
     {
         m_children.updateEach();
+
+        // ゲームオーバーチェック
+        const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
+        if (not m_raceFinished && player.state.isDead() && not m_playerCrashed)
+        {
+            m_raceFlowCoroutine.kill();
+
+            m_playerCrashed = true;
+
+            popupMajorBanner(MajorBanner::YourMachineHasCrashed, U"Your Machine Has Crashed !", -1);
+        }
     }
 
     void processRaceFlow(AwaitContext& await)
@@ -105,7 +123,9 @@ private:
             return player.state.m_lapProgress.lapIndex == 3;
         });
 
-        m_majorBanner = MajorBanner::Finish;
+        popupMajorBanner(MajorBanner::Finish, U"Finish !", -1);
+
+        m_raceFinished = true;
 
         const int playerRank = GetRaceContext().machineManager().getEvaluation(PlayerMachineId).rank;
 
@@ -163,6 +183,11 @@ private:
                 await.waitForTime(wordDelay);
             }
 
+            if (seconds < 0.0f)
+            {
+                return;
+            }
+
             await.waitForTime(seconds - (messages.size() * wordDelay));
 
             if (m_majorBanner == banner)
@@ -192,7 +217,7 @@ private:
         // -----------------------------------------------
         // 順位
 
-        if (m_majorBanner != MajorBanner::Finish)
+        if (not m_raceFinished)
         {
             const auto evaluation = GetRaceContext().machineManager().getEvaluation(PlayerMachineId);
             const int rank1 = evaluation.rank + 1;
@@ -255,7 +280,7 @@ private:
         else if (m_majorBanner == MajorBanner::Finish)
         {
             DrawSpecialLabelText(
-                U"Finish !",
+                m_majorBannerMessage,
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
 
@@ -266,6 +291,14 @@ private:
                     96.0f,
                     Screen::MiddleCenterF(), Alignment9::MiddleCenter);
             }
+        }
+        else if (m_majorBanner == MajorBanner::YourMachineHasCrashed)
+        {
+            DrawSpecialLabelText(
+                m_majorBannerMessage,
+                96.0f,
+                Screen::MiddleCenterF(), Alignment9::MiddleCenter,
+                Palette::Red);
         }
     }
 

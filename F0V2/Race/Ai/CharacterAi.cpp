@@ -82,7 +82,12 @@ private:
 
     void update() override
     {
-        static Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
+        Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
+        if (machine().state.isDead())
+        {
+            localRotation = Mat4x4::Identity(); // TODO: 死亡グラフィック
+        }
+
         m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
 
 #if defined(_DEBUG)
