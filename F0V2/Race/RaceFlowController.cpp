@@ -2,6 +2,7 @@
 #include "RaceFlowController.h"
 
 #include "Asset0.h"
+#include "GamePalette.h"
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "Common/RaceSharedState.h"
@@ -44,6 +45,47 @@ namespace
 
         t.pushAuto();
     }
+
+    void drawSpecialText(const std::u32string& text, float size, const Float2& pos, Alignment9 alignment)
+    {
+        auto t = Immediate2D_Text::Audiowide_Sdf(text)
+                 .setSize(size)
+                 .setPosition(pos, alignment)
+                 .setColor(GamePalette::GamingGreen)
+                 .cache();
+
+        Immediate2D::RoundRect{
+                RectF{t.region.center(), Alignment9::MiddleCenter, SizeF{t.region.w + 64.0f, 64.0f}}
+            }
+            .setColor(ColorF32{0.15f})
+            .setRoundness(40.0f)
+            .pushAuto();
+
+        // Immediate2D::Path()
+        //     .append(t.region.middleLeft().movedX(-40.0f))
+        //     .append(t.region.topCenter().movedY(-20.0f))
+        //     .append(t.region.middleRight().movedX(40.0f))
+        //     .append(t.region.bottomCenter().movedY(20.0f))
+        //     .setThickness(40.0f)
+        //     .setColor(ColorF32{0.15f})
+        //     .asCycle()
+        //     .pushAuto();
+
+        for (int i = 0; i < t.characters.size(); ++i)
+        {
+            if (text[i] == U' ')
+            {
+                continue;
+            }
+
+            Immediate2D::RoundRect{t.characters[i].rect()}
+                .setColor(ColorF32{0.15f})
+                .setRoundness(20.0f)
+                .pushAuto();
+        }
+
+        t.pushAuto();
+    }
 }
 
 struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
@@ -55,6 +97,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
     ActorContainer m_children{};
 
     int m_countdown{};
+
+    bool m_showGo{};
 
     void Init()
     {
@@ -70,11 +114,6 @@ private:
     void update() override
     {
         m_children.updateEach();
-
-        if (m_countdown > 0)
-        {
-            ImmediatePrint_MiddleCenter("countdown: {}", m_countdown);
-        }
     }
 
     void runRaceFlow(AwaiterContext& await)
@@ -96,6 +135,14 @@ private:
         m_countdown--;
 
         g_sharedState->isRaceStarted = true;
+
+        m_showGo = true;
+        StartCoroutine(m_children, [this](AwaiterContext& await)
+        {
+            await.waitForTime(3.0f);
+
+            m_showGo = false;
+        });
     }
 
     void drawHud() const override
@@ -153,9 +200,32 @@ private:
                           Alignment9::TopCenter);
         }
 
+        drawSpecialHud();
+
         // -----------------------------------------------
 
         ImmediateDrawer::Global().draw();
+    }
+
+    void drawSpecialHud() const
+    {
+        if (m_countdown > 0)
+        {
+            drawSpecialText(
+                ToUtf32("- {} -", m_countdown),
+                96.0f,
+                Screen::MiddleCenterF(),
+                Alignment9::MiddleCenter);
+        }
+
+        if (m_showGo)
+        {
+            drawSpecialText(
+                ToUtf32("Go !", m_countdown),
+                96.0f,
+                Screen::MiddleCenterF(),
+                Alignment9::MiddleCenter);
+        }
     }
 
     void killed() override
