@@ -32,6 +32,20 @@ namespace
         Finish,
         YourMachineHasCrashed,
     };
+
+    std::string formatLapTime(float timeSec)
+    {
+        const int minutes = static_cast<int>(timeSec / 60);
+        const int seconds = static_cast<int>(std::fmod(timeSec, 60));
+        const int hundredths = static_cast<int>(std::fmod(timeSec, 1.0f) * 100.0f);
+
+        std::ostringstream oss;
+        oss << std::setfill('0')
+            << std::setw(2) << minutes << '\''
+            << std::setw(2) << seconds << "''"
+            << std::setw(2) << hundredths;
+        return oss.str();
+    }
 }
 
 struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
@@ -58,6 +72,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     bool m_raceFinished{};
     bool m_playerCrashed{};
+
+    std::array<float, 3> m_measuredLapTimes{};
 
     void Init()
     {
@@ -90,6 +106,15 @@ private:
             popupMajorBanner(MajorBanner::YourMachineHasCrashed, U"Your Machine Has Crashed !", -1);
 
             runCompleteProcess(3.0f);
+        }
+
+        if (not m_raceFinished)
+        {
+            int currentLap = player.state.m_reachedLapProgress.lapIndex;
+            if (InRange<int>(currentLap, 0, m_measuredLapTimes.size() - 1))
+            {
+                m_measuredLapTimes[currentLap] += InGameDeltaTime();
+            }
         }
     }
 
@@ -220,7 +245,7 @@ private:
                         return IsUsingGamepad() ? KeyA.down() : KeySpace.down();
                     },
                     // [1]
-                    MakeTimeoutTask(30.0s)
+                    MakeTimeoutTask(60.0s)
                 }
             );
 
@@ -270,6 +295,36 @@ private:
                           Alignment9::TopCenter);
         }
 
+        // -----------------------------------------------
+        // ラップタイム
+        DrawLabelText(
+            ToUtf32("Lap {} / {}",
+                    Min<int>(m_measuredLapTimes.size(), player.state.m_reachedLapProgress.lapIndex + 1),
+                    m_measuredLapTimes.size()),
+            24.0f,
+            Screen::TopRightF().movedBy(-20.0f, 40.0f),
+            Alignment9::TopRight);
+
+        for (int i = 0; i < m_measuredLapTimes.size(); ++i)
+        {
+            if (i > player.state.m_reachedLapProgress.lapIndex)
+            {
+                break;
+            }
+
+            const bool isCurrentLap = (i == player.state.m_reachedLapProgress.lapIndex);
+
+            const float lapTime = m_measuredLapTimes[i];
+            DrawLabelText(
+                ToUtf32(formatLapTime(lapTime) + " "), // TODO: エンジン側のバグ調査 (末尾に + " " 入れると安定する)
+                24.0f,
+                Screen::TopRightF().movedBy(-20.0f, 80.0f + i * 32.0f),
+                Alignment9::TopRight,
+                isCurrentLap ? std::optional<ColorF32>{Palette::Orange} : std::nullopt);
+        }
+
+        // -----------------------------------------------
+
         drawSpecialHud();
 
         // -----------------------------------------------
@@ -302,6 +357,10 @@ private:
                 m_majorBannerMessage,
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
+            DrawSpecialLabelText(
+                U"Lap 2 / 3",
+                32.0f,
+                Screen::RectF().middleCenter(), Alignment9::MiddleCenter);
             return;
         }
         else if (m_majorBanner == MajorBanner::TheFinalLap)
@@ -310,6 +369,10 @@ private:
                 m_majorBannerMessage,
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
+            DrawSpecialLabelText(
+                U"Lap 3 / 3",
+                32.0f,
+                Screen::RectF().middleCenter(), Alignment9::MiddleCenter);
             return;
         }
         else if (m_majorBanner == MajorBanner::Finish)
