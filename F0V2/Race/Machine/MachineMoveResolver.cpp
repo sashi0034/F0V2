@@ -687,7 +687,9 @@ namespace
             vector = -state.m_upVector * state.m_radius;
         }
 
-        const Float3 fromPos = state.m_pose.position;
+        const Float3 fromPos = state.m_pose.position - vector; // NOTE: 貫通バグ対策で -vector している
+        // const Float3 fromPos = state.m_pose.position; // TODO: traceHitCandidates() の壁と地面順序問題を解決したら此方に戻す
+
         const Float3 toPos = state.m_pose.position + vector;
 
         const auto moveTestRay = LineSegment3D{fromPos, toPos};
