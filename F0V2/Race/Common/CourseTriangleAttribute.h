@@ -41,6 +41,7 @@ namespace Race
             Barrier,
             BoostPad,
             JumpPad,
+            PitZone,
         };
 
         kind_t kind;

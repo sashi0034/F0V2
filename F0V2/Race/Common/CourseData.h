@@ -19,6 +19,10 @@ namespace Race
         Barrier,
         BoostPad_C,
         JumpPad_C,
+        PitZone_L,
+        PitZone_C,
+        PitZone_R,
+        PitZone_LR,
         Max // end marker
     };
 

@@ -5,6 +5,7 @@
 #include "Race/Stage/StageManager.h"
 #include "Race/Stage/StageStaticCollider.h"
 #include "TY/Color.h"
+#include "TY/GameTime.h"
 #include "TY/Immediate3D.h"
 #include "TY/IndexedTriangle.h"
 #include "TY/Intersects3D.h"
@@ -473,6 +474,7 @@ namespace
     void handleGimmickHit(
         std::optional<Float3>& newMoveVector,
         MachinePhysicsState& state,
+        const MachinePhysicsProps& props,
         const StageStaticCollider::gimmick_hit& hit,
         const Float3& fromPos,
         const Float3& toPos)
@@ -506,6 +508,13 @@ namespace
             }
 
             return;
+
+        case GimmickTriangleAttribute::kind_t::PitZone: {
+            // 回復
+            state.m_durability = PositiveF32(
+                Min<float>(props.maxDurability, state.m_durability + 500.0f * InGameDeltaTime()));
+            return;
+        }
         }
         default:
             assert(false && "onGimmickHit(): Unsupported GimmickTriangleAttribute::kind_t");
@@ -642,7 +651,7 @@ namespace
             else if (hit.isHolds<StageStaticCollider::gimmick_hit>())
             {
                 handleGimmickHit(
-                    newMoveVector, state, hit.get<StageStaticCollider::gimmick_hit>(), fromPos, toPos);
+                    newMoveVector, state, props, hit.get<StageStaticCollider::gimmick_hit>(), fromPos, toPos);
             }
             else if (hit.isHolds<MachineHit>())
             {

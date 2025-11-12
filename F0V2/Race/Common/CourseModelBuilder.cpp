@@ -4,6 +4,7 @@
 #include "CourseConstants.h"
 #include "TY/Quaternion.h"
 #include "TY/Immediate3D.h"
+#include "TY/Palette.h"
 
 using namespace Race;
 
@@ -772,6 +773,84 @@ namespace
         });
     }
 
+    enum class LCR : uint8_t
+    {
+        L,
+        C,
+        R,
+    };
+
+    std::pair<Float3, Float3> separateStrip(const CourseStrip& s, LCR lcr)
+    {
+        switch (lcr)
+        {
+        case LCR::L:
+            return {
+                s.leftmost,
+                Math::Lerp3D(s.leftmost, s.center, 2.0f / 3.0f)
+            };
+        case LCR::C:
+            return {
+                Math::Lerp3D(s.leftmost, s.center, 2.0f / 3.0f),
+                Math::Lerp3D(s.center, s.rightmost, 1.0f / 3.0f)
+            };
+        case LCR::R:
+            return {
+                Math::Lerp3D(s.center, s.rightmost, 1.0f / 3.0f),
+                s.rightmost
+            };
+        default:
+            assert(false);
+            return {};
+        }
+    }
+
+    void buildPitZone_Road(ModelData& model, const CourseSegment& segment, LCR lcr, CoursePolygoneCollider* outCollider)
+    {
+        constexpr float padElevation = 0.5f;
+
+        const int s0_index = segment.midwayStrips.size() / 2 - 1;
+        if (not InRange<int>(s0_index, 0, segment.midwayStrips.size() - 2))
+        {
+            return;
+        }
+
+        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
+        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
+        int v_offset{};
+        int i_offset{};
+
+        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
+        {
+            auto& s0 = segment.midwayStrips[m];
+            auto& s1 = segment.midwayStrips[m + 1];
+
+            const auto lr0 = separateStrip(s0, lcr);
+            const auto lr1 = separateStrip(s1, lcr);
+
+            const FaceVertex l0{lr0.first + s0.normal * padElevation, s0.normal};
+            const FaceVertex r0{lr0.second + s0.normal * padElevation, s0.normal};
+            const FaceVertex l1{lr1.first + s1.normal * padElevation, s1.normal};
+            const FaceVertex r1{lr1.second + s1.normal * padElevation, s1.normal};
+
+            pushGimmickFaces(
+                vertices, indices, v_offset, i_offset,
+                l0, r0, l1, r1,
+                GimmickTriangleAttribute::kind_t::PitZone,
+                outCollider);
+        }
+
+        model.shapes.push_back(ModelShape{
+            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+        });
+        model.materials.push_back({
+            .name = "pit_zone",
+            .parameters = {
+                .diffuse = Palette::Violet.sRGBToLinear().toFloat3()
+            }
+        });
+    }
+
     void buildGimmickModel(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
     {
         for (const auto& gimmick : segment.gimmicks)
@@ -794,6 +873,31 @@ namespace
                 if (segment.style == CourseSegmentStyle::Road)
                 {
                     buildJumpPad_Road(model, segment, outCollider);
+                }
+                break;
+            case CourseGimmickKind::PitZone_L:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildPitZone_Road(model, segment, LCR::L, outCollider);
+                }
+                break;
+            case CourseGimmickKind::PitZone_C:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildPitZone_Road(model, segment, LCR::C, outCollider);
+                }
+                break;
+            case CourseGimmickKind::PitZone_R:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildPitZone_Road(model, segment, LCR::R, outCollider);
+                }
+                break;
+            case CourseGimmickKind::PitZone_LR:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildPitZone_Road(model, segment, LCR::L, outCollider);
+                    buildPitZone_Road(model, segment, LCR::R, outCollider);
                 }
                 break;
             default:

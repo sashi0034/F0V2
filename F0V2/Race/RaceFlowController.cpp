@@ -141,7 +141,7 @@ private:
         popupMajorBanner(MajorBanner::Go, U"Go !", 3.0f);
     }
 
-    void popupMajorBanner(MajorBanner banner, std::u32string message, float seconds)
+    void popupMajorBanner(MajorBanner banner, const std::u32string& message, float seconds)
     {
         m_majorBanner = banner;
 

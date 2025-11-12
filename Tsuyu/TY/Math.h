@@ -167,6 +167,25 @@ namespace TY
             return (v1 + (v2 - v1) * f);
         }
 
+        template <typename T>
+        constexpr T Lerp2D(const T& v1, const T& v2, float f) noexcept
+        {
+            T result;
+            result.x = Lerp(v1.x, v2.x, f);
+            result.y = Lerp(v1.y, v2.y, f);
+            return result;
+        }
+
+        template <typename T>
+        constexpr T Lerp3D(const T& v1, const T& v2, float f) noexcept
+        {
+            T result;
+            result.x = Lerp(v1.x, v2.x, f);
+            result.y = Lerp(v1.y, v2.y, f);
+            result.z = Lerp(v1.z, v2.z, f);
+            return result;
+        }
+
         template <class T, class U, class V>
         inline auto LerpAngle(const T from, const U to, const V t) noexcept
         {
