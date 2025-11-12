@@ -114,7 +114,7 @@ namespace TY
         y();
     }
 
-    bool AwaiterController::validateResume()
+    bool AwaitController::validateResume()
     {
         if (not m_resumePoller) return true;
 

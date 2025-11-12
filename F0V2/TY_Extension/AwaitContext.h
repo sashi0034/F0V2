@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoroutineActor.h"
+#include "TY/ActorLifetimeScope.h"
 #include "TY/GameTime.h"
 #include "TY/Array.h"
 #include "TY/Duration.h"
@@ -47,7 +48,7 @@ namespace TY
     };
 
     /// @brief コルーチンのコンテキスト発行側で用いるためのオブジェクト
-    class AwaiterController final : public AwaitContext
+    class AwaitController final : public AwaitContext
     {
     public:
         using AwaitContext::AwaitContext;

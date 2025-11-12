@@ -92,7 +92,7 @@ struct CoroutineActor::Impl : ActorBase
 {
     std::unique_ptr<caller_type> m_task{};
 
-    std::shared_ptr<AwaiterController> m_awaiter{};
+    std::shared_ptr<AwaitController> m_awaitController{};
 
     bool m_initialized{};
 
@@ -103,7 +103,7 @@ struct CoroutineActor::Impl : ActorBase
         if (m_task == nullptr) return;
 
         // コルーチンが再開可能であるか問い合わせる
-        if (not m_awaiter->validateResume()) return;
+        if (not m_awaitController->validateResume()) return;
 
         // コルーチン再開
         if ((*m_task)())
@@ -120,7 +120,7 @@ struct CoroutineActor::Impl : ActorBase
     void killed() override
     {
         m_task.reset();
-        m_awaiter.reset();
+        m_awaitController.reset();
     }
 };
 
@@ -142,12 +142,12 @@ namespace TY
             stack, // この行をコメントアウトするとデフォルトの boost::context::default_stack が使われます
             [impl = p_impl.get(), task](yield_type& yield)
             {
-                impl->m_awaiter = std::make_shared<AwaiterController>(yield);
+                impl->m_awaitController = std::make_shared<AwaitController>(yield);
 
-                task(*impl->m_awaiter);
+                task(*impl->m_awaitController);
 
                 // 生成直後にタスクが終了した場合、1 フレーム待機するようにする
-                if (not impl->m_initialized) impl->m_awaiter->waitForFrames(1);
+                if (not impl->m_initialized) impl->m_awaitController->waitForFrames(1);
             });
 
         p_impl->m_initialized = true;
