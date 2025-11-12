@@ -42,6 +42,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     MajorBanner m_majorBanner{MajorBanner::None};
 
+    std::u32string m_majorBannerMessage{};
+
     CoroutineActor m_majorBannerCoroutine{};
 
     int m_playerFinalRank{-1};
@@ -83,7 +85,7 @@ private:
             return player.state.m_lapProgress.lapIndex == 1;
         });
 
-        popupMajorBanner(MajorBanner::YouGotBoostPower, 5.0f);
+        popupMajorBanner(MajorBanner::YouGotBoostPower, U"You've Got Boost Power !", 5.0f);
 
         // -----------------------------------------------
 
@@ -93,7 +95,7 @@ private:
             return player.state.m_lapProgress.lapIndex == 2;
         });
 
-        popupMajorBanner(MajorBanner::TheFinalLap, 5.0f);
+        popupMajorBanner(MajorBanner::TheFinalLap, U"The Final Lap !", 5.0f);
 
         // -----------------------------------------------
 
@@ -136,17 +138,32 @@ private:
 
         m_countdown--;
 
-        popupMajorBanner(MajorBanner::Go, 3.0f);
+        popupMajorBanner(MajorBanner::Go, U"Go !", 3.0f);
     }
 
-    void popupMajorBanner(MajorBanner banner, float seconds)
+    void popupMajorBanner(MajorBanner banner, std::u32string message, float seconds)
     {
         m_majorBanner = banner;
 
         m_majorBannerCoroutine.kill();
-        m_majorBannerCoroutine = StartCoroutine(m_children, [this, banner, seconds](AwaitContext& await)
+        m_majorBannerCoroutine = StartCoroutine(m_children, [this, banner, message, seconds](AwaitContext& await)
         {
-            await.waitForTime(seconds);
+            const auto messages = SplitStringView(message, U' ');
+            m_majorBannerMessage = {};
+            constexpr float wordDelay = 0.1f;
+            for (const auto& next : messages)
+            {
+                if (not m_majorBannerMessage.empty())
+                {
+                    m_majorBannerMessage += U' ';
+                }
+
+                m_majorBannerMessage += {next.data(), next.size()};
+
+                await.waitForTime(wordDelay);
+            }
+
+            await.waitForTime(seconds - (messages.size() * wordDelay));
 
             if (m_majorBanner == banner)
             {
@@ -217,28 +234,28 @@ private:
         if (m_majorBanner == MajorBanner::Go)
         {
             DrawSpecialLabelText(
-                ToUtf32("Go !", m_countdown),
+                m_majorBannerMessage,
                 96.0f,
                 Screen::MiddleCenterF(), Alignment9::MiddleCenter);
         }
         else if (m_majorBanner == MajorBanner::YouGotBoostPower)
         {
             DrawSpecialLabelText(
-                ToUtf32("You've Got Boost Power !"),
+                m_majorBannerMessage,
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
         }
         else if (m_majorBanner == MajorBanner::TheFinalLap)
         {
             DrawSpecialLabelText(
-                ToUtf32("The Final Lap !"),
+                m_majorBannerMessage,
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
         }
         else if (m_majorBanner == MajorBanner::Finish)
         {
             DrawSpecialLabelText(
-                ToUtf32("Finish !"),
+                U"Finish !",
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
 

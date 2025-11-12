@@ -38,6 +38,9 @@ namespace TY
     Array<std::string_view> SplitStringView(std::string_view str, char delimiter, bool skipEmpty = false);
 
     [[nodiscard]]
+    Array<std::u32string_view> SplitStringView(std::u32string_view str, char32_t delimiter, bool skipEmpty = false);
+
+    [[nodiscard]]
     std::wstring StringifyBlob(ID3DBlob* blob);
 
     /// @brief アライメントに揃えたサイズを取得する
