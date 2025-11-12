@@ -68,6 +68,9 @@ private:
         Quaternion toRotation =
             Quaternion::FromUnitVectors(Float3{0, 0, 1}, targetStrip.toNext.normalized());
 
+        state.m_forwardVector = targetStrip.toNext.normalized();
+        state.m_upVector = targetStrip.normal;
+        state.m_velocity = {};
         state.m_durability = PositiveF32{state.m_durability - 1000.0f};
 
         await.waitForExpired(

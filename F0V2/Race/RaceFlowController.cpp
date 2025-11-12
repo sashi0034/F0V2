@@ -285,6 +285,7 @@ private:
                 ToUtf32("- {} -", m_countdown),
                 96.0f,
                 Screen::MiddleCenterF(), Alignment9::MiddleCenter);
+            return;
         }
 
         if (m_majorBanner == MajorBanner::Go)
@@ -293,6 +294,7 @@ private:
                 m_majorBannerMessage,
                 96.0f,
                 Screen::MiddleCenterF(), Alignment9::MiddleCenter);
+            return;
         }
         else if (m_majorBanner == MajorBanner::YouGotBoostPower)
         {
@@ -300,6 +302,7 @@ private:
                 m_majorBannerMessage,
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
+            return;
         }
         else if (m_majorBanner == MajorBanner::TheFinalLap)
         {
@@ -307,6 +310,7 @@ private:
                 m_majorBannerMessage,
                 64.0f,
                 Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter);
+            return;
         }
         else if (m_majorBanner == MajorBanner::Finish)
         {
@@ -322,6 +326,8 @@ private:
                     96.0f,
                     Screen::MiddleCenterF(), Alignment9::MiddleCenter);
             }
+
+            return;
         }
         else if (m_majorBanner == MajorBanner::YourMachineHasCrashed)
         {
@@ -330,6 +336,18 @@ private:
                 96.0f,
                 Screen::MiddleCenterF(), Alignment9::MiddleCenter,
                 Palette::Red);
+            return;
+        }
+
+        const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
+        if (player.state.m_isFallingOffCourse)
+        {
+            DrawSpecialLabelText(
+                U"Fall Off the Track !",
+                64.0f,
+                Screen::RectF().middleCenter(), Alignment9::MiddleCenter,
+                Palette::Orange);
+            return;
         }
     }
 
