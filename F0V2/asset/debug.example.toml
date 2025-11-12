@@ -14,3 +14,7 @@ draw_physics_lines = false
 draw_scenery = true
 
 print_diagnostics = true
+
+boost_unlocked = false
+
+skip_321go = false

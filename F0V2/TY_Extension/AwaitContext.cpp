@@ -108,16 +108,6 @@ namespace TY
         yield();
     }
 
-    ActorLifetimeScope& AwaitContext::lifetime()
-    {
-        return m_lifetime;
-    }
-
-    const ActorLifetimeScope& AwaitContext::lifetime() const
-    {
-        return m_lifetime;
-    }
-
     void AwaitContext::yield()
     {
         CoroutineActor::yield_type& y = m_yield.get();

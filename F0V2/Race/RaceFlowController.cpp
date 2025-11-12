@@ -12,6 +12,7 @@
 #include "TY/Screen.h"
 #include "TY/Utils.h"
 #include "TY_Extension/AwaitContext.h"
+#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -41,6 +42,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     MajorBanner m_majorBanner{MajorBanner::None};
 
+    CoroutineActor m_majorBannerCoroutine{};
+
     int m_playerFinalRank{-1};
 
     void Init()
@@ -49,7 +52,7 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
         StartCoroutine(m_children, [this](AwaitContext& await)
         {
-            runRaceFlow(await);
+            processRaceFlow(await);
         });
 
         m_durabilityBar = m_children.birth(Hud_DurabilityBar());
@@ -62,27 +65,15 @@ private:
         m_children.updateEach();
     }
 
-    void runRaceFlow(AwaitContext& await)
+    void processRaceFlow(AwaitContext& await)
     {
         g_sharedState->isRaceStarted = false;
 
-        m_countdown = 3;
+        await.waitForFrames(1);
 
-        await.waitForTime(1.0f);
-
-        m_countdown--;
-
-        await.waitForTime(1.0f);
-
-        m_countdown--;
-
-        await.waitForTime(1.0f);
-
-        m_countdown--;
+        process321Go(await);
 
         g_sharedState->isRaceStarted = true;
-
-        popupMajorBanner(MajorBanner::Go, 3.0f) >> await.lifetime();
 
         // -----------------------------------------------
 
@@ -92,7 +83,7 @@ private:
             return player.state.m_lapProgress.lapIndex == 1;
         });
 
-        popupMajorBanner(MajorBanner::YouGotBoostPower, 5.0f) >> await.lifetime();
+        popupMajorBanner(MajorBanner::YouGotBoostPower, 5.0f);
 
         // -----------------------------------------------
 
@@ -102,7 +93,7 @@ private:
             return player.state.m_lapProgress.lapIndex == 2;
         });
 
-        popupMajorBanner(MajorBanner::TheFinalLap, 5.0f) >> await.lifetime();
+        popupMajorBanner(MajorBanner::TheFinalLap, 5.0f);
 
         // -----------------------------------------------
 
@@ -121,10 +112,39 @@ private:
         m_playerFinalRank = playerRank;
     }
 
-    CoroutineActor popupMajorBanner(MajorBanner banner, float seconds)
+    void process321Go(AwaitContext& await)
+    {
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("skip_321go"))
+        {
+            g_sharedState->isRaceStarted = true;
+            return;
+        }
+#endif
+
+        m_countdown = 3;
+
+        await.waitForTime(1.0f);
+
+        m_countdown--;
+
+        await.waitForTime(1.0f);
+
+        m_countdown--;
+
+        await.waitForTime(1.0f);
+
+        m_countdown--;
+
+        popupMajorBanner(MajorBanner::Go, 3.0f);
+    }
+
+    void popupMajorBanner(MajorBanner banner, float seconds)
     {
         m_majorBanner = banner;
-        return StartCoroutine(m_children, [this, banner, seconds](AwaitContext& await)
+
+        m_majorBannerCoroutine.kill();
+        m_majorBannerCoroutine = StartCoroutine(m_children, [this, banner, seconds](AwaitContext& await)
         {
             await.waitForTime(seconds);
 

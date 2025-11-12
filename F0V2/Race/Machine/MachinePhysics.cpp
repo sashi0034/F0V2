@@ -153,6 +153,12 @@ namespace
 
     bool isBoostUnlocked(const MachinePhysicsState& state)
     {
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("boost_unlocked"))
+        {
+            return true;
+        }
+#endif
         // 二周目からブースト使用可能
         return state.m_lapProgress.lapIndex >= 1;
     }
