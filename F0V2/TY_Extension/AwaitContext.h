@@ -40,11 +40,16 @@ namespace TY
 
         void waitForExpired(std::weak_ptr<ActorBase> actor);
 
+        ActorLifetimeScope& lifetime();
+
+        const ActorLifetimeScope& lifetime() const;
+
     protected:
         void yield();
 
         std::reference_wrapper<CoroutineActor::yield_type> m_yield;
         std::function<bool()> m_resumePoller{};
+        ActorLifetimeScope m_lifetime{};
     };
 
     /// @brief コルーチンのコンテキスト発行側で用いるためのオブジェクト

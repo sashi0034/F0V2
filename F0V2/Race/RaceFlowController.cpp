@@ -142,7 +142,7 @@ private:
             await_.waitForTime(3.0f);
 
             m_showGo = false;
-        });
+        }) >> await.lifetime();
     }
 
     void drawHud() const override
