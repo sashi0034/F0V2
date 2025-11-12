@@ -178,7 +178,7 @@ private:
             if (ImGui::Button("Go To Checkpoint"))
             {
                 const auto& s = segments[s_checkpointIndex];
-                machine().state = {};
+                resetPhysicsState();
                 machine().state.m_pose.position = s.p1 + s.midwayStrips[0].normal * 10.0f;
 
                 s_stopMove = false;

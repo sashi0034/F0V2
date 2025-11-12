@@ -543,6 +543,26 @@ namespace
         Float3 pushbackVector;
     };
 
+    bool canBoostAttack(const MachinePhysicsState& from, const MachinePhysicsState& to)
+    {
+        // ブーストアタックの発動には相手よりも速い必要がある
+        if (from.m_velocity.lengthSq() < to.m_velocity.lengthSq())
+        {
+            return false;
+        }
+
+        if (from.m_manualBoost > 0.0f)
+        {
+            return to.m_manualBoost == 0.0f;
+        }
+        else if (from.m_passiveBoost > 0.0f)
+        {
+            return to.m_manualBoost == 0.0f && to.m_passiveBoost == 0.0f;
+        }
+
+        return false;
+    }
+
     void onHitOtherMachine(
         Float3& newMoveVector,
         MachinePhysicsState& state,
@@ -556,16 +576,31 @@ namespace
         // NOTE: otherMachine 書き換え 
         auto& otherMachineState = GetRaceContext().machineManager().fetchMachine(hit.otherMachineId).state;
 
-        // 法線方向速度の除去
-        const Float3 v1 = state.m_velocity;
-        const Float3 v2 = otherMachineState.m_velocity;
+        if (canBoostAttack(state, otherMachineState))
+        {
+            // ブーストアタック成立
+            otherMachineState.m_velocity += state.m_upVector * 50.0f;
 
-        constexpr float m1 = 1;
-        constexpr float m2 = m1;
-        constexpr float e = 1.0f; // 反発係数
+            // TODO: 連続フレームでヒット防止
+            otherMachineState.m_durability = PositiveF32(otherMachineState.m_durability - 500.0f);
+        }
+        else
+        {
+            // 法線方向速度の除去
+            const Float3 v1 = state.m_velocity;
+            const Float3 v2 = otherMachineState.m_velocity;
 
-        state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
-        otherMachineState.m_velocity = v2 - n * n.dot(v2 - v1) * (1 + e) * m1 / (m1 + m2);
+            constexpr float m1 = 1;
+            constexpr float m2 = m1;
+            constexpr float e = 1.0f; // 反発係数
+
+            state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
+
+            if (not canBoostAttack(otherMachineState, state))
+            {
+                otherMachineState.m_velocity = v2 - n * n.dot(v2 - v1) * (1 + e) * m1 / (m1 + m2);
+            }
+        }
 
         // 法線方向移動ベクトルの補正
         const Float3 r = toPos - state.m_pose.position;
