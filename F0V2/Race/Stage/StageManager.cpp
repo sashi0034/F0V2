@@ -332,6 +332,8 @@ private:
                 m_startPositions.push_back(data);
             }
         }
+
+        std::ranges::reverse(m_startPositions);
     }
 
     void drawGBuffer() const override

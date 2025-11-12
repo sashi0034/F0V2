@@ -222,6 +222,7 @@ namespace Race
         state = {};
 
         state.m_pose.position = startPosition.position;
+        state.m_pose.rotation = Quaternion::FromUnitVectors(Float3{0, 0, 1}, startPosition.forward);
 
         state.m_forwardVector = startPosition.forward;
 
