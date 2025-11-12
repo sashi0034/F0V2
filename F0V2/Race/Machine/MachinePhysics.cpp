@@ -150,6 +150,12 @@ namespace
 
         state.m_velocity += state.m_forwardVector * dv * rate * InGameDeltaTime();
     }
+
+    bool isBoostUnlocked(const MachinePhysicsState& state)
+    {
+        // 二周目からブースト使用可能
+        return state.m_lapProgress.lapIndex >= 1;
+    }
 }
 
 namespace Race
@@ -195,10 +201,14 @@ namespace Race
             applyInputAccel(state, props);
         }
 
-        if (props.input.boostRequested && state.m_manualBoost < 0.5f)
+        constexpr float boostEnergyCost = 800.0f;
+        if (props.input.boostRequested &&
+            isBoostUnlocked(state) &&
+            state.m_durability > boostEnergyCost &&
+            state.m_manualBoost < 0.5f)
         {
             state.m_manualBoost = 1.0f;
-            state.m_durability = PositiveF32(state.m_durability - 800.0f);
+            state.m_durability = PositiveF32(state.m_durability - boostEnergyCost);
         }
 
         constexpr float maxVelocity = 500.0f;
