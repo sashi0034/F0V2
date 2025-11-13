@@ -103,63 +103,33 @@ struct EngineGamepadImpl
             return;
         }
 
-        if (FAILED(m_di->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceCallback, nullptr, DIEDFL_ATTACHEDONLY)))
-        {
-            return;
-        }
-
-        if (m_gamepad == nullptr)
-        {
-            return;
-        }
-
-        if (FAILED(m_gamepad->SetDataFormat(&c_dfDIJoystick)))
-        {
-            return;
-        }
-
-        const auto hwnd = Window_singleton::Handle();
-        if (FAILED(m_gamepad->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE)))
-        {
-            return;
-        }
-
-        // -----------------------------------------------
-
-        // 値域を設定
-        static const std::array<DWORD, 8> axes = {
-            DIJOFS_X,
-            DIJOFS_Y,
-            DIJOFS_Z,
-            DIJOFS_RX,
-            DIJOFS_RY,
-            DIJOFS_RZ,
-            DIJOFS_SLIDER(0),
-            DIJOFS_SLIDER(1)
-        };
-
-        for (const DWORD axis : axes)
-        {
-            DIPROPRANGE dipr{};
-            dipr.diph.dwSize = sizeof(DIPROPRANGE);
-            dipr.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-            dipr.diph.dwObj = axis;
-            dipr.diph.dwHow = DIPH_BYOFFSET;
-            dipr.lMin = -32768;
-            dipr.lMax = 32767;
-
-            m_gamepad->SetProperty(DIPROP_RANGE, &dipr.diph);
-        }
+        reacquireIfNeeded();
     }
 
     void Update()
     {
-        if (!m_gamepad) return;
+        reacquireIfNeeded();
+
+        if (not m_gamepad)
+        {
+            return;
+        }
 
         DIJOYSTATE js;
         if (FAILED(m_gamepad->Poll()))
         {
+            m_gamepad->Unacquire();
             m_gamepad->Acquire();
+
+            // Acquire も失敗してる可能性があり、その場合はデバイスが死んでる
+            if (FAILED(m_gamepad->Poll()))
+            {
+                // 再接続のために破棄して nullptr にする
+                m_gamepad->Unacquire();
+                m_gamepad->Release();
+                m_gamepad = nullptr;
+            }
+
             return;
         }
 
@@ -213,6 +183,65 @@ struct EngineGamepadImpl
         if (m_gamepad) m_gamepad->Unacquire();
         if (m_gamepad) m_gamepad->Release();
         if (m_di) m_di->Release();
+    }
+
+private:
+    void reacquireIfNeeded() const
+    {
+        if (m_gamepad)
+        {
+            return;
+        }
+
+        // -----------------------------------------------
+
+        if (FAILED(m_di->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceCallback, nullptr, DIEDFL_ATTACHEDONLY)))
+        {
+            return;
+        }
+
+        if (not m_gamepad)
+        {
+            return;
+        }
+
+        if (FAILED(m_gamepad->SetDataFormat(&c_dfDIJoystick)))
+        {
+            return;
+        }
+
+        const auto hwnd = Window_singleton::Handle();
+        if (FAILED(m_gamepad->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE)))
+        {
+            return;
+        }
+
+        // -----------------------------------------------
+
+        // 値域を設定
+        static const std::array<DWORD, 8> axes = {
+            DIJOFS_X,
+            DIJOFS_Y,
+            DIJOFS_Z,
+            DIJOFS_RX,
+            DIJOFS_RY,
+            DIJOFS_RZ,
+            DIJOFS_SLIDER(0),
+            DIJOFS_SLIDER(1)
+        };
+
+        for (const DWORD axis : axes)
+        {
+            DIPROPRANGE dipr{};
+            dipr.diph.dwSize = sizeof(DIPROPRANGE);
+            dipr.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+            dipr.diph.dwObj = axis;
+            dipr.diph.dwHow = DIPH_BYOFFSET;
+            dipr.lMin = -32768;
+            dipr.lMax = 32767;
+
+            m_gamepad->SetProperty(DIPROP_RANGE, &dipr.diph);
+        }
     }
 };
 
