@@ -9,6 +9,7 @@
 #include "Race/Machine/MachinePhysics.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
+#include "TY/Gamepad.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mouse.h"
 #include "TY/Palette.h"
@@ -125,15 +126,32 @@ private:
     {
         MachinePhysicsProps::input_t input;
 
-        input.accelPressed = KeyLShift.pressed();
+        if (IsUsingGamepad())
+        {
+            input.accelPressed = MainGamepad.a().pressed;
 
-        input.boostRequested = KeySpace.down();
+            input.boostRequested = MainGamepad.b().down;
 
-        input.rightHandling =
-            (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
+            input.rightHandling = MainGamepad.axisL().x;
 
-        input.driftTrigger =
-            (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
+            const bool lt = MainGamepad.lt().pressed || MainGamepad.lb().pressed;
+            const bool rt = MainGamepad.rt().pressed || MainGamepad.rb().pressed;
+
+            input.driftTrigger =
+                lt ? -1.0f : (rt ? 1.0f : 0.0f);
+        }
+        else
+        {
+            input.accelPressed = KeyLShift.pressed();
+
+            input.boostRequested = KeySpace.down();
+
+            input.rightHandling =
+                (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
+
+            input.driftTrigger =
+                (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
+        }
 
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)
