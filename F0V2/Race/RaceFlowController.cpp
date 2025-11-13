@@ -156,6 +156,13 @@ private:
             return player.state.m_lapProgress.lapIndex == 3;
         });
 
+#if defined(_DEBUG)
+        await.waitForTrue([]
+        {
+            return GetDebugTomlValue<bool>("disable_finish");
+        });
+#endif
+
         popupMajorBanner(MajorBanner::Finish, U"Finish !", -1);
 
         m_raceFinished = true;
