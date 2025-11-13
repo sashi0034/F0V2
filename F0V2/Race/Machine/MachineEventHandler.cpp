@@ -63,9 +63,16 @@ private:
         const auto& targetSegmentAntStrip = state.m_lastGroundContactLocation;
         auto& targetStrip = segments[targetSegmentAntStrip.segmentIndex].midwayStrips[targetSegmentAntStrip.stripIndex];
 
-        Float3 toPosition = (targetStrip.leftmost + targetStrip.rightmost) * 0.5f + targetStrip.normal * 5.0f;
+        float targetElevation = 5.0f;
+        if (targetStrip.style == CourseSegmentStyle::Cylinder)
+        {
+            targetElevation += CylinderBaseRadius;
+        }
 
-        Quaternion toRotation =
+        const Float3 toPosition =
+            (targetStrip.leftmost + targetStrip.rightmost) * 0.5f + targetStrip.normal * targetElevation;
+
+        const Quaternion toRotation =
             Quaternion::FromUnitVectors(Float3{0, 0, 1}, targetStrip.toNext.normalized());
 
         state.m_forwardVector = targetStrip.toNext.normalized();

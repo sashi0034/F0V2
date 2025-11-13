@@ -416,7 +416,7 @@ namespace
 
         // -----------------------------------------------
 
-        constexpr float baseRadius = 15.0f;
+        constexpr float baseRadius = CylinderBaseRadius;
 
         constexpr float outerEntryExitRadius = baseRadius * 3.0f;
 

@@ -16,6 +16,7 @@
 #include "TY/SimpleInput.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/Pose.h"
+#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -156,6 +157,13 @@ private:
             UpdateMachinePhysicsState(machine().state, machine().props);
             GetRaceContext().machineManager().eventHandler().handleIfNeeded(machine().id());
         }
+
+#if defined(_DEBUG)
+        if (GetDebugTomlValue<bool>("player_immortal"))
+        {
+            machine().state.m_durability = machine().props.maxDurability;
+        }
+#endif
     }
 
     void debugUI()
