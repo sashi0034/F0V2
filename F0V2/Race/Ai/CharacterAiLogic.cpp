@@ -95,6 +95,8 @@ namespace
 
     float evaluateRubberBandingBoost(const MachinePhysicsUnit& machine)
     {
+        // TODO: rubberBandingBias
+
         if (machine.state.isHovering())
         {
             return 1.0f;
@@ -120,7 +122,7 @@ namespace
         }
         else // if (r >= 0.0f)
         {
-            boostFactor = 1.0f + r * 2.0f;
+            boostFactor = 1.0f + r * 4.0f;
         }
 
         return boostFactor;
@@ -192,6 +194,7 @@ namespace Race
 #endif
 
         // rightHandling, driftTrigger 
+        float turningIntensity;
         {
             Float3 F = machineState.m_forwardVector;
             F = F - wayNormal * wayNormal.dot(F);
@@ -204,7 +207,7 @@ namespace Race
             const float dotF = targetDirection.dot(F);
             const float dotV = targetDirection.dot(V);
             const bool useF = dotF < dotV;
-            const float turningIntensity = 1.0f - Max(0.0f, useF ? dotF : dotV);
+            turningIntensity = 1.0f - Max(0.0f, useF ? dotF : dotV);
 
 #if defined(_DEBUG) && 0
             ImmediatePrint("turningIntensity: {:.02f}", turningIntensity);
@@ -217,12 +220,16 @@ namespace Race
                 input.rightHandling = rightSign; // * Max(turningIntensity, 0.5f);
                 input.driftTrigger = rightSign * (turningIntensity > 0.1 ? 1.0f : 0.0f);
             }
-
-            // state.m_accumulatedRightHandling = Math::Clamp(state.m_accumulatedRightHandling, -1.0f, 1.0f);
-            // input.rightHandling = state.m_accumulatedRightHandling;
         }
 
         input.cheatBoostFactor = evaluateRubberBandingBoost(machine);
+        if (turningIntensity > 0.5f && // 急カーブ
+            not machineState.isHovering() && // 接地中
+            input.cheatBoostFactor > 1.0f)
+        {
+            // カーブ用のチート減速
+            input.cheatBoostFactor = 0.5f;
+        }
 
 #if defined(_DEBUG)
         if (state.m_aiId == 0 &&
