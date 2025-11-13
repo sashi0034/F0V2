@@ -116,6 +116,20 @@ private:
                 m_measuredLapTimes[currentLap] += InGameDeltaTime();
             }
         }
+
+        debugUI();
+    }
+
+    void debugUI()
+    {
+        ImGui::Begin("Race Flow Controller");
+
+        if (ImGui::Button("End"))
+        {
+            g_sharedState->isRaceEnded = true;
+        }
+
+        ImGui::End();
     }
 
     void processRaceFlow(AwaitContext& await)

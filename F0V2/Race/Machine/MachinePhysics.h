@@ -77,6 +77,8 @@ namespace Race
             float rightHandling{}; // [-1.0f, 1.0f]
 
             float driftTrigger{}; // [-1.0f, 1.0f]
+
+            float cheatBoostFactor{1.0f};
         } input{};
 
         PositiveF32 maxDurability{5000.0f};

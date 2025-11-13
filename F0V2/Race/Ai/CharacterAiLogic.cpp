@@ -3,6 +3,7 @@
 
 #include "SpatialAi.h"
 #include "Race/IRaceContext.h"
+#include "Race/Stage/StageManager.h"
 #include "TY/GameTime.h"
 #include "TY/Immediate2D.h"
 #include "TY/Immediate3D.h"
@@ -13,10 +14,6 @@
 using namespace Race;
 
 namespace
-{
-}
-
-namespace Race
 {
     int findTargetWaypoint(
         const MachinePhysicsState& machineState,
@@ -96,6 +93,42 @@ namespace Race
         return targetWaypointIndex;
     }
 
+    float evaluateRubberBandingBoost(const MachinePhysicsUnit& machine)
+    {
+        if (machine.state.isHovering())
+        {
+            return 1.0f;
+        }
+
+        const auto& stageManager = GetRaceContext().stageManager();
+
+        const auto& playerMachine = GetRaceContext().machineManager().machineList()[PlayerMachineId];
+        const float playerDistance = stageManager.getDistanceFromStart(playerMachine.state.m_lapProgress);
+
+        const float thisDistance = stageManager.getDistanceFromStart(machine.state.m_lapProgress);
+
+        const float distanceFromPlayer = thisDistance - playerDistance;
+
+        float r = -distanceFromPlayer / 50.0f;
+        r = Math::Clamp(r, -1.0f, 1.0f); // [-1.0f, 1.0f]
+        // r = (r + 1.0f) * 0.5f; // [-1.0f, 1.0f] --> [0.0f, 1.0f]
+
+        float boostFactor;
+        if (r < 0.0f)
+        {
+            boostFactor = 1.0f + r * 0.5f;
+        }
+        else // if (r >= 0.0f)
+        {
+            boostFactor = 1.0f + r * 2.0f;
+        }
+
+        return boostFactor;
+    }
+}
+
+namespace Race
+{
     MachinePhysicsProps::input_t UpdateCharacterAiLogic(CharacterAiLogicState& state, const MachinePhysicsUnit& machine)
     {
         MachinePhysicsProps::input_t input{};
@@ -131,8 +164,6 @@ namespace Race
             n = n - targetWaypoint.forward * targetWaypoint.forward.dot(n);
             wayNormal = n.normalized();
         }
-
-        const float curveHeuristic = currentWaypoint.curveHeuristic;
 
         // accelPressed
         {
@@ -190,6 +221,8 @@ namespace Race
             // state.m_accumulatedRightHandling = Math::Clamp(state.m_accumulatedRightHandling, -1.0f, 1.0f);
             // input.rightHandling = state.m_accumulatedRightHandling;
         }
+
+        input.cheatBoostFactor = evaluateRubberBandingBoost(machine);
 
 #if defined(_DEBUG)
         if (state.m_aiId == 0 &&

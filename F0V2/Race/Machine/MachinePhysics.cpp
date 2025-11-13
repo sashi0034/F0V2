@@ -170,9 +170,11 @@ namespace
         dv = Max(dv, 0.1f);
 
         float rate = props.accelFactor;
+
         rate = Max(rate, Min(1.0f / rate, currentVelocity / (rate * targetVelocity)));
 
-        state.m_velocity += state.m_forwardVector * dv * rate * InGameDeltaTime();
+        const float cheat = props.input.cheatBoostFactor;
+        state.m_velocity += state.m_forwardVector * dv * rate * cheat * InGameDeltaTime();
     }
 
     bool isBoostUnlocked(const MachinePhysicsState& state)

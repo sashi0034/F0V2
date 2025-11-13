@@ -33,7 +33,6 @@ namespace Race
         start_position getStartPosition(int machineId) const;
 
         float getDistanceFromStart(const SegmentAndStrip& pos) const;
-
         float getDistanceFromStart(const LapProgress& pos) const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
