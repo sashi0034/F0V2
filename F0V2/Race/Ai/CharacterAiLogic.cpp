@@ -111,7 +111,7 @@ namespace
 
         const float distanceFromPlayer = thisDistance - playerDistance;
 
-        float r = -distanceFromPlayer / 50.0f;
+        float r = -distanceFromPlayer / 100.0f;
         r = Math::Clamp(r, -1.0f, 1.0f); // [-1.0f, 1.0f]
         // r = (r + 1.0f) * 0.5f; // [-1.0f, 1.0f] --> [0.0f, 1.0f]
 
