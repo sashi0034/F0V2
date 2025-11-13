@@ -10,54 +10,20 @@ namespace
 {
     float evaluateTraveledDistance(const SegmentAndStrip& from, const SegmentAndStrip& to)
     {
-        float length{};
+        const auto& stageManager = GetRaceContext().stageManager();
 
-        const auto& segments = GetRaceContext().stageManager().courseSegments();
-
-        SegmentAndStrip cursor = from;
-        if (cursor.segmentIndex == to.segmentIndex)
-        {
-            for (int i = cursor.stripIndex; i < to.stripIndex; ++i)
-            {
-                length += segments[cursor.segmentIndex].midwayStrips[cursor.stripIndex].lengthToNext;
-            }
-
-            for (int i = cursor.stripIndex; i > to.stripIndex; --i)
-            {
-                length -= segments[cursor.segmentIndex].midwayStrips[cursor.stripIndex].lengthToNext;
-            }
-
-            return length;
-        }
-
-        for (; cursor.stripIndex < segments[cursor.segmentIndex].midwayStrips.size(); ++cursor.stripIndex)
-        {
-            length += segments[cursor.segmentIndex].midwayStrips[cursor.stripIndex].lengthToNext;
-        }
-
-        cursor.segmentIndex = (cursor.segmentIndex + 1) % segments.size();
-        cursor.stripIndex = 0;
-
-        while (cursor.segmentIndex != to.segmentIndex)
-        {
-            length += segments[cursor.segmentIndex].totalLength;
-            cursor.segmentIndex = (cursor.segmentIndex + 1) % segments.size();
-        }
-
-        for (; cursor.stripIndex < to.stripIndex; ++cursor.stripIndex)
-        {
-            length += segments[cursor.segmentIndex].midwayStrips[cursor.stripIndex].lengthToNext;
-        }
+        const float length = stageManager.getDistanceFromStart(to) - stageManager.getDistanceFromStart(from);
 
         const float courseLength = GetRaceContext().stageManager().courseLength();
 
         // コース半分の距離分は一度に進めないと仮定し、その場合は逆走として扱う
         if (length > courseLength * 0.5f)
         {
-            assert(
-                length - courseLength <= 0.0f &&
-                "evaluateTraveledDistance(): Invalid distance calculation exceeds course length");
             return length - courseLength;
+        }
+        else if (length < -courseLength * 0.5f)
+        {
+            return length + courseLength;
         }
 
         return length;

@@ -2,6 +2,7 @@
 #include "StageStaticCollider.h"
 #include "Race/Common/CourseData.h"
 #include "Race/Common/CourseTriangleAttribute.h"
+#include "Race/Machine/LapProgress.h"
 #include "TY/TriangleBvh.h"
 #include "TY_Extension/GameObjectHandle.h"
 
@@ -30,6 +31,10 @@ namespace Race
         };
 
         start_position getStartPosition(int machineId) const;
+
+        float getDistanceFromStart(const SegmentAndStrip& pos) const;
+
+        float getDistanceFromStart(const LapProgress& pos) const;
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 

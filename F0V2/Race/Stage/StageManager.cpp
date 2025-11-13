@@ -158,6 +158,21 @@ namespace
         }
     }
 
+    struct DistanceCache
+    {
+        struct CachePerStrip
+        {
+            float distanceFromStart{};
+        };
+
+        struct CachePerSegment
+        {
+            Array<CachePerStrip> strips{};
+        };
+
+        Array<CachePerSegment> segments{};
+    };
+
     std::pair s_visibleBvhRange{0, 0};
 }
 
@@ -178,6 +193,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
     StageStaticCollider m_staticCollider{};
 
     Array<start_position> m_startPositions{};
+
+    DistanceCache m_distanceCache{};
 
     void Init()
     {
@@ -244,6 +261,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         m_staticCollider.build(colliders);
 
         buildStartPositions();
+
+        buildDistanceCache();
     }
 
 private:
@@ -334,6 +353,25 @@ private:
         }
 
         std::ranges::reverse(m_startPositions);
+    }
+
+    void buildDistanceCache()
+    {
+        float distanceFromStart{};
+        for (const auto& segment : g_sharedState->courseSegments)
+        {
+            DistanceCache::CachePerSegment segmentCache{};
+            for (const auto& strip : segment.midwayStrips)
+            {
+                DistanceCache::CachePerStrip stripCache{};
+                stripCache.distanceFromStart = distanceFromStart;
+                segmentCache.strips.push_back(stripCache);
+
+                distanceFromStart += strip.toNext.length();
+            }
+
+            m_distanceCache.segments.push_back(segmentCache);
+        }
     }
 
     void drawGBuffer() const override
@@ -438,6 +476,18 @@ namespace Race
     {
         const int index = Math::Clamp<int>(machineId, 0, static_cast<int>(p_impl->m_startPositions.size() - 1));
         return p_impl->m_startPositions[index];
+    }
+
+    float StageManager::getDistanceFromStart(const SegmentAndStrip& pos) const
+    {
+        return p_impl->m_distanceCache.segments[pos.segmentIndex].strips[pos.stripIndex].distanceFromStart;
+    }
+
+    float StageManager::getDistanceFromStart(const LapProgress& pos) const
+    {
+        float length = pos.lapIndex * p_impl->m_courseLength;
+        length += p_impl->m_distanceCache.segments[pos.segmentIndex].strips[pos.stripIndex].distanceFromStart;
+        return length;
     }
 
     std::shared_ptr<GameObjectBase> StageManager::asGameObject() const
