@@ -171,6 +171,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\debug.toml" />
     <Content Include="asset\fsr1\fsr1_easu.hlsl" />
     <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
+    <Content Include="asset\script\bundle_build.py" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <Content Include="asset\shader\scenery1_cs.hlsl" />
@@ -269,7 +270,6 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="Race\Race_template.h.txt" />
     <Content Include="Testbed\Testbed_template.cpp.txt" />
     <Content Include="Testbed\Testbed_template.h.txt" />
-    <Content Include="engine\shape3d.hlsl" />
     <ClCompile Include="TY_Extension\AwaitContext.cpp" />
     <ClCompile Include="TY_Extension\CoroutineActor.cpp" />
     <ClCompile Include="TY_Extension\LivePPAddon.cpp" />
@@ -281,10 +281,8 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\model\dirty_plane.mtl" />
     <Content Include="asset\model\dirty_plane.obj" />
     <Content Include="asset\shader\phong.hlsl" />
-    <Content Include="engine\graphics_stub.hlsl" />
     <Content Include="asset\shader\default2d.hlsl" />
     <Content Include="asset\shader\lambert.hlsl" />
-    <Content Include="engine\compute_stub.hlsl" />
     <ClCompile Include="Testbed\Testbed_RenderTarget.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp">
@@ -299,7 +297,6 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\model\cinnamon_face.png" />
     <Content Include="asset\model\robot_head.mtl" />
     <Content Include="asset\model\robot_head.obj" />
-    <Content Include="engine\shape2d.hlsl" />
     <Content Include="Util\PositiveValue.h" />
   </ItemGroup>
   <ItemGroup>

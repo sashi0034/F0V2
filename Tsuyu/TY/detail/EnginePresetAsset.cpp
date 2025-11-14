@@ -29,11 +29,11 @@ struct EnginePresetAssetImpl
         const Image whiteImage{Size{16, 16}, ColorU8{255}};
         m_whiteTexture = DynamicTexture(whiteImage);
 
-        m_stubVS = VertexShader{ShaderParams::VS("engine/graphics_stub.hlsl")};
+        m_stubVS = VertexShader{ShaderParams::VS("asset/engine/graphics_stub.hlsl")};
 
-        m_stubPS = PixelShader{ShaderParams::PS("engine/graphics_stub.hlsl")};
+        m_stubPS = PixelShader{ShaderParams::PS("asset/engine/graphics_stub.hlsl")};
 
-        m_stubCS = ComputeShader{ShaderParams::CS("engine/compute_stub.hlsl")};
+        m_stubCS = ComputeShader{ShaderParams::CS("asset/engine/compute_stub.hlsl")};
 
         m_emptyStructuredBuffer = UnorderedStructuredBuffer(
             UnorderedStructuredBufferParams{

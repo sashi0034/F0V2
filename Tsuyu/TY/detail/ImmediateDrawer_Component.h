@@ -5,8 +5,8 @@
 
 namespace TY::ImmediateDrawer_detail
 {
-    const std::string ShaderPath2D = "engine/shape2d.hlsl";
-    const std::string ShaderPath3D = "engine/shape3d.hlsl";
+    const std::string ShaderPath2D = "asset/engine/shape2d.hlsl";
+    const std::string ShaderPath3D = "asset/engine/shape3d.hlsl";
 
     struct ImmediateDrawerComponent : IComponent
     {
