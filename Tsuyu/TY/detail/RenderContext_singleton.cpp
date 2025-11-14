@@ -120,21 +120,10 @@ struct RenderContextImpl
         }
 
         // 最適なアダプタを選択
-        for (const auto& adapter : availableAdapters)
-        {
-            DXGI_ADAPTER_DESC desc = {};
-            adapter->GetDesc(&desc);
-            std::wstring strDesc = desc.Description;
-            if (strDesc.find(L"NVIDIA") != std::string::npos)
-            {
-                m_adapter = adapter;
-                break;
-            }
-        }
-
+        m_adapter = findBestAdapter();
         if (not m_adapter)
         {
-            LogError.writeln("No suitable adapter found");
+            LogError.writeln("No suitable hardware adapter found");
             return;
         }
 
@@ -308,6 +297,48 @@ private:
                 RenderTargetParams{}
                 .setRtv_unsafe(backBuffer, m_clearColor);
         }
+    }
+
+    ComPtr<IDXGIAdapter1> findBestAdapter() const
+    {
+        ComPtr<IDXGIAdapter1> bestAdapter = nullptr;
+        size_t bestVRAM = 0;
+
+        for (UINT i = 0;; i++)
+        {
+            ComPtr<IDXGIAdapter1> adapter;
+            if (m_dxgiFactory->EnumAdapters1(i, &adapter) == DXGI_ERROR_NOT_FOUND)
+            {
+                break;
+            }
+
+            DXGI_ADAPTER_DESC1 desc;
+            adapter->GetDesc1(&desc);
+
+            // ソフトウェア (WARP) GPUは除外
+            if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+            {
+                continue;
+            }
+
+            // D3D12 デバイスが作れるかチェック
+            if (FAILED(D3D12CreateDevice(adapter.Get(),
+                D3D_FEATURE_LEVEL_11_0,
+                _uuidof(ID3D12Device),
+                nullptr)))
+            {
+                continue;
+            }
+
+            // VRAM が多いほど優先
+            if (desc.DedicatedVideoMemory > bestVRAM)
+            {
+                bestVRAM = desc.DedicatedVideoMemory;
+                bestAdapter = adapter;
+            }
+        }
+
+        return bestAdapter;
     }
 
     RectF calculateViewportRect() const
