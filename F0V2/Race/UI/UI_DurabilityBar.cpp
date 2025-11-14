@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "Hud_DurabilityBar.h"
+#include "UI_DurabilityBar.h"
 
 #include "GamePalette.h"
-#include "Hud_LabelText.h"
+#include "UI_LabelText.h"
 #include "Race/IRaceContext.h"
 #include "Race/Machine/MachineConstants.h"
 #include "TY/ActorContainer.h"
@@ -22,10 +22,10 @@ namespace
 {
 }
 
-struct Hud_DurabilityBar::Impl : ActorBase
+struct UI_DurabilityBar::Impl : ActorBase
 {
 #if defined(_DEBUG)
-    std::u32string m_debugName = U"Hud_DurabilityBar";
+    std::u32string m_debugName = U"UI_DurabilityBar";
 #endif
     ActorContainer m_children{};
 
@@ -144,22 +144,22 @@ private:
 
 namespace Race
 {
-    Hud_DurabilityBar::Hud_DurabilityBar() :
+    UI_DurabilityBar::UI_DurabilityBar() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void Hud_DurabilityBar::init()
+    void UI_DurabilityBar::init()
     {
         p_impl->Init();
     }
 
-    void Hud_DurabilityBar::draw() const
+    void UI_DurabilityBar::draw() const
     {
         p_impl->Draw();
     }
 
-    std::shared_ptr<ActorBase> Hud_DurabilityBar::asActor() const
+    std::shared_ptr<ActorBase> UI_DurabilityBar::asActor() const
     {
         return p_impl;
     }

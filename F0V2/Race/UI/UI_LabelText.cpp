@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Hud_LabelText.h"
+#include "UI_LabelText.h"
 
 #include "Asset0.h"
 #include "GamePalette.h"

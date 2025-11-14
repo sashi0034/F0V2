@@ -195,7 +195,7 @@ private:
 
         for (int i = 0; i < m_drawers.size(); ++i)
         {
-            m_drawers[i].drawer->drawHud();
+            m_drawers[i].drawer->drawUI();
         }
     }
 

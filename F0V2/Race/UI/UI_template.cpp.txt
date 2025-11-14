@@ -9,10 +9,10 @@ namespace
 {
 }
 
-struct Hud_template::Impl : ActorBase
+struct UI_template::Impl : ActorBase
 {
 #if defined(_DEBUG)
-    std::u32string m_debugName = U"Hud_template";
+    std::u32string m_debugName = U"UI_template";
 #endif
     ActorContainer m_children{};
 
@@ -40,17 +40,17 @@ private:
 
 namespace Race
 {
-    Hud_template::Hud_template() :
+    UI_template::UI_template() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void Hud_template::init()
+    void UI_template::init()
     {
         p_impl->Init();
     }
 
-    std::shared_ptr<ActorBase> Hud_template::asActor() const
+    std::shared_ptr<ActorBase> UI_template::asActor() const
     {
         return p_impl;
     }

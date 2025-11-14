@@ -24,7 +24,7 @@ namespace Race
         {
         }
 
-        virtual void drawHud() const
+        virtual void drawUI() const
         {
         }
     };

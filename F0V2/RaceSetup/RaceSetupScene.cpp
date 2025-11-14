@@ -127,12 +127,12 @@ private:
             .setColor(ColorF32{0.1f})
             .pushAuto();
 
-        const auto hudRegion = Screen::RectF().stretched(-400.0f, -320.0f);
+        const auto uiRegion = Screen::RectF().stretched(-400.0f, -320.0f);
 
         const auto [titleBarRegion, contentRegion] =
-            hudRegion.separate(80.0f, Direction4::Up);
+            uiRegion.separate(80.0f, Direction4::Up);
 
-        Immediate2D::RoundRect{hudRegion}
+        Immediate2D::RoundRect{uiRegion}
             .setColor(ColorF32{0.9f})
             .setRoundness(20.0f)
             .pushAuto();

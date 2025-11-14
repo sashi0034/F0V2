@@ -4,8 +4,8 @@
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "Common/RaceSharedState.h"
-#include "Hud/Hud_DurabilityBar.h"
-#include "Hud/Hud_LabelText.h"
+#include "UI/UI_DurabilityBar.h"
+#include "UI/UI_LabelText.h"
 #include "TY/ActorContainer.h"
 #include "TY/Gamepad.h"
 #include "TY/Immediate2D.h"
@@ -56,7 +56,7 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     ActorContainer m_children{};
 
-    Hud_DurabilityBar m_durabilityBar{};
+    UI_DurabilityBar m_durabilityBar{};
 
     CoroutineActor m_raceFlowCoroutine{};
 
@@ -86,7 +86,7 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
             processRaceFlow(await);
         });
 
-        m_durabilityBar = m_children.birth(Hud_DurabilityBar());
+        m_durabilityBar = m_children.birth(UI_DurabilityBar());
         m_durabilityBar.init();
     }
 
@@ -276,7 +276,7 @@ private:
         });
     }
 
-    void drawHud() const override
+    void drawUI() const override
     {
         const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
 
@@ -348,14 +348,14 @@ private:
 
         // -----------------------------------------------
 
-        drawSpecialHud();
+        drawSpecialUI();
 
         // -----------------------------------------------
 
         ImmediateDrawer::Global().draw();
     }
 
-    void drawSpecialHud() const
+    void drawSpecialUI() const
     {
         if (m_countdown > 0)
         {

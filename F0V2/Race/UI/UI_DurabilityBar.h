@@ -3,10 +3,10 @@
 
 namespace Race
 {
-    class Hud_DurabilityBar : public ActorHandle
+    class UI_DurabilityBar : public ActorHandle
     {
     public:
-        Hud_DurabilityBar();
+        UI_DurabilityBar();
 
         void init();
 
