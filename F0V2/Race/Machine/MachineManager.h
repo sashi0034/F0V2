@@ -20,9 +20,11 @@ namespace Race
 
         MachinePhysicsUnit& fetchMachine(MachineId id);
 
+        const Array<MachinePhysicsUnit>& machineList() const;
+
         const MachineEvaluation& getEvaluation(MachineId id) const;
 
-        const Array<MachinePhysicsUnit>& machineList() const;
+        int aliveMachineCount() const;
 
         MachineEventHandler& eventHandler();
         const MachineEventHandler& eventHandler() const;

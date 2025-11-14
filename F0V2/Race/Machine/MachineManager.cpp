@@ -24,11 +24,13 @@ struct MachineManager::Impl : GameObjectBase
 
     Array<MachineEvaluation> m_evaluations{};
 
+    int m_aliveMachineCount{};
+
     void Init()
     {
         m_initialized = true;
 
-        m_physicsUnits.reserve(100);
+        m_physicsUnits.reserve(MaxMachineCount);
 
         m_eventHandler = m_children.birth(MachineEventHandler());
         m_eventHandler.init();
@@ -60,6 +62,17 @@ private:
 
     void evaluateMachines()
     {
+        m_aliveMachineCount = 0;
+        for (int i = 0; i < m_physicsUnits.size(); ++i)
+        {
+            if (not m_physicsUnits[i].state.isDead())
+            {
+                ++m_aliveMachineCount;
+            }
+        }
+
+        // -----------------------------------------------
+
         Array<std::pair<int, LapProgress>> progressList;
         for (int i = 0; i < m_physicsUnits.size(); ++i)
         {
@@ -115,15 +128,20 @@ namespace Race
         return p_impl->m_physicsUnits[id];
     }
 
+    const Array<MachinePhysicsUnit>& MachineManager::machineList() const
+    {
+        return p_impl->m_physicsUnits;
+    }
+
     const MachineEvaluation& MachineManager::getEvaluation(MachineId id) const
     {
         p_impl->ResizeIfNeeded(id);
         return p_impl->m_evaluations[id];
     }
 
-    const Array<MachinePhysicsUnit>& MachineManager::machineList() const
+    int MachineManager::aliveMachineCount() const
     {
-        return p_impl->m_physicsUnits;
+        return p_impl->m_aliveMachineCount;
     }
 
     MachineEventHandler& MachineManager::eventHandler()

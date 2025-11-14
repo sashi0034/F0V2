@@ -298,7 +298,7 @@ private:
         {
             const auto evaluation = GetRaceContext().machineManager().getEvaluation(PlayerMachineId);
             const int rank1 = evaluation.rank + 1;
-            const int totalMachines = GetRaceContext().machineManager().machineList().size();
+            const int aliveMachines = GetRaceContext().machineManager().aliveMachineCount();
             DrawLabelText(ToUtf32(std::format("{}", rank1)),
                           64.0f,
                           Screen::TopCenterF().movedY(40.0f),
@@ -310,7 +310,7 @@ private:
                 .setColor(ColorF32{0.15f})
                 .pushAuto();
 
-            DrawLabelText(ToUtf32(std::format("{}", totalMachines)),
+            DrawLabelText(ToUtf32(std::format("{}", aliveMachines)),
                           32.0f,
                           Screen::TopCenterF().movedY(112.0f),
                           Alignment9::TopCenter);
