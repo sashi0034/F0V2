@@ -2,6 +2,7 @@
 
 inline namespace Util_inline
 {
+#if defined(_DEBUG)
     void InitDebugTomlValueAddon();
 
     toml::node_view<toml::node> GetDebugTomlValueInternal();
@@ -11,4 +12,5 @@ inline namespace Util_inline
     {
         return GetDebugTomlValueInternal()[key].value_or(defaultValue);
     }
+#endif
 }
