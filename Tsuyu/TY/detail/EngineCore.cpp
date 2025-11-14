@@ -2,7 +2,7 @@
 #include "EngineCore.h"
 
 #include "ComponentManager_singleton.h"
-#include "EngineGamepad.h"
+#include "Gamepad_singleton.h"
 #include "EngineHotReloader.h"
 #include "ImGuiAdapter_singleton.h"
 #include "EngineKeyboardMouse.h"
@@ -74,7 +74,7 @@ struct EngineCoreImpl
 
         EnginePresetAsset::Init();
 
-        EngineGamepad::Init();
+        Gamepad_singleton::Init();
 
         ImGuiAdapter_singleton::Init();
 
@@ -93,7 +93,7 @@ struct EngineCoreImpl
 
         Window_singleton::Update();
 
-        EngineGamepad::Update();
+        Gamepad_singleton::Update();
 
         EngineHotReloader::Update();
 
@@ -137,7 +137,7 @@ struct EngineCoreImpl
 
         EnginePresetAsset::Shutdown();
 
-        EngineGamepad::Shutdown();
+        Gamepad_singleton::Shutdown();
 
         ImGuiAdapter_singleton::Shutdown();
 

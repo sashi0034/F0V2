@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "EngineGamepad.h"
+#include "Gamepad_singleton.h"
 
 #include <windows.h>
 #include <dinput.h>
@@ -84,7 +84,7 @@ namespace
     }
 }
 
-struct EngineGamepadImpl
+struct GamepadImpl
 {
     LPDIRECTINPUT8 m_di = nullptr;
     LPDIRECTINPUTDEVICE8 m_gamepad = nullptr;
@@ -247,7 +247,7 @@ private:
 
 namespace
 {
-    EngineGamepadImpl s_gamepad{};
+    GamepadImpl s_gamepad{};
 
     BOOL CALLBACK DeviceCallback(const DIDEVICEINSTANCE* pdidInstance, VOID* pContext)
     {
@@ -264,28 +264,28 @@ namespace
 
 namespace TY::detail
 {
-    void EngineGamepad::Init()
+    void Gamepad_singleton::Init()
     {
         s_gamepad.Init();
     }
 
-    void EngineGamepad::Update()
+    void Gamepad_singleton::Update()
     {
         s_gamepad.Update();
     }
 
-    void EngineGamepad::Shutdown()
+    void Gamepad_singleton::Shutdown()
     {
         s_gamepad.Shutdown();
         s_gamepad = {};
     }
 
-    const GamepadInputState& EngineGamepad::GetInputState()
+    const GamepadInputState& Gamepad_singleton::GetInputState()
     {
         return s_gamepad.m_inputState;
     }
 
-    bool EngineGamepad::IsUsingGamepad()
+    bool Gamepad_singleton::IsUsingGamepad()
     {
         return s_gamepad.m_usingGamepad;
     }

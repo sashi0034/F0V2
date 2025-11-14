@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Gamepad.h"
 
-#include "detail/EngineGamepad.h"
+#include "detail/Gamepad_singleton.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -15,7 +15,7 @@ namespace TY
 {
     const GamepadInputState& GamepadInput::rawState() const
     {
-        return EngineGamepad::GetInputState();
+        return Gamepad_singleton::GetInputState();
     }
 
     void GamepadInput::registerMapping(const GamepadMapping& mapping) const
@@ -105,6 +105,6 @@ namespace TY
 
     bool IsUsingGamepad()
     {
-        return EngineGamepad::IsUsingGamepad();
+        return Gamepad_singleton::IsUsingGamepad();
     }
 }

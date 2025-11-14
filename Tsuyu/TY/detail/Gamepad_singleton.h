@@ -3,7 +3,7 @@
 
 namespace TY::detail
 {
-    namespace EngineGamepad
+    namespace Gamepad_singleton
     {
         void Init();
 

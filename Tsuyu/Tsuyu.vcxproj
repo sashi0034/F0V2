@@ -239,7 +239,7 @@
     <ClInclude Include="TY\ConstantBufferWrapper.h" />
     <ClInclude Include="TY\ConstantBufferArray.h" />
     <ClInclude Include="TY\detail\ComputePipelineState.h" />
-    <ClInclude Include="TY\detail\EngineGamepad.h" />
+    <ClInclude Include="TY\detail\Gamepad_singleton.h" />
     <ClInclude Include="TY\detail\RootSignature.h" />
     <ClInclude Include="TY\Gamepad.h" />
     <ClInclude Include="TY\GamepadInputState.h" />
@@ -396,7 +396,7 @@
     <ClCompile Include="TY\StructuredBuffer.cpp" />
     <ClCompile Include="TY\ConstantBufferArray.cpp" />
     <ClCompile Include="TY\detail\ComputePipelineState.cpp" />
-    <ClCompile Include="TY\detail\EngineGamepad.cpp" />
+    <ClCompile Include="TY\detail\Gamepad_singleton.cpp" />
     <ClCompile Include="TY\detail\RootSignature.cpp" />
     <ClCompile Include="TY\Gamepad.cpp" />
     <ClCompile Include="TY\GamepadMapping.cpp" />
