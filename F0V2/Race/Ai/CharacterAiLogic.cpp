@@ -223,12 +223,12 @@ namespace Race
         }
 
         input.cheatBoostFactor = evaluateRubberBandingBoost(machine);
-        if (turningIntensity > 0.5f && // 急カーブ
+        if (turningIntensity > 0.25f && // 急カーブ
             not machineState.isHovering() && // 接地中
             input.cheatBoostFactor > 1.0f)
         {
             // カーブ用のチート減速
-            input.cheatBoostFactor = 0.5f;
+            input.cheatBoostFactor = 1.0f;
         }
 
 #if defined(_DEBUG)
