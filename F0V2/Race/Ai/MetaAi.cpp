@@ -74,11 +74,27 @@ namespace
 
         const float thisDistance = stageManager.getDistanceFromStart(machine.state.m_lapProgress);
 
-        const float distanceFromPlayer = thisDistance - (playerDistance + rubberBandingBias);
+        const float distanceToPlayer = rubberBandingBias + playerDistance - thisDistance;
 
-        float r = -distanceFromPlayer / 200.0f;
+        constexpr float outerZone = 800.0f;
+        constexpr float innerZone = 200.0f;
+        constexpr float peakScale = 0.9f;
+
+        float r;
+        if (distanceToPlayer < -innerZone)
+        {
+            r = -1.0f + (1.0f - peakScale) * (distanceToPlayer + outerZone) / (-innerZone + outerZone);
+        }
+        else if (distanceToPlayer < innerZone)
+        {
+            r = peakScale * distanceToPlayer / innerZone;
+        }
+        else
+        {
+            r = peakScale + (1.0f - peakScale) * (distanceToPlayer - innerZone) / (outerZone - innerZone);
+        }
+
         r = Math::Clamp(r, -1.0f, 1.0f); // [-1.0f, 1.0f]
-        // r = (r + 1.0f) * 0.5f; // [-1.0f, 1.0f] --> [0.0f, 1.0f]
 
         float boostFactor;
         if (r < 0.0f)
