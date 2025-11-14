@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "AiRank.h"
 #include "CourseData.h"
 #include "CB/ShadowCaster.h"
 #include "TY/Array.h"
@@ -39,6 +40,8 @@ namespace Race
         bool isRaceStarted{};
 
         bool isRaceEnded{};
+
+        AiRank aiRank{};
 
         RaceSharedState();
     };

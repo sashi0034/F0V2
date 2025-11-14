@@ -4,6 +4,8 @@
 #include "Asset.generated.h"
 #include "CharacterAi.h"
 #include "Race/IRaceContext.h"
+#include "Race/Common/AiRank.h"
+#include "Race/Common/RaceSharedState.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
 #include "TY_Extension/GameObjectBase.h"
@@ -54,6 +56,28 @@ namespace
         }
 
         return v;
+    }
+
+    // -----------------------------------------------
+
+    std::pair<float, float> getRubberBandingBiasRange(AiRank rank)
+    {
+        switch (rank)
+        {
+        case AiRank::Weak:
+            return {-150.0f, -25.0f};
+        case AiRank::Normal:
+            return {-100.0f, 25.0f};
+        case AiRank::Strong:
+            return {-50.0f, 75.0f};
+        case AiRank::Expert:
+            return {10.0f, 150.0f};
+        case AiRank::Max:
+            break;
+        }
+
+        assert(false);
+        return {};
     }
 
     // -----------------------------------------------
@@ -113,6 +137,15 @@ namespace
     {
         float rubberBandingBias{};
     };
+
+#if defined(_DEBUG)
+    struct
+    {
+        bool enabled{};
+        float minBias{};
+        float maxBias{};
+    } s_debugRubberBanding;
+#endif
 }
 
 struct MetaAi::Impl : GameObjectBase
@@ -157,27 +190,48 @@ private:
             rebuildRubberBandingBias(GetRaceContext().characterAiList().size());
         }
 
+        ImGui::Checkbox("Debug Rubber Banding", &s_debugRubberBanding.enabled);
+
+        ImGui::BeginDisabled(not s_debugRubberBanding.enabled);
+
+        ImGui::DragFloatRange2(
+            "Rubber Banding Bias Range",
+            &s_debugRubberBanding.minBias,
+            &s_debugRubberBanding.maxBias,
+            5.0f,
+            -500.0f,
+            500.0f);
+
+        ImGui::EndDisabled();
+
         ImGui::End();
     }
 
     void rebuildRubberBandingBias(const int characterAiCount)
     {
+        auto [minBias, maxBias] = getRubberBandingBiasRange(g_sharedState->aiRank);
+
+#if defined(_DEBUG)
+        if (s_debugRubberBanding.enabled)
+        {
+            minBias = s_debugRubberBanding.minBias;
+            maxBias = s_debugRubberBanding.maxBias;
+        }
+#endif
+
         // 線形補間版
         for (int i = 0; i < characterAiCount; ++i)
         {
-            constexpr float min = -100.0f;
-            constexpr float max = 100.0f;
-
             const float f = static_cast<float>(i) / static_cast<float>(characterAiCount - 1);
-            m_characterAiCaches[i].rubberBandingBias = Math::Lerp(min, max, f);
+            m_characterAiCaches[i].rubberBandingBias = Math::Lerp(minBias, maxBias, f);
         }
 
         // ガウス分布版
 #if 0
         const auto gaussianRange = makeGaussianRange(
             characterAiCount,
-            -100.0f,
-            100.0f);
+            minBias,
+            maxBias);
         for (int i = 0; i < characterAiCount; ++i)
         {
             m_characterAiCaches[i].rubberBandingBias = gaussianRange[i];

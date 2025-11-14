@@ -244,6 +244,8 @@ private:
             m_confirmed = confirmTriggered.value_or(false);
             if (m_confirmed)
             {
+                // NOTE: コースの読み込みは呼び出し側で行う
+                Race::g_sharedState->aiRank = static_cast<Race::AiRank>(s_selectedItem.aiRank);
                 return;
             }
         }
