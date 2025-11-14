@@ -39,6 +39,7 @@ struct MachineManager::Impl : GameObjectBase
     void ResizeIfNeeded(MachineId id)
     {
         assert(m_initialized);
+        assert(id < MaxMachineCount);
 
         while (m_physicsUnits.size() <= id)
         {

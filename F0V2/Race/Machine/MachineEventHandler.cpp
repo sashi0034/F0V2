@@ -22,8 +22,11 @@ struct MachineEventHandler::Impl : ActorBase
 #endif
     ActorContainer m_children{};
 
+    Array<ActorLifetimeScope> m_machineProcessList{};
+
     void Init()
     {
+        m_machineProcessList.resize(MaxMachineCount);
     }
 
     void HandleIfNeeded(MachineId id)
@@ -36,7 +39,8 @@ struct MachineEventHandler::Impl : ActorBase
 
         if (machine.state.m_isFallingOffCourse)
         {
-            StartCoroutine(m_children, [this, &machine](AwaitContext& await)
+            getMachineProcess(id).clear();
+            StartCoroutine(m_children, [this, &machine, id](AwaitContext& await)
             {
                 machine.state.m_isRunningEventProcess = true;
 
@@ -44,13 +48,27 @@ struct MachineEventHandler::Impl : ActorBase
 
                 assert(machine.state.m_isFallingOffCourse);
                 machine.state.m_isRunningEventProcess = false;
-            });
+            }) >> getMachineProcess(id);
         }
     }
 
 private:
+    ActorLifetimeScope& getMachineProcess(MachineId id)
+    {
+        return m_machineProcessList[id];
+    }
+
     void update() override
     {
+        const auto& machineList = GetRaceContext().machineManager().machineList();
+        for (MachineId id = 0; id < machineList.size(); ++id)
+        {
+            if (not machineList[id].state.m_isRunningEventProcess)
+            {
+                m_machineProcessList[id].clear();
+            }
+        }
+
         m_children.updateEach();
     }
 
@@ -86,7 +104,7 @@ private:
             {
                 state.m_pose.position = Math::Lerp3D(fromPose.position, toPosition, rate);
                 state.m_pose.rotation = fromPose.rotation.slerp(toRotation, rate);
-            })
+            }) >> getMachineProcess(props.machineId)
         );
     }
 
