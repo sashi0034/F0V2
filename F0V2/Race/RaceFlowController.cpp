@@ -265,7 +265,7 @@ private:
                     // [0]
                     []()
                     {
-                        return IsUsingGamepad() ? KeyA.down() : KeySpace.down();
+                        return IsUsingGamepad() ? MainGamepad.a().down : KeySpace.down();
                     },
                     // [1]
                     MakeTimeoutTask(60.0s)

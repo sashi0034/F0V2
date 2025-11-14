@@ -126,6 +126,7 @@
     <PostBuildEvent>
       <Command>xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxcompiler.dll" "$(OutDir)"
 xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)"
+xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\freetype.dll" "$(OutDir)"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -155,6 +156,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <PostBuildEvent>
       <Command>xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxcompiler.dll" "$(OutDir)"
 xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)"
+xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\freetype.dll" "$(OutDir)"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
