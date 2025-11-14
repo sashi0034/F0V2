@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "GameFlowchart.h"
 
+#include "GameGlobalUI.h"
 #include "GamePalette.h"
 #include "Editor/EditorScene.h"
 #include "GM/DebugService.h"
@@ -155,7 +156,7 @@ private:
             restartFlowchart();
         }
 
-        debugUI();
+        DrawGameGlobalUI();
 
         m_children.updateEach();
     }
@@ -208,60 +209,6 @@ private:
 
             await.waitForFrames(1);
         }
-    }
-
-    void debugUI()
-    {
-        ImGui::Begin("System Window");
-
-        static bool s_sleep{};;
-        if (ImGui::Checkbox("Sleep", &s_sleep); s_sleep)
-        {
-            System::Sleep(500);
-        }
-
-        ImGui::PushStyleColor(ImGuiCol_Button, GamePalette::DarkOrange.toFloat4().cast<ImVec4>());
-        {
-            if (ImGui::Button("Toggle Editor"))
-            {
-                g_debugService.editorEnabled = not g_debugService.editorEnabled;
-            }
-        }
-        ImGui::PopStyleColor();
-
-        ImGui::Text("GPU Memory Usage: %.2f MB", GpuMetrics::MemoryUsage().estimateLocalUsageInMB());
-
-        {
-            static Array<float> s_resentBuffer{};
-            static float s_measuredTime{};
-            s_resentBuffer.push_back(GpuMetrics::LastExecutionMilliseconds());
-            if (s_resentBuffer.size() > 30)
-            {
-                s_measuredTime =
-                    std::accumulate(s_resentBuffer.begin(), s_resentBuffer.end(), 0.0f) / s_resentBuffer.size();
-                s_resentBuffer.clear();
-            }
-
-            ImGui::Text("GPU Execution Time:");
-
-            ImGui::BulletText(std::format("[1]:    {:.02f} ms", GpuMetrics::LastExecutionMilliseconds()).c_str());
-
-            ImGui::BulletText(std::format("[1:30]: {:.02f} ms", s_measuredTime).c_str());
-        }
-
-        ImGui::Text("Mouse Position: (%.2f, %.2f)", Mouse::PosF().x, Mouse::PosF().y);
-
-        ImGui::SeparatorText("g_debugService");
-
-        ImGui::Checkbox("editorEnabled", &g_debugService.editorEnabled);
-
-        ImGui::SliderFloat("cameraSpeed", &g_debugService.cameraSpeed, 1.0f, 10.0f);
-
-        ImGui::InputInt("monitorMachineId", &g_debugService.monitorMachineId);
-
-        ImGui::Checkbox("diablePlayerInput", &g_debugService.disablePlayerInput);
-
-        ImGui::End();
     }
 
     void killed() override

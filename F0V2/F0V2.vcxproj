@@ -175,6 +175,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\shader\shadow_caster_old.hlsl" />
     <Content Include="asset\shader\wave_test.hlsl" />
     <Content Include="asset\shader\gbuffer_pass.hlsl" />
+    <ClCompile Include="GameGlobalUI.cpp" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
     <ClCompile Include="RaceSetup\CourseFileInfo.cpp" />
     <ClCompile Include="RaceSetup\RaceSetupScene.cpp" />
@@ -308,6 +309,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="CB\Lambert.h" />
     <ClInclude Include="CB\ShadowCaster.h" />
     <ClInclude Include="CB\Skydome.h" />
+    <ClInclude Include="GameGlobalUI.h" />
     <ClInclude Include="GamePalette.h" />
     <ClInclude Include="GM\GamepadConfigModal.h" />
     <ClInclude Include="RaceSetup\CourseFileInfo.h" />
