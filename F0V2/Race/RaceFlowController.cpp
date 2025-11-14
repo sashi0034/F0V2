@@ -173,7 +173,7 @@ private:
 #if defined(_DEBUG)
         await.waitForTrue([]
         {
-            return GetDebugTomlValue<bool>("disable_finish");
+            return not GetDebugTomlValue<bool>("disable_finish");
         });
 #endif
 
