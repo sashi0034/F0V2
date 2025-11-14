@@ -122,6 +122,7 @@ private:
 
     void debugUI()
     {
+#if defined(_DEBUG)
         ImGui::Begin("Race Flow Controller");
 
         if (ImGui::Button("End"))
@@ -130,6 +131,7 @@ private:
         }
 
         ImGui::End();
+#endif
     }
 
     void processRaceFlow(AwaitContext& await)

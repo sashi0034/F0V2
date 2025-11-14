@@ -391,6 +391,8 @@ private:
         {
             return;
         }
+#else
+        return;
 #endif
         m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextContent().camera.eyePosition())).draw();
 
@@ -407,6 +409,7 @@ private:
 
     void debugUI()
     {
+#if defined(_DEBUG)
         ImGui::Begin("Stage Manager");
 
         ImGui::Text("Triangles Count: %d", m_triangleCount);
@@ -419,6 +422,7 @@ private:
         }
 
         ImGui::End();
+#endif
     }
 
     void killed() override

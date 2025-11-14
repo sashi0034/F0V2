@@ -30,6 +30,7 @@ private:
 
     void debugUI()
     {
+#if defined(_DEBUG)
         ImGui::Begin("Spatial AI");
 
         ImGui::Text(std::format("Waypoints: {}", m_data.waypoints.size()).c_str());
@@ -40,6 +41,7 @@ private:
         }
 
         ImGui::End();
+#endif
     }
 
     void killed() override

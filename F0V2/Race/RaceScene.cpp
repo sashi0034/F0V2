@@ -83,7 +83,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_spatialAi = m_children.birth(SpatialAi());
         m_spatialAi.init();
 
-        int aiCount = 29;
+        int aiCount = 98;
 #if defined(_DEBUG)
         if (int aiCount_ = GetDebugTomlValue<int>("ai_count", -1); aiCount >= 0)
         {

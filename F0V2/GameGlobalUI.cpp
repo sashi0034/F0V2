@@ -110,6 +110,7 @@ void F0V2::DrawGameGlobalUI()
 {
 #if defined(_DEBUG)
     debugUI();
+#else
     printStats();
 #endif
 }
