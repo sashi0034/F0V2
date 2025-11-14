@@ -77,8 +77,8 @@ namespace
         const float distanceToPlayer = rubberBandingBias + playerDistance - thisDistance;
 
         constexpr float outerZone = 800.0f;
-        constexpr float innerZone = 200.0f;
-        constexpr float peakScale = 0.9f;
+        constexpr float innerZone = 400.0f;
+        constexpr float peakScale = 0.75f;
 
         float r;
         if (distanceToPlayer < -innerZone)
