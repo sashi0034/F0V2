@@ -183,6 +183,7 @@ private:
 
     void debugUI()
     {
+#if defined(_DEBUG)
         ImGui::Begin("Meta AI");
 
         if (ImGui::Button("Rebuild Rubber Banding Offset"))
@@ -205,10 +206,16 @@ private:
         ImGui::EndDisabled();
 
         ImGui::End();
+#endif
     }
 
-    void rebuildRubberBandingBias(const int characterAiCount)
+    void rebuildRubberBandingBias(int characterAiCount)
     {
+        if (characterAiCount <= 1)
+        {
+            return;
+        }
+
         auto [minBias, maxBias] = getRubberBandingBiasRange(g_sharedState->aiRank);
 
 #if defined(_DEBUG)

@@ -48,7 +48,7 @@ namespace
             const auto& seg = courseSegments[i];
             if (seg.style == CourseSegmentStyle::Gap)
             {
-                continue;;
+                continue;
             }
 
             const float dist = DistanceSq(position, LineSegment3D{seg.p1, seg.p2});
