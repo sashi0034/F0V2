@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "CharacterAiInputCommand.h"
 #include "Race/Machine/MachinePhysicsUnit.h"
 #include "TY_Extension/GameObjectHandle.h"
 
@@ -10,6 +11,10 @@ namespace Race
         CharacterAi();
 
         void init(int aiId);
+
+        MachineId machineId() const;
+
+        void setInputCommand(const CharacterAiInputCommand& command);
 
         std::shared_ptr<ActorBase> asActor() const override;
 

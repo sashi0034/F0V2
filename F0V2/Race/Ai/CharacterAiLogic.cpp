@@ -92,41 +92,6 @@ namespace
 
         return targetWaypointIndex;
     }
-
-    float evaluateRubberBandingBoost(const MachinePhysicsUnit& machine)
-    {
-        // TODO: rubberBandingBias
-
-        if (machine.state.isHovering())
-        {
-            return 1.0f;
-        }
-
-        const auto& stageManager = GetRaceContext().stageManager();
-
-        const auto& playerMachine = GetRaceContext().machineManager().machineList()[PlayerMachineId];
-        const float playerDistance = stageManager.getDistanceFromStart(playerMachine.state.m_lapProgress);
-
-        const float thisDistance = stageManager.getDistanceFromStart(machine.state.m_lapProgress);
-
-        const float distanceFromPlayer = thisDistance - playerDistance;
-
-        float r = -distanceFromPlayer / 100.0f;
-        r = Math::Clamp(r, -1.0f, 1.0f); // [-1.0f, 1.0f]
-        // r = (r + 1.0f) * 0.5f; // [-1.0f, 1.0f] --> [0.0f, 1.0f]
-
-        float boostFactor;
-        if (r < 0.0f)
-        {
-            boostFactor = 1.0f + r * 0.5f;
-        }
-        else // if (r >= 0.0f)
-        {
-            boostFactor = 1.0f + r * 4.0f;
-        }
-
-        return boostFactor;
-    }
 }
 
 namespace Race
@@ -222,13 +187,17 @@ namespace Race
             }
         }
 
-        input.cheatBoostFactor = evaluateRubberBandingBoost(machine);
+        const float targeCheatBoost = state.m_inputCommand.targeCheatBoost;
         if (turningIntensity > 0.25f && // 急カーブ
             not machineState.isHovering() && // 接地中
-            input.cheatBoostFactor > 1.0f)
+            targeCheatBoost > 1.0f)
         {
             // カーブ用のチート減速
             input.cheatBoostFactor = 1.0f;
+        }
+        else
+        {
+            input.cheatBoostFactor = targeCheatBoost;
         }
 
 #if defined(_DEBUG)

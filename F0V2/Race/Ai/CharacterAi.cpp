@@ -69,15 +69,15 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
 #endif
     }
 
+    int MachineId() const
+    {
+        return 1 + m_aiId;
+    }
+
 private:
     MachinePhysicsUnit& machine() const
     {
-        return GetRaceContext().machineManager().fetchMachine(machineId());
-    }
-
-    int machineId() const
-    {
-        return 1 + m_aiId;
+        return GetRaceContext().machineManager().fetchMachine(MachineId());
     }
 
     void update() override
@@ -137,7 +137,7 @@ private:
 
     void resetPhysicsProps()
     {
-        machine().props.machineId = machineId();
+        machine().props.machineId = MachineId();
 
         machine().props.peakVelocity = 100.0f;
 
@@ -239,6 +239,16 @@ namespace Race
     void CharacterAi::init(int aiId)
     {
         p_impl->Init(aiId);
+    }
+
+    MachineId CharacterAi::machineId() const
+    {
+        return p_impl->MachineId();
+    }
+
+    void CharacterAi::setInputCommand(const CharacterAiInputCommand& command)
+    {
+        p_impl->m_logicState.m_inputCommand = command;
     }
 
     std::shared_ptr<ActorBase> CharacterAi::asActor() const

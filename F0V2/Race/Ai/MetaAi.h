@@ -1,0 +1,19 @@
+#pragma once
+#include "TY_Extension/GameObjectHandle.h"
+
+namespace Race
+{
+    class MetaAi : public GameObjectHandle
+    {
+    public:
+        MetaAi();
+
+        void init() override;
+
+        std::shared_ptr<GameObjectBase> asGameObject() const override;
+
+    private:
+        struct Impl;
+        std::shared_ptr<Impl> p_impl;
+    };
+}

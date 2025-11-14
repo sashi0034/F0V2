@@ -9,7 +9,11 @@ namespace Race
 
     class StageManager;
 
-    struct SpatialAi;
+    class SpatialAi;
+
+    class CharacterAi;
+
+    class MetaAi;
 
     class IRaceContext
     {
@@ -30,6 +34,12 @@ namespace Race
 
         virtual SpatialAi& spatialAi() = 0;
         virtual const SpatialAi& spatialAi() const = 0;
+
+        virtual Array<CharacterAi>& characterAiList() = 0;
+        virtual const Array<CharacterAi>& characterAiList() const = 0;
+
+        // virtual MetaAi& metaAi() = 0;
+        // virtual const MetaAi& metaAi() const = 0;
     };
 
     IRaceContext& GetRaceContext();

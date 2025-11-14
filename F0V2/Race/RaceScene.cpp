@@ -7,6 +7,7 @@
 #include "RaceDrawManager.h"
 #include "RaceFlowController.h"
 #include "Ai/CharacterAi.h"
+#include "Ai/MetaAi.h"
 #include "Ai/SpatialAi.h"
 #include "Common/RaceSharedState.h"
 #include "Player/Player.h"
@@ -36,13 +37,15 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     MachineManager m_machineManager{};
 
-    SpatialAi m_spatialAi{};
-
     RaceCameraController m_cameraController{};
 
     Player m_player{};
 
+    SpatialAi m_spatialAi{};
+
     Array<CharacterAi> m_characterAiList{};
+
+    MetaAi m_metaAi{};
 
     Impl(bool context)
     {
@@ -93,6 +96,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
             m_characterAiList.push_back(m_children.birth(CharacterAi()));
             m_characterAiList.back().init(i);
         }
+
+        m_metaAi = m_children.birth(MetaAi());
+        m_metaAi.init();
     }
 
     void update() override
@@ -160,6 +166,26 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     {
         return m_spatialAi;
     }
+
+    Array<CharacterAi>& characterAiList() override
+    {
+        return m_characterAiList;
+    }
+
+    const Array<CharacterAi>& characterAiList() const override
+    {
+        return m_characterAiList;
+    }
+
+    // MetaAi& metaAi() override
+    // {
+    //     return m_metaAi;
+    // }
+    //
+    // const MetaAi& metaAi() const override
+    // {
+    //     return m_metaAi;
+    // }
 };
 
 namespace Race
