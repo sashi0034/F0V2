@@ -183,6 +183,7 @@
     <ClInclude Include="TY\IGpuMemoryUsage.h" />
     <ClInclude Include="TY\Palette.h" />
     <ClInclude Include="TY\Periodic.h" />
+    <ClInclude Include="TY\ProcessUtils.h" />
     <ClInclude Include="TY\RenderTargetTexture.h" />
     <ClInclude Include="TY\BufferHandle.h" />
     <ClInclude Include="TY\TextureHandle.h" />
@@ -354,6 +355,7 @@
     <ClCompile Include="TY\MipmappedDynamicTexture.cpp" />
     <ClCompile Include="TY\Palette.cpp" />
     <ClCompile Include="TY\Periodic.cpp" />
+    <ClCompile Include="TY\ProcessUtils.cpp" />
     <ClCompile Include="TY\RenderTargetTexture.cpp" />
     <ClCompile Include="TY\BufferHandle.cpp" />
     <ClCompile Include="TY\TextureHandle.cpp" />

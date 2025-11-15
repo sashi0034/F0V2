@@ -13,6 +13,7 @@
 #include "TY/ConstantBuffer.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
+#include "TY/ProcessUtils.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -49,7 +50,7 @@ namespace
     }
 
     // https://devblogs.microsoft.com/pix/taking-a-capture/
-    std::wstring GetLatestWinPixGpuCapturerPath()
+    std::wstring getLatestWinPixGpuCapturerPath()
     {
         LPWSTR programFilesPath = nullptr;
         SHGetKnownFolderPath(FOLDERID_ProgramFiles, KF_FLAG_DEFAULT, NULL, &programFilesPath);
@@ -127,9 +128,12 @@ struct RenderContextImpl
     void Init()
     {
 #if defined(_DEBUG)
-        if (GetModuleHandle(L"WinPixGpuCapturer.dll") == nullptr)
+        if (ProcessUtils::IsRunning(L"WinPix.exe"))
         {
-            LoadLibrary(GetLatestWinPixGpuCapturerPath().c_str());
+            if (GetModuleHandle(L"WinPixGpuCapturer.dll") == nullptr)
+            {
+                LoadLibrary(getLatestWinPixGpuCapturerPath().c_str());
+            }
         }
 
         enableDebugLayer();
