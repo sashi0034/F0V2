@@ -85,7 +85,7 @@ namespace
             m_cb.upload();
 
             const Size rtvSize = g_sharedState->gbufferTarget.size();
-            const Size threadGroup = (rtvSize + Size{7, 7}) / 8;
+            const Size threadGroup = (rtvSize + Size{7, 7}) / Size{4, 8};
             m_dispatcher.dispatch(threadGroup.x, threadGroup.y);
         }
 

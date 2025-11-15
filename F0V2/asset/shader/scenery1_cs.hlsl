@@ -592,7 +592,7 @@ float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlr
 
 // -----------------------------------------------
 
-[numthreads(8, 8, 1)]
+[numthreads(4, 8, 1)]
 void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
     const uint2 pixel = dispatchThreadID.xy;

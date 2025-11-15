@@ -81,6 +81,11 @@ namespace TY
             return {x / s, y / s};
         }
 
+        [[nodiscard]] constexpr Integer2D operator /(Integer2D v) const noexcept
+        {
+            return {x / v.x, y / v.y};
+        }
+
         [[nodiscard]] constexpr Integer2D operator %(value_type s) const noexcept
         {
             return {x % s, y % s};
