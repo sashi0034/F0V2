@@ -3,6 +3,7 @@
 
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
+#include <shlobj.h>
 
 #include "CommandListManager.h"
 #include "EngineStateContext.h"
@@ -45,6 +46,37 @@ namespace
                 DXGI_DEBUG_RLO_ALL
             );
         }
+    }
+
+    // https://devblogs.microsoft.com/pix/taking-a-capture/
+    std::wstring GetLatestWinPixGpuCapturerPath()
+    {
+        LPWSTR programFilesPath = nullptr;
+        SHGetKnownFolderPath(FOLDERID_ProgramFiles, KF_FLAG_DEFAULT, NULL, &programFilesPath);
+
+        std::filesystem::path pixInstallationPath = programFilesPath;
+        pixInstallationPath /= "Microsoft PIX";
+
+        std::wstring newestVersionFound;
+
+        for (auto const& directory_entry : std::filesystem::directory_iterator(pixInstallationPath))
+        {
+            if (directory_entry.is_directory())
+            {
+                if (newestVersionFound.empty() || newestVersionFound < directory_entry.path().filename().c_str())
+                {
+                    newestVersionFound = directory_entry.path().filename().c_str();
+                }
+            }
+        }
+
+        if (newestVersionFound.empty())
+        {
+            // No PIX installation found
+            return L"";
+        }
+
+        return pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";
     }
 
     bool isNull(const RenderResource& renderResource)
@@ -95,6 +127,11 @@ struct RenderContextImpl
     void Init()
     {
 #if defined(_DEBUG)
+        if (GetModuleHandle(L"WinPixGpuCapturer.dll") == nullptr)
+        {
+            LoadLibrary(GetLatestWinPixGpuCapturerPath().c_str());
+        }
+
         enableDebugLayer();
 #endif
 
