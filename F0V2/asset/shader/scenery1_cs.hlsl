@@ -500,7 +500,16 @@ static const LightParameters k_lightList[NUM_LIGHTS] = {
     {normalize(float3(0.4, -0.5, -0.5)), sRGB2L(1.0, 0.8, 0.9) * 0.3},
 };
 
-float3 computeLight(float3 worldPos, float3 N, float3 V, float3 albedo, float viewDistance)
+struct LightingInput
+{
+    float3 worldPos;
+    float3 N;
+    float3 V;
+    float3 albedo;
+    float viewDistance;
+};
+
+float3 computeLighting(LightingInput input)
 {
     float3 light = V3(0.0f);
 
@@ -510,19 +519,19 @@ float3 computeLight(float3 worldPos, float3 N, float3 V, float3 albedo, float vi
         const float3 L = k_lightList[i].dir;
 
         // Diffuse term
-        const float NoL = saturate(dot(N, L));
+        const float NoL = saturate(dot(input.N, L));
         const float3 diffuseTerm = k_lightList[i].color * NoL;
 
         // Specular term (Phong)
-        const float3 R = reflect(-L, N);
-        const float specularFactor = pow(saturate(dot(V, R)), 32.0);
+        const float3 R = reflect(-L, input.N);
+        const float specularFactor = pow(saturate(dot(input.V, R)), 32.0);
         const float3 specularTerm = k_lightList[i].color * specularFactor;
 
         light += diffuseTerm + specularTerm;
     }
 
     // Shadow
-    const float4 shadowP = mul(g_worldToShadowProjection, float4(worldPos, 1));
+    const float4 shadowP = mul(g_worldToShadowProjection, float4(input.worldPos, 1));
     const float2 shadowUV = (shadowP.xy / shadowP.w) * float2(0.5f, -0.5f) + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
     if (all(0.0 <= shadowUV) && all(shadowUV <= 1.0))
     {
@@ -540,27 +549,38 @@ float3 computeLight(float3 worldPos, float3 N, float3 V, float3 albedo, float vi
 
     // Combine
     const float3 ambientTerm = float3(0.10, 0.05, 0.10);
-    float3 color = albedo * (light + ambientTerm);
+    float3 color = input.albedo * (light + ambientTerm);
 
     // Fog
     float fogStart = 10.0;
     float fogEnd = 500.0;
 
-    float fogFactor = saturate((viewDistance - fogStart) / (fogEnd - fogStart));
+    float fogFactor = saturate((input.viewDistance - fogStart) / (fogEnd - fogStart));
 
-    color = lerp(color, computeSkyColor(V), fogFactor);
+    color = lerp(color, computeSkyColor(input.V), fogFactor);
 
     return color;
 }
 
-float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlreadyExists)
+static const int RAY_MARCH_HIT_GBUFFER = 0;
+static const int RAY_MARCH_HIT_SDF = 1;
+static const int RAY_MARCH_SKY = 2;
+
+struct RayMarchResult
 {
-    float3 color = float3(0, 0, 0);
+    int tag;
+    LightingInput lighting;
+};
+
+RayMarchResult rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlreadyExists)
+{
+    RayMarchResult result;
 
     RaycastResult r = raycast(eyePos, rayDir, distanceLimit);
     if (!r.hit && pixelAlreadyExists)
     {
-        return float4(0, 0, 0, 0);
+        result.tag = RAY_MARCH_HIT_GBUFFER;
+        return result;
     }
 
     const float3 V = -rayDir;
@@ -568,26 +588,32 @@ float4 rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlr
     if (r.d.mat == MAT_SOLID ||
         r.d.mat == MAT_VEHICLE)
     {
-        float3 diffuse;
+        float3 albedo;
         if (r.d.mat == MAT_SOLID)
         {
-            diffuse = sRGB2L(0.83, 0.7, 0.24);
+            albedo = sRGB2L(0.83, 0.7, 0.24);
         }
         else
         {
-            diffuse = sRGB2L(0.85, 0.17, 0.26);
+            albedo = sRGB2L(0.85, 0.17, 0.26);
         }
 
         const float3 N = scanNormal(r.pos);
 
-        color = computeLight(r.pos, N, V, diffuse, length(r.pos - eyePos));
+        result.tag = RAY_MARCH_HIT_SDF;
+        result.lighting.worldPos = r.pos;
+        result.lighting.N = N;
+        result.lighting.V = V;
+        result.lighting.albedo = albedo;
+        result.lighting.viewDistance = length(r.pos - eyePos);
+        return result;
     }
     else
     {
-        color = computeSkyColor(V);
+        result.tag = RAY_MARCH_SKY;
     }
 
-    return float4(color, 1);
+    return result;
 }
 
 // -----------------------------------------------
@@ -653,19 +679,26 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const bool pixelAlreadyExists = g_albedoBuffer[pixel].a != 0.0; // フォワードレンダリング時点で値が書き込まれているか
     const float distanceLimit = g_viewDistanceBuffer[pixel];
 
-    const float4 hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
+    const RayMarchResult hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
     float3 rgb;
-    if (hit.a > 0)
+    if (hit.tag == RAY_MARCH_SKY)
     {
-        rgb = hit.rgb;
+        rgb = computeSkyColor(-rayDir);
     }
-    else
+    else // if (hit.tag == RAY_MARCH_GBUFFER || hit.tag == RAY_MARCH_SDF)
     {
-        // レイマーチングでヒットしなかった場合、GBuffer からライティング計算
-        const float3 N = g_normalBuffer[pixel].rgb * 2.0 - 1.0;
-        const float3 V = -rayDir;
+        LightingInput lightingInput = hit.lighting;
+        if (hit.tag == RAY_MARCH_HIT_GBUFFER)
+        {
+            // SDF よりもGBuffer が手前にある場合、レイマーチングの SDF を用いずに GBuffer の情報を使う
+            lightingInput.worldPos = targetInWorld;
+            lightingInput.N = g_normalBuffer[pixel].rgb * 2.0 - 1.0;
+            lightingInput.V = -rayDir;
+            lightingInput.albedo = g_albedoBuffer[pixel].rgb;
+            lightingInput.viewDistance = distanceLimit;
+        }
 
-        rgb = computeLight(targetInWorld, N, V, g_albedoBuffer[pixel].rgb, distanceLimit);
+        rgb = computeLighting(lightingInput);
     }
 
     g_output[pixel] = float4(L2sRGB_(rgb), 1.0);
