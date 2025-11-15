@@ -107,7 +107,7 @@ struct TY::Shader_impl : IEngineHotReloadable
             filepath.c_str(),
             L"-E", entryPointW.c_str(),
             L"-T", targetW.c_str(),
-            L"-Zpr", // Row-major matrices
+            // L"-Zpr", // Row-major matrices
         };
 
 #if defined(_DEBUG)
