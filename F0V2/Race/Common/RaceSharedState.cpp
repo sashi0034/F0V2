@@ -7,7 +7,7 @@ namespace Race
 {
     RaceSharedState::RaceSharedState()
     {
-        const Size gbufferSize = Screen::Size();
+        const Size gbufferSize = Screen::Size() * 0.5f;
 
         gbuffer.albedo =
             RenderTargetTextureParams()

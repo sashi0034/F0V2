@@ -80,7 +80,7 @@ namespace
             m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
             m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
             m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
-            m_cb->g_outputResolution = Screen::Size();
+            m_cb->g_outputResolution = g_sharedState->gbufferTarget.size();
             m_cb->g_time = System::Time();
             m_cb.upload();
 
