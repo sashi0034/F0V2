@@ -2,9 +2,6 @@
 #define TWO_PI (PI * 2)
 #define HALF_PI (PI * 0.5)
 
-#define FAR_DIST 1e+4f
-#define MAX_RAYMARCH 128
-
 #define V2(x) float2((x), (x))
 #define V3(x) float3((x), (x), (x))
 
@@ -12,6 +9,12 @@
 
 #define repeat(p, span) ((frac((p) / (span)) - 0.5) * (span))
 #define center_repeat(p, span) (frac(((p) + (span) * 0.5) / (span)) * (span) - (span) * 0.5)
+
+// -----------------------------------------------
+
+#define MAX_RAYMARCH 128
+
+// -----------------------------------------------
 
 SamplerState g_sampler0 : register(s0);
 
@@ -677,7 +680,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 
     const bool pixelAlreadyExists = g_albedoBuffer[pixel].a != 0.0; // フォワードレンダリング時点で値が書き込まれているか
-    const float distanceLimit = g_viewDistanceBuffer[pixel];
+    const float distanceLimit = g_viewDistanceBuffer[pixel]; // 最大で far 値
 
     const RayMarchResult hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
     float3 rgb;
