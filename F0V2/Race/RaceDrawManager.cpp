@@ -85,8 +85,9 @@ namespace
             m_cb.upload();
 
             const Size rtvSize = g_sharedState->gbufferTarget.size();
-            const Size threadGroup = (rtvSize + Size{7, 7}) / Size{4, 8};
-            m_dispatcher.dispatch(threadGroup.x, threadGroup.y);
+            constexpr int threadsPerGroup = 32;
+            const int threadGroup = (rtvSize.x * rtvSize.y / 2) / threadsPerGroup;
+            m_dispatcher.dispatch(threadGroup);
         }
 
         RenderTargetTexture GetOutputTarget() const

@@ -621,50 +621,10 @@ RayMarchResult rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool 
 
 // -----------------------------------------------
 
-[numthreads(4, 8, 1)]
-void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
+float4 computeOutputColor(uint2 pixel)
 {
-    const uint2 pixel = dispatchThreadID.xy;
-    const float2 pixelF = float2(pixel);
-    if (pixelF.x >= g_outputResolution.x || pixelF.y >= g_outputResolution.y)
-    {
-        return;
-    }
-
-#if 0
-    // シャドウマップのデバッグ
-    const float debugMapSize = 800.0;
-    if (all(pixelF < debugMapSize))
-    {
-        float2 uv = (pixelF + 0.5) / debugMapSize;
-        float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
-        if (shadow != 1.0)
-        {
-            g_output[pixel] = float4(1.0, 0.0, 0.0, 1.0);
-        }
-        else
-        {
-            g_output[pixel] = float4(0.0, 0.0, 0.0, 1.0);
-        }
-
-        return;
-    }
-#endif
-
-    // g_output[pixel].rgb = g_depthBuffer[pixel] / 100.0;
-    // g_output[pixel].a = g_albedoBuffer[pixel].a;
-    // return;
-
-    // g_output[pixel] = g_albedoBuffer[pixel];
-    // return;
-
-    // if (g_depthBuffer[pixel] != 1.0)
-    // {
-    //     return;
-    // }
-
     float3 targetInNdc;
-    targetInNdc.xy = float2(2.0, -2.0) * pixelF / g_outputResolution + float2(-1.0, 1.0);
+    targetInNdc.xy = float2(2.0, -2.0) * float2(pixel) / g_outputResolution + float2(-1.0, 1.0);
     targetInNdc.z = g_depthBuffer[pixel]; // 1.0
 
     const float4 targetInClip = float4(targetInNdc, 1.0f);
@@ -704,5 +664,57 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         rgb = computeLighting(lightingInput);
     }
 
-    g_output[pixel] = float4(L2sRGB_(rgb), 1.0);
+    return float4(L2sRGB_(rgb), 1.0);
+}
+
+[numthreads(32, 1, 1)]
+void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    const int THREADS_PER_TILE = 32;
+    const int X_PIXELS_PER_TILE = 8;
+    const int Y_PIXELS_PER_TILE = 8;
+    const int X_THREADS_PER_TILE = X_PIXELS_PER_TILE / 2;
+    // assert(THREADS_PER_TILE == X_THREADS_PER_TILE * Y_PIXELS_PER_TILE);
+
+    const int X_TILES = g_outputResolution.x / X_PIXELS_PER_TILE;
+    const int tileId = dispatchThreadID.x / THREADS_PER_TILE;
+    const int tileX = tileId % X_TILES;
+    const int tileY = tileId / X_TILES;
+
+    const int xInTile = (dispatchThreadID.x % THREADS_PER_TILE) % X_THREADS_PER_TILE;
+    const int yInTile = (dispatchThreadID.x % THREADS_PER_TILE) / X_THREADS_PER_TILE;
+
+    uint pixelY = tileY * Y_PIXELS_PER_TILE + yInTile;
+    uint pixelX = tileX * X_PIXELS_PER_TILE + xInTile * 2 + pixelY % 2;
+
+    const uint2 pixel = uint2(pixelX, pixelY);
+    if (float(pixel.x) >= g_outputResolution.x || float(pixel.y) >= g_outputResolution.y)
+    {
+        return;
+    }
+
+#if 0
+    // シャドウマップのデバッグ
+    const float debugMapSize = 800.0;
+    if (all(pixelF < debugMapSize))
+    {
+        float2 uv = (pixelF + 0.5) / debugMapSize;
+        float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
+        if (shadow != 1.0)
+        {
+            g_output[pixel] = float4(1.0, 0.0, 0.0, 1.0);
+        }
+        else
+        {
+            g_output[pixel] = float4(0.0, 0.0, 0.0, 1.0);
+        }
+
+        return;
+    }
+#endif
+
+    g_output[pixel] = computeOutputColor(pixel);
+
+    const int offset = pixelY % 2 == 0 ? 1 : -1;
+    g_output[pixel + int2(offset, 0)] = g_output[pixel];
 }
