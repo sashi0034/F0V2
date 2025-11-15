@@ -110,11 +110,11 @@ struct TY::Shader_impl : IEngineHotReloadable
             L"-Zpr", // Row-major matrices
         };
 
-#ifdef defined(_DEBUG)
+#if defined(_DEBUG)
         args.insert(args.end(), {
-                        L"-Zi",
-                        L"-Qembed_debug",
-                        L"-Od",
+                        L"-Zi", // debug info
+                        L"-Qembed_debug", // embed PDB
+                        L"-O3", // L"-Od", // optimize
                         L"-DDEBUG",
                     });
 #else
