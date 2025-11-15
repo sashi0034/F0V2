@@ -670,25 +670,25 @@ float4 computeOutputColor(uint2 pixel)
 [numthreads(32, 1, 1)]
 void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    const int THREADS_PER_TILE = 32;
-    const int X_PIXELS_PER_TILE = 8;
-    const int Y_PIXELS_PER_TILE = 8;
-    const int X_THREADS_PER_TILE = X_PIXELS_PER_TILE / 2;
-    // assert(THREADS_PER_TILE == X_THREADS_PER_TILE * Y_PIXELS_PER_TILE);
+    const uint THREADS_PER_TILE = 32;
+    const uint PIXELS_PER_TILE_X = 8;
+    const uint PIXELS_PER_TILE_Y = 8;
+    const uint THREADS_PER_TILE_X = PIXELS_PER_TILE_X / 2;
+    // assert(THREADS_PER_TILE == THREADS_PER_TILE_X * PIXELS_PER_TILE_Y);
 
-    const int X_TILES = g_outputResolution.x / X_PIXELS_PER_TILE;
-    const int tileId = dispatchThreadID.x / THREADS_PER_TILE;
-    const int tileX = tileId % X_TILES;
-    const int tileY = tileId / X_TILES;
+    const uint TILE_COLUMNS = g_outputResolution.x / PIXELS_PER_TILE_X;
+    const uint tileId = dispatchThreadID.x / THREADS_PER_TILE;
+    const uint tileCoordX = tileId % TILE_COLUMNS;
+    const uint tileCoordY = tileId / TILE_COLUMNS;
 
-    const int xInTile = (dispatchThreadID.x % THREADS_PER_TILE) % X_THREADS_PER_TILE;
-    const int yInTile = (dispatchThreadID.x % THREADS_PER_TILE) / X_THREADS_PER_TILE;
+    const uint offsetInTileX = (dispatchThreadID.x % THREADS_PER_TILE) % THREADS_PER_TILE_X;
+    const uint offsetInTileY = (dispatchThreadID.x % THREADS_PER_TILE) / THREADS_PER_TILE_X;
 
-    uint pixelY = tileY * Y_PIXELS_PER_TILE + yInTile;
-    uint pixelX = tileX * X_PIXELS_PER_TILE + xInTile * 2 + pixelY % 2;
+    uint globalY = tileCoordY * PIXELS_PER_TILE_Y + offsetInTileY;
+    uint globalX = tileCoordX * PIXELS_PER_TILE_X + offsetInTileX * 2 + globalY % 2;
 
-    const uint2 pixel = uint2(pixelX, pixelY);
-    if (float(pixel.x) >= g_outputResolution.x || float(pixel.y) >= g_outputResolution.y)
+    const uint2 globalCoord = uint2(globalX, globalY);
+    if (float(globalCoord.x) >= g_outputResolution.x || float(globalCoord.y) >= g_outputResolution.y)
     {
         return;
     }
@@ -702,19 +702,19 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
         if (shadow != 1.0)
         {
-            g_output[pixel] = float4(1.0, 0.0, 0.0, 1.0);
+            g_output[globalCoord] = float4(1.0, 0.0, 0.0, 1.0);
         }
         else
         {
-            g_output[pixel] = float4(0.0, 0.0, 0.0, 1.0);
+            g_output[globalCoord] = float4(0.0, 0.0, 0.0, 1.0);
         }
 
         return;
     }
 #endif
 
-    g_output[pixel] = computeOutputColor(pixel);
+    g_output[globalCoord] = computeOutputColor(globalCoord);
 
-    const int offset = pixelY % 2 == 0 ? 1 : -1;
-    g_output[pixel + int2(offset, 0)] = g_output[pixel];
+    const int offsetX = globalY % 2 == 0 ? 1 : -1;
+    g_output[globalCoord + int2(offsetX, 0)] = g_output[globalCoord];
 }
