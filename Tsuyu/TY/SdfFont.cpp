@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "SdfFont.h"
 
+#include <ranges>
 #include <freetype/freetype.h>
 
 #include "DynamicTexture.h"
@@ -153,6 +154,16 @@ namespace
         Array<std::pair<property_type, FT_Face>> m_faceList{};
 
     public:
+        ~SdfFontCache()
+        {
+            for (const auto& face : m_faceList | std::views::values)
+            {
+                FT_Done_Face(face);
+            }
+
+            m_faceList.clear();
+        }
+
         FT_Face FetchFace(const std::string& path, int fontSize)
         {
             for (const auto& [prop, face] : m_faceList)

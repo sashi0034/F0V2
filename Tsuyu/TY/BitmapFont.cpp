@@ -74,6 +74,15 @@ struct BitmapFont::Impl : RenderEvent::Lister
         m_valid = true;
     }
 
+    ~Impl()
+    {
+        if (m_face)
+        {
+            FT_Done_Face(m_face);
+            m_face = nullptr;
+        }
+    }
+
     const GlyphInfo& FetchGlyph(char32_t codePoint)
     {
         if (const auto it = m_glyphTable.find(codePoint); it != m_glyphTable.end())
