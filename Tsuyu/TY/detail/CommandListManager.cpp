@@ -195,6 +195,8 @@ struct CommandListManager::Impl
         // 実行の待機
         currentResource.fenceValue += RenderContext_singleton::FrameBufferCount;
         m_commandQueue->Signal(m_fence.Get(), currentResource.fenceValue);
+        
+        currentResource.needFence = true;
 
         // current
         // -----------------------------------------------
@@ -211,8 +213,6 @@ struct CommandListManager::Impl
             WaitForSingleObjectEx(event, INFINITE, false);
             CloseHandle(event);
         }
-
-        nextResource.needFence = true;
 
         // プロファイリング結果の取得
         {
