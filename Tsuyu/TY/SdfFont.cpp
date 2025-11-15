@@ -352,6 +352,7 @@ struct SdfFont::Impl : RenderEvent::Lister
         // TODO: refreshIfNeeded() を実装する
         if (m_shouldUpdateAtlas)
         {
+            m_shouldUpdateAtlas = false;
             m_atlasTexture.upload(getAtlasImageView());
         }
     }

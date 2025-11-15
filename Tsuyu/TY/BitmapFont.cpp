@@ -163,6 +163,7 @@ struct BitmapFont::Impl : RenderEvent::Lister
     {
         if (m_shouldUpdateAtlas)
         {
+            m_shouldUpdateAtlas = false;
             m_atlasTexture.upload(getAtlasImageView());
         }
     }
