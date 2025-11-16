@@ -27,7 +27,7 @@ namespace TY::detail
 
     namespace RenderContext_singleton
     {
-        constexpr int FrameBufferCount = 2;
+        constexpr int FrameBufferCount = 3;
 
         void Init();
 

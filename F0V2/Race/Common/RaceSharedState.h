@@ -17,7 +17,7 @@ namespace Race
 
         float nearDepth = 0.1f;
 
-        float farDepth = 1000.0f;
+        float farDepth = 500.0f;
 
         Array<CourseSegment> courseSegments{};
 
