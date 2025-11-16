@@ -691,17 +691,19 @@ float4 computeOutputColor(uint2 pixel, bool hasHint, InitialDistanceHint initial
     RayMarchResult hit;
     if (hasHint)
     {
+        bool initialized = false;
         [unroll]
         for (int i = 0; i < INITIAL_DISTANCE_HINT_CAPACITY; i++)
         {
-            hit = rayMarch(
+            RayMarchResult hit_ = rayMarch(
                 eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists, hasHint, initialDistanceHint.values[i]);
-            if (hit.tag != RAY_MARCH_MISS)
+            if (hit_.tag != RAY_MARCH_MISS && (!initialized || hit_.distance < hit.distance))
             {
-                break;
+                initialized = true;
+                hit = hit_;
             }
 
-            if (i == initialDistanceHint.count - 1)
+            if (!initialized && i == initialDistanceHint.count - 1)
             {
                 // return float4(1, 0, 0, 1); // debug
                 return float4(initialDistanceHint.fallback, 1.0);
