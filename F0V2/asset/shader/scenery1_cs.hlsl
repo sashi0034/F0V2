@@ -774,14 +774,15 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     InitialDistanceHint initialDistanceHint;
     initialDistanceHint.count = 0;
     initialDistanceHint.fallback = float3(0, 0, 0);
+
     const float4 firstOutput = computeOutputColor(firstCoord, false, initialDistanceHint);
     gs_firstPathOutput[localThreadId] = firstOutput;
+    g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
 
     const int secondOffsetX = isOddY == 0 ? 1 : -1;
     const float2 secondCoord = firstCoord + int2(secondOffsetX, 0);
 
 #if 0
-    g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
     g_output[secondCoord] = float4(computeOutputColor(secondCoord, false, initialDistanceHint).rgb, 1.0);
     return;
 #endif
@@ -834,6 +835,5 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     initialDistanceHint.fallback /= float(initialDistanceHint.count);
 
-    g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
     g_output[secondCoord] = float4(computeOutputColor(secondCoord, true, initialDistanceHint).rgb, 1.0);
 }
