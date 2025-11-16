@@ -442,9 +442,16 @@ float3 scanNormal(float3 pos)
     return normalize(n);
 }
 
+enum RaycastTag
+{
+    RAYCAST_MISS,
+    RAYCAST_HIT_SDF,
+    RAYCAST_HIT_LIMIT
+};
+
 struct RaycastResult
 {
-    bool hit;
+    RaycastTag tag;
     float3 pos;
     float distance;
     SdfAndMat d;
@@ -453,7 +460,7 @@ struct RaycastResult
 RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, bool hasHint, float initialDistanceHint)
 {
     RaycastResult r;
-    r.hit = false;
+    r.tag = RAYCAST_MISS;
     r.pos = 0;
     r.distance = 0;
     r.d = emptySdfAndMat();
@@ -468,7 +475,7 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, bool hasHint,
         SdfAndMat d = scanSdf(p);
         if (d.sdf < eps)
         {
-            r.hit = true;
+            r.tag = RAYCAST_HIT_SDF;
             r.pos = p;
             r.distance = t;
             r.d = d;
@@ -478,6 +485,7 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, bool hasHint,
         t += d.sdf;
         if (t > distanceLimit)
         {
+            r.tag = RAYCAST_HIT_LIMIT;
             r.distance = distanceLimit;
             break;
         }
@@ -574,9 +582,13 @@ float3 computeLighting(LightingInput input)
     return color;
 }
 
-static const int RAY_MARCH_HIT_GBUFFER = 0;
-static const int RAY_MARCH_HIT_SDF = 1;
-static const int RAY_MARCH_SKY = 2;
+enum RayMarchTag
+{
+    RAY_MARCH_MISS,
+    RAY_MARCH_HIT_GBUFFER,
+    RAY_MARCH_HIT_SDF,
+    RAY_MARCH_SKY,
+};
 
 struct RayMarchResult
 {
@@ -599,7 +611,13 @@ RayMarchResult rayMarch(
 
     result.distance = r.distance;
 
-    if (!r.hit && pixelAlreadyExists)
+    if (r.tag == RAYCAST_MISS)
+    {
+        result.tag = RAY_MARCH_MISS;
+        return result;
+    }
+
+    if (r.tag == RAYCAST_HIT_LIMIT && pixelAlreadyExists)
     {
         result.tag = RAY_MARCH_HIT_GBUFFER;
         return result;
@@ -678,7 +696,7 @@ float4 computeOutputColor(uint2 pixel, bool hasHint, InitialDistanceHint initial
         {
             hit = rayMarch(
                 eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists, hasHint, initialDistanceHint.values[i]);
-            if (hit.tag != RAY_MARCH_SKY)
+            if (hit.tag != RAY_MARCH_MISS)
             {
                 break;
             }
@@ -697,7 +715,7 @@ float4 computeOutputColor(uint2 pixel, bool hasHint, InitialDistanceHint initial
     }
 
     float3 rgb;
-    if (hit.tag == RAY_MARCH_SKY)
+    if (hit.tag == RAY_MARCH_SKY || hit.tag == RAY_MARCH_MISS)
     {
         rgb = computeSkyColor(-rayDir);
     }
@@ -790,8 +808,8 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     GroupMemoryBarrierWithGroupSync(); // <-- Barrier 
 
     initialDistanceHint.values[initialDistanceHint.count] = firstOutput.a;
-    initialDistanceHint.fallback += firstOutput.rgb;
-    initialDistanceHint.count++;
+    initialDistanceHint.fallback = firstOutput.rgb;
+    initialDistanceHint.count = 1;
 
     // left
     if (isOddY && 0 < offsetInTileX)
