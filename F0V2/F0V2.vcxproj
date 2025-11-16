@@ -169,9 +169,11 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\.gitignore" />
     <Content Include="asset\debug.example.toml" />
     <Content Include="asset\debug.toml" />
-    <Content Include="asset\fsr1\fsr1_easu.hlsl" />
-    <Content Include="asset\fsr1\fsr1_rcas.hlsl" />
     <Content Include="asset\script\bundle_build.py" />
+    <Content Include="asset\shader\fsr1\ffx_a.h" />
+    <Content Include="asset\shader\fsr1\ffx_fsr1.h" />
+    <Content Include="asset\shader\fsr1\fsr1_easu_cs.hlsl" />
+    <Content Include="asset\shader\fsr1\fsr1_rcas_cs.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <Content Include="asset\shader\scenery1_cs.hlsl" />
@@ -303,8 +305,6 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
   <ItemGroup>
     <ClInclude Include="Asset0.h" />
     <ClInclude Include="Asset.generated.h" />
-    <Content Include="asset\fsr1\ffx_a.h" />
-    <Content Include="asset\fsr1\ffx_fsr1.h" />
     <ClInclude Include="asset\shader\model.hlsl" />
     <ClInclude Include="CB\Lambert.h" />
     <ClInclude Include="CB\ShadowCaster.h" />

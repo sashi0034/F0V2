@@ -9,6 +9,8 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper cheap_aa{"asset/shader/cheap_aa.hlsl"};
     static const inline GraphicsShaderPathWrapper default2d{"asset/shader/default2d.hlsl"};
     static const inline GraphicsShaderPathWrapper dynamic_ocean{"asset/shader/dynamic_ocean.hlsl"};
+    static const inline ComputeShaderPathWrapper fsr1_easu_cs{"asset/shader/fsr1/fsr1_easu_cs.hlsl"};
+    static const inline ComputeShaderPathWrapper fsr1_rcas_cs{"asset/shader/fsr1/fsr1_rcas_cs.hlsl"};
     static const inline GraphicsShaderPathWrapper gbuffer_pass{"asset/shader/gbuffer_pass.hlsl"};
     static const inline GraphicsShaderPathWrapper lambert{"asset/shader/lambert.hlsl"};
     static const inline GraphicsShaderPathWrapper model{"asset/shader/model.hlsl"};
