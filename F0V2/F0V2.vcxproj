@@ -178,6 +178,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\shader\shadow_caster_old.hlsl" />
     <Content Include="asset\shader\wave_test.hlsl" />
     <Content Include="asset\shader\gbuffer_pass.hlsl" />
+    <Content Include="asset\shader\cheap_aa.hlsl" />
     <ClCompile Include="GameGlobalUI.cpp" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
     <ClCompile Include="RaceSetup\CourseFileInfo.cpp" />

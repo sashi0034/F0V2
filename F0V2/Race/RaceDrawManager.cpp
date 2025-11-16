@@ -100,6 +100,48 @@ namespace
         UnorderedRenderTargetTexture m_outputTexture{};
         ComputeDispatcher m_dispatcher{};
     };
+
+    struct CheapAA_b10
+    {
+        Float2 g_outputResolution;
+    };
+
+    // TODO: 使わない
+    struct CheapAABuffer : IGenericModelBuffer
+    {
+        GenericModelShapeBufferElement m_shape{};
+
+        CheapAABuffer()
+        {
+            m_shape.materialIndex = 0;
+            m_shape.indexBuffer = IndexBuffer::Placeholder(6);
+        }
+
+        int shapeCount() const override
+        {
+            return 1; // Assuming a single shape
+        }
+
+        GenericModelShapeBufferElement shapeAt(int index) const override
+        {
+            return m_shape;
+        }
+
+        int materialCount() const override
+        {
+            return 1; // Assuming a single material for the shape
+        }
+
+        ConstantBufferArrayImpl materialCbv() const override
+        {
+            return {Empty};
+        }
+
+        Array<Array<ShaderResourceType>> materialSrv() const override
+        {
+            return {};
+        }
+    };
 }
 
 struct RaceDrawManager::Impl : ActorBase
@@ -114,9 +156,29 @@ struct RaceDrawManager::Impl : ActorBase
 
     SceneryDrawer m_sceneryDrawer{};
 
+    GenericModelDrawer m_aaDrawer{};
+    ConstantBufferWrapper<CheapAA_b10> m_aaCB10{};
+    RenderTarget m_aaTarget{};
+
     void Init()
     {
         m_sceneryDrawer.Init();
+
+        m_aaDrawer =
+            GenericModelDrawerParams{}
+            .setModel(std::make_unique<CheapAABuffer>())
+            .setVertexInput({})
+            .setShader(Asset_shader::cheap_aa)
+            .setOptions(GraphicsOptions{})
+            .setCbv10AndLater({m_aaCB10})
+            .setSrv10AndLater({m_sceneryDrawer.GetOutputTarget()});
+
+        m_aaTarget =
+            RenderTargetParams{}
+            .setRtv(RtvParams{}
+                    .setFormat(DXGI_FORMAT_R8G8B8A8_UNORM)
+                    .setSize(g_sharedState->gbufferTarget.size())
+                    .setClearColor(ColorF32{0.0f, 0.0f}));
     }
 
     void Unregister(const IRaceDrawer* drawer)
@@ -170,7 +232,7 @@ private:
             }
         }
 
-        float renderScale = 1.0f;
+        float renderScale = 0.4f;
 
         // GBuffer パス
         {
@@ -191,9 +253,18 @@ private:
             m_sceneryDrawer.Draw(renderScale);
         }
 
+        // AA
+        {
+            m_aaCB10->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
+            m_aaCB10.upload();
+
+            const auto bind = m_aaTarget.scopedBind();
+            m_aaDrawer.draw();
+        }
+
         // 書き出し
         {
-            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget())
+            Immediate2D::Texture(m_aaTarget.getFrontRtv())
                 .trimmed(RectF{Screen::SizeF() * renderScale})
                 .resized(Screen::Size())
                 .pushAuto();
