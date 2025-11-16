@@ -450,7 +450,7 @@ struct RaycastResult
     SdfAndMat d;
 };
 
-RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, int maxSteps, float initialDistanceHint)
+RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, bool hasHint, float initialDistanceHint)
 {
     RaycastResult r;
     r.hit = false;
@@ -458,12 +458,15 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, int maxSteps,
     r.distance = 0;
     r.d = emptySdfAndMat();
 
+    const int maxSteps = hasHint ? 2 : MAX_RAYMARCH;
+    const float eps = hasHint ? 0.1 : 1e-2f;
+
     float t = initialDistanceHint;
     for (int i = 0; i < maxSteps; ++i)
     {
         float3 p = pos + dir * t;
         SdfAndMat d = scanSdf(p);
-        if (d.sdf < 1e-2)
+        if (d.sdf < eps)
         {
             r.hit = true;
             r.pos = p;
@@ -592,8 +595,7 @@ RayMarchResult rayMarch(
 {
     RayMarchResult result;
 
-    const int maxSteps = hasHint ? 2 : MAX_RAYMARCH;
-    RaycastResult r = raycast(eyePos, rayDir, distanceLimit, maxSteps, initialDistanceHint);
+    const RaycastResult r = raycast(eyePos, rayDir, distanceLimit, hasHint, initialDistanceHint);
 
     result.distance = r.distance;
 
@@ -685,10 +687,13 @@ float4 computeOutputColor(uint2 pixel, bool hasHint, float initialDistanceHint)
     return float4(L2sRGB_(rgb), hit.distance);
 }
 
+static const uint THREADS_PER_TILE = 32;
+
+groupshared float gs_firstPathDistances[THREADS_PER_TILE];
+
 [numthreads(32, 1, 1)]
 void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    const uint THREADS_PER_TILE = 32;
     const uint PIXELS_PER_TILE_X = 8;
     const uint PIXELS_PER_TILE_Y = 8;
     const uint THREADS_PER_TILE_X = PIXELS_PER_TILE_X / 2;
@@ -699,14 +704,16 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const uint tileCoordX = tileId % TILE_COLUMNS;
     const uint tileCoordY = tileId / TILE_COLUMNS;
 
-    const uint offsetInTileX = (dispatchThreadID.x % THREADS_PER_TILE) % THREADS_PER_TILE_X;
-    const uint offsetInTileY = (dispatchThreadID.x % THREADS_PER_TILE) / THREADS_PER_TILE_X;
+    const uint localThreadId = dispatchThreadID.x % THREADS_PER_TILE;
+    const uint offsetInTileX = localThreadId % THREADS_PER_TILE_X;
+    const uint offsetInTileY = localThreadId / THREADS_PER_TILE_X;
+    const uint isOddY = offsetInTileY % 2;
 
     uint globalY = tileCoordY * PIXELS_PER_TILE_Y + offsetInTileY;
-    uint globalX = tileCoordX * PIXELS_PER_TILE_X + offsetInTileX * 2 + globalY % 2;
+    uint globalX = tileCoordX * PIXELS_PER_TILE_X + offsetInTileX * 2 + isOddY;
 
-    const uint2 globalCoord = uint2(globalX, globalY);
-    if (float(globalCoord.x) >= g_outputResolution.x || float(globalCoord.y) >= g_outputResolution.y)
+    const uint2 firstCoord = uint2(globalX, globalY);
+    if (float(firstCoord.x) >= g_outputResolution.x || float(firstCoord.y) >= g_outputResolution.y)
     {
         return;
     }
@@ -720,22 +727,63 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
         if (shadow != 1.0)
         {
-            g_output[globalCoord] = float4(1.0, 0.0, 0.0, 1.0);
+            g_output[firstCoord] = float4(1.0, 0.0, 0.0, 1.0);
         }
         else
         {
-            g_output[globalCoord] = float4(0.0, 0.0, 0.0, 1.0);
+            g_output[firstCoord] = float4(0.0, 0.0, 0.0, 1.0);
         }
 
         return;
     }
 #endif
 
-    const float4 firstOutput = computeOutputColor(globalCoord, false, 0.0);
-    const float secondDistanceHint = firstOutput.a; // TODO
-    g_output[globalCoord] = float4(firstOutput.rgb, 1.0);
+    const float4 firstOutput = computeOutputColor(firstCoord, false, 0.0);
+    const float firstPathDistance = firstOutput.a;
+    g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
 
-    const int offsetX = globalY % 2 == 0 ? 1 : -1;
-    const float2 secondCoord = globalCoord + int2(offsetX, 0);
-    g_output[secondCoord] = float4(computeOutputColor(globalCoord, true, secondDistanceHint).rgb, 1.0);
+    gs_firstPathDistances[localThreadId] = firstPathDistance;
+
+    const int secondOffsetX = isOddY == 0 ? 1 : -1;
+    const float2 secondCoord = firstCoord + int2(secondOffsetX, 0);
+    // g_output[secondCoord] = float4(computeOutputColor(secondCoord, false, 0.0).rgb, 1.0);
+
+    GroupMemoryBarrierWithGroupSync(); // <-- Barrier 
+
+    float secondDistanceHint = firstPathDistance;
+    {
+        int count = 1;
+
+        // left
+        if (isOddY && 0 < offsetInTileX)
+        {
+            secondDistanceHint += gs_firstPathDistances[localThreadId - 1];
+            count++;
+        }
+
+        // right
+        if (!isOddY && offsetInTileX < THREADS_PER_TILE_X - 1)
+        {
+            secondDistanceHint += gs_firstPathDistances[localThreadId + 1];
+            count++;
+        }
+
+        // up
+        if (0 < offsetInTileY)
+        {
+            secondDistanceHint += gs_firstPathDistances[localThreadId - THREADS_PER_TILE_X];
+            count++;
+        }
+
+        // down
+        if (offsetInTileY < PIXELS_PER_TILE_Y - 1)
+        {
+            secondDistanceHint += gs_firstPathDistances[localThreadId + THREADS_PER_TILE_X];
+            count++;
+        }
+
+        secondDistanceHint /= count;
+    }
+
+    g_output[secondCoord] = float4(computeOutputColor(secondCoord, true, secondDistanceHint).rgb, 1.0);
 }
