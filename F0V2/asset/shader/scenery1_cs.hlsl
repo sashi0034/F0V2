@@ -640,7 +640,16 @@ RayMarchResult rayMarch(
 
 // -----------------------------------------------
 
-float4 computeOutputColor(uint2 pixel, bool hasHint, float initialDistanceHint)
+static const int INITIAL_DISTANCE_HINT_CAPACITY = 4;
+
+struct InitialDistanceHint
+{
+    int count;
+    float values[INITIAL_DISTANCE_HINT_CAPACITY];
+    float4 fallback;
+};
+
+float4 computeOutputColor(uint2 pixel, bool hasHint, InitialDistanceHint initialDistanceHint)
 {
     float3 targetInNdc;
     targetInNdc.xy = float2(2.0, -2.0) * float2(pixel) / g_outputResolution + float2(-1.0, 1.0);
@@ -661,8 +670,32 @@ float4 computeOutputColor(uint2 pixel, bool hasHint, float initialDistanceHint)
     const bool pixelAlreadyExists = g_albedoBuffer[pixel].a != 0.0; // フォワードレンダリング時点で値が書き込まれているか
     const float distanceLimit = g_viewDistanceBuffer[pixel]; // 最大で far 値
 
-    const RayMarchResult hit =
-        rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists, hasHint, initialDistanceHint);
+    RayMarchResult hit;
+    if (hasHint)
+    {
+        [unroll]
+        for (int i = 0; i < INITIAL_DISTANCE_HINT_CAPACITY; i++)
+        {
+            hit = rayMarch(
+                eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists, hasHint, initialDistanceHint.values[i]);
+            if (hit.tag != RAY_MARCH_SKY)
+            {
+                break;
+            }
+
+            if (i == initialDistanceHint.count - 1)
+            {
+                // return float4(1, 0, 0, 1); // debug
+                return initialDistanceHint.fallback;
+            }
+        }
+    }
+    else
+    {
+        hit = rayMarch(
+            eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists, hasHint, 0);
+    }
+
     float3 rgb;
     if (hit.tag == RAY_MARCH_SKY)
     {
@@ -738,7 +771,9 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     }
 #endif
 
-    const float4 firstOutput = computeOutputColor(firstCoord, false, 0.0);
+    InitialDistanceHint initialDistanceHint;
+    initialDistanceHint.count = 0;
+    const float4 firstOutput = computeOutputColor(firstCoord, false, initialDistanceHint);
     const float firstPathDistance = firstOutput.a;
     g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
 
@@ -750,40 +785,41 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     GroupMemoryBarrierWithGroupSync(); // <-- Barrier 
 
-    float secondDistanceHint = firstPathDistance;
+    initialDistanceHint.fallback = float4(firstOutput.rgb, 1.0);
+    initialDistanceHint.values[initialDistanceHint.count] = firstPathDistance;
+    initialDistanceHint.count++;
+
+    // left
+    if (isOddY && 0 < offsetInTileX)
     {
-        int count = 1;
-
-        // left
-        if (isOddY && 0 < offsetInTileX)
-        {
-            secondDistanceHint += gs_firstPathDistances[localThreadId - 1];
-            count++;
-        }
-
-        // right
-        if (!isOddY && offsetInTileX < THREADS_PER_TILE_X - 1)
-        {
-            secondDistanceHint += gs_firstPathDistances[localThreadId + 1];
-            count++;
-        }
-
-        // up
-        if (0 < offsetInTileY)
-        {
-            secondDistanceHint += gs_firstPathDistances[localThreadId - THREADS_PER_TILE_X];
-            count++;
-        }
-
-        // down
-        if (offsetInTileY < PIXELS_PER_TILE_Y - 1)
-        {
-            secondDistanceHint += gs_firstPathDistances[localThreadId + THREADS_PER_TILE_X];
-            count++;
-        }
-
-        secondDistanceHint /= count;
+        initialDistanceHint.values[initialDistanceHint.count] =
+            gs_firstPathDistances[localThreadId - 1];
+        initialDistanceHint.count++;
     }
 
-    g_output[secondCoord] = float4(computeOutputColor(secondCoord, true, secondDistanceHint).rgb, 1.0);
+    // right
+    if (!isOddY && offsetInTileX < THREADS_PER_TILE_X - 1)
+    {
+        initialDistanceHint.values[initialDistanceHint.count] =
+            gs_firstPathDistances[localThreadId + 1];
+        initialDistanceHint.count++;
+    }
+
+    // up
+    if (0 < offsetInTileY)
+    {
+        initialDistanceHint.values[initialDistanceHint.count] =
+            gs_firstPathDistances[localThreadId - THREADS_PER_TILE_X];
+        initialDistanceHint.count++;
+    }
+
+    // down
+    if (offsetInTileY < PIXELS_PER_TILE_Y - 1)
+    {
+        initialDistanceHint.values[initialDistanceHint.count] =
+            gs_firstPathDistances[localThreadId + THREADS_PER_TILE_X];
+        initialDistanceHint.count++;
+    }
+
+    g_output[secondCoord] = float4(computeOutputColor(secondCoord, true, initialDistanceHint).rgb, 1.0);
 }
