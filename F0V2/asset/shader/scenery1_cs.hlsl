@@ -446,18 +446,20 @@ struct RaycastResult
 {
     bool hit;
     float3 pos;
+    float distance;
     SdfAndMat d;
 };
 
-RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
+RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, int maxSteps, float initialDistanceHint)
 {
     RaycastResult r;
     r.hit = false;
     r.pos = 0;
+    r.distance = 0;
     r.d = emptySdfAndMat();
 
-    float t = 0;
-    for (int i = 0; i < MAX_RAYMARCH; ++i)
+    float t = initialDistanceHint;
+    for (int i = 0; i < maxSteps; ++i)
     {
         float3 p = pos + dir * t;
         SdfAndMat d = scanSdf(p);
@@ -465,6 +467,7 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
         {
             r.hit = true;
             r.pos = p;
+            r.distance = t;
             r.d = d;
             break;
         }
@@ -472,8 +475,11 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
         t += d.sdf;
         if (t > distanceLimit)
         {
+            r.distance = distanceLimit;
             break;
         }
+
+        r.distance = t;
     }
 
     return r;
@@ -572,14 +578,25 @@ static const int RAY_MARCH_SKY = 2;
 struct RayMarchResult
 {
     int tag;
+    float distance;
     LightingInput lighting;
 };
 
-RayMarchResult rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlreadyExists)
+RayMarchResult rayMarch(
+    float3 eyePos,
+    float3 rayDir,
+    float distanceLimit,
+    bool pixelAlreadyExists,
+    bool hasHint,
+    float initialDistanceHint)
 {
     RayMarchResult result;
 
-    RaycastResult r = raycast(eyePos, rayDir, distanceLimit);
+    const int maxSteps = hasHint ? 2 : MAX_RAYMARCH;
+    RaycastResult r = raycast(eyePos, rayDir, distanceLimit, maxSteps, initialDistanceHint);
+
+    result.distance = r.distance;
+
     if (!r.hit && pixelAlreadyExists)
     {
         result.tag = RAY_MARCH_HIT_GBUFFER;
@@ -621,7 +638,7 @@ RayMarchResult rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool 
 
 // -----------------------------------------------
 
-float4 computeOutputColor(uint2 pixel)
+float4 computeOutputColor(uint2 pixel, bool hasHint, float initialDistanceHint)
 {
     float3 targetInNdc;
     targetInNdc.xy = float2(2.0, -2.0) * float2(pixel) / g_outputResolution + float2(-1.0, 1.0);
@@ -642,7 +659,8 @@ float4 computeOutputColor(uint2 pixel)
     const bool pixelAlreadyExists = g_albedoBuffer[pixel].a != 0.0; // フォワードレンダリング時点で値が書き込まれているか
     const float distanceLimit = g_viewDistanceBuffer[pixel]; // 最大で far 値
 
-    const RayMarchResult hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
+    const RayMarchResult hit =
+        rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists, hasHint, initialDistanceHint);
     float3 rgb;
     if (hit.tag == RAY_MARCH_SKY)
     {
@@ -664,7 +682,7 @@ float4 computeOutputColor(uint2 pixel)
         rgb = computeLighting(lightingInput);
     }
 
-    return float4(L2sRGB_(rgb), 1.0);
+    return float4(L2sRGB_(rgb), hit.distance);
 }
 
 [numthreads(32, 1, 1)]
@@ -713,8 +731,11 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     }
 #endif
 
-    g_output[globalCoord] = computeOutputColor(globalCoord);
+    const float4 firstOutput = computeOutputColor(globalCoord, false, 0.0);
+    const float secondDistanceHint = firstOutput.a; // TODO
+    g_output[globalCoord] = float4(firstOutput.rgb, 1.0);
 
     const int offsetX = globalY % 2 == 0 ? 1 : -1;
-    g_output[globalCoord + int2(offsetX, 0)] = g_output[globalCoord];
+    const float2 secondCoord = globalCoord + int2(offsetX, 0);
+    g_output[secondCoord] = float4(computeOutputColor(globalCoord, true, secondDistanceHint).rgb, 1.0);
 }

@@ -170,7 +170,7 @@ private:
             }
         }
 
-        float renderScale = 0.4f;
+        float renderScale = 1.0f;
 
         // GBuffer パス
         {
