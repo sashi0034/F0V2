@@ -336,6 +336,11 @@ namespace TY::detail
         return s_engineWindow.m_wheelDelta;
     }
 
+    bool Window_singleton::IsActive()
+    {
+        return GetActiveWindow() == s_engineWindow.m_handle;
+    }
+
     void Window_singleton::Resize(Size size)
     {
         s_engineWindow.Resize(size);

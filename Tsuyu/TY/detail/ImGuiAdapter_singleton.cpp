@@ -7,6 +7,7 @@
 #include "Window_singleton.h"
 #include "backends/imgui_impl_dx12.h"
 #include "backends/imgui_impl_win32.h"
+#include "TY/KeyboardInput.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -16,6 +17,8 @@ struct ImGuiAdapterImpl
     DescriptorHeap m_descriptorHeap{};
 
     ComPtr<ID3D12DescriptorHeap> m_srvHeap{};
+
+    bool m_renderDisabled{};
 
     void Init()
     {
@@ -59,14 +62,14 @@ struct ImGuiAdapterImpl
 
 namespace
 {
-    ImGuiAdapterImpl s_imgui{};
+    ImGuiAdapterImpl s_imguiAdapter{};
 }
 
 namespace TY::detail
 {
     void ImGuiAdapter_singleton::Init()
     {
-        s_imgui.Init();
+        s_imguiAdapter.Init();
     }
 
     void ImGuiAdapter_singleton::NewFrame()
@@ -81,6 +84,11 @@ namespace TY::detail
         ImGui_ImplDX12_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
+
+        if (KeyF9.down() && Window_singleton::IsActive())
+        {
+            s_imguiAdapter.m_renderDisabled = not s_imguiAdapter.m_renderDisabled;
+        }
     }
 
     void ImGuiAdapter_singleton::Render()
@@ -88,9 +96,12 @@ namespace TY::detail
         ImGui::Render();
 
         const auto commandList = RenderContext_singleton::TargetCommandList();
-        commandList->SetDescriptorHeaps(1, s_imgui.m_srvHeap.GetAddressOf());
+        commandList->SetDescriptorHeaps(1, s_imguiAdapter.m_srvHeap.GetAddressOf());
 
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+        if (not s_imguiAdapter.m_renderDisabled)
+        {
+            ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+        }
     }
 
     void ImGuiAdapter_singleton::Shutdown()
@@ -99,6 +110,6 @@ namespace TY::detail
         ImGui_ImplWin32_Shutdown();
         ImGui::DestroyContext();
 
-        s_imgui = {};
+        s_imguiAdapter = {};
     }
 }

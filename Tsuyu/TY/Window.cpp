@@ -22,4 +22,9 @@ namespace TY
     {
         Window_singleton::Resize(size);
     }
+
+    bool Window::IsActive()
+    {
+        return Window_singleton::IsActive();
+    }
 }
