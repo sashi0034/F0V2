@@ -646,7 +646,7 @@ struct InitialDistanceHint
 {
     int count;
     float values[INITIAL_DISTANCE_HINT_CAPACITY];
-    float4 fallback;
+    float3 fallback;
 };
 
 float4 computeOutputColor(uint2 pixel, bool hasHint, InitialDistanceHint initialDistanceHint)
@@ -686,7 +686,7 @@ float4 computeOutputColor(uint2 pixel, bool hasHint, InitialDistanceHint initial
             if (i == initialDistanceHint.count - 1)
             {
                 // return float4(1, 0, 0, 1); // debug
-                return initialDistanceHint.fallback;
+                return float4(initialDistanceHint.fallback, 1.0);
             }
         }
     }
@@ -722,7 +722,7 @@ float4 computeOutputColor(uint2 pixel, bool hasHint, InitialDistanceHint initial
 
 static const uint THREADS_PER_TILE = 32;
 
-groupshared float gs_firstPathDistances[THREADS_PER_TILE];
+groupshared float4 gs_firstPathOutput[THREADS_PER_TILE];
 
 [numthreads(32, 1, 1)]
 void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
@@ -773,27 +773,32 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     InitialDistanceHint initialDistanceHint;
     initialDistanceHint.count = 0;
+    initialDistanceHint.fallback = float3(0, 0, 0);
     const float4 firstOutput = computeOutputColor(firstCoord, false, initialDistanceHint);
-    const float firstPathDistance = firstOutput.a;
-    g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
-
-    gs_firstPathDistances[localThreadId] = firstPathDistance;
+    gs_firstPathOutput[localThreadId] = firstOutput;
 
     const int secondOffsetX = isOddY == 0 ? 1 : -1;
     const float2 secondCoord = firstCoord + int2(secondOffsetX, 0);
-    // g_output[secondCoord] = float4(computeOutputColor(secondCoord, false, 0.0).rgb, 1.0);
+
+#if 0
+    g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
+    g_output[secondCoord] = float4(computeOutputColor(secondCoord, false, initialDistanceHint).rgb, 1.0);
+    return;
+#endif
 
     GroupMemoryBarrierWithGroupSync(); // <-- Barrier 
 
-    initialDistanceHint.fallback = float4(firstOutput.rgb, 1.0);
-    initialDistanceHint.values[initialDistanceHint.count] = firstPathDistance;
+    initialDistanceHint.values[initialDistanceHint.count] = firstOutput.a;
+    initialDistanceHint.fallback += firstOutput.rgb;
     initialDistanceHint.count++;
 
     // left
     if (isOddY && 0 < offsetInTileX)
     {
         initialDistanceHint.values[initialDistanceHint.count] =
-            gs_firstPathDistances[localThreadId - 1];
+            gs_firstPathOutput[localThreadId - 1].a;
+        initialDistanceHint.fallback +=
+            gs_firstPathOutput[localThreadId - 1].rgb;
         initialDistanceHint.count++;
     }
 
@@ -801,7 +806,9 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     if (!isOddY && offsetInTileX < THREADS_PER_TILE_X - 1)
     {
         initialDistanceHint.values[initialDistanceHint.count] =
-            gs_firstPathDistances[localThreadId + 1];
+            gs_firstPathOutput[localThreadId + 1].a;
+        initialDistanceHint.fallback +=
+            gs_firstPathOutput[localThreadId + 1].rgb;
         initialDistanceHint.count++;
     }
 
@@ -809,7 +816,9 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     if (0 < offsetInTileY)
     {
         initialDistanceHint.values[initialDistanceHint.count] =
-            gs_firstPathDistances[localThreadId - THREADS_PER_TILE_X];
+            gs_firstPathOutput[localThreadId - THREADS_PER_TILE_X].a;
+        initialDistanceHint.fallback +=
+            gs_firstPathOutput[localThreadId - THREADS_PER_TILE_X].rgb;
         initialDistanceHint.count++;
     }
 
@@ -817,9 +826,14 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     if (offsetInTileY < PIXELS_PER_TILE_Y - 1)
     {
         initialDistanceHint.values[initialDistanceHint.count] =
-            gs_firstPathDistances[localThreadId + THREADS_PER_TILE_X];
+            gs_firstPathOutput[localThreadId + THREADS_PER_TILE_X].a;
+        initialDistanceHint.fallback +=
+            gs_firstPathOutput[localThreadId + THREADS_PER_TILE_X].rgb;
         initialDistanceHint.count++;
     }
 
+    initialDistanceHint.fallback /= float(initialDistanceHint.count);
+
+    g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
     g_output[secondCoord] = float4(computeOutputColor(secondCoord, true, initialDistanceHint).rgb, 1.0);
 }
