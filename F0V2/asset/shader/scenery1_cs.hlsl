@@ -466,7 +466,7 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, bool hasHint,
     r.d = emptySdfAndMat();
 
     const int maxSteps = hasHint ? 2 : MAX_RAYMARCH;
-    const float eps = hasHint ? 0.1 : 1e-2f;
+    const float eps = 0.1; // hasHint ? 0.1 : 1e-2f;
 
     float t = initialDistanceHint;
     for (int i = 0; i < maxSteps; ++i)
