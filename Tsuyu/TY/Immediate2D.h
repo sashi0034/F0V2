@@ -132,15 +132,17 @@ namespace TY
         struct Texture
         {
             TextureHandle texture;
+            RectF uvRect{0.0f, 0.0f, 1.0f, 1.0f};
             Float2 position{};
             Float2 pivot{};
             Float2 scale{1.0f, 1.0f};
-            RectF uvRect{0.0f, 0.0f, 1.0f, 1.0f};
             ColorF32 color{1.0};
 
             Texture() = default;
 
             Texture(const TextureHandle& handle_);
+
+            Texture& trimmed(const RectF& rect);
 
             Texture& setPosition(const Float2& position_, Alignment9 alignment = Alignment9::TopLeft);
 

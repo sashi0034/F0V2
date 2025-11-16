@@ -75,12 +75,12 @@ namespace
                 .setUav({m_outputTexture});
         }
 
-        void Draw()
+        void Draw(float renderScale)
         {
             m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
             m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
             m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
-            m_cb->g_outputResolution = g_sharedState->gbufferTarget.size();
+            m_cb->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
             m_cb->g_time = System::Time();
             m_cb.upload();
 
@@ -170,8 +170,11 @@ private:
             }
         }
 
+        float renderScale = 0.4f;
+
         // GBuffer パス
         {
+            g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * renderScale});
             auto bind = g_sharedState->gbufferTarget.scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
@@ -185,12 +188,15 @@ private:
         if (GetDebugTomlValue<bool>("draw_scenery"))
 #endif
         {
-            m_sceneryDrawer.Draw();
+            m_sceneryDrawer.Draw(renderScale);
         }
 
         // 書き出し
         {
-            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget()).resized(Screen::Size()).pushAuto();
+            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget())
+                .trimmed(RectF{Screen::SizeF() * renderScale})
+                .resized(Screen::Size())
+                .pushAuto();
             ImmediateDrawer::Global().draw();
         }
 

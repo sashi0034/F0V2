@@ -630,7 +630,7 @@ namespace TY
             Float2 tl = texture.position;
             tl = tl - drawSize * texture.pivot;
 
-            const Float2 br = tl + drawSize - Float2{1.0f, 1.0f};
+            const Float2 br = tl + drawSize; // FIXME? - Float2{1.0f, 1.0f};
 
             vertices[0].set(tl, texture.uvRect.tl(), texture.color);
             vertices[1].set({br.x, tl.y}, texture.uvRect.tr(), texture.color);

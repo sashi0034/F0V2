@@ -178,6 +178,20 @@ namespace TY
     {
     }
 
+    Immediate2D::Texture& Immediate2D::Texture::trimmed(const RectF& rect)
+    {
+        const Size texSize = texture.size();
+
+        uvRect = RectF{
+            rect.x / texSize.x,
+            rect.y / texSize.y,
+            rect.w / texSize.x,
+            rect.h / texSize.y
+        };
+
+        return *this;
+    }
+
     Immediate2D::Texture& Immediate2D::Texture::setPosition(const Float2& position_, Alignment9 alignment)
     {
         position = position_;
