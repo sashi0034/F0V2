@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "RaceFlowController.h"
 
+#include "Asset.generated.h"
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "Common/RaceSharedState.h"
@@ -136,6 +137,8 @@ private:
 
     void processRaceFlow(AwaitContext& await)
     {
+        Asset_music::chi_no_isan.fetchResource().play(); // TODO
+
         g_sharedState->isRaceStarted = false;
 
         await.waitForFrames(1);
@@ -143,6 +146,8 @@ private:
         process321Go(await);
 
         g_sharedState->isRaceStarted = true;
+
+        Asset_sound::block_crash.fetchResource().playOneShot(); // TODO
 
         // -----------------------------------------------
 

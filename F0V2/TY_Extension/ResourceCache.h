@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TY/Audio.h"
 #include "TY/InlineComponent.h"
 #include "TY/ModelBuffer.h"
 #include "TY/Shader.h"
@@ -104,6 +105,24 @@ namespace TY
         static ModelBuffer LoadDefault(const std::string& path);
 
         using cache_type = ResourceCache<ModelBuffer, LoadDefault>;
+
+        cache_type& operator ()() const;
+    };
+
+    struct SoundAudioCache
+    {
+        static SoundAudio LoadDefault(const std::string& path);
+
+        using cache_type = ResourceCache<SoundAudio, LoadDefault>;
+
+        cache_type& operator ()() const;
+    };
+
+    struct MusicAudioCache
+    {
+        static MusicAudio LoadDefault(const std::string& path);
+
+        using cache_type = ResourceCache<MusicAudio, LoadDefault>;
 
         cache_type& operator ()() const;
     };

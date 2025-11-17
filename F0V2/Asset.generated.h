@@ -39,3 +39,13 @@ namespace Asset_model
     static const inline ModelPathWrapper tie_fighter{"asset/model/tie_fighter.obj"};
     static const inline ModelPathWrapper toy_terrain{"asset/model/toy_terrain.obj"};
 }
+
+namespace Asset_sound
+{
+    static const inline SoundAudioPathWrapper block_crash{"asset/sound/block_crash.mp3"};
+}
+
+namespace Asset_music
+{
+    static const inline MusicAudioPathWrapper chi_no_isan{"asset/music/chi_no_isan.mp3"};
+}

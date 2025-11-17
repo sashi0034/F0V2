@@ -34,6 +34,8 @@ namespace TY::detail
     extern void InitImmediateDrawerComponent();
 
     extern void InitFreeTypeContextComponent();
+
+    extern void InitAudioComponent();
 }
 
 namespace
@@ -53,6 +55,8 @@ namespace
         InitImmediateDrawerComponent();
 
         InitFreeTypeContextComponent();
+
+        InitAudioComponent();
     }
 }
 
