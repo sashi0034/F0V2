@@ -68,15 +68,11 @@ namespace
 #endif
     }
 
+    bool s_statsVisible{true};
+
     void printStats()
     {
-        static bool s_enabled{true};
-        if (KeyF10.down())
-        {
-            s_enabled = not s_enabled;
-        }
-
-        if (not s_enabled)
+        if (not s_statsVisible)
         {
             return;
         }
@@ -108,9 +104,19 @@ namespace
 
 void F0V2::DrawGameGlobalUI()
 {
+    if (KeyF10.down())
+    {
+        s_statsVisible = not s_statsVisible;
+    }
+
 #if defined(_DEBUG)
     debugUI();
 #else
     printStats();
 #endif
+}
+
+bool F0V2::IsGameStatsVisible()
+{
+    return s_statsVisible;
 }
