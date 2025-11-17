@@ -106,10 +106,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;WITH_MINIAUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>./include;./src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -123,10 +125,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;WITH_MINIAUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>./include;./src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -135,8 +139,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="src\audiosource\ay\chipplayer.h" />
+    <ClInclude Include="src\audiosource\ay\sndbuffer.h" />
+    <ClInclude Include="src\audiosource\ay\sndchip.h" />
+    <ClInclude Include="src\audiosource\ay\sndrender.h" />
+    <ClInclude Include="src\audiosource\speech\darray.h" />
+    <ClInclude Include="src\audiosource\speech\klatt.h" />
+    <ClInclude Include="src\audiosource\speech\resonator.h" />
+    <ClInclude Include="src\audiosource\speech\tts.h" />
+    <ClInclude Include="src\audiosource\tedsid\sid.h" />
+    <ClInclude Include="src\audiosource\tedsid\ted.h" />
+    <ClInclude Include="src\audiosource\wav\dr_flac.h" />
+    <ClInclude Include="src\audiosource\wav\dr_mp3.h" />
+    <ClInclude Include="src\audiosource\wav\dr_wav.h" />
+    <ClInclude Include="src\audiosource\wav\stb_vorbis.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -145,7 +162,55 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SoLoud.cpp" />
+    <ClCompile Include="src\audiosource\ay\chipplayer.cpp" />
+    <ClCompile Include="src\audiosource\ay\sndbuffer.cpp" />
+    <ClCompile Include="src\audiosource\ay\sndchip.cpp" />
+    <ClCompile Include="src\audiosource\ay\sndrender.cpp" />
+    <ClCompile Include="src\audiosource\ay\soloud_ay.cpp" />
+    <ClCompile Include="src\audiosource\monotone\soloud_monotone.cpp" />
+    <ClCompile Include="src\audiosource\noise\soloud_noise.cpp" />
+    <ClCompile Include="src\audiosource\openmpt\soloud_openmpt.cpp" />
+    <ClCompile Include="src\audiosource\openmpt\soloud_openmpt_dll.c" />
+    <ClCompile Include="src\audiosource\sfxr\soloud_sfxr.cpp" />
+    <ClCompile Include="src\audiosource\speech\darray.cpp" />
+    <ClCompile Include="src\audiosource\speech\klatt.cpp" />
+    <ClCompile Include="src\audiosource\speech\resonator.cpp" />
+    <ClCompile Include="src\audiosource\speech\soloud_speech.cpp" />
+    <ClCompile Include="src\audiosource\speech\tts.cpp" />
+    <ClCompile Include="src\audiosource\tedsid\sid.cpp" />
+    <ClCompile Include="src\audiosource\tedsid\soloud_tedsid.cpp" />
+    <ClCompile Include="src\audiosource\tedsid\ted.cpp" />
+    <ClCompile Include="src\audiosource\vic\soloud_vic.cpp" />
+    <ClCompile Include="src\audiosource\vizsn\soloud_vizsn.cpp" />
+    <ClCompile Include="src\audiosource\wav\dr_impl.cpp" />
+    <ClCompile Include="src\audiosource\wav\soloud_wav.cpp" />
+    <ClCompile Include="src\audiosource\wav\soloud_wavstream.cpp" />
+    <ClCompile Include="src\audiosource\wav\stb_vorbis.c" />
+    <ClCompile Include="src\core\soloud.cpp" />
+    <ClCompile Include="src\core\soloud_audiosource.cpp" />
+    <ClCompile Include="src\core\soloud_bus.cpp" />
+    <ClCompile Include="src\core\soloud_core_3d.cpp" />
+    <ClCompile Include="src\core\soloud_core_basicops.cpp" />
+    <ClCompile Include="src\core\soloud_core_faderops.cpp" />
+    <ClCompile Include="src\core\soloud_core_filterops.cpp" />
+    <ClCompile Include="src\core\soloud_core_getters.cpp" />
+    <ClCompile Include="src\core\soloud_core_setters.cpp" />
+    <ClCompile Include="src\core\soloud_core_voicegroup.cpp" />
+    <ClCompile Include="src\core\soloud_core_voiceops.cpp" />
+    <ClCompile Include="src\core\soloud_fader.cpp" />
+    <ClCompile Include="src\core\soloud_fft.cpp" />
+    <ClCompile Include="src\core\soloud_fft_lut.cpp" />
+    <ClCompile Include="src\core\soloud_file.cpp" />
+    <ClCompile Include="src\core\soloud_filter.cpp" />
+    <ClCompile Include="src\core\soloud_misc.cpp" />
+    <ClCompile Include="src\core\soloud_queue.cpp" />
+    <ClCompile Include="src\core\soloud_thread.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="src\audiosource\ay\readme.txt" />
+    <Content Include="src\audiosource\speech\Elements.def" />
+    <Content Include="src\audiosource\speech\legal_readme.txt" />
+    <Content Include="src\audiosource\tedsid\readme.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
