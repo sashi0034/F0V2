@@ -74,7 +74,7 @@ namespace
             }
 
             float startSec = 1.0f; // TODO
-            float endSec = 3.0f; // TODO
+            float endSec = 10.0f; // TODO
             if (s_audioState.global.getStreamPosition(s_audioState.currentMusic.handle) >= endSec)
             {
                 s_audioState.global.stop(s_audioState.currentMusic.handle);
@@ -84,7 +84,6 @@ namespace
 
                 s_audioState.currentMusic.handle = newHandle;
 
-                // TODO: クラッシュの原因調査
                 if (const auto err = s_audioState.global.seek(newHandle, startSec);
                     err != SoLoud::SO_NO_ERROR)
                 {
