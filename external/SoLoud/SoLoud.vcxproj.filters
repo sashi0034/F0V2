@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="src\audiosource\ay\chipplayer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -62,9 +59,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\audiosource\ay\chipplayer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>

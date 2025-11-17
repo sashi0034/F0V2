@@ -112,6 +112,7 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>./include;./src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -131,6 +132,7 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>./include;./src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -139,7 +141,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h" />
     <ClInclude Include="src\audiosource\ay\chipplayer.h" />
     <ClInclude Include="src\audiosource\ay\sndbuffer.h" />
     <ClInclude Include="src\audiosource\ay\sndchip.h" />
@@ -154,14 +155,9 @@
     <ClInclude Include="src\audiosource\wav\dr_mp3.h" />
     <ClInclude Include="src\audiosource\wav\dr_wav.h" />
     <ClInclude Include="src\audiosource\wav\stb_vorbis.h" />
+    <ClInclude Include="src\backend\miniaudio\miniaudio.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="src\audiosource\ay\chipplayer.cpp" />
     <ClCompile Include="src\audiosource\ay\sndbuffer.cpp" />
     <ClCompile Include="src\audiosource\ay\sndchip.cpp" />
@@ -186,6 +182,7 @@
     <ClCompile Include="src\audiosource\wav\soloud_wav.cpp" />
     <ClCompile Include="src\audiosource\wav\soloud_wavstream.cpp" />
     <ClCompile Include="src\audiosource\wav\stb_vorbis.c" />
+    <ClCompile Include="src\backend\miniaudio\soloud_miniaudio.cpp" />
     <ClCompile Include="src\core\soloud.cpp" />
     <ClCompile Include="src\core\soloud_audiosource.cpp" />
     <ClCompile Include="src\core\soloud_bus.cpp" />
