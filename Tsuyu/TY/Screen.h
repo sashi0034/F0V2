@@ -6,6 +6,9 @@ namespace TY
 {
     namespace Screen
     {
+        [[nodiscard]]
+        int FrameBufferCount();
+
         void RequestResize(Size size);
 
         [[nodiscard]]

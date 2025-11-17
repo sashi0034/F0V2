@@ -186,6 +186,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <ClCompile Include="RaceSetup\CourseFileInfo.cpp" />
     <ClCompile Include="RaceSetup\RaceSetupScene.cpp" />
     <ClCompile Include="Race\Ai\MetaAi.cpp" />
+    <ClCompile Include="Race\RaceDrawQualityController.cpp" />
     <ClCompile Include="Race\RaceDrawUpscaler.cpp" />
     <ClCompile Include="Race\UI\UI_DurabilityBar.cpp" />
     <ClCompile Include="Race\UI\UI_LabelText.cpp" />
@@ -318,6 +319,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <ClInclude Include="Race\Ai\CharacterAiInputCommand.h" />
     <ClInclude Include="Race\Ai\MetaAi.h" />
     <ClInclude Include="Race\Common\AiRank.h" />
+    <ClInclude Include="Race\RaceDrawQualityController.h" />
     <ClInclude Include="Race\RaceDrawUpscaler.h" />
     <ClInclude Include="Race\UI\UI_DurabilityBar.h" />
     <ClInclude Include="Race\UI\UI_LabelText.h" />

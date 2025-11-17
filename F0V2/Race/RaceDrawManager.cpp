@@ -5,6 +5,7 @@
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "RaceContextContent.h"
+#include "RaceDrawQualityController.h"
 #include "RaceDrawUpscaler.h"
 #include "Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
@@ -115,6 +116,8 @@ struct RaceDrawManager::Impl : ActorBase
 
     SceneryDrawer m_sceneryDrawer{};
 
+    RaceDrawQualityController m_qualityController{};
+
     RaceDrawUpscaler m_drawUpscaler{};
 
     void Init()
@@ -175,11 +178,12 @@ private:
             }
         }
 
-        float renderScale = 0.4f;
+        m_qualityController.update();
+        const auto qualityTarget = m_qualityController.getQualityTarget();
 
         // GBuffer パス
         {
-            g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * renderScale});
+            g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * qualityTarget.renderScale});
             auto bind = g_sharedState->gbufferTarget.scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
@@ -193,12 +197,12 @@ private:
         if (GetDebugTomlValue<bool>("draw_scenery"))
 #endif
         {
-            m_sceneryDrawer.Draw(renderScale);
+            m_sceneryDrawer.Draw(qualityTarget.renderScale);
         }
 
         // アップスケーリング
         {
-            const auto output = m_drawUpscaler.upscale(renderScale);
+            const auto output = m_drawUpscaler.upscale(qualityTarget.renderScale);
             Immediate2D::Texture(output).pushAuto();
             ImmediateDrawer::Global().draw();
         }
