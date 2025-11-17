@@ -2,8 +2,8 @@
 #include "Testbed_Shadertoy.h"
 
 #define A_CPU
-#include "asset/fsr1/ffx_a.h"
-#include "asset/fsr1/ffx_fsr1.h"
+#include "asset/shader/fsr1/ffx_a.h"
+#include "asset/shader/fsr1/ffx_fsr1.h"
 
 #include "imgui/imgui.h"
 #include "TY/ComputeDispatcher.h"
@@ -58,9 +58,9 @@ namespace
         {
             ComputeShader shadertoy_cs{ShaderParams::CS("asset/shader/shadertoy_cs.hlsl")};
 
-            ComputeShader fsr1_easu{ShaderParams::CS("asset/fsr1/fsr1_easu.hlsl")};
+            ComputeShader fsr1_easu{ShaderParams::CS("asset/shader/fsr1/fsr1_easu_cs.hlsl")};
 
-            ComputeShader fsr1_rcas{ShaderParams::CS("asset/fsr1/fsr1_rcas.hlsl")};
+            ComputeShader fsr1_rcas{ShaderParams::CS("asset/shader/fsr1/fsr1_rcas_cs.hlsl")};
         } shader;
 
         struct

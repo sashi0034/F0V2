@@ -21,7 +21,7 @@ namespace
 
     std::array<TimeState, GameTimeCategories_3> s_timeStates{};
 
-    constexpr float defaultTimeThreshold = 1.0 / 30; // 30 FPS
+    constexpr float defaultTimeThreshold = 1.0 / 20; // 20 FPS
 
     struct GameTimeComponent : IComponent
     {

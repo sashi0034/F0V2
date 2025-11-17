@@ -2,9 +2,6 @@
 #define TWO_PI (PI * 2)
 #define HALF_PI (PI * 0.5)
 
-#define FAR_DIST 1e+4f
-#define MAX_RAYMARCH 128
-
 #define V2(x) float2((x), (x))
 #define V3(x) float3((x), (x), (x))
 
@@ -12,6 +9,12 @@
 
 #define repeat(p, span) ((frac((p) / (span)) - 0.5) * (span))
 #define center_repeat(p, span) (frac(((p) + (span) * 0.5) / (span)) * (span) - (span) * 0.5)
+
+// -----------------------------------------------
+
+#define MAX_RAYMARCH 128
+
+// -----------------------------------------------
 
 SamplerState g_sampler0 : register(s0);
 
@@ -439,29 +442,42 @@ float3 scanNormal(float3 pos)
     return normalize(n);
 }
 
+enum RaycastTag
+{
+    RAYCAST_MISS,
+    RAYCAST_HIT_SDF,
+    RAYCAST_HIT_LIMIT
+};
+
 struct RaycastResult
 {
-    bool hit;
+    RaycastTag tag;
     float3 pos;
+    float distance;
     SdfAndMat d;
 };
 
-RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
+RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, bool hasHint, float initialDistanceHint)
 {
     RaycastResult r;
-    r.hit = false;
+    r.tag = RAYCAST_MISS;
     r.pos = 0;
+    r.distance = 0;
     r.d = emptySdfAndMat();
 
-    float t = 0;
-    for (int i = 0; i < MAX_RAYMARCH; ++i)
+    const int maxSteps = hasHint ? 2 : MAX_RAYMARCH;
+    const float eps = 0.1; // hasHint ? 0.1 : 1e-2f;
+
+    float t = initialDistanceHint;
+    for (int i = 0; i < maxSteps; ++i)
     {
         float3 p = pos + dir * t;
         SdfAndMat d = scanSdf(p);
-        if (d.sdf < 1e-2)
+        if (d.sdf < eps)
         {
-            r.hit = true;
+            r.tag = RAYCAST_HIT_SDF;
             r.pos = p;
+            r.distance = t;
             r.d = d;
             break;
         }
@@ -469,8 +485,12 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit)
         t += d.sdf;
         if (t > distanceLimit)
         {
+            r.tag = RAYCAST_HIT_LIMIT;
+            r.distance = distanceLimit;
             break;
         }
+
+        r.distance = t;
     }
 
     return r;
@@ -562,22 +582,42 @@ float3 computeLighting(LightingInput input)
     return color;
 }
 
-static const int RAY_MARCH_HIT_GBUFFER = 0;
-static const int RAY_MARCH_HIT_SDF = 1;
-static const int RAY_MARCH_SKY = 2;
+enum RayMarchTag
+{
+    RAY_MARCH_MISS,
+    RAY_MARCH_HIT_GBUFFER,
+    RAY_MARCH_HIT_SDF,
+    RAY_MARCH_SKY,
+};
 
 struct RayMarchResult
 {
     int tag;
+    float distance;
     LightingInput lighting;
 };
 
-RayMarchResult rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool pixelAlreadyExists)
+RayMarchResult rayMarch(
+    float3 eyePos,
+    float3 rayDir,
+    float distanceLimit,
+    bool pixelAlreadyExists,
+    bool hasHint,
+    float initialDistanceHint)
 {
     RayMarchResult result;
 
-    RaycastResult r = raycast(eyePos, rayDir, distanceLimit);
-    if (!r.hit && pixelAlreadyExists)
+    const RaycastResult r = raycast(eyePos, rayDir, distanceLimit, hasHint, initialDistanceHint);
+
+    result.distance = r.distance;
+
+    if (r.tag == RAYCAST_MISS)
+    {
+        result.tag = RAY_MARCH_MISS;
+        return result;
+    }
+
+    if (r.tag == RAYCAST_HIT_LIMIT && pixelAlreadyExists)
     {
         result.tag = RAY_MARCH_HIT_GBUFFER;
         return result;
@@ -618,50 +658,19 @@ RayMarchResult rayMarch(float3 eyePos, float3 rayDir, float distanceLimit, bool 
 
 // -----------------------------------------------
 
-[numthreads(4, 8, 1)]
-void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
+static const int INITIAL_DISTANCE_HINT_CAPACITY = 4;
+
+struct InitialDistanceHint
 {
-    const uint2 pixel = dispatchThreadID.xy;
-    const float2 pixelF = float2(pixel);
-    if (pixelF.x >= g_outputResolution.x || pixelF.y >= g_outputResolution.y)
-    {
-        return;
-    }
+    int count;
+    float values[INITIAL_DISTANCE_HINT_CAPACITY];
+    float3 fallback;
+};
 
-#if 0
-    // シャドウマップのデバッグ
-    const float debugMapSize = 800.0;
-    if (all(pixelF < debugMapSize))
-    {
-        float2 uv = (pixelF + 0.5) / debugMapSize;
-        float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
-        if (shadow != 1.0)
-        {
-            g_output[pixel] = float4(1.0, 0.0, 0.0, 1.0);
-        }
-        else
-        {
-            g_output[pixel] = float4(0.0, 0.0, 0.0, 1.0);
-        }
-
-        return;
-    }
-#endif
-
-    // g_output[pixel].rgb = g_depthBuffer[pixel] / 100.0;
-    // g_output[pixel].a = g_albedoBuffer[pixel].a;
-    // return;
-
-    // g_output[pixel] = g_albedoBuffer[pixel];
-    // return;
-
-    // if (g_depthBuffer[pixel] != 1.0)
-    // {
-    //     return;
-    // }
-
+float4 computeOutputColor(uint2 pixel, bool hasHint, InitialDistanceHint initialDistanceHint)
+{
     float3 targetInNdc;
-    targetInNdc.xy = float2(2.0, -2.0) * pixelF / g_outputResolution + float2(-1.0, 1.0);
+    targetInNdc.xy = float2(2.0, -2.0) * float2(pixel) / g_outputResolution + float2(-1.0, 1.0);
     targetInNdc.z = g_depthBuffer[pixel]; // 1.0
 
     const float4 targetInClip = float4(targetInNdc, 1.0f);
@@ -677,11 +686,38 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const float3 rayDir = normalize(targetInWorld - eyePosInWorld);
 
     const bool pixelAlreadyExists = g_albedoBuffer[pixel].a != 0.0; // フォワードレンダリング時点で値が書き込まれているか
-    const float distanceLimit = g_viewDistanceBuffer[pixel];
+    const float distanceLimit = g_viewDistanceBuffer[pixel]; // 最大で far 値
 
-    const RayMarchResult hit = rayMarch(eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists);
+    RayMarchResult hit;
+    if (hasHint)
+    {
+        bool initialized = false;
+        [unroll]
+        for (int i = 0; i < INITIAL_DISTANCE_HINT_CAPACITY; i++)
+        {
+            RayMarchResult hit_ = rayMarch(
+                eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists, hasHint, initialDistanceHint.values[i]);
+            if (hit_.tag != RAY_MARCH_MISS && (!initialized || hit_.distance < hit.distance))
+            {
+                initialized = true;
+                hit = hit_;
+            }
+
+            if (!initialized && i == initialDistanceHint.count - 1)
+            {
+                // return float4(1, 0, 0, 1); // debug
+                return float4(initialDistanceHint.fallback, 1.0);
+            }
+        }
+    }
+    else
+    {
+        hit = rayMarch(
+            eyePosInWorld, rayDir, distanceLimit, pixelAlreadyExists, hasHint, 0);
+    }
+
     float3 rgb;
-    if (hit.tag == RAY_MARCH_SKY)
+    if (hit.tag == RAY_MARCH_SKY || hit.tag == RAY_MARCH_MISS)
     {
         rgb = computeSkyColor(-rayDir);
     }
@@ -701,5 +737,123 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         rgb = computeLighting(lightingInput);
     }
 
-    g_output[pixel] = float4(L2sRGB_(rgb), 1.0);
+    return float4(L2sRGB_(rgb), hit.distance);
+}
+
+static const uint THREADS_PER_TILE = 32;
+
+groupshared float4 gs_firstPathOutput[THREADS_PER_TILE];
+
+[numthreads(32, 1, 1)]
+void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    const uint PIXELS_PER_TILE_X = 8;
+    const uint PIXELS_PER_TILE_Y = 8;
+    const uint THREADS_PER_TILE_X = PIXELS_PER_TILE_X / 2;
+    // assert(THREADS_PER_TILE == THREADS_PER_TILE_X * PIXELS_PER_TILE_Y);
+
+    const uint TILE_COLUMNS = g_outputResolution.x / PIXELS_PER_TILE_X;
+    const uint tileId = dispatchThreadID.x / THREADS_PER_TILE;
+    const uint tileCoordX = tileId % TILE_COLUMNS;
+    const uint tileCoordY = tileId / TILE_COLUMNS;
+
+    const uint localThreadId = dispatchThreadID.x % THREADS_PER_TILE;
+    const uint offsetInTileX = localThreadId % THREADS_PER_TILE_X;
+    const uint offsetInTileY = localThreadId / THREADS_PER_TILE_X;
+    const uint isOddY = offsetInTileY % 2;
+
+    uint globalY = tileCoordY * PIXELS_PER_TILE_Y + offsetInTileY;
+    uint globalX = tileCoordX * PIXELS_PER_TILE_X + offsetInTileX * 2 + isOddY;
+
+    const uint2 firstCoord = uint2(globalX, globalY);
+    if (float(firstCoord.x) >= g_outputResolution.x || float(firstCoord.y) >= g_outputResolution.y)
+    {
+        return;
+    }
+
+#if 0
+    // シャドウマップのデバッグ
+    const float debugMapSize = 800.0;
+    if (all(pixelF < debugMapSize))
+    {
+        float2 uv = (pixelF + 0.5) / debugMapSize;
+        float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
+        if (shadow != 1.0)
+        {
+            g_output[firstCoord] = float4(1.0, 0.0, 0.0, 1.0);
+        }
+        else
+        {
+            g_output[firstCoord] = float4(0.0, 0.0, 0.0, 1.0);
+        }
+
+        return;
+    }
+#endif
+
+    InitialDistanceHint initialDistanceHint;
+    initialDistanceHint.count = 0;
+    initialDistanceHint.fallback = float3(0, 0, 0);
+
+    const float4 firstOutput = computeOutputColor(firstCoord, false, initialDistanceHint);
+    gs_firstPathOutput[localThreadId] = firstOutput;
+    g_output[firstCoord] = float4(firstOutput.rgb, 1.0);
+
+    const int secondOffsetX = isOddY == 0 ? 1 : -1;
+    const float2 secondCoord = firstCoord + int2(secondOffsetX, 0);
+
+#if 0
+    g_output[secondCoord] = float4(computeOutputColor(secondCoord, false, initialDistanceHint).rgb, 1.0);
+    return;
+#endif
+
+    GroupMemoryBarrierWithGroupSync(); // <-- Barrier 
+
+    initialDistanceHint.values[initialDistanceHint.count] = firstOutput.a;
+    initialDistanceHint.fallback = firstOutput.rgb;
+    initialDistanceHint.count = 1;
+
+    // left
+    if (isOddY && 0 < offsetInTileX)
+    {
+        initialDistanceHint.values[initialDistanceHint.count] =
+            gs_firstPathOutput[localThreadId - 1].a;
+        initialDistanceHint.fallback +=
+            gs_firstPathOutput[localThreadId - 1].rgb;
+        initialDistanceHint.count++;
+    }
+
+    // right
+    if (!isOddY && offsetInTileX < THREADS_PER_TILE_X - 1)
+    {
+        initialDistanceHint.values[initialDistanceHint.count] =
+            gs_firstPathOutput[localThreadId + 1].a;
+        initialDistanceHint.fallback +=
+            gs_firstPathOutput[localThreadId + 1].rgb;
+        initialDistanceHint.count++;
+    }
+
+    // up
+    if (0 < offsetInTileY)
+    {
+        initialDistanceHint.values[initialDistanceHint.count] =
+            gs_firstPathOutput[localThreadId - THREADS_PER_TILE_X].a;
+        initialDistanceHint.fallback +=
+            gs_firstPathOutput[localThreadId - THREADS_PER_TILE_X].rgb;
+        initialDistanceHint.count++;
+    }
+
+    // down
+    if (offsetInTileY < PIXELS_PER_TILE_Y - 1)
+    {
+        initialDistanceHint.values[initialDistanceHint.count] =
+            gs_firstPathOutput[localThreadId + THREADS_PER_TILE_X].a;
+        initialDistanceHint.fallback +=
+            gs_firstPathOutput[localThreadId + THREADS_PER_TILE_X].rgb;
+        initialDistanceHint.count++;
+    }
+
+    initialDistanceHint.fallback /= float(initialDistanceHint.count);
+
+    g_output[secondCoord] = float4(computeOutputColor(secondCoord, true, initialDistanceHint).rgb, 1.0);
 }

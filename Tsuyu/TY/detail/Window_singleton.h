@@ -26,9 +26,14 @@ namespace TY::detail
         [[nodiscard]]
         Size GetSize();
 
+        [[nodiscard]]
         int TitleBarHeight();
 
+        [[nodiscard]]
         float WheelDelta();
+
+        [[nodiscard]]
+        bool IsActive();
 
         void Resize(Size size);
 

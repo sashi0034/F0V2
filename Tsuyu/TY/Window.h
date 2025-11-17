@@ -13,5 +13,8 @@ namespace TY
         Size GetSize();
 
         void Resize(Size size);
+
+        [[nodiscard]]
+        bool IsActive();
     }
 }

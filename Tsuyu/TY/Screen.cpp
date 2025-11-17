@@ -8,6 +8,11 @@ namespace TY
 {
     using namespace detail;
 
+    int Screen::FrameBufferCount()
+    {
+        return RenderContext_singleton::FrameBufferCount;
+    }
+
     void Screen::RequestResize(TY::Size size)
     {
         RenderContext_singleton::RequestFrameBufferSize(size);

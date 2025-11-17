@@ -6,8 +6,11 @@
 namespace Asset_shader
 {
     static const inline GraphicsShaderPathWrapper blinn_phong{"asset/shader/blinn_phong.hlsl"};
+    static const inline GraphicsShaderPathWrapper cheap_aa{"asset/shader/cheap_aa.hlsl"};
     static const inline GraphicsShaderPathWrapper default2d{"asset/shader/default2d.hlsl"};
     static const inline GraphicsShaderPathWrapper dynamic_ocean{"asset/shader/dynamic_ocean.hlsl"};
+    static const inline ComputeShaderPathWrapper fsr1_easu_cs{"asset/shader/fsr1/fsr1_easu_cs.hlsl"};
+    static const inline ComputeShaderPathWrapper fsr1_rcas_cs{"asset/shader/fsr1/fsr1_rcas_cs.hlsl"};
     static const inline GraphicsShaderPathWrapper gbuffer_pass{"asset/shader/gbuffer_pass.hlsl"};
     static const inline GraphicsShaderPathWrapper lambert{"asset/shader/lambert.hlsl"};
     static const inline GraphicsShaderPathWrapper model{"asset/shader/model.hlsl"};
@@ -18,6 +21,7 @@ namespace Asset_shader
     static const inline ComputeShaderPathWrapper shadertoy_cs{"asset/shader/shadertoy_cs.hlsl"};
     static const inline PixelShaderPathWrapper shadertoy_ps{"asset/shader/shadertoy_ps.hlsl"};
     static const inline GraphicsShaderPathWrapper shadow_caster{"asset/shader/shadow_caster.hlsl"};
+    static const inline GraphicsShaderPathWrapper shadow_caster_old{"asset/shader/shadow_caster_old.hlsl"};
     static const inline GraphicsShaderPathWrapper simple_compute{"asset/shader/simple_compute.hlsl"};
     static const inline GraphicsShaderPathWrapper skydome{"asset/shader/skydome.hlsl"};
     static const inline GraphicsShaderPathWrapper wave_test{"asset/shader/wave_test.hlsl"};

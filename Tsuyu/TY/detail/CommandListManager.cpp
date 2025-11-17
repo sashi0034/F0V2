@@ -195,7 +195,7 @@ struct CommandListManager::Impl
         // 実行の待機
         currentResource.fenceValue += RenderContext_singleton::FrameBufferCount;
         m_commandQueue->Signal(m_fence.Get(), currentResource.fenceValue);
-        
+
         currentResource.needFence = true;
 
         // current
@@ -303,6 +303,7 @@ namespace TY::detail
 
     float CommandListManager::lastExecutionMilliseconds() const
     {
+        // TODO: プロファイリング結果をリフレッシュすべきだと思う
         return p_impl ? p_impl->m_frameResources[p_impl->m_frameResourceIndex].lastExecutionMilliseconds : 0.0;
     }
 }

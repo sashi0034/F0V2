@@ -5,6 +5,8 @@
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "RaceContextContent.h"
+#include "RaceDrawQualityController.h"
+#include "RaceDrawUpscaler.h"
 #include "Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/ComputeDispatcher.h"
@@ -75,21 +77,22 @@ namespace
                 .setUav({m_outputTexture});
         }
 
-        void Draw()
+        void Draw(float renderScale)
         {
             m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
             m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
             m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
-            m_cb->g_outputResolution = Screen::Size();
+            m_cb->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
             m_cb->g_time = System::Time();
             m_cb.upload();
 
             const Size rtvSize = g_sharedState->gbufferTarget.size();
-            const Size threadGroup = (rtvSize + Size{7, 7}) / Size{4, 8};
-            m_dispatcher.dispatch(threadGroup.x, threadGroup.y);
+            constexpr int threadsPerGroup = 32;
+            const int threadGroup = (rtvSize.x * rtvSize.y / 2) / threadsPerGroup;
+            m_dispatcher.dispatch(threadGroup);
         }
 
-        RenderTargetTexture GetOutputTarget() const
+        RenderTargetTexture GetOutputTexture() const
         {
             return m_outputTexture;
         }
@@ -113,9 +116,15 @@ struct RaceDrawManager::Impl : ActorBase
 
     SceneryDrawer m_sceneryDrawer{};
 
+    RaceDrawQualityController m_qualityController{};
+
+    RaceDrawUpscaler m_drawUpscaler{};
+
     void Init()
     {
         m_sceneryDrawer.Init();
+
+        m_drawUpscaler.init(m_sceneryDrawer.GetOutputTexture());
     }
 
     void Unregister(const IRaceDrawer* drawer)
@@ -169,8 +178,12 @@ private:
             }
         }
 
+        m_qualityController.update();
+        const auto qualityTarget = m_qualityController.getQualityTarget();
+
         // GBuffer パス
         {
+            g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * qualityTarget.renderScale});
             auto bind = g_sharedState->gbufferTarget.scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
@@ -184,12 +197,14 @@ private:
         if (GetDebugTomlValue<bool>("draw_scenery"))
 #endif
         {
-            m_sceneryDrawer.Draw();
+            m_sceneryDrawer.Draw(qualityTarget.renderScale);
         }
 
-        // 書き出し
+        // アップスケーリング
         {
-            Immediate2D::Texture(m_sceneryDrawer.GetOutputTarget()).resized(Screen::Size()).pushAuto();
+            Immediate2D::Texture output =
+                m_drawUpscaler.upscale(qualityTarget.renderScale, qualityTarget.fsrEnabled);
+            output.pushAuto();
             ImmediateDrawer::Global().draw();
         }
 
