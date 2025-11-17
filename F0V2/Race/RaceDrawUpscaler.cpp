@@ -191,7 +191,7 @@ struct RaceDrawUpscaler::Impl
         m_fsr1Upscaler.Init(m_aaTarget.getFrontRtv(), enderTexture.size());
     }
 
-    TextureHandle Upscale(float renderScale, bool fsrEnabled)
+    Immediate2D::Texture Upscale(float renderScale, bool fsrEnabled)
     {
         // AA
         {
@@ -204,7 +204,9 @@ struct RaceDrawUpscaler::Impl
 
         if (not fsrEnabled)
         {
-            return m_aaTarget.getFrontRtv();
+            return Immediate2D::Texture(m_aaTarget.getFrontRtv())
+                   .trimmed(Screen::SizeF() * renderScale)
+                   .resized(Screen::Size());
         }
 
         // FSR
@@ -213,7 +215,7 @@ struct RaceDrawUpscaler::Impl
             m_fsr1Upscaler.Dispatch(Screen::SizeF() * renderScale, k_sharpnessAttenuation);
         }
 
-        return m_fsr1Upscaler.OutputTexture();
+        return Immediate2D::Texture(m_fsr1Upscaler.OutputTexture());
     }
 };
 
@@ -229,7 +231,7 @@ namespace Race
         p_impl->Init(renderTexture);
     }
 
-    TextureHandle RaceDrawUpscaler::upscale(float renderScale, bool fsrEnabled)
+    Immediate2D::Texture RaceDrawUpscaler::upscale(float renderScale, bool fsrEnabled)
     {
         return p_impl->Upscale(renderScale, fsrEnabled);
     }

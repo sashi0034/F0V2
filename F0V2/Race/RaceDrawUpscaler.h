@@ -1,4 +1,5 @@
 #pragma once
+#include "TY/Immediate2D.h"
 #include "TY/RenderTargetTexture.h"
 
 namespace Race
@@ -10,7 +11,7 @@ namespace Race
 
         void init(const RenderTargetTexture& renderTexture);
 
-        TextureHandle upscale(float renderScale, bool fsrEnabled);
+        Immediate2D::Texture upscale(float renderScale, bool fsrEnabled);
 
     private:
         struct Impl;
