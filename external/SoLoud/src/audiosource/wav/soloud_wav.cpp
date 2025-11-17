@@ -156,7 +156,6 @@ namespace SoLoud
 			mChannels = info.channels;
 		}
 		mData = new float[samples * mChannels];
-		memset(mData, 0, samples * mChannels * sizeof(float));
 		mSampleCount = samples;
 		samples = 0;
 		while(1)
@@ -183,7 +182,7 @@ namespace SoLoud
 	{
 		drmp3 decoder;
 
-		if (!drmp3_init_memory(&decoder, aReader->getMemPtr(), aReader->length(), NULL))
+		if (!drmp3_init_memory(&decoder, aReader->getMemPtr(), aReader->length(), NULL, NULL))
 		{
 			return FILE_LOAD_FAILED;
 		}

@@ -33,11 +33,10 @@ namespace SoLoud
 
 	class BusInstance : public AudioSourceInstance
 	{
-	public:
 		Bus *mParent;
 		unsigned int mScratchSize;
 		AlignedFloatBuffer mScratch;
-
+	public:
 		// Approximate volume for channels.
 		float mVisualizationChannelVolume[MAX_CHANNELS];
 		// Mono-mixed wave data for visualization and for visualization FFT input
@@ -82,15 +81,9 @@ namespace SoLoud
 
 		// Get number of immediate child voices to this bus
 		unsigned int getActiveVoiceCount();
-
-		// Get current the resampler for this bus
-		unsigned int getResampler();
-		// Set the resampler for this bus
-		void setResampler(unsigned int aResampler);
 	public:
 		BusInstance *mInstance;
 		unsigned int mChannelHandle;
-		unsigned int mResampler;
 		// FFT output data
 		float mFFTData[256];
 		// Snapshot of wave data for visualization

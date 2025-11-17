@@ -40,7 +40,6 @@ using namespace std;
 char *gIncludeFile[] =
 {
 	"../include/soloud.h",
-	"../include/soloud_ay.h",
 	"../include/soloud_audiosource.h",
 	"../include/soloud_bassboostfilter.h",
 	"../include/soloud_biquadresonantfilter.h",
@@ -737,22 +736,46 @@ void emit_cppend(FILE * f)
 void emit_func(FILE * f, int aClass, int aMethod)
 {
 	int i;
+	int initfunc = 0;
 	Class *c = gClass[aClass];
 	Method *m = c->mMethod[aMethod];
 
-	fprintf(f, 
-		"%s %s_%s(void * aClassPtr", 
-		m->mRetType.c_str(), 
-		c->mName.c_str(), 
-		m->mFuncName.c_str());
+	if (c->mName == "Soloud" && m->mFuncName.find("_init") != string::npos)
+	{
+		// Init function, needs "a bit" of special handling.
+		initfunc = 1;
+		string fn = OUTDIR "soloud_c_" + m->mFuncName.substr(0, m->mFuncName.find_first_of('_')) + ".cpp";
+		f = fopen(fn.c_str(), "w");
+		fileheader(f);
+		emit_cppstart(f);
+	}
+
+	if (initfunc)
+	{
+		fprintf(f, 
+			"%s %s_%s(", 
+			m->mRetType.c_str(), 
+			c->mName.c_str(), 
+			m->mFuncName.c_str());
+	}
+	else
+	{
+		fprintf(f, 
+			"%s %s_%s(void * aClassPtr", 
+			m->mRetType.c_str(), 
+			c->mName.c_str(), 
+			m->mFuncName.c_str());
+	}
 
 	int had_defaults = 0;
 	for (i = 0; i < (signed)m->mParmName.size(); i++)
 	{
 		if (m->mParmValue[i] == "")
 		{
+			if (!(i == 0 && initfunc))
+				fprintf(f, ", ");
 			fprintf(f, 
-				", %s %s",
+				"%s %s",
 				m->mParmType[i].c_str(),
 				m->mParmName[i].c_str());
 		}
@@ -762,15 +785,27 @@ void emit_func(FILE * f, int aClass, int aMethod)
 		}
 	}
 	
-	fprintf(f, 
-		")\n"
-		"{\n"
-		"\t%s * cl = (%s *)aClassPtr;\n"
-		"\t%scl->%s(",
-		c->mName.c_str(),
-		c->mName.c_str(),
-		(m->mRetType == "void")?"":"return ",
-		m->mFuncName.c_str());
+	if (initfunc)
+	{
+		fprintf(f, 
+			")\n"
+			"{\n"
+			"\t%s%s(",
+			(m->mRetType == "void")?"":"return ",
+			m->mFuncName.c_str());
+	}
+	else
+	{
+		fprintf(f, 
+			")\n"
+			"{\n"
+			"\t%s * cl = (%s *)aClassPtr;\n"
+			"\t%scl->%s(",
+			c->mName.c_str(),
+			c->mName.c_str(),
+			(m->mRetType == "void")?"":"return ",
+			m->mFuncName.c_str());
+	}
 
 	for (i = 0; i < (signed)m->mParmName.size(); i++)
 	{
@@ -793,28 +828,53 @@ void emit_func(FILE * f, int aClass, int aMethod)
 
 	if (had_defaults)
 	{
-		fprintf(f, 
-			"%s %s_%sEx(void * aClassPtr", 
-			m->mRetType.c_str(), 
-			c->mName.c_str(), 
-			m->mFuncName.c_str());
-		for (i =0; i < (signed)m->mParmName.size(); i++)
+		if (initfunc)
 		{
 			fprintf(f, 
-				", %s %s",
+				"%s %s_%sEx(", 
+				m->mRetType.c_str(), 
+				c->mName.c_str(), 
+				m->mFuncName.c_str());
+		}
+		else
+		{
+			fprintf(f, 
+				"%s %s_%sEx(void * aClassPtr", 
+				m->mRetType.c_str(), 
+				c->mName.c_str(), 
+				m->mFuncName.c_str());
+		}
+		for (i =0; i < (signed)m->mParmName.size(); i++)
+		{
+			if (!(i == 0 && initfunc))
+				fprintf(f, ", ");
+			fprintf(f, 
+				"%s %s",
 				m->mParmType[i].c_str(),
 				m->mParmName[i].c_str());
 		}
 		
-		fprintf(f, 
-			")\n"
-			"{\n"
-			"\t%s * cl = (%s *)aClassPtr;\n"
-			"\t%scl->%s(",
-			c->mName.c_str(),
-			c->mName.c_str(),
-			(m->mRetType == "void")?"":"return ",
-			m->mFuncName.c_str());
+		if (initfunc)
+		{
+			fprintf(f, 
+				")\n"
+				"{\n"
+				"\t%s%s(",
+				(m->mRetType == "void")?"":"return ",
+				m->mFuncName.c_str());
+		}
+		else
+		{
+			fprintf(f, 
+				")\n"
+				"{\n"
+				"\t%s * cl = (%s *)aClassPtr;\n"
+				"\t%scl->%s(",
+				c->mName.c_str(),
+				c->mName.c_str(),
+				(m->mRetType == "void")?"":"return ",
+				m->mFuncName.c_str());
+		}
 
 		for (i = 0; i < (signed)m->mParmName.size(); i++)
 		{
@@ -831,6 +891,12 @@ void emit_func(FILE * f, int aClass, int aMethod)
 			");\n"
 			"}\n"
 			"\n");
+	}
+
+	if (initfunc)
+	{
+		emit_cppend(f);
+		fclose(f);
 	}
 }
 

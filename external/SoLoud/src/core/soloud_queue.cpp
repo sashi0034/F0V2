@@ -144,10 +144,6 @@ namespace SoLoud
 
 	unsigned int Queue::getQueueCount()
 	{
-		if (!mSoloud)
-		{
-			return 0;
-		}
 		unsigned int count;
 		mSoloud->lockAudioMutex_internal();
 		count = mCount;
@@ -157,7 +153,7 @@ namespace SoLoud
 
 	bool Queue::isCurrentlyPlaying(AudioSource &aSound)
 	{
-		if (mSoloud == 0 || mCount == 0 || aSound.mAudioSourceID == 0)
+		if (mCount == 0 || aSound.mAudioSourceID == 0)
 			return false;
 		mSoloud->lockAudioMutex_internal();
 		bool res = mSource[mReadIndex]->mAudioSourceID == aSound.mAudioSourceID;

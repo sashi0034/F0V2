@@ -88,11 +88,11 @@ freely, subject to the following restrictions:
 // Maximum number of concurrent voices (hard limit is 4095)
 #define VOICE_COUNT 1024
 
+// Use linear resampler
+#define RESAMPLER_LINEAR
+
 // 1)mono, 2)stereo 4)quad 6)5.1 8)7.1
 #define MAX_CHANNELS 8
-
-// Default resampler for both main and bus mixers
-#define SOLOUD_DEFAULT_RESAMPLER SoLoud::Soloud::RESAMPLER_LINEAR
 
 //
 /////////////////////////////////////////////////////////////////////
@@ -106,7 +106,6 @@ namespace SoLoud
 	typedef void (*mutexCallFunction)(void *aMutexPtr);
 	typedef void (*soloudCallFunction)(Soloud *aSoloud);
 	typedef unsigned int result;
-	typedef result (*soloudResultFunction)(Soloud *aSoloud);
 	typedef unsigned int handle;
 	typedef double time;
 };
@@ -166,10 +165,6 @@ namespace SoLoud
 		// Called by SoLoud to shut down the back-end. If NULL, not called. Should be set by back-end.
 		soloudCallFunction mBackendCleanupFunc;
 
-		// Some backends like CoreAudio on iOS must be paused/resumed in some cases. On incoming call as instance.
-		soloudResultFunction mBackendPauseFunc;
-		soloudResultFunction mBackendResumeFunc;
-
 		// CTor
 		Soloud();
 		// DTor
@@ -206,31 +201,8 @@ namespace SoLoud
 			NO_FPU_REGISTER_CHANGE = 8
 		};
 
-		enum WAVEFORM
-		{
-			WAVE_SQUARE = 0,
-			WAVE_SAW,
-			WAVE_SIN,
-			WAVE_TRIANGLE,
-			WAVE_BOUNCE,
-			WAVE_JAWS,
-			WAVE_HUMPS,
-			WAVE_FSQUARE,
-			WAVE_FSAW
-		};
-
-		enum RESAMPLER
-		{
-			RESAMPLER_POINT,
-			RESAMPLER_LINEAR,
-			RESAMPLER_CATMULLROM
-		};
-
 		// Initialize SoLoud. Must be called before SoLoud can be used.
 		result init(unsigned int aFlags = Soloud::CLIP_ROUNDOFF, unsigned int aBackend = Soloud::AUTO, unsigned int aSamplerate = Soloud::AUTO, unsigned int aBufferSize = Soloud::AUTO, unsigned int aChannels = 2);
-
-		result pause();
-		result resume();
 
 		// Deinitialize SoLoud. Must be called before shutting down.
 		void deinit();
@@ -314,16 +286,12 @@ namespace SoLoud
 		float getRelativePlaySpeed(handle aVoiceHandle);
 		// Get current post-clip scaler value.
 		float getPostClipScaler() const;
-		// Get the current main resampler
-		unsigned int getMainResampler() const;
 		// Get current global volume
 		float getGlobalVolume() const;
 		// Get current maximum active voice setting
 		unsigned int getMaxActiveVoiceCount() const;
 		// Query whether a voice is set to loop.
 		bool getLooping(handle aVoiceHandle);
-		// Query whether a voice is set to auto-stop when it ends.
-		bool getAutoStop(handle aVoiceHandle);
 		// Get voice loop point value
 		time getLoopPoint(handle aVoiceHandle);
 
@@ -331,8 +299,6 @@ namespace SoLoud
 		void setLoopPoint(handle aVoiceHandle, time aLoopPoint);
 		// Set voice's loop state
 		void setLooping(handle aVoiceHandle, bool aLooping);
-		// Set whether sound should auto-stop when it ends
-		void setAutoStop(handle aVoiceHandle, bool aAutoStop);
 		// Set current maximum active voice setting
 		result setMaxActiveVoiceCount(unsigned int aVoiceCount);
 		// Set behavior for inaudible sounds
@@ -341,8 +307,6 @@ namespace SoLoud
 		void setGlobalVolume(float aVolume);
 		// Set the post clip scaler value
 		void setPostClipScaler(float aScaler);
-		// Set the main resampler
-		void setMainResampler(unsigned int aResampler);
 		// Set the pause state
 		void setPause(handle aVoiceHandle, bool aPause);
 		// Pause all voices
@@ -356,9 +320,7 @@ namespace SoLoud
 		// Set panning value; -1 is left, 0 is center, 1 is right
 		void setPan(handle aVoiceHandle, float aPan);
 		// Set absolute left/right volumes
-		void setPanAbsolute(handle aVoiceHandle, float aLVolume, float aRVolume);
-		// Set channel volume (volume for a specific speaker)
-		void setChannelVolume(handle aVoiceHandle, unsigned int aChannel, float aVolume);
+		void setPanAbsolute(handle aVoiceHandle, float aLVolume, float aRVolume, float aLBVolume = 0, float aRBVolume = 0, float aCVolume = 0, float aSVolume = 0);
 		// Set overall volume
 		void setVolume(handle aVoiceHandle, float aVolume);
 		// Set delay, in samples, before starting to play samples. Calling this on a live sound will cause glitches.
@@ -457,7 +419,7 @@ namespace SoLoud
 		void mixSigned16(short *aBuffer, unsigned int aSamples);
 	public:
 		// Mix N samples * M channels. Called by other mix_ functions.
-		void mix_internal(unsigned int aSamples, unsigned int aStride);
+		void mix_internal(unsigned int aSamples);
 
 		// Handle rest of initialization (called from backend)
 		void postinit_internal(unsigned int aSamplerate, unsigned int aBufferSize, unsigned int aFlags, unsigned int aChannels);
@@ -467,7 +429,7 @@ namespace SoLoud
 		// Map resample buffers to active voices
 		void mapResampleBuffers_internal();
 		// Perform mixing for a specific bus
-		void mixBus_internal(float *aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize, float *aScratch, unsigned int aBus, float aSamplerate, unsigned int aChannels, unsigned int aResampler);
+		void mixBus_internal(float *aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize, float *aScratch, unsigned int aBus, float aSamplerate, unsigned int aChannels);
 		// Find a free voice, stopping the oldest if no free voice is found.
 		int findFreeVoice_internal();
 		// Converts handle to voice, if the handle is valid. Returns -1 if not.
@@ -510,18 +472,16 @@ namespace SoLoud
 		AlignedFloatBuffer mScratch;
 		// Current size of the scratch, in samples.
 		unsigned int mScratchSize;
+		// Amount of scratch needed.
+		unsigned int mScratchNeeded;
 		// Output scratch buffer, used in mix_().
 		AlignedFloatBuffer mOutputScratch;
-		// Pointers to resampler buffers, two per active voice.
-		float **mResampleData;
-		// Actual allocated memory for resampler buffers
-		AlignedFloatBuffer mResampleDataBuffer;
+		// Resampler buffers, two per active voice.
+		AlignedFloatBuffer *mResampleData;
 		// Owners of the resample data
 		AudioSourceInstance **mResampleDataOwner;
 		// Audio voices.
 		AudioSourceInstance *mVoice[VOICE_COUNT];
-		// Resampler for the main bus
-		unsigned int mResampler;
 		// Output sample rate (not float)
 		unsigned int mSamplerate;
 		// Output channel count

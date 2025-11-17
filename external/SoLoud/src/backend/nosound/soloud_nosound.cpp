@@ -58,7 +58,7 @@ namespace SoLoud
         }
     };
 
-    static void nosoundThread(void *aParam)
+    static void nosoundThread(LPVOID aParam)
     {
         SoLoudNosoundData *data = static_cast<SoLoudNosoundData*>(aParam);
 		int delay = (1000 * data->mSamples) / data->mSamplerate;

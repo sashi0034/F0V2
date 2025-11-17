@@ -32,7 +32,6 @@ extern "C"
 	void * openmpt_module_create_from_memory(const void * filedata, size_t filesize, void *logfunc, void * user,void * ctls);
 	void openmpt_module_destroy(void * mod);
 	int openmpt_module_read_float_stereo(void * mod, int samplerate, size_t count, float * left, float * right);
-	void openmpt_module_set_repeat_count(void* mod, int repeat_count);
 }
 
 namespace SoLoud
@@ -41,7 +40,6 @@ namespace SoLoud
 	{
 		mParent = aParent;
 		mModfile = openmpt_module_create_from_memory((const void*)mParent->mData, mParent->mDataLen, NULL, NULL, NULL);		
-		openmpt_module_set_repeat_count(mModfile, -1);
 		mPlaying = mModfile != NULL;		
 	}
 
@@ -103,7 +101,10 @@ namespace SoLoud
 
 	result Openmpt::loadFile(File *aFile)
 	{
-		delete[] mData;
+		if (mData)
+		{
+			delete[] mData;
+		}
 
 		mDataLen = aFile->length();
 		mData = new char[mDataLen];

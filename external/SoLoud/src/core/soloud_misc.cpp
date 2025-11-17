@@ -34,21 +34,21 @@ namespace SoLoud
 			switch (aWaveform)
 			{
 			default:
-			case Soloud::WAVE_SQUARE:
+			case WAVE_SQUARE:
 				return p > 0.5f ? 0.5f : -0.5f;
-			case Soloud::WAVE_SAW:
+			case WAVE_SAW:
 				return p - 0.5f;
-			case Soloud::WAVE_SIN:
+			case WAVE_SIN:
 				return (float)sin(p * M_PI * 2.0f) * 0.5f;
-			case Soloud::WAVE_TRIANGLE:
+			case WAVE_TRIANGLE:
 				return (p > 0.5f ? (1.0f - (p - 0.5f) * 2) : p * 2.0f) - 0.5f;
-			case Soloud::WAVE_BOUNCE:
+			case WAVE_BOUNCE:
 				return (p < 0.5f ? (float)sin(p * M_PI * 2.0f) * 0.5f : -(float)sin(p * M_PI * 2.0f) * 0.5f) - 0.5f;
-			case Soloud::WAVE_JAWS:
+			case WAVE_JAWS:
 				return (p < 0.25f ? (float)sin(p * M_PI * 2.0f) * 0.5f : 0) - 0.5f;
-			case Soloud::WAVE_HUMPS:
+			case WAVE_HUMPS:
 				return (p < 0.5f ? (float)sin(p * M_PI * 2.0f) * 0.5f : 0) - 0.5f;
-			case Soloud::WAVE_FSQUARE:
+			case WAVE_FSQUARE:
 				{
 					float f = 0;
 					for (int i = 1; i < 22; i += 2)
@@ -57,7 +57,7 @@ namespace SoLoud
 					}
 					return f * 0.5f;
 				}
-			case Soloud::WAVE_FSAW:
+			case WAVE_FSAW:
 				{
 					float f = 0;
 					for (int i = 1; i < 15; i++)

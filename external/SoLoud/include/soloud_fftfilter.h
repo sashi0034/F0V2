@@ -36,11 +36,7 @@ namespace SoLoud
 		float *mTemp;
 		float *mInputBuffer;
 		float *mMixBuffer;
-		float *mLastPhase;
-		float *mSumPhase;
-		unsigned int mInputOffset[MAX_CHANNELS];
-		unsigned int mMixOffset[MAX_CHANNELS];
-		unsigned int mReadOffset[MAX_CHANNELS];
+		unsigned int mOffset[MAX_CHANNELS];
 		FFTFilter *mParent;
 	public:
 		virtual void fftFilterChannel(float *aFFTBuffer, unsigned int aSamples, float aSamplerate, time aTime, unsigned int aChannel, unsigned int aChannels);
@@ -48,11 +44,6 @@ namespace SoLoud
 		virtual ~FFTFilterInstance();
 		FFTFilterInstance(FFTFilter *aParent);
 		FFTFilterInstance();
-		void comp2MagPhase(float* aFFTBuffer, unsigned int aSamples);
-		void magPhase2MagFreq(float* aFFTBuffer, unsigned int aSamples, float aSamplerate, unsigned int aChannel);
-		void magFreq2MagPhase(float* aFFTBuffer, unsigned int aSamples, float aSamplerate, unsigned int aChannel);
-		void magPhase2Comp(float* aFFTBuffer, unsigned int aSamples);
-		void init();
 	};
 
 	class FFTFilter : public Filter
