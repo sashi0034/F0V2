@@ -211,8 +211,8 @@ namespace
                            static_cast<AF1>(m_outputSize.y));
                 m_easuCB.uploadValue(cb);
 
-                int groupsX = (Screen::Size().x + 15) / 16;
-                int groupsY = (Screen::Size().y + 15) / 16;
+                int groupsX = (m_outputSize.x + 15) / 16;
+                int groupsY = (m_outputSize.y + 15) / 16;
                 m_easuDispatcher.dispatch(groupsX, groupsY, 1);
             }
 
@@ -222,8 +222,8 @@ namespace
                 FsrRcasCon(reinterpret_cast<AU1*>(&cb.Const0), sharpnessAttenuation);
                 m_rcasCB.uploadValue(cb);
 
-                int groupsX = (Screen::Size().x + 15) / 16;
-                int groupsY = (Screen::Size().y + 15) / 16;
+                int groupsX = (m_outputSize.x + 15) / 16;
+                int groupsY = (m_outputSize.y + 15) / 16;
                 m_rcasDispatcher.dispatch(groupsX, groupsY, 1);
             }
         }
