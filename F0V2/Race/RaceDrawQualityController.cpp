@@ -70,11 +70,11 @@ private:
 
             if (recentExecutionMilliseconds < 50.0f)
             {
-                return {FHD_0_8, true};
+                return {FHD_0_6, true};
             }
             else
             {
-                return {FHD_0_8, false};
+                return {FHD_0_6, false};
             }
         }
         else
