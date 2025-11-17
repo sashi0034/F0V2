@@ -169,6 +169,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\.gitignore" />
     <Content Include="asset\debug.example.toml" />
     <Content Include="asset\debug.toml" />
+    <Content Include="asset\music\chi_no_isan.mp3" />
     <Content Include="asset\script\bundle_build.py" />
     <Content Include="asset\shader\fsr1\ffx_a.h" />
     <Content Include="asset\shader\fsr1\ffx_fsr1.h" />
@@ -258,6 +259,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <ClCompile Include="Testbed\Testbed_Ocean.cpp" />
     <ClCompile Include="Testbed\Testbed_ShadowMap.cpp" />
     <ClCompile Include="Testbed\Testbed_ImmediateDrawer.cpp" />
+    <Content Include="asset\sound\block_crash.mp3" />
     <Content Include="Editor\Editor_template.cpp.txt" />
     <Content Include="Editor\Editor_template.h.txt" />
     <Content Include="RaceSetup\RaceSetup_template.cpp.txt" />
