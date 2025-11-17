@@ -9,7 +9,7 @@ using namespace Race;
 
 constexpr float FHD_1_0 = 1.f;
 constexpr float FHD_0_8 = 0.8f;
-constexpr float FHD_0_6 = 0.6f;
+constexpr float FHD_0_4 = 0.4f;
 
 constexpr RaceDrawQualityController::target_type defaultQualityTarget{FHD_0_8, true};
 
@@ -56,12 +56,12 @@ private:
             }
             else if (recentExecutionMilliseconds > 1000.0f / 60)
             {
-                return {FHD_0_6, true};
+                return {FHD_0_4, true};
             }
 
             return m_qualityTarget;
         }
-        else if (m_qualityTarget.renderScale == FHD_0_6)
+        else if (m_qualityTarget.renderScale == FHD_0_4)
         {
             if (recentExecutionMilliseconds < 1000.0f / 90)
             {
@@ -70,11 +70,11 @@ private:
 
             if (recentExecutionMilliseconds < 50.0f)
             {
-                return {FHD_0_6, true};
+                return {FHD_0_4, true};
             }
             else
             {
-                return {FHD_0_6, false};
+                return {FHD_0_4, false};
             }
         }
         else
