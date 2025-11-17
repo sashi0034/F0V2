@@ -52,7 +52,7 @@ private:
         {
             if (recentExecutionMilliseconds < 1000.0f / 90)
             {
-                return {FHD_1_0, true};
+                return {FHD_1_0, false};
             }
             else if (recentExecutionMilliseconds > 1000.0f / 60)
             {
