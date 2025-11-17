@@ -202,7 +202,7 @@ private:
 
         // アップスケーリング
         {
-            const auto output = m_drawUpscaler.upscale(qualityTarget.renderScale);
+            const auto output = m_drawUpscaler.upscale(qualityTarget.renderScale, qualityTarget.fsrEnabled);
             Immediate2D::Texture(output).pushAuto();
             ImmediateDrawer::Global().draw();
         }

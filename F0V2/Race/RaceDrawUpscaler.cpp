@@ -191,7 +191,7 @@ struct RaceDrawUpscaler::Impl
         m_fsr1Upscaler.Init(m_aaTarget.getFrontRtv(), enderTexture.size());
     }
 
-    TextureHandle Upscale(float renderScale)
+    TextureHandle Upscale(float renderScale, bool fsrEnabled)
     {
         // AA
         {
@@ -200,6 +200,11 @@ struct RaceDrawUpscaler::Impl
 
             const auto bind = m_aaTarget.scopedBind();
             m_aaDrawer.draw();
+        }
+
+        if (not fsrEnabled)
+        {
+            return m_aaTarget.getFrontRtv();
         }
 
         // FSR
@@ -224,8 +229,8 @@ namespace Race
         p_impl->Init(renderTexture);
     }
 
-    TextureHandle RaceDrawUpscaler::upscale(float renderScale)
+    TextureHandle RaceDrawUpscaler::upscale(float renderScale, bool fsrEnabled)
     {
-        return p_impl->Upscale(renderScale);
+        return p_impl->Upscale(renderScale, fsrEnabled);
     }
 }

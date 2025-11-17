@@ -11,11 +11,13 @@ constexpr float FHD_1_0 = 1.f;
 constexpr float FHD_0_8 = 0.8f;
 constexpr float FHD_0_6 = 0.6f;
 
+constexpr RaceDrawQualityController::target_type defaultQualityTarget{FHD_0_8, true};
+
 struct RaceDrawQualityController::Impl
 {
     int m_frameCount{};
 
-    target_type m_qualityTarget{FHD_0_8};
+    target_type m_qualityTarget{defaultQualityTarget};
 
     void Update()
     {
@@ -26,7 +28,10 @@ struct RaceDrawQualityController::Impl
             m_qualityTarget = evaluateNewQualityTarget();
         }
 
-        ImmediatePrint_BottomRight("{}p", static_cast<int>(1080 * m_qualityTarget.renderScale));
+        ImmediatePrint_BottomRight(
+            "{}{}p",
+            (m_qualityTarget.fsrEnabled ? "FSR | " : ""),
+            static_cast<int>(1080 * m_qualityTarget.renderScale));
     }
 
 private:
@@ -38,7 +43,7 @@ private:
         {
             if (recentExecutionMilliseconds > 1000.0f / 60)
             {
-                return {FHD_0_8};
+                return {FHD_0_8, true};
             }
 
             return m_qualityTarget;
@@ -47,11 +52,11 @@ private:
         {
             if (recentExecutionMilliseconds < 1000.0f / 90)
             {
-                return {FHD_1_0};
+                return {FHD_1_0, true};
             }
             else if (recentExecutionMilliseconds > 1000.0f / 60)
             {
-                return {FHD_0_6};
+                return {FHD_0_6, true};
             }
 
             return m_qualityTarget;
@@ -60,15 +65,22 @@ private:
         {
             if (recentExecutionMilliseconds < 1000.0f / 90)
             {
-                return {FHD_0_8};
+                return {FHD_0_8, true};
             }
 
-            return m_qualityTarget;
+            if (recentExecutionMilliseconds < 50.0f)
+            {
+                return {FHD_0_8, true};
+            }
+            else
+            {
+                return {FHD_0_8, false};
+            }
         }
         else
         {
             assert(false);
-            return {FHD_0_8};
+            return defaultQualityTarget;
         }
     }
 };

@@ -10,7 +10,7 @@ namespace Race
 
         void init(const RenderTargetTexture& renderTexture);
 
-        TextureHandle upscale(float renderScale);
+        TextureHandle upscale(float renderScale, bool fsrEnabled);
 
     private:
         struct Impl;

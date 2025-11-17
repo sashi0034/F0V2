@@ -12,6 +12,7 @@ namespace Race
         struct target_type
         {
             float renderScale{};
+            bool fsrEnabled{};
         };
 
         target_type getQualityTarget() const;
