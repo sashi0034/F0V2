@@ -170,6 +170,11 @@ private:
 
             if (isBoosting)
             {
+                if (state.intensity == 0.0f)
+                {
+                    state.lastEmitPosition = machine.state.m_pose.position;
+                }
+
                 state.intensity = 1.0f;
             }
             else
