@@ -12,13 +12,13 @@ constexpr float FHD_1_0 = 1.f;
 constexpr float FHD_0_8 = 0.8f;
 constexpr float FHD_0_4 = 0.4f;
 
-constexpr RaceDrawQualityController::target_type defaultQualityTarget{FHD_0_8, true};
+constexpr RaceDrawQualityController::data_type defaultQualityData{FHD_0_8, true};
 
 struct RaceDrawQualityController::Impl
 {
     int m_frameCount{};
 
-    target_type m_qualityTarget{defaultQualityTarget};
+    data_type m_qualityData{defaultQualityData};
 
     void Update()
     {
@@ -26,33 +26,33 @@ struct RaceDrawQualityController::Impl
 
         if ((m_frameCount % Screen::FrameBufferCount()) == 0)
         {
-            m_qualityTarget = evaluateNewQualityTarget();
+            m_qualityData = evaluateNewQualityData();
         }
 
         if (IsGameStatsVisible())
         {
             ImmediatePrint_BottomRight(
                 "{}{}p",
-                (m_qualityTarget.fsrEnabled ? "FSR | " : ""),
-                static_cast<int>(1080 * m_qualityTarget.renderScale));
+                (m_qualityData.fsrEnabled ? "FSR | " : ""),
+                static_cast<int>(1080 * m_qualityData.renderScale));
         }
     }
 
 private:
-    target_type evaluateNewQualityTarget() const
+    data_type evaluateNewQualityData() const
     {
         const float recentExecutionMilliseconds = GpuMetrics::LastExecutionMilliseconds();
 
-        if (m_qualityTarget.renderScale == FHD_1_0)
+        if (m_qualityData.renderScale == FHD_1_0)
         {
             if (recentExecutionMilliseconds > 1000.0f / 60)
             {
                 return {FHD_0_8, true};
             }
 
-            return m_qualityTarget;
+            return m_qualityData;
         }
-        else if (m_qualityTarget.renderScale == FHD_0_8)
+        else if (m_qualityData.renderScale == FHD_0_8)
         {
             if (recentExecutionMilliseconds < 1000.0f / 90)
             {
@@ -63,9 +63,9 @@ private:
                 return {FHD_0_4, true};
             }
 
-            return m_qualityTarget;
+            return m_qualityData;
         }
-        else if (m_qualityTarget.renderScale == FHD_0_4)
+        else if (m_qualityData.renderScale == FHD_0_4)
         {
             if (recentExecutionMilliseconds < 1000.0f / 90)
             {
@@ -84,7 +84,7 @@ private:
         else
         {
             assert(false);
-            return defaultQualityTarget;
+            return defaultQualityData;
         }
     }
 };
@@ -101,8 +101,8 @@ namespace Race
         p_impl->Update();
     }
 
-    RaceDrawQualityController::target_type RaceDrawQualityController::getQualityTarget() const
+    RaceDrawQualityController::data_type RaceDrawQualityController::getQualityData() const
     {
-        return p_impl->m_qualityTarget;
+        return p_impl->m_qualityData;
     }
 }

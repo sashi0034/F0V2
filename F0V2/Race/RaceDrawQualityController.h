@@ -9,13 +9,13 @@ namespace Race
 
         void update();
 
-        struct target_type
+        struct data_type
         {
             float renderScale{};
             bool fsrEnabled{};
         };
 
-        target_type getQualityTarget() const;
+        data_type getQualityData() const;
 
     private:
         struct Impl;

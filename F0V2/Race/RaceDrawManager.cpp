@@ -179,7 +179,7 @@ private:
         }
 
         m_qualityController.update();
-        const auto qualityTarget = m_qualityController.getQualityTarget();
+        const auto qualityTarget = m_qualityController.getQualityData();
 
         // GBuffer パス
         {
