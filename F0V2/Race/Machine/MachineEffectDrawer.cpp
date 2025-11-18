@@ -71,6 +71,7 @@ namespace
 
     struct StatePerMachine
     {
+        float intensity{};
         Float3 lastEmitPosition;
     };
 }
@@ -160,6 +161,26 @@ private:
             const auto& machine = machineList[i];
             auto& state = m_machineStates[i];
 
+            const bool isBoosting = machine.state.m_manualBoost > 0.0f || machine.state.m_passiveBoost > 0.0f;
+            if (not isBoosting && // ブースト無し 
+                state.intensity <= 0.0f) // 効果なし
+            {
+                continue;
+            }
+
+            if (isBoosting)
+            {
+                state.intensity = 1.0f;
+            }
+            else
+            {
+                state.intensity = Max(0.0f, state.intensity - InGameDeltaTime());
+                if (state.intensity <= 0.0f)
+                {
+                    continue;
+                }
+            }
+
             const Float3 emitPosition = machine.state.m_pose.position;
 
             const float emitThreshold = 1.0f - 0.3f * Periodic::Sine0_1(0.1s, InGameElapsedTime());
@@ -189,7 +210,7 @@ private:
                     particle.worldPos = newParticlePos + offset;
                     particle.rgb = machine.props.themeColor.toFloat3();
                     particle.alpha = 1.0f;
-                    particle.scale = 2.0f;
+                    particle.scale = 1.0f + 1.0f * state.intensity;
                     m_activeParticles.push_back(particle);
                 }
 
