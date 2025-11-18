@@ -35,12 +35,7 @@ struct EnginePresetAssetImpl
 
         m_stubCS = ComputeShader{ShaderParams::CS("asset/engine/compute_stub.hlsl")};
 
-        m_emptyStructuredBuffer = UnorderedStructuredBuffer(
-            UnorderedStructuredBufferParams{
-                .elementCount = 1,
-                .elementStride = sizeof(uint8_t)
-            }
-        );
+        m_emptyStructuredBuffer = UnorderedStructuredBuffer(1, sizeof(uint8_t));
 
         m_initialized = true;
     }

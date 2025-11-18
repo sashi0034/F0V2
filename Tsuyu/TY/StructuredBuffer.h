@@ -3,25 +3,12 @@
 
 namespace TY
 {
-    namespace detail
-    {
-        struct IGpgpuBuffer;
-    }
-
-    struct UnorderedStructuredBufferParams
-    {
-        int elementCount;
-        int elementStride;
-
-        static UnorderedStructuredBufferParams From(const std::shared_ptr<detail::IGpgpuBuffer>& buffer);
-    };
-
     class StructuredBuffer
     {
     public:
         StructuredBuffer() = default;
 
-        StructuredBuffer(const UnorderedStructuredBufferParams& params);
+        StructuredBuffer(int elementCount, int elementStride);
 
         bool isEmpty() const;
 
@@ -43,12 +30,30 @@ namespace TY
     public:
         UnorderedStructuredBuffer() = default;
 
-        UnorderedStructuredBuffer(const UnorderedStructuredBufferParams& params);
+        UnorderedStructuredBuffer(int elementCount, int elementStride);
 
         void afterDispatch();
 
         void beforeFlush();
 
         void readback(void* dst);
+    };
+
+    // TODO: Rename
+    template <typename T>
+    class StructuredBufferT : public StructuredBuffer
+    {
+    public:
+        StructuredBufferT() = default;
+
+        StructuredBufferT(int elementCount)
+            : StructuredBuffer(elementCount, sizeof(T))
+        {
+        }
+
+        void upload(const Array<T>& data)
+        {
+            StructuredBuffer::upload(data.data());
+        }
     };
 }

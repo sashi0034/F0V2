@@ -1,4 +1,5 @@
 #pragma once
+#include "MachinePhysicsUnit.h"
 
 namespace Race
 {
@@ -9,7 +10,7 @@ namespace Race
 
         void init();
 
-        void update();
+        void update(const MachinePhysicsUnit& machine);
 
         void drawTransparent() const;
 

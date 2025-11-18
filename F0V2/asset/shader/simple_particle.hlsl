@@ -1,6 +1,13 @@
+SamplerState g_sampler0 : register(s0);
+
 Texture2D<float4> g_texture0 : register(t10);
 
-SamplerState g_sampler0 : register(s0);
+struct ParticleElement
+{
+    float3 worldPos;
+};
+
+StructuredBuffer<ParticleElement> g_particleBuffer : register(t11);
 
 cbuffer SceneState : register(b0)
 {
@@ -23,6 +30,8 @@ cbuffer ModelMaterial : register(b2)
 
 cbuffer SimpleParticle_b10 : register(b10)
 {
+    float3 g_cameraUp;
+    float3 g_cameraRight;
 }
 
 struct PSInput
@@ -35,7 +44,10 @@ PSInput VS(uint id : SV_VertexID)
 {
     PSInput result;
 
-    static const float2 pos[6] = {
+    const ParticleElement ParticleElement = g_particleBuffer[id / 6];
+    const uint vertId = id % 6;
+
+    static const float2 k_offset[6] = {
         float2(-1.0, -1.0),
         float2(-1.0, 1.0),
         float2(1.0, -1.0),
@@ -44,7 +56,7 @@ PSInput VS(uint id : SV_VertexID)
         float2(1.0, 1.0)
     };
 
-    static const float2 uv[6] = {
+    static const float2 k_uv[6] = {
         float2(0.0, 1.0),
         float2(0.0, 0.0),
         float2(1.0, 1.0),
@@ -53,8 +65,14 @@ PSInput VS(uint id : SV_VertexID)
         float2(1.0, 0.0)
     };
 
-    result.position = float4(pos[id], 0.0, 1.0);
-    result.uv = uv[id];
+    result.position = float4(ParticleElement.worldPos, 1.0);
+    result.position.xyz += g_cameraRight * k_offset[vertId].x + g_cameraUp * k_offset[vertId].y;
+
+    result.position = mul(g_worldMatrix, result.position);
+    result.position = mul(g_viewMatrix, result.position);
+    result.position = mul(g_projectionMatrix, result.position);
+
+    result.uv = k_uv[vertId];
     return result;
 }
 

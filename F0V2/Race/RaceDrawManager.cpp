@@ -116,7 +116,7 @@ struct RaceDrawManager::Impl : ActorBase
 
     SceneryDrawer m_sceneryDrawer{};
 
-    RenderTarget m_transparentPassTarget{};
+    RenderTarget m_transparentDrawTarget{};
 
     RaceDrawQualityController m_qualityController{};
 
@@ -126,7 +126,7 @@ struct RaceDrawManager::Impl : ActorBase
     {
         m_sceneryDrawer.Init();
 
-        m_transparentPassTarget =
+        m_transparentDrawTarget =
             RenderTargetParams()
             .setRtv(m_sceneryDrawer.GetOutputTexture())
             .setDepthBuffer(g_sharedState->gbufferTarget.getDepthBuffer());
@@ -210,7 +210,8 @@ private:
         // 半透明描画パス
         // TODO: 半透明オブジェクトはリニア色空間で描画するべきかも? 要調査
         {
-            const auto bind = m_transparentPassTarget.scopedBind();
+            m_transparentDrawTarget.setViewport(RectF{Screen::SizeF() * qualityTarget.renderScale});
+            const auto bind = m_transparentDrawTarget.scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
             {

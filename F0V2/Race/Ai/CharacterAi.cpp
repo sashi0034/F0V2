@@ -59,7 +59,7 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
             color = Palette::SandyBrown;
         }
 #endif
-        m_drawer = MachineDrawer(color.sRGBToLinear());
+        m_drawer.init(MachineId(), color.sRGBToLinear());
 
         resetPhysicsProps();
         resetPhysicsState();
@@ -82,13 +82,7 @@ private:
 
     void update() override
     {
-        Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        if (machine().state.isDead())
-        {
-            localRotation = Mat4x4::Identity(); // TODO: 死亡グラフィック
-        }
-
-        m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
+        m_drawer.update();
 
 #if defined(_DEBUG)
         if (s_stopInput)

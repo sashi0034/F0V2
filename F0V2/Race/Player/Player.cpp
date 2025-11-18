@@ -42,7 +42,7 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
     {
         GetRaceContext().registerDrawer(shared_from_this());
 
-        m_drawer = MachineDrawer(Palette::CornflowerBlue.sRGBToLinear());
+        m_drawer.init(PlayerMachineId, Palette::CornflowerBlue.sRGBToLinear());
 
         resetPhysicsProps();
         resetPhysicsState();
@@ -84,14 +84,7 @@ private:
 
     void update() override
     {
-        // 前フレームの camera & 前フレームの Player 描画方式
-        Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-        if (machine().state.isDead())
-        {
-            localRotation = Mat4x4::Identity(); // TODO: 死亡グラフィック
-        }
-
-        m_drawer.uploadWorldMatrix(localRotation * machine().state.m_pose.getMatrix());
+        m_drawer.update();
 
         updatePhysics();
 

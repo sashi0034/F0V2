@@ -6,7 +6,6 @@
 #include "VertexBuffer.h"
 
 using namespace TY;
-using namespace TY::detail;
 
 struct ModelShapeBuffer::Impl
 {

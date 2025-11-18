@@ -14,7 +14,9 @@ struct StructuredBuffer::Impl
 {
     bool m_valid = false;
 
-    UnorderedStructuredBufferParams m_params;
+    int m_elementCount = 0;
+    int m_elementStride = 0;
+
     bool m_writable{};
 
     BufferHandle m_bufferHandle;
@@ -34,11 +36,14 @@ struct StructuredBuffer::Impl
 
     size_t m_dataSize{};
 
-    Impl(const UnorderedStructuredBufferParams& params, bool isWritable) : m_params(params), m_writable(isWritable)
+    Impl(int elementCount, int elementStride, bool isWritable) :
+        m_elementCount(elementCount),
+        m_elementStride(elementStride),
+        m_writable(isWritable)
     {
         const auto device = RenderContext_singleton::GetDevice();
 
-        m_dataSize = params.elementCount * params.elementStride;
+        m_dataSize = elementCount * elementStride;
         if (m_dataSize <= 0)
         {
             LogError.writeln("StructuredBuffer: StructuredBuffer: Invalid data size.");
@@ -245,24 +250,8 @@ private:
 
 namespace TY
 {
-    UnorderedStructuredBufferParams UnorderedStructuredBufferParams::From(
-        const std::shared_ptr<detail::IGpgpuBuffer>& buffer)
-    {
-        if (not buffer)
-        {
-            return {};
-        }
-
-        UnorderedStructuredBufferParams params{
-            .elementCount = buffer->getElementCount(),
-            .elementStride = buffer->getElementStride()
-        };
-
-        return params;
-    }
-
-    StructuredBuffer::StructuredBuffer(const UnorderedStructuredBufferParams& params)
-        : p_impl(std::make_shared<Impl>(params, false))
+    StructuredBuffer::StructuredBuffer(int elementCount, int elementStride)
+        : p_impl(std::make_shared<Impl>(elementCount, elementStride, false))
     {
         if (not p_impl->m_valid)
         {
@@ -282,12 +271,12 @@ namespace TY
 
     int StructuredBuffer::elementCount() const
     {
-        return p_impl ? p_impl->m_params.elementCount : 0;
+        return p_impl ? p_impl->m_elementCount : 0;
     }
 
     int StructuredBuffer::elementStride() const
     {
-        return p_impl ? p_impl->m_params.elementStride : 0;
+        return p_impl ? p_impl->m_elementStride : 0;
     }
 
     ID3D12Resource* StructuredBuffer::getBuffer() const
@@ -295,9 +284,9 @@ namespace TY
         return p_impl ? p_impl->m_bufferHandle.getResource() : nullptr;
     }
 
-    UnorderedStructuredBuffer::UnorderedStructuredBuffer(const UnorderedStructuredBufferParams& params)
+    UnorderedStructuredBuffer::UnorderedStructuredBuffer(int elementCount, int elementStride)
     {
-        p_impl = std::make_shared<Impl>(params, true);
+        p_impl = std::make_shared<Impl>(elementCount, elementStride, true);
         if (not p_impl->m_valid)
         {
             p_impl.reset();

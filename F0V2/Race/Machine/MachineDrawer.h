@@ -8,11 +8,11 @@ namespace Race
     class MachineDrawer
     {
     public:
-        MachineDrawer() = default;
+        MachineDrawer();
 
-        MachineDrawer(const ColorF32& linearColor);
+        void init(MachineId id, const ColorF32& linearColor);
 
-        void uploadWorldMatrix(const Mat4x4& worldMatrix);
+        void update();
 
         void drawShadowMap() const;
 
@@ -21,8 +21,7 @@ namespace Race
         void drawTransparent() const;
 
     private:
-        ModelDrawer m_shadowDrawer{};
-        ModelDrawer m_gbufferDrawer{};
-        MachineEffectDrawer m_machineEffectDrawer{};
+        struct Impl;
+        std::shared_ptr<Impl> p_impl;
     };
 }
