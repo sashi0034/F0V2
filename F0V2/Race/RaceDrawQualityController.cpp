@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "RaceDrawQualityController.h"
 
+#include "GameGlobalUI.h"
 #include "TY/GpuMetrics.h"
 #include "TY/Screen.h"
 #include "Util/ImmediatePrint.h"
@@ -28,10 +29,13 @@ struct RaceDrawQualityController::Impl
             m_qualityTarget = evaluateNewQualityTarget();
         }
 
-        ImmediatePrint_BottomRight(
-            "{}{}p",
-            (m_qualityTarget.fsrEnabled ? "FSR | " : ""),
-            static_cast<int>(1080 * m_qualityTarget.renderScale));
+        if (IsGameStatsVisible())
+        {
+            ImmediatePrint_BottomRight(
+                "{}{}p",
+                (m_qualityTarget.fsrEnabled ? "FSR | " : ""),
+                static_cast<int>(1080 * m_qualityTarget.renderScale));
+        }
     }
 
 private:

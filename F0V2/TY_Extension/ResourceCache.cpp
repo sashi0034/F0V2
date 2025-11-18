@@ -14,6 +14,8 @@ namespace
         GraphicsShaderCache::cache_type graphicsShaderCache{};
         ComputeShaderCache::cache_type computeShaderCache{};
         ModelBufferCache::cache_type modelBufferCache{};
+        SoundAudioCache::cache_type soundAudioCache{};
+        MusicAudioCache::cache_type musicAudioCache{};
     };
 
     InlineComponent<CommonResourceCache> s_commonResourceCache{};
@@ -69,5 +71,25 @@ namespace TY
     ModelBufferCache::cache_type& ModelBufferCache::operator()() const
     {
         return s_commonResourceCache->modelBufferCache;
+    }
+
+    SoundAudio SoundAudioCache::LoadDefault(const std::string& path)
+    {
+        return SoundAudio(path);
+    }
+
+    SoundAudioCache::cache_type& SoundAudioCache::operator()() const
+    {
+        return s_commonResourceCache->soundAudioCache;
+    }
+
+    MusicAudio MusicAudioCache::LoadDefault(const std::string& path)
+    {
+        return MusicAudio(path);
+    }
+
+    MusicAudioCache::cache_type& MusicAudioCache::operator()() const
+    {
+        return s_commonResourceCache->musicAudioCache;
     }
 }

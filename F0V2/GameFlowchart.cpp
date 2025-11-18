@@ -222,7 +222,7 @@ private:
     }
 };
 
-namespace F0V2
+inline namespace F0V2
 {
     GameFlowchart::GameFlowchart() :
         p_impl(std::make_shared<Impl>())

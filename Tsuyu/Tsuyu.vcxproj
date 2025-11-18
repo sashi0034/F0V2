@@ -110,7 +110,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;./;../external/imgui;../external/freetype/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../external/imgui;../external/freetype/include;../external/SoLoud/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
@@ -136,7 +136,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;./;../external/imgui;../external/freetype/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../external/DirectXTex/DirectXTex;../external/imgui;../external/freetype/include;../external/SoLoud/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -166,6 +166,7 @@
     <ClInclude Include="TY\Array.h" />
     <ClInclude Include="TY\ArrayPool.h" />
     <ClInclude Include="TY\AssertObject.h" />
+    <ClInclude Include="TY\Audio.h" />
     <ClInclude Include="TY\BasicCamera3D.h" />
     <ClInclude Include="TY\BitmapFont.h" />
     <ClInclude Include="TY\ComputeDispatcher.h" />
@@ -339,6 +340,7 @@
     <ClCompile Include="TY\Alignment.cpp" />
     <ClCompile Include="TY\ArrayPool.cpp" />
     <ClCompile Include="TY\AssertObject.cpp" />
+    <ClCompile Include="TY\Audio.cpp" />
     <ClCompile Include="TY\BasicCamera3D.cpp" />
     <ClCompile Include="TY\BitmapFont.cpp" />
     <ClCompile Include="TY\ComputeDispatcher.cpp" />
@@ -453,6 +455,9 @@
     </ProjectReference>
     <ProjectReference Include="..\external\freetype\builds\windows\vc2010\freetype.vcxproj">
       <Project>{78b079bd-9fc7-4b9e-b4a6-96da0f00248b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\external\SoLoud\SoLoud.vcxproj">
+      <Project>{7ff11e12-9f63-439d-bfca-79daabd8747d}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

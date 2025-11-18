@@ -1,6 +1,8 @@
 #pragma once
 
-namespace F0V2
+inline namespace F0V2
 {
     void DrawGameGlobalUI();
+
+    bool IsGameStatsVisible();
 }

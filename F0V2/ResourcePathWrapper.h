@@ -58,4 +58,8 @@ namespace TY
     using ComputeShaderPathWrapper = ResourcePathWrapper<ComputeShaderCache>;
 
     using ModelPathWrapper = ResourcePathWrapper<ModelBufferCache>;
+
+    using SoundAudioPathWrapper = ResourcePathWrapper<SoundAudioCache>;
+
+    using MusicAudioPathWrapper = ResourcePathWrapper<MusicAudioCache>;
 }
