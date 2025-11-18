@@ -74,7 +74,7 @@ struct StructuredBuffer::Impl
         m_valid = true;
     }
 
-    Impl()
+    ~Impl()
     {
         for (auto& frameResource : m_frameResources)
         {
