@@ -15,6 +15,8 @@ namespace TY
 
         Array<ColorF32> rtvClearColors{};
 
+        DepthBufferHandle depthBufferOpt{};
+
         RenderTargetParams& setRtvList(const Array<RenderTargetTexture>& list);
 
         RenderTargetParams& setRtv(const RenderTargetTexture& rtv_);
@@ -22,6 +24,8 @@ namespace TY
         RenderTargetParams& setRtv(const RtvParams& rtv_);
 
         RenderTargetParams& setRtv_unsafe(const TextureHandle& rtv_, const ColorF32& clearColor_);
+
+        RenderTargetParams& setDepthBuffer(const DepthBufferHandle& depthBuffer_);
     };
 
     class ScopedRenderTarget : public ScopedDefer

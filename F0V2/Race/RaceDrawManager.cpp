@@ -116,6 +116,8 @@ struct RaceDrawManager::Impl : ActorBase
 
     SceneryDrawer m_sceneryDrawer{};
 
+    RenderTarget m_transparentPassTarget{};
+
     RaceDrawQualityController m_qualityController{};
 
     RaceDrawUpscaler m_drawUpscaler{};
@@ -123,6 +125,11 @@ struct RaceDrawManager::Impl : ActorBase
     void Init()
     {
         m_sceneryDrawer.Init();
+
+        m_transparentPassTarget =
+            RenderTargetParams()
+            .setRtv(m_sceneryDrawer.GetOutputTexture())
+            .setDepthBuffer(g_sharedState->gbufferTarget.getDepthBuffer());
 
         m_drawUpscaler.init(m_sceneryDrawer.GetOutputTexture());
     }
@@ -149,7 +156,7 @@ private:
             Graphics3D::SetViewMatrix(GetRaceContextContent().camera.viewMatrix());
 
             {
-                auto projectionMat = Mat4x4::PerspectiveFov(
+                const auto projectionMat = Mat4x4::PerspectiveFov(
                     g_sharedState->fov,
                     Screen::Size().horizontalAspectRatio(),
                     g_sharedState->nearDepth,

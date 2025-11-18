@@ -95,6 +95,11 @@ struct RenderTarget::Impl
     {
         const auto device = RenderContext_singleton::GetDevice();
 
+        if (not params.depthBufferOpt.isEmpty())
+        {
+            m_dsvHandle = params.depthBufferOpt;
+        }
+        else
         {
             CD3DX12_RESOURCE_DESC dsvDesc{};
             dsvDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -309,6 +314,12 @@ namespace TY
     {
         rtvHandles = {rtv_};
         rtvClearColors = {clearColor_};
+        return *this;
+    }
+
+    RenderTargetParams& RenderTargetParams::setDepthBuffer(const DepthBufferHandle& depthBuffer_)
+    {
+        depthBufferOpt = depthBuffer_;
         return *this;
     }
 
