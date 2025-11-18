@@ -93,7 +93,7 @@ struct StructuredBuffer::Impl
         }
     }
 
-    void Upload(const uint8_t* src)
+    void Upload(const uint8_t* src, int count)
     {
         m_flushTimestamp = RenderContext_singleton::GetFlushTimestamp();
 
@@ -101,9 +101,12 @@ struct StructuredBuffer::Impl
 
         auto& frameResource = m_frameResources[frameIndex];
 
-        if (not ensureUploadBuffer(frameResource, m_dataSize)) return;
+        if (not ensureUploadBuffer(frameResource, m_dataSize))
+        {
+            return;
+        }
 
-        memcpy(frameResource.uploadDest, src, m_dataSize);
+        memcpy(frameResource.uploadDest, src, m_elementStride * count);
 
         // GPU へアップロード
         m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
@@ -264,9 +267,9 @@ namespace TY
         return not p_impl;
     }
 
-    void StructuredBuffer::upload(const void* src)
+    void StructuredBuffer::upload(const void* src, int count)
     {
-        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(src));
+        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(src), count);
     }
 
     int StructuredBuffer::elementCount() const

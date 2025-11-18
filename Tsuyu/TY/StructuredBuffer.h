@@ -12,7 +12,7 @@ namespace TY
 
         bool isEmpty() const;
 
-        void upload(const void* src);
+        void upload(const void* src, int count);
 
         int elementCount() const;
 
@@ -53,7 +53,7 @@ namespace TY
 
         void upload(const Array<T>& data)
         {
-            StructuredBuffer::upload(data.data());
+            StructuredBuffer::upload(data.data(), data.size());
         }
     };
 }

@@ -5,6 +5,7 @@ Texture2D<float4> g_texture0 : register(t10);
 struct ParticleElement
 {
     float3 worldPos;
+    float alpha;
 };
 
 StructuredBuffer<ParticleElement> g_particleBuffer : register(t11);
@@ -37,14 +38,15 @@ cbuffer SimpleParticle_b10 : register(b10)
 struct PSInput
 {
     float4 position : SV_POSITION;
-    float2 uv : TEXCOORD;
+    float2 uv : TEXCOORD0;
+    float alpha : TEXCOORD1;
 };
 
 PSInput VS(uint id : SV_VertexID)
 {
     PSInput result;
 
-    const ParticleElement ParticleElement = g_particleBuffer[id / 6];
+    const ParticleElement particleElement = g_particleBuffer[id / 6];
     const uint vertId = id % 6;
 
     static const float2 k_offset[6] = {
@@ -65,7 +67,7 @@ PSInput VS(uint id : SV_VertexID)
         float2(1.0, 0.0)
     };
 
-    result.position = float4(ParticleElement.worldPos, 1.0);
+    result.position = float4(particleElement.worldPos, 1.0);
     result.position.xyz += g_cameraRight * k_offset[vertId].x + g_cameraUp * k_offset[vertId].y;
 
     result.position = mul(g_worldMatrix, result.position);
@@ -73,6 +75,8 @@ PSInput VS(uint id : SV_VertexID)
     result.position = mul(g_projectionMatrix, result.position);
 
     result.uv = k_uv[vertId];
+
+    result.alpha = particleElement.alpha;
     return result;
 }
 
@@ -83,6 +87,7 @@ float4 PS(PSInput input) : SV_TARGET
     float2 uv = input.uv;
 
     float4 textureColor = g_texture0.Sample(g_sampler0, uv);
+    textureColor.a *= input.alpha;
 
     return textureColor;
 }

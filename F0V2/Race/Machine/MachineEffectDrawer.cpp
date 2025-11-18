@@ -6,13 +6,14 @@
 #include "Race/RaceContextContent.h"
 #include "TY/Array.h"
 #include "TY/ConstantBufferArray.h"
+#include "TY/GameTime.h"
 #include "TY/GenericModelBuffer.h"
 #include "TY/GenericModelDrawer.h"
 #include "TY/StructuredBufferWrapper.h"
 
 using namespace Race;
 
-constexpr int particleCount = 10; // TODO
+constexpr int maxParticleCount = 1024;
 
 struct EffectModelBuffer : IGenericModelBuffer
 {
@@ -21,7 +22,7 @@ struct EffectModelBuffer : IGenericModelBuffer
     EffectModelBuffer()
     {
         m_shape.materialIndex = 0;
-        m_shape.indexBuffer = IndexBuffer::Placeholder(6 * particleCount);
+        m_shape.indexBuffer = IndexBuffer::Placeholder(0);
     }
 
     int shapeCount() const override
@@ -55,29 +56,45 @@ namespace
     struct ParticleElement
     {
         Float3 worldPos;
+        float alpha;
     };
 
     struct SimpleParticle_b10
     {
-        Float3 cameraUp;
+        Float3 g_cameraUp;
         float padding0;
-        Float3 cameraRight;
+        Float3 g_cameraRight;
+    };
+
+    struct StatePerMachine
+    {
+        Float3 lastEmitPosition;
     };
 }
 
 struct MachineEffectDrawer::Impl : IRaceDrawer
 {
+    IndexBuffer m_indexBuffer{Empty};
+
     GenericModelDrawer m_particleDrawer{};
 
-    StructuredBufferWrapper<ParticleElement> m_particleBuffer{particleCount};
+    StructuredBufferT<ParticleElement> m_particleBuffer{maxParticleCount};
+
+    Array<ParticleElement> m_activeParticles{};
 
     ConstantBufferWrapper<SimpleParticle_b10> m_particleCB{};
 
+    Array<StatePerMachine> m_machineStates{MaxMachineCount};
+
     void Init()
     {
+        const auto model = std::make_shared<EffectModelBuffer>();
+
+        m_indexBuffer = model->m_shape.indexBuffer;
+
         m_particleDrawer = GenericModelDrawer{
             GenericModelDrawerParams{}
-            .setModel(std::make_shared<EffectModelBuffer>())
+            .setModel(model)
             .setVertexInput({})
             .setOptions(
                 GraphicsOptions()
@@ -98,21 +115,76 @@ struct MachineEffectDrawer::Impl : IRaceDrawer
         const MachinePhysicsUnit& machine = GetRaceContext().machineManager().machineList()[PlayerMachineId]; // TODO
         auto& camera = GetRaceContextContent().camera;
 
-        m_particleCB->cameraUp = camera.worldMatrix().up();
-        m_particleCB->cameraRight = camera.worldMatrix().right();
+        m_particleCB->g_cameraUp = camera.worldMatrix().up();
+        m_particleCB->g_cameraRight = camera.worldMatrix().right();
         m_particleCB.upload();
 
-        for (int i = 0; i < m_particleBuffer.count(); ++i)
-        {
-            m_particleBuffer[i].worldPos = machine.state.m_pose.position + Float3{0, 0, 1.0f * i}; // TODO
-        }
+        updateParticles();
 
-        m_particleBuffer.upload();
+        addParticles();
+
+        m_particleBuffer.upload(m_activeParticles);
+
+        m_indexBuffer.resize(static_cast<int>(m_activeParticles.size()) * 6);
     }
 
     void drawTransparent() const override
     {
         m_particleDrawer.draw();
+    }
+
+private:
+    void updateParticles()
+    {
+        for (int i = static_cast<int>(m_activeParticles.size()) - 1; i >= 0; --i)
+        {
+            m_activeParticles[i].alpha -= InGameDeltaTime();
+            if (m_activeParticles[i].alpha <= 0.0f)
+            {
+                m_activeParticles.remove_at(i);
+            }
+        }
+    }
+
+    void addParticles()
+    {
+        auto& machineList = GetRaceContext().machineManager().machineList();
+        for (int i = 0; i < machineList.size(); ++i)
+        {
+            const auto& machine = machineList[i];
+            auto& state = m_machineStates[i];
+
+            const Float3 emitPosition = machine.state.m_pose.position;
+
+            constexpr float emitThreshold = 0.5f;
+
+            const float distanceSinceLastEmit = (emitPosition - state.lastEmitPosition).length();
+
+            if (distanceSinceLastEmit >= emitThreshold)
+            {
+                constexpr float emitInterval = emitThreshold;
+                const int emitCount = static_cast<int>(distanceSinceLastEmit / emitInterval);
+                const Float3 emitDirection = (emitPosition - state.lastEmitPosition).normalized();
+
+                for (int j = 0; j < emitCount; ++j)
+                {
+                    if (m_activeParticles.size() >= maxParticleCount)
+                    {
+                        break;
+                    }
+
+                    const Float3 newParticlePos =
+                        state.lastEmitPosition + emitDirection * emitInterval * (j + 1);
+
+                    ParticleElement particle{};
+                    particle.worldPos = newParticlePos;
+                    particle.alpha = 1.0f;
+                    m_activeParticles.push_back(particle);
+                }
+
+                state.lastEmitPosition = emitPosition;
+            }
+        }
     }
 };
 
