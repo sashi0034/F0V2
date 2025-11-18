@@ -108,6 +108,11 @@ private:
         m_drawer.drawGBuffer();
     }
 
+    void drawTransparent() const override
+    {
+        m_drawer.drawTransparent();
+    }
+
     void resetPhysicsState()
     {
         SetupMachinePhysicsState(machine().state, machine().props);

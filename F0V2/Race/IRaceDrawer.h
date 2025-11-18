@@ -24,6 +24,10 @@ namespace Race
         {
         }
 
+        virtual void drawTransparent() const
+        {
+        }
+
         virtual void drawUI() const
         {
         }

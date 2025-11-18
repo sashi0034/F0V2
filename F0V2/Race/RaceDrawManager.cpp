@@ -170,7 +170,7 @@ private:
         {
             updateShadowMapMatrix();
 
-            auto bind = g_sharedState->shadowMap.scopedBind();
+            const auto bind = g_sharedState->shadowMap.scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
             {
@@ -184,7 +184,7 @@ private:
         // GBuffer パス
         {
             g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * qualityTarget.renderScale});
-            auto bind = g_sharedState->gbufferTarget.scopedBind();
+            const auto bind = g_sharedState->gbufferTarget.scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
             {
@@ -198,6 +198,15 @@ private:
 #endif
         {
             m_sceneryDrawer.Draw(qualityTarget.renderScale);
+        }
+
+        // 半透明描画パス
+        // TODO: 半透明オブジェクトはリニア色空間で描画するべきかも? 要調査
+        {
+            for (int i = 0; i < m_drawers.size(); ++i)
+            {
+                m_drawers[i].drawer->drawTransparent();
+            }
         }
 
         // アップスケーリング

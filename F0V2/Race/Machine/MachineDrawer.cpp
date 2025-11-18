@@ -59,4 +59,9 @@ namespace Race
     {
         m_gbufferDrawer.draw();
     }
+
+    void MachineDrawer::drawTransparent() const
+    {
+        m_machineEffectDrawer.drawTransparent();
+    }
 }

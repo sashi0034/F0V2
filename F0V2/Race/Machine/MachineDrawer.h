@@ -1,4 +1,5 @@
 #pragma once
+#include "MachineEffectDrawer.h"
 #include "TY/Color.h"
 #include "TY/ModelDrawer.h"
 
@@ -17,8 +18,11 @@ namespace Race
 
         void drawGBuffer() const;
 
+        void drawTransparent() const;
+
     private:
         ModelDrawer m_shadowDrawer{};
         ModelDrawer m_gbufferDrawer{};
+        MachineEffectDrawer m_machineEffectDrawer{};
     };
 }
