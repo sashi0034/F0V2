@@ -18,6 +18,8 @@ struct IndexBuffer::Impl
 
     virtual void Upload(const Array<index_type>& indices) = 0;
 
+    virtual bool Resize(int count) = 0;
+
     virtual void CommandSet() const = 0;
 
     // -----------------------------------------------
@@ -29,6 +31,8 @@ struct IndexBuffer::Impl
 
 struct IndexBuffer::Impl::Default : Impl
 {
+    int m_capacity{};
+
     D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
 
     BufferHandle m_bufferHandle{};
@@ -70,6 +74,7 @@ struct IndexBuffer::Impl::Default : Impl
         m_indexBufferView.SizeInBytes = resourceDesc.Width;
         m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
+        m_capacity = count;
         m_indexCount = count;
 
         m_valid = true;
@@ -153,6 +158,17 @@ struct IndexBuffer::Impl::Default : Impl
         }
     }
 
+    bool Resize(int count) override
+    {
+        if (count <= m_capacity)
+        {
+            m_indexCount = count;
+            return true;
+        }
+
+        return false;
+    }
+
     void CommandSet() const override
     {
         const auto commandList = RenderContext_singleton::TargetCommandList();
@@ -172,6 +188,12 @@ struct IndexBuffer::Impl::Placeholder : Impl
     void Upload(const Array<index_type>&) override
     {
         LogError.writeln("IndexBuffer: Upload called on Placeholder implementation.");
+    }
+
+    bool Resize(int count)
+    {
+        m_indexCount = count;
+        return true;
     }
 
     void CommandSet() const override
@@ -218,6 +240,11 @@ namespace TY
     {
         if (not p_impl) return {};
         return p_impl->m_indexCount;
+    }
+
+    bool IndexBuffer::resize(int count)
+    {
+        return p_impl ? p_impl->Resize(count) : false;
     }
 
     IndexBuffer IndexBuffer::Placeholder(int count)

@@ -4,6 +4,7 @@
 
 namespace TY
 {
+    // TODO: Placeholder を分離
     class IndexBuffer
     {
     public:
@@ -21,7 +22,10 @@ namespace TY
 
         void commandSet() const;
 
+        [[nodiscard]]
         int count() const;
+
+        bool resize(int count);
 
         /// @brief 実態が存在しない IndexBuffer を生成する
         /// @remark VS で SV_VertexID のみ使用する場合に用いることで無駄なバッファを削減出来る
