@@ -42,7 +42,9 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
     {
         GetRaceContext().registerDrawer(shared_from_this());
 
-        m_drawer.init(PlayerMachineId, Palette::CornflowerBlue.sRGBToLinear());
+        constexpr auto color = Palette::CornflowerBlue;
+        machine().props.themeColor = color;
+        m_drawer.init(PlayerMachineId, color.sRGBToLinear());
 
         resetPhysicsProps();
         resetPhysicsState();

@@ -59,6 +59,7 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
             color = Palette::SandyBrown;
         }
 #endif
+        machine().props.themeColor = color;
         m_drawer.init(MachineId(), color.sRGBToLinear());
 
         resetPhysicsProps();

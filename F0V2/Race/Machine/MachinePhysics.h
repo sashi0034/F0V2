@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "LapProgress.h"
 #include "MachineConstants.h"
+#include "TY/Color.h"
 #include "TY_Extension/Pose.h"
 #include "Util/PositiveValue.h"
 
@@ -67,6 +68,8 @@ namespace Race
     struct MachinePhysicsProps
     {
         MachineId machineId{};
+
+        ColorF32 themeColor{};
 
         struct input_t
         {

@@ -9,6 +9,7 @@
 #include "TY/GameTime.h"
 #include "TY/GenericModelBuffer.h"
 #include "TY/GenericModelDrawer.h"
+#include "TY/Periodic.h"
 #include "TY/StructuredBufferWrapper.h"
 
 using namespace Race;
@@ -56,7 +57,9 @@ namespace
     struct ParticleElement
     {
         Float3 worldPos;
+        Float3 rgb;
         float alpha;
+        float scale;
     };
 
     struct SimpleParticle_b10
@@ -139,6 +142,9 @@ private:
         for (int i = static_cast<int>(m_activeParticles.size()) - 1; i >= 0; --i)
         {
             m_activeParticles[i].alpha -= InGameDeltaTime();
+
+            m_activeParticles[i].scale = Max(0.0f, m_activeParticles[i].scale - 5.0f * InGameDeltaTime());
+
             if (m_activeParticles[i].alpha <= 0.0f)
             {
                 m_activeParticles.remove_at(i);
@@ -156,15 +162,16 @@ private:
 
             const Float3 emitPosition = machine.state.m_pose.position;
 
-            constexpr float emitThreshold = 0.5f;
+            const float emitThreshold = 1.0f - 0.3f * Periodic::Sine0_1(0.1s, InGameElapsedTime());
 
             const float distanceSinceLastEmit = (emitPosition - state.lastEmitPosition).length();
 
             if (distanceSinceLastEmit >= emitThreshold)
             {
-                constexpr float emitInterval = emitThreshold;
+                const float emitInterval = emitThreshold;
                 const int emitCount = static_cast<int>(distanceSinceLastEmit / emitInterval);
                 const Float3 emitDirection = (emitPosition - state.lastEmitPosition).normalized();
+                const Float3 emitRight = machine.state.rightVector();
 
                 for (int j = 0; j < emitCount; ++j)
                 {
@@ -176,9 +183,13 @@ private:
                     const Float3 newParticlePos =
                         state.lastEmitPosition + emitDirection * emitInterval * (j + 1);
 
+                    const Float3 offset = emitRight * (0.5f * Periodic::Sine1_1(0.15s, InGameElapsedTime()));
+
                     ParticleElement particle{};
-                    particle.worldPos = newParticlePos;
+                    particle.worldPos = newParticlePos + offset;
+                    particle.rgb = machine.props.themeColor.toFloat3();
                     particle.alpha = 1.0f;
+                    particle.scale = 2.0f;
                     m_activeParticles.push_back(particle);
                 }
 
