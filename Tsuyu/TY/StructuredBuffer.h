@@ -47,11 +47,7 @@ namespace TY
 
         void afterDispatch();
 
-        static void AfterDispatch(const Array<UnorderedStructuredBuffer>& list);
-
         void beforeFlush();
-
-        static void BeforeFlush(const Array<UnorderedStructuredBuffer>& list);
 
         void readback(void* dst);
     };

@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "StructuredBuffer.h"
 
+#include "BufferHandle.h"
 #include "GpgpuBuffer.h"
 #include "Logger.h"
 #include "detail/RenderContext_singleton.h"
@@ -8,6 +9,7 @@
 using namespace TY;
 using namespace TY::detail;
 
+// TODO: 昔の実装を書き直す 
 struct StructuredBuffer::Impl
 {
     bool m_valid = false;
@@ -15,7 +17,7 @@ struct StructuredBuffer::Impl
     UnorderedStructuredBufferParams m_params;
     bool m_writable{};
 
-    ComPtr<ID3D12Resource> m_finalBuffer;
+    BufferHandle m_bufferHandle;
 
     struct frame_resources
     {
@@ -54,9 +56,9 @@ struct StructuredBuffer::Impl
                 &heapProps,
                 D3D12_HEAP_FLAG_NONE,
                 &finalBufferDesc,
-                D3D12_RESOURCE_STATE_COMMON, // D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
-                IID_PPV_ARGS(&m_finalBuffer)
+                IID_PPV_ARGS(m_bufferHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON))
             );
             FAILED(hr))
         {
@@ -84,8 +86,6 @@ struct StructuredBuffer::Impl
             RenderContext_singleton::SafeDisposeRenderResource(frameResource.uploadBuffer);
             RenderContext_singleton::SafeDisposeRenderResource(frameResource.readbackBuffer);
         }
-
-        RenderContext_singleton::SafeDisposeRenderResource(m_finalBuffer);
     }
 
     void Upload(const uint8_t* src)
@@ -101,21 +101,18 @@ struct StructuredBuffer::Impl
         memcpy(frameResource.uploadDest, src, m_dataSize);
 
         // GPU へアップロード
-        const auto copyCommandList = RenderContext_singleton::TargetCommandList();;
-        copyCommandList->CopyResource(m_finalBuffer.Get(), frameResource.uploadBuffer.Get());
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
-        // CopyResource で COPY_DEST 状態になっている m_finalBuffer を、UNORDERED_ACCESS に移す
-        if (m_writable)
-        {
-            const auto computeCommandList = RenderContext_singleton::TargetCommandList();;
-            const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                m_finalBuffer.Get(),
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-            computeCommandList->ResourceBarrier(1, &barrier);
-        }
+        const auto commandList = RenderContext_singleton::TargetCommandList();;
+        commandList->CopyResource(m_bufferHandle.getResource(), frameResource.uploadBuffer.Get());
+
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+
+        // TODO
+        // m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     }
 
+    // TODO: 昔の実装を書き直す 
     void AfterDispatch()
     {
         assert(m_writable);;
@@ -123,28 +120,8 @@ struct StructuredBuffer::Impl
         const auto commandList = RenderContext_singleton::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
-        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_finalBuffer.Get());
+        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_bufferHandle.getResource());
         commandList->ResourceBarrier(1, &uavBarrier);
-    }
-
-    static void AfterDispatch(const Array<UnorderedStructuredBuffer>& list)
-    {
-        const auto commandList = RenderContext_singleton::TargetCommandList();
-
-        Array<D3D12_RESOURCE_BARRIER> barriers{};
-        barriers.reserve(8);
-
-        // UAV バリアを入れて、UAV 書き込みの完了を保証
-        for (int i = 0; i < list.size(); ++i)
-        {
-            auto& impl = list[i].p_impl;
-            if (not impl) continue;
-
-            const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(impl->m_finalBuffer.Get());
-            barriers.push_back(uavBarrier);
-        }
-
-        commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
     }
 
     void BeforeFlush()
@@ -154,15 +131,11 @@ struct StructuredBuffer::Impl
         const auto commandList = RenderContext_singleton::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
-        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_finalBuffer.Get());
+        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_bufferHandle.getResource());
         commandList->ResourceBarrier(1, &uavBarrier);
 
         // GPU バッファを COPY_SOURCE に遷移
-        const auto toCopySrc = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_finalBuffer.Get(),
-            D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-            D3D12_RESOURCE_STATE_COPY_SOURCE);
-        commandList->ResourceBarrier(1, &toCopySrc);
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_SOURCE);
 
         // Copy GPU -> Readback
         m_flushTimestamp = RenderContext_singleton::GetFlushTimestamp();
@@ -171,70 +144,10 @@ struct StructuredBuffer::Impl
 
         if (not ensureReadbackBuffer(frameResource, m_dataSize)) return;
 
-        commandList->CopyResource(frameResource.readbackBuffer.Get(), m_finalBuffer.Get());
+        commandList->CopyResource(frameResource.readbackBuffer.Get(), m_bufferHandle.getResource());
 
         // GPU バッファを UNORDERED_ACCESS に戻す
-        const auto toUAV = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_finalBuffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_SOURCE,
-            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-        commandList->ResourceBarrier(1, &toUAV);
-    }
-
-    static void BeforeFlush(const Array<UnorderedStructuredBuffer>& list)
-    {
-        const auto commandList = RenderContext_singleton::TargetCommandList();
-
-        // UAV バリアを入れて、UAV 書き込みの完了を保証
-        Array<D3D12_RESOURCE_BARRIER> barriers;
-        barriers.reserve(list.size() * 2);
-
-        // GPU バッファを COPY_SOURCE に遷移
-        for (int i = 0; i < list.size(); ++i)
-        {
-            auto& impl = list[i].p_impl;
-            if (not impl) continue;
-
-            barriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(impl->m_finalBuffer.Get()));
-            barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
-                    impl->m_finalBuffer.Get(),
-                    D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-                    D3D12_RESOURCE_STATE_COPY_SOURCE)
-            );
-        }
-
-        commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
-
-        // ReadbackBuffer へコピー
-        for (int i = 0; i < list.size(); ++i)
-        {
-            auto& impl = list[i].p_impl;
-            if (not impl) continue;
-
-            impl->m_flushTimestamp = RenderContext_singleton::GetFlushTimestamp();
-            const size_t frameIndex = impl->m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
-            auto& frameResource = impl->m_frameResources[frameIndex];
-
-            if (not ensureReadbackBuffer(frameResource, impl->m_dataSize)) return;
-
-            commandList->CopyResource(frameResource.readbackBuffer.Get(), impl->m_finalBuffer.Get());
-        }
-
-        // GPU バッファを UNORDERED_ACCESS に戻す
-        barriers.clear();
-        for (int i = 0; i < list.size(); ++i)
-        {
-            auto& impl = list[i].p_impl;
-            if (not impl) continue;
-
-            barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
-                    impl->m_finalBuffer.Get(),
-                    D3D12_RESOURCE_STATE_COPY_SOURCE,
-                    D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-            );
-        }
-
-        commandList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS); // FIXME?
     }
 
     void Readback(uint8_t* dest)
@@ -379,7 +292,7 @@ namespace TY
 
     ID3D12Resource* StructuredBuffer::getBuffer() const
     {
-        return p_impl ? p_impl->m_finalBuffer.Get() : nullptr;
+        return p_impl ? p_impl->m_bufferHandle.getResource() : nullptr;
     }
 
     UnorderedStructuredBuffer::UnorderedStructuredBuffer(const UnorderedStructuredBufferParams& params)
@@ -399,22 +312,12 @@ namespace TY
         }
     }
 
-    void UnorderedStructuredBuffer::AfterDispatch(const Array<UnorderedStructuredBuffer>& list)
-    {
-        Impl::AfterDispatch(list);
-    }
-
     void UnorderedStructuredBuffer::beforeFlush()
     {
         if (p_impl)
         {
             p_impl->BeforeFlush();
         }
-    }
-
-    void UnorderedStructuredBuffer::BeforeFlush(const Array<UnorderedStructuredBuffer>& list)
-    {
-        Impl::BeforeFlush(list);
     }
 
     void UnorderedStructuredBuffer::readback(void* dst)

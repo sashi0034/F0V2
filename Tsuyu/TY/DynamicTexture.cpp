@@ -181,8 +181,7 @@ struct DynamicTexture::Impl
 
         commandList->CopyTextureRegion(&dstCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
 
-        m_textureHandle.transitionResourceState(
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        m_textureHandle.transitionResourceState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     }
 };
 
