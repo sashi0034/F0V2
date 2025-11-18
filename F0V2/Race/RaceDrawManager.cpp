@@ -177,7 +177,7 @@ private:
         {
             updateShadowMapMatrix();
 
-            const auto bind = g_sharedState->shadowMap.scopedBindAfterClear();
+            const auto bind = g_sharedState->shadowMap.scopedClearBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
             {
@@ -191,7 +191,7 @@ private:
         // GBuffer パス
         {
             g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * qualityTarget.renderScale});
-            const auto bind = g_sharedState->gbufferTarget.scopedBindAfterClear();
+            const auto bind = g_sharedState->gbufferTarget.scopedClearBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
             {

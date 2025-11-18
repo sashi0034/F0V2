@@ -342,7 +342,7 @@ struct Testbed_ImmediateDrawer_impl
             .draw();
 
         {
-            const auto bind = m_miniMap.scopedBindAfterClear();
+            const auto bind = m_miniMap.scopedClearBind();
 
             ImmediateDrawer::Global()
                 .push(Immediate2D::Rect{RectF{64, 64, 128, 128}}.setColor(ColorF32{1.0f, 0.5f, 0.7f}));

@@ -246,7 +246,7 @@ struct RenderContextImpl
         m_frameBufferToWindow = m_windowToFrameBuffer.inverse();
 
         // バックバッファを設定
-        m_scopedBackBuffer = m_backBuffers[backBufferIndex].scopedBindAfterClear();
+        m_scopedBackBuffer = m_backBuffers[backBufferIndex].scopedClearBind();
     }
 
     void Render()

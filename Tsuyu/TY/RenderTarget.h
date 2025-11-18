@@ -56,7 +56,7 @@ namespace TY
         RectF getViewport() const;
 
         [[nodiscard]]
-        ScopedRenderTarget scopedBindAfterClear() const;
+        ScopedRenderTarget scopedClearBind() const;
 
         [[nodiscard]]
         ScopedRenderTarget scopedBind() const;

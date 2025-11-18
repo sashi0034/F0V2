@@ -360,7 +360,7 @@ namespace TY
         return p_impl ? p_impl->m_viewport : RectF{};
     }
 
-    ScopedRenderTarget RenderTarget::scopedBindAfterClear() const
+    ScopedRenderTarget RenderTarget::scopedClearBind() const
     {
         if (not p_impl)
         {

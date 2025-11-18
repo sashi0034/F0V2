@@ -117,7 +117,7 @@ void Testbed_RenderTarget()
         }
 
         {
-            const auto rt = renderTarget.scopedBindAfterClear();
+            const auto rt = renderTarget.scopedClearBind();
 
             worldMat = worldMat.rotatedY(Math::ToRadians(System::DeltaTime() * 90));
             model.uploadWorldMatrix(worldMat).draw();
