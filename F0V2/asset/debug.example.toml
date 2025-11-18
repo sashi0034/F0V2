@@ -3,6 +3,8 @@
 # editor, raceSetup, race
 entry_point = "editor"
 
+enable_audio = true
+
 fixed_course_path = "asset/course/sandbox_course.toml"
 
 ai_count = 29

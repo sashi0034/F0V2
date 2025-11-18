@@ -3,6 +3,11 @@
 
 namespace TY
 {
+    namespace Audio
+    {
+        void SetEnabled(bool enabled);
+    }
+
     class SoundAudio
     {
     public:

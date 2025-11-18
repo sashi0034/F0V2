@@ -12,6 +12,7 @@
 #include "Race/Common/RaceSharedState.h"
 #include "RaceSetup/RaceSetupScene.h"
 #include "TY/ActorContainer.h"
+#include "TY/Audio.h"
 #include "TY/Gamepad.h"
 #include "TY/GpuMetrics.h"
 #include "TY/KeyboardInput.h"
@@ -146,6 +147,10 @@ struct F0V2::GameFlowchart::Impl : GameObjectBase
 private:
     void update() override
     {
+#if defined(_DEBUG)
+        Audio::SetEnabled(GetDebugTomlValue<bool>("enable_audio"));
+#endif
+
         if (KeyF2.down())
         {
             GM::LaunchGamepadConfigModal(gamepadConfigPath);

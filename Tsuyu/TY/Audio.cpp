@@ -30,6 +30,8 @@ namespace
 
     struct AudioState
     {
+        bool enabled{true};
+
         SoLoud::Soloud global; // Engine
         SoLoud::Bus sound;
         SoLoud::Bus music;
@@ -115,6 +117,11 @@ struct SoundAudio::Impl
 
     void PlayOneShot(float volume)
     {
+        if (not s_audioState.enabled)
+        {
+            return;
+        }
+
         constexpr float minInterval = 0.1f; // seconds
         if (System::Time() - minInterval < m_lastPlayedTime)
         {
@@ -146,6 +153,11 @@ struct MusicAudio::Impl
 
     void Play()
     {
+        if (not s_audioState.enabled)
+        {
+            return;
+        }
+
         m_handle = s_audioState.music.play(m_wavStream);
 
         s_audioState.currentMusic = {this, &m_wavStream, m_handle};
@@ -154,6 +166,13 @@ struct MusicAudio::Impl
 
 namespace TY
 {
+    void Audio::SetEnabled(bool enabled)
+    {
+        s_audioState.enabled = enabled;
+
+        // TODO: Pause all sounds/music if disabled
+    }
+
     SoundAudio::SoundAudio(const std::string& path)
         : p_impl(std::make_shared<Impl>())
     {
