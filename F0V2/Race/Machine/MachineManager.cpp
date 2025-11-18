@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "MachineManager.h"
 
+#include "MachineEffectDrawer.h"
 #include "MachineEventHandler.h"
 #include "MachinePhysicsUnit.h"
 #include "TY/ActorContainer.h"
@@ -26,6 +27,8 @@ struct MachineManager::Impl : GameObjectBase
 
     int m_aliveMachineCount{};
 
+    MachineEffectDrawer m_effectDrawer{};
+
     void Init()
     {
         m_initialized = true;
@@ -34,6 +37,8 @@ struct MachineManager::Impl : GameObjectBase
 
         m_eventHandler = m_children.birth(MachineEventHandler());
         m_eventHandler.init();
+
+        m_effectDrawer.init();
     }
 
     void ResizeIfNeeded(MachineId id)
@@ -59,6 +64,8 @@ private:
         m_children.updateEach();
 
         evaluateMachines();
+
+        m_effectDrawer.update();
     }
 
     void evaluateMachines()
@@ -102,6 +109,8 @@ private:
     void killed() override
     {
         m_children.killEach();
+
+        m_effectDrawer.finalize();
     }
 
     std::u32string name() const override

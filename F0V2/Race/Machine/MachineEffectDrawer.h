@@ -1,5 +1,4 @@
 #pragma once
-#include "MachinePhysicsUnit.h"
 
 namespace Race
 {
@@ -10,9 +9,9 @@ namespace Race
 
         void init();
 
-        void update(const MachinePhysicsUnit& machine);
+        void finalize();
 
-        void drawTransparent() const;
+        void update();
 
     private:
         struct Impl;

@@ -6,6 +6,7 @@
 #include "Race/IRaceContext.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/InlineComponent.h"
+#include "TY/ModelDrawer.h"
 #include "TY/PrimitiveModel3D.h"
 
 using namespace Race;
@@ -27,7 +28,6 @@ struct MachineDrawer::Impl
     MachineId m_id;
     ModelDrawer m_shadowDrawer{};
     ModelDrawer m_gbufferDrawer{};
-    MachineEffectDrawer m_machineEffectDrawer{};
 
     void Init(MachineId id, const ColorF32& linearColor)
     {
@@ -50,8 +50,6 @@ struct MachineDrawer::Impl
             .setModel(model)
             .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
             .setShader(Asset_shader::gbuffer_pass);
-
-        m_machineEffectDrawer.init();
     }
 
     void Update()
@@ -68,8 +66,6 @@ struct MachineDrawer::Impl
 
         (void)m_shadowDrawer.uploadWorldMatrix(worldMatrix);
         (void)m_gbufferDrawer.uploadWorldMatrix(worldMatrix);
-
-        m_machineEffectDrawer.update(machine);
     }
 };
 
@@ -102,6 +98,5 @@ namespace Race
 
     void MachineDrawer::drawTransparent() const
     {
-        p_impl->m_machineEffectDrawer.drawTransparent();
     }
 }

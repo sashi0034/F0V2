@@ -65,7 +65,7 @@ namespace
     };
 }
 
-struct MachineEffectDrawer::Impl
+struct MachineEffectDrawer::Impl : IRaceDrawer
 {
     GenericModelDrawer m_particleDrawer{};
 
@@ -93,8 +93,9 @@ struct MachineEffectDrawer::Impl
         };
     }
 
-    void Update(const MachinePhysicsUnit& machine)
+    void Update()
     {
+        const MachinePhysicsUnit& machine = GetRaceContext().machineManager().machineList()[PlayerMachineId]; // TODO
         auto& camera = GetRaceContextContent().camera;
 
         m_particleCB->cameraUp = camera.worldMatrix().up();
@@ -109,7 +110,7 @@ struct MachineEffectDrawer::Impl
         m_particleBuffer.upload();
     }
 
-    void Draw() const
+    void drawTransparent() const override
     {
         m_particleDrawer.draw();
     }
@@ -125,15 +126,16 @@ namespace Race
     void MachineEffectDrawer::init()
     {
         p_impl->Init();
+        GetRaceContext().registerDrawer(p_impl);
     }
 
-    void MachineEffectDrawer::update(const MachinePhysicsUnit& machine)
+    void MachineEffectDrawer::finalize()
     {
-        p_impl->Update(machine);
+        GetRaceContext().unregisterDrawer(p_impl.get());
     }
 
-    void MachineEffectDrawer::drawTransparent() const
+    void MachineEffectDrawer::update()
     {
-        p_impl->Draw();
+        p_impl->Update();
     }
 }

@@ -1,7 +1,6 @@
 #pragma once
-#include "MachineEffectDrawer.h"
+#include "MachinePhysics.h"
 #include "TY/Color.h"
-#include "TY/ModelDrawer.h"
 
 namespace Race
 {
