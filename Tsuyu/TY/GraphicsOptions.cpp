@@ -31,6 +31,20 @@ namespace TY
         return *this;
     }
 
+    GraphicsBlendOptions GraphicsBlendOptions::Opaque()
+    {
+        GraphicsBlendOptions blend;
+        blend.blendEnabled = false;
+        return blend;
+    }
+
+    GraphicsBlendOptions GraphicsBlendOptions::AlphaBlend()
+    {
+        GraphicsBlendOptions blend;
+        blend.blendEnabled = true;
+        return blend;
+    }
+
     GraphicsRasterizerOptions& GraphicsRasterizerOptions::setCull(GraphicsCullMode cull_)
     {
         cull = cull_;
@@ -50,6 +64,12 @@ namespace TY
         return settings;
     }
 
+    GraphicsDepthOptions& GraphicsDepthOptions::setTestEnabled(bool testEnabled_)
+    {
+        testEnabled = testEnabled_;
+        return *this;
+    }
+
     GraphicsDepthOptions& GraphicsDepthOptions::setWriteMask(bool writeMask_)
     {
         writeMask = writeMask_;
@@ -59,7 +79,7 @@ namespace TY
     GraphicsDepthOptions GraphicsDepthOptions::Default3D()
     {
         GraphicsDepthOptions settings{};
-        settings.enable = true;
+        settings.testEnabled = true;
         settings.writeMask = true;
         return settings;
     }
@@ -67,6 +87,12 @@ namespace TY
     GraphicsOptions& GraphicsOptions::setSamplers(const Array<GraphicsSamplerOptions>& samplers_)
     {
         samplers = samplers_;
+        return *this;
+    }
+
+    GraphicsOptions& GraphicsOptions::setBlend(const GraphicsBlendOptions& blend_)
+    {
+        blend = blend_;
         return *this;
     }
 
@@ -103,6 +129,7 @@ namespace TY
     GraphicsOptions GraphicsOptions::Default3D()
     {
         GraphicsOptions settings{};
+        settings.blend = GraphicsBlendOptions::Opaque();
         settings.rasterizer = GraphicsRasterizerOptions::Default3D();
         settings.depth = GraphicsDepthOptions::Default3D();
         return settings;

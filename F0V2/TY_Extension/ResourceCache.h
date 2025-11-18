@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "TY/Audio.h"
+#include "TY/DiskTexture.h"
 #include "TY/InlineComponent.h"
 #include "TY/ModelBuffer.h"
 #include "TY/Shader.h"
@@ -87,6 +88,15 @@ namespace TY
         static ComputeShader LoadDefault(const std::string& path);
 
         using cache_type = ResourceCache<ComputeShader, LoadDefault>;
+
+        cache_type& operator ()() const;
+    };
+
+    struct DiskTextureCache
+    {
+        static DiskTexture LoadDefault(const std::string& path);
+
+        using cache_type = ResourceCache<DiskTexture, LoadDefault>;
 
         cache_type& operator ()() const;
     };

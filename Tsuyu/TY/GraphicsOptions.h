@@ -54,6 +54,17 @@ namespace TY
         bool operator ==(const GraphicsSamplerOptions& other) const = default;
     };
 
+    struct GraphicsBlendOptions
+    {
+        bool blendEnabled{};
+
+        bool operator ==(const GraphicsBlendOptions& other) const = default;
+
+        static GraphicsBlendOptions Opaque();
+
+        static GraphicsBlendOptions AlphaBlend();
+    };
+
     enum class GraphicsCullMode : uint8_t
     {
         None,
@@ -83,8 +94,10 @@ namespace TY
 
     struct GraphicsDepthOptions
     {
-        bool enable{};
+        bool testEnabled{};
         bool writeMask{};
+
+        GraphicsDepthOptions& setTestEnabled(bool testEnabled_);
 
         GraphicsDepthOptions& setWriteMask(bool writeMask_);
 
@@ -104,6 +117,7 @@ namespace TY
     struct GraphicsOptions
     {
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
+        GraphicsBlendOptions blend{GraphicsBlendOptions::AlphaBlend()};
         GraphicsRasterizerOptions rasterizer{};
         GraphicsDepthOptions depth{};
         Array<GraphicsFormat> rtvFormats{DXGI_FORMAT_R8G8B8A8_UNORM};
@@ -112,6 +126,8 @@ namespace TY
         GraphicsOptions& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
 
         // GraphicsOptions& addSampler(const GraphicsSamplerOptions& samplers_);
+
+        GraphicsOptions& setBlend(const GraphicsBlendOptions& blend_);
 
         GraphicsOptions& setRasterizer(const GraphicsRasterizerOptions& rasterizer_);
 

@@ -23,8 +23,17 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper shadow_caster{"asset/shader/shadow_caster.hlsl"};
     static const inline GraphicsShaderPathWrapper shadow_caster_old{"asset/shader/shadow_caster_old.hlsl"};
     static const inline GraphicsShaderPathWrapper simple_compute{"asset/shader/simple_compute.hlsl"};
+    static const inline GraphicsShaderPathWrapper simple_particle{"asset/shader/simple_particle.hlsl"};
     static const inline GraphicsShaderPathWrapper skydome{"asset/shader/skydome.hlsl"};
     static const inline GraphicsShaderPathWrapper wave_test{"asset/shader/wave_test.hlsl"};
+}
+
+namespace Asset_image
+{
+    static const inline ImagePathWrapper fairy_1024x1024{"asset/image/fairy_1024x1024.png"};
+    static const inline ImagePathWrapper mii{"asset/image/mii.png"};
+    static const inline ImagePathWrapper particle{"asset/image/particle.png"};
+    static const inline ImagePathWrapper violet_900x1600{"asset/image/violet_900x1600.png"};
 }
 
 namespace Asset_model

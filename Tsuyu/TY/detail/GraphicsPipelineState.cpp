@@ -169,7 +169,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
         D3D12_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc = {};
 
-        if (params.options.depth.enable)
+        if (not params.options.blend.blendEnabled)
         {
             renderTargetBlendDesc.BlendEnable = false;
             renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
@@ -202,7 +202,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         pipelineDesc.RasterizerState.ForcedSampleCount = 0;
         pipelineDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-        if (params.options.depth.enable)
+        if (params.options.depth.testEnabled)
         {
             pipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
             pipelineDesc.DepthStencilState.DepthEnable = true;

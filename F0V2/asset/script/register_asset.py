@@ -43,6 +43,7 @@ class AssetSpec:
 # AssetSpec("Asset_texture", ("asset", "texture"), ("**/*.png", "**/*.jpg"))
 ASSET_SPECS: List[AssetSpec] = [
     AssetSpec("Asset_shader", "GraphicsShaderPathWrapper", ("asset", "shader"), ("**/*.hlsl",)),
+    AssetSpec("Asset_image", "ImagePathWrapper", ("asset", "image"), ("**/*.png",)),
     AssetSpec("Asset_model", "ModelPathWrapper", ("asset", "model"), ("**/*.obj",)),
     AssetSpec("Asset_sound", "SoundAudioPathWrapper", ("asset", "sound"), ("**/*.mp3",)),
     AssetSpec("Asset_music", "MusicAudioPathWrapper", ("asset", "music"), ("**/*.mp3",)),

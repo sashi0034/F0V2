@@ -12,7 +12,7 @@ namespace Race
 
         MachineDrawer(const ColorF32& linearColor);
 
-        void uploadWorldMatrix(const Mat4x4& worldMatrix) const;
+        void uploadWorldMatrix(const Mat4x4& worldMatrix);
 
         void drawShadowMap() const;
 

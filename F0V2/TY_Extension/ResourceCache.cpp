@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "ResourceCache.h"
 
+#include "TY/DiskTexture.h"
 #include "TY/ModelLoader.h"
 
 using namespace TY;
@@ -13,6 +14,7 @@ namespace
         PixelShaderCache::cache_type pixelShaderCache{};
         GraphicsShaderCache::cache_type graphicsShaderCache{};
         ComputeShaderCache::cache_type computeShaderCache{};
+        DiskTextureCache::cache_type diskTextureCache{};
         ModelBufferCache::cache_type modelBufferCache{};
         SoundAudioCache::cache_type soundAudioCache{};
         MusicAudioCache::cache_type musicAudioCache{};
@@ -61,6 +63,16 @@ namespace TY
     ComputeShaderCache::cache_type& ComputeShaderCache::operator()() const
     {
         return s_commonResourceCache->computeShaderCache;
+    }
+
+    DiskTexture DiskTextureCache::LoadDefault(const std::string& path)
+    {
+        return DiskTexture(path);
+    }
+
+    DiskTextureCache::cache_type& DiskTextureCache::operator()() const
+    {
+        return s_commonResourceCache->diskTextureCache;
     }
 
     ModelBuffer ModelBufferCache::LoadDefault(const std::string& path)

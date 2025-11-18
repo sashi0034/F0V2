@@ -169,6 +169,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\.gitignore" />
     <Content Include="asset\debug.example.toml" />
     <Content Include="asset\debug.toml" />
+    <Content Include="asset\image\particle.png" />
     <Content Include="asset\music\chi_no_isan.mp3" />
     <Content Include="asset\script\bundle_build.py" />
     <Content Include="asset\shader\fsr1\ffx_a.h" />
@@ -182,6 +183,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\shader\wave_test.hlsl" />
     <Content Include="asset\shader\gbuffer_pass.hlsl" />
     <Content Include="asset\shader\cheap_aa.hlsl" />
+    <Content Include="asset\shader\simple_particle.hlsl" />
     <ClCompile Include="GameGlobalUI.cpp" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
     <ClCompile Include="RaceSetup\CourseFileInfo.cpp" />

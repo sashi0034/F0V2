@@ -7,6 +7,8 @@ namespace Race
     public:
         MachineEffectDrawer();
 
+        void init();
+
         void update();
 
         void drawTransparent() const;

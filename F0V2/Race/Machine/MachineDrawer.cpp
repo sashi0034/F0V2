@@ -41,13 +41,17 @@ namespace Race
             ModelDrawerParams{}
             .setModel(model)
             .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
-            .setShader(Asset_shader::gbuffer_pass);;
+            .setShader(Asset_shader::gbuffer_pass);
+
+        m_machineEffectDrawer.init();
     }
 
-    void MachineDrawer::uploadWorldMatrix(const Mat4x4& worldMatrix) const
+    void MachineDrawer::uploadWorldMatrix(const Mat4x4& worldMatrix)
     {
         (void)m_shadowDrawer.uploadWorldMatrix(worldMatrix);
         (void)m_gbufferDrawer.uploadWorldMatrix(worldMatrix);
+
+        m_machineEffectDrawer.update();
     }
 
     void MachineDrawer::drawShadowMap() const
