@@ -345,7 +345,7 @@ struct Testbed_ShadowMap_impl
             {
                 m_playerShadowDrawerConstantBuffer.upload(s_resource->shadowMap_cb->worldToShadowProjection[i]);
 
-                const auto rt = m_shadowMaps[i].scopedBind();
+                const auto rt = m_shadowMaps[i].scopedBindAfterClear();
 
                 // 影の対象のオブジェクトを描画
                 {

@@ -211,7 +211,7 @@ struct RenderTarget::Impl
         commandList->RSSetScissorRects(1, &scissorRect);
     }
 
-    ScopedRenderTarget ScopedBind()
+    ScopedRenderTarget ScopedBind(bool clear)
     {
         const auto commandList = RenderContext_singleton::TargetCommandList();
 
@@ -232,14 +232,17 @@ struct RenderTarget::Impl
             false,
             &dsvDescriptorHandle);
 
-        // ClearRenderTargetView()
-        for (int i = 0; i < m_rtvHandles.size(); ++i)
+        if (clear)
         {
-            auto& clearColor = m_rtvClearColors[i];
-            commandList->ClearRenderTargetView(m_rtvDescriptorHandles[i], clearColor.getPointer(), 0, nullptr);
-        }
+            // ClearRenderTargetView()
+            for (int i = 0; i < m_rtvHandles.size(); ++i)
+            {
+                auto& clearColor = m_rtvClearColors[i];
+                commandList->ClearRenderTargetView(m_rtvDescriptorHandles[i], clearColor.getPointer(), 0, nullptr);
+            }
 
-        commandList->ClearDepthStencilView(dsvDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+            commandList->ClearDepthStencilView(dsvDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        }
 
         CommandSetViewportAndScissorsRect();
 
@@ -357,12 +360,26 @@ namespace TY
         return p_impl ? p_impl->m_viewport : RectF{};
     }
 
-    ScopedRenderTarget RenderTarget::scopedBind() const
+    ScopedRenderTarget RenderTarget::scopedBindAfterClear() const
     {
-        if (not p_impl) return ScopedRenderTarget{};
+        if (not p_impl)
+        {
+            return ScopedRenderTarget{};
+        }
 
         s_renderTargetStack.push_back(*this);
-        return p_impl->ScopedBind();
+        return p_impl->ScopedBind(true);
+    }
+
+    ScopedRenderTarget RenderTarget::scopedBind() const
+    {
+        if (not p_impl)
+        {
+            return ScopedRenderTarget{};
+        }
+
+        s_renderTargetStack.push_back(*this);
+        return p_impl->ScopedBind(false);
     }
 
     TextureHandle RenderTarget::getFrontRtv() const

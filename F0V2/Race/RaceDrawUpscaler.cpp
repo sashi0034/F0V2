@@ -198,7 +198,7 @@ struct RaceDrawUpscaler::Impl
             m_aaCB10->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
             m_aaCB10.upload();
 
-            const auto bind = m_aaTarget.scopedBind();
+            const auto bind = m_aaTarget.scopedBindAfterClear();
             m_aaDrawer.draw();
         }
 
