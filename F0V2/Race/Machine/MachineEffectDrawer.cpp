@@ -188,7 +188,7 @@ private:
 
             const Float3 emitPosition = machine.state.m_pose.position;
 
-            const float emitThreshold = 1.0f - 0.3f * Periodic::Sine0_1(0.1s, InGameElapsedTime());
+            const float emitThreshold = 1.0f - 0.1f * Periodic::Sine0_1(0.1s, InGameElapsedTime());
 
             const float distanceSinceLastEmit = (emitPosition - state.lastEmitPosition).length();
 
