@@ -17,6 +17,10 @@ using namespace TY;
 
 namespace
 {
+    constexpr float defaultFadeOutDuration = 0.5f;
+
+    constexpr float defaultFadeInDuration = 1.0f;
+
     struct AudioComponent;
 
     AudioComponent* s_audioComponent;
@@ -209,7 +213,7 @@ struct MusicAudio::Impl
 
         if (s_audioState.currentMusic)
         {
-            stopMusic(*s_audioState.currentMusic, 1.0f);
+            stopMusic(*s_audioState.currentMusic, defaultFadeOutDuration);
 
             s_audioState.currentMusic = nullptr;
         }
@@ -243,11 +247,10 @@ struct MusicAudio::Impl
             return;
         }
 
-        constexpr float fadeDuration = 1.0;
-        s_audioState.global.fadeVolume(m_data->handle, 0.0f, fadeDuration);
-        s_audioState.global.schedulePause(m_data->handle, fadeDuration);
+        s_audioState.global.fadeVolume(m_data->handle, 0.0f, defaultFadeOutDuration);
+        s_audioState.global.schedulePause(m_data->handle, defaultFadeOutDuration);
 
-        playMusicFrom(*m_data, m_data->loopRange.beginSec, fadeDuration);
+        playMusicFrom(*m_data, m_data->loopRange.beginSec, defaultFadeInDuration);
     }
 };
 
