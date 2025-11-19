@@ -21,11 +21,11 @@ namespace
 
     AudioComponent* s_audioComponent;
 
-    struct MusicHandle
+    struct MusicData
     {
-        void* owner{};
-        SoLoud::WavStream* wavStreamRef{};
+        SoLoud::WavStream wavStream{};
         SoLoud::handle handle{};
+        AudioLoopRange loopRange{};
     };
 
     struct AudioState
@@ -36,8 +36,45 @@ namespace
         SoLoud::Bus sound;
         SoLoud::Bus music;
 
-        MusicHandle currentMusic{};
+        std::shared_ptr<MusicData> currentMusic{};
     } s_audioState{};
+
+    void playMusicFrom(MusicData& musicData, float fromSec, float fadeInDuration)
+    {
+        constexpr float toVolume = 1.0f;
+        const float fromVolume = fadeInDuration > 0.0f ? 0.0f : toVolume;
+
+        const auto newHandle = s_audioState.music.play(musicData.wavStream, fromVolume, 0.0f, true);
+
+        musicData.handle = newHandle;
+
+        s_audioState.global.seek(newHandle, fromSec);
+
+        if (fadeInDuration > 0.0f)
+        {
+            s_audioState.global.fadeVolume(newHandle, toVolume, fadeInDuration);
+        }
+
+        s_audioState.global.setPause(newHandle, false);
+    }
+
+    void loopMusicIfNeeded(MusicData& musicData)
+    {
+        const auto [startSec, endSec] = musicData.loopRange;
+        if (startSec == endSec)
+        {
+            return;
+        }
+
+        if (s_audioState.global.getStreamPosition(musicData.handle) <= endSec)
+        {
+            return;
+        }
+
+        s_audioState.global.stop(musicData.handle);
+
+        playMusicFrom(musicData, startSec, 0.0f);
+    }
 
     struct AudioComponent : IComponent
     {
@@ -70,31 +107,12 @@ namespace
     private:
         void controlMusicLoop()
         {
-            if (s_audioState.currentMusic.owner == nullptr)
+            if (s_audioState.currentMusic == nullptr)
             {
                 return;
             }
 
-            float startSec = 1.0f; // TODO
-            float endSec = 10.0f; // TODO
-            if (s_audioState.global.getStreamPosition(s_audioState.currentMusic.handle) >= endSec)
-            {
-                s_audioState.global.stop(s_audioState.currentMusic.handle);
-
-                const auto newHandle = s_audioState.music.play(
-                    *s_audioState.currentMusic.wavStreamRef, 1.0f, 0.0f, true);
-
-                s_audioState.currentMusic.handle = newHandle;
-
-                if (const auto err = s_audioState.global.seek(newHandle, startSec);
-                    err != SoLoud::SO_NO_ERROR)
-                {
-                    LogError("AudioState: Failed to seek music stream: {}", err);
-                    return;
-                }
-
-                s_audioState.global.setPause(newHandle, false);
-            }
+            loopMusicIfNeeded(*s_audioState.currentMusic);
         }
     };
 }
@@ -137,18 +155,25 @@ struct SoundAudio::Impl
 
 struct MusicAudio::Impl
 {
-    SoLoud::WavStream m_wavStream{};
-    SoLoud::handle m_handle{};
+    std::shared_ptr<MusicData> m_data{std::make_shared<MusicData>()};
 
     bool Init(const std::string& path)
     {
-        if (m_wavStream.load(path.data()) != SoLoud::SO_NO_ERROR)
+        if (m_data->wavStream.load(path.data()) != SoLoud::SO_NO_ERROR)
         {
             LogError("MusicAudio: Failed to load music from path: {}", path);
             return false;
         }
 
         return true;
+    }
+
+    ~Impl()
+    {
+        if (s_audioState.currentMusic == m_data)
+        {
+            s_audioState.currentMusic = nullptr;
+        }
     }
 
     void Play()
@@ -158,9 +183,30 @@ struct MusicAudio::Impl
             return;
         }
 
-        m_handle = s_audioState.music.play(m_wavStream);
+        m_data->handle = s_audioState.music.play(m_data->wavStream);
 
-        s_audioState.currentMusic = {this, &m_wavStream, m_handle};
+        s_audioState.currentMusic = m_data;
+    }
+
+    void SetLoop(const AudioLoopRange& loopRange)
+    {
+        m_data->loopRange = loopRange;
+    }
+
+    void SetLoopAndTransition(const AudioLoopRange& loopRange)
+    {
+        m_data->loopRange = loopRange;
+
+        if (s_audioState.currentMusic != m_data)
+        {
+            return;
+        }
+
+        constexpr float fadeDuration = 1.0;
+        s_audioState.global.fadeVolume(m_data->handle, 0.0f, fadeDuration);
+        s_audioState.global.schedulePause(m_data->handle, fadeDuration);
+
+        playMusicFrom(*m_data, m_data->loopRange.beginSec, fadeDuration);
     }
 };
 
@@ -205,6 +251,27 @@ namespace TY
         {
             p_impl->Play();
         }
+    }
+
+    void MusicAudio::setLoop(AudioLoopRange loop)
+    {
+        if (p_impl)
+        {
+            p_impl->SetLoop(loop);
+        }
+    }
+
+    void MusicAudio::setLoopAndTransition(AudioLoopRange loop)
+    {
+        if (p_impl)
+        {
+            p_impl->SetLoopAndTransition(loop);
+        }
+    }
+
+    float MusicAudio::posSec() const
+    {
+        return p_impl ? s_audioState.global.getStreamPosition(p_impl->m_data->handle) : 0.0f;
     }
 
     namespace detail

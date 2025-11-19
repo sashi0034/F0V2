@@ -30,6 +30,11 @@ namespace TY
             return GetCache().fetch(m_path, nullptr);
         }
 
+        resource_type operator ()() const
+        {
+            return fetchResource();
+        }
+
         operator resource_type() const
         {
             return fetchResource();

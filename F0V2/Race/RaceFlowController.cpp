@@ -76,6 +76,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     std::array<float, 3> m_measuredLapTimes{};
 
+    MusicAudio m_backgroundMusic{};
+
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
@@ -95,6 +97,8 @@ private:
     void update() override
     {
         m_children.updateEach();
+
+        ImmediatePrint("Music: {:.03f}s", Asset_music::MetropolitanBreeze_loop().posSec());
 
         // ゲームオーバーチェック
         const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
@@ -137,7 +141,9 @@ private:
 
     void processRaceFlow(AwaitContext& await)
     {
-        Asset_music::chi_no_isan.fetchResource().play(); // TODO
+        m_backgroundMusic = Asset_music::MetropolitanBreeze_loop();
+        m_backgroundMusic.play(); // TODO
+        m_backgroundMusic.setLoop({2.500f, 40.000f});
 
         g_sharedState->isRaceStarted = false;
 
@@ -159,6 +165,8 @@ private:
 
         popupMajorBanner(MajorBanner::YouGotBoostPower, U"You've Got Boost Power !", 5.0f);
 
+        m_backgroundMusic.setLoopAndTransition({40.000f, 60.000f});
+
         // -----------------------------------------------
 
         await.waitForTrue([&]()
@@ -168,6 +176,8 @@ private:
         });
 
         popupMajorBanner(MajorBanner::TheFinalLap, U"The Final Lap !", 5.0f);
+
+        m_backgroundMusic.setLoopAndTransition({84.700f, 102.800f});
 
         // -----------------------------------------------
 

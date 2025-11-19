@@ -8,6 +8,12 @@ namespace TY
         void SetEnabled(bool enabled);
     }
 
+    struct AudioLoopRange
+    {
+        float beginSec{};
+        float endSec{};
+    };
+
     class SoundAudio
     {
     public:
@@ -30,6 +36,13 @@ namespace TY
         MusicAudio(const std::string& path);
 
         void play() const;
+
+        void setLoop(AudioLoopRange loop);
+
+        void setLoopAndTransition(AudioLoopRange loop);
+
+        [[nodiscard]]
+        float posSec() const;
 
     private:
         struct Impl;
