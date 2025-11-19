@@ -40,6 +40,7 @@ namespace Race
         struct
         {
             RenderTarget boostPad{};
+            RenderTarget jumpPad{};
             RenderTarget pitZone{};
         } gimmickTextures{};
 

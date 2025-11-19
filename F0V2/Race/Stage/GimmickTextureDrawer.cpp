@@ -65,7 +65,11 @@ struct GimmickTextureDrawer::Impl : ActorBase
 
     ConstantBufferWrapper<Gimmick_b10> m_cb10{};
 
-    GenericModelDrawer m_drawer{};
+    GenericModelDrawer m_boostPadDrawer{};
+
+    GenericModelDrawer m_jumpPadDrawer{};
+
+    GenericModelDrawer m_pitZoneDrawer{};
 
     int m_frameCount{};
 
@@ -73,7 +77,25 @@ struct GimmickTextureDrawer::Impl : ActorBase
     {
         const auto model = std::make_shared<DrawerModelBuffer>();
 
-        m_drawer = GenericModelDrawer{
+        m_boostPadDrawer = GenericModelDrawer{
+            GenericModelDrawerParams{}
+            .setModel(model)
+            .setVertexInput({})
+            .setOptions(GraphicsOptions())
+            .setShader(Asset_shader::gimmick_boost_pad)
+            .setCbv10AndLater({m_cb10})
+        };
+
+        m_jumpPadDrawer = GenericModelDrawer{
+            GenericModelDrawerParams{}
+            .setModel(model)
+            .setVertexInput({})
+            .setOptions(GraphicsOptions())
+            .setShader(Asset_shader::gimmick_jump_pad)
+            .setCbv10AndLater({m_cb10})
+        };
+
+        m_pitZoneDrawer = GenericModelDrawer{
             GenericModelDrawerParams{}
             .setModel(model)
             .setVertexInput({})
@@ -105,9 +127,22 @@ private:
     {
         m_cb10.upload();
 
-        const auto bind = g_sharedState->gimmickTextures.pitZone.scopedClearBind();
+        // TODO: カメラから本当に見えるものだけ描画したい
 
-        m_drawer.draw();
+        {
+            const auto bind = g_sharedState->gimmickTextures.boostPad.scopedClearBind();
+            m_boostPadDrawer.draw();
+        }
+
+        {
+            const auto bind = g_sharedState->gimmickTextures.jumpPad.scopedClearBind();
+            m_jumpPadDrawer.draw();
+        }
+
+        {
+            const auto bind = g_sharedState->gimmickTextures.pitZone.scopedClearBind();
+            m_pitZoneDrawer.draw();
+        }
     }
 
     void killed() override

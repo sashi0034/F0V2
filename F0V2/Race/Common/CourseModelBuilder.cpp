@@ -793,8 +793,9 @@ namespace
         model.materials.push_back({
             .name = "boost_pad",
             .parameters = {
-                .diffuse = sRGB(0.63, 0.03, 1).toFloat3()
-            }
+                .diffuse = Float3::One()
+            },
+            .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
         });
     }
 
@@ -853,8 +854,9 @@ namespace
         model.materials.push_back({
             .name = "jump_pad",
             .parameters = {
-                .diffuse = sRGB(0.96, 0.73, 0).toFloat3()
-            }
+                .diffuse = Float3::One()
+            },
+            .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
         });
     }
 

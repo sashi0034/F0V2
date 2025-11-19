@@ -12,6 +12,8 @@ namespace Asset_shader
     static const inline ComputeShaderPathWrapper fsr1_easu_cs{"asset/shader/fsr1/fsr1_easu_cs.hlsl"};
     static const inline ComputeShaderPathWrapper fsr1_rcas_cs{"asset/shader/fsr1/fsr1_rcas_cs.hlsl"};
     static const inline GraphicsShaderPathWrapper gbuffer_pass{"asset/shader/gbuffer_pass.hlsl"};
+    static const inline GraphicsShaderPathWrapper gimmick_boost_pad{"asset/shader/gimmick_boost_pad.hlsl"};
+    static const inline GraphicsShaderPathWrapper gimmick_jump_pad{"asset/shader/gimmick_jump_pad.hlsl"};
     static const inline GraphicsShaderPathWrapper gimmick_pit_zone{"asset/shader/gimmick_pit_zone.hlsl"};
     static const inline GraphicsShaderPathWrapper lambert{"asset/shader/lambert.hlsl"};
     static const inline GraphicsShaderPathWrapper model{"asset/shader/model.hlsl"};

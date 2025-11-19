@@ -2,8 +2,6 @@
 #define TWO_PI (PI * 2)
 #define HALF_PI (PI * 0.5)
 
-Texture2D<float4> g_texture0 : register(t10);
-
 SamplerState g_sampler0 : register(s0);
 
 cbuffer Gimmick_b10 : register(b10)
@@ -52,42 +50,48 @@ float3 sRGB2L_(float3 srgb)
     return srgb * (srgb * (srgb * 0.305306011 + 0.682171111) + 0.012522878);
 }
 
-float sdfHeart(float2 st)
+float circle(float2 uv)
 {
-    st = (st - float2(0.5, 0.38)) * float2(2.1, 2.8);
+    float2 p = uv - float2(0.5, 0.5);
+    float d = length(p);
+    return smoothstep(0.3, 0.28, d);
+}
 
-    return pow(st.x, 2) + pow(st.y - sqrt(abs(st.x)), 2);
+float3 hsv2rgb(float3 c)
+{
+    float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
+}
+
+float distortUV(float2 uv)
+{
+    float x = 2.0 * uv.y + sin(g_time * 1.0);
+    return sin(g_time * 2.0) * 0.1 *
+        sin(5.0 * x) * (-(x - 1.0) * (x - 1.0) + 1.0);
 }
 
 float4 PS(PSInput input) : SV_Target
 {
     float2 uv = input.uv;
-    uv.y -= g_time * 0.1f;
-    uv = frac(uv);
 
-    float2 fracUV = uv.x;
-    fracUV.y = abs(0.5f - frac(uv.y));
+    float distort = distortUV(uv);
+    uv.x += distort;
 
-    const float3 tlC = float3(0.99, 0.4, 0.57);
-    const float3 trC = float3(1, 0.6, 0.07);
-    const float3 brC = float3(1, 0.4, 0);
-    const float3 blC = tlC;
+    // カラフル背景
+    float hue = frac(uv.x + uv.y + g_time * 0.3);
+    float3 bg = hsv2rgb(float3(hue, 1.0, 1.0));
 
-    float3 rgb =
-        tlC * (1 - fracUV.x) * (1 - fracUV.y) +
-        trC * fracUV.x * (1 - fracUV.y) +
-        brC * fracUV.x * fracUV.y +
-        blC * (1 - fracUV.x) * fracUV.y;
+    // RGB ずらし
+    float r = circle(uv + float2(0, -distort) * 0.3);
+    float g = circle(uv + float2(0, distort) * 0.3);
+    float b = circle(uv + float2(distort, 0) * 0.3);
 
-    const float sd1 = sdfHeart(uv);
-    const float f = 1.0 - step(sd1, abs(sin(sd1 * 12 - g_time * 4)));
-    rgb += f * 0.3;
-    rgb.rb *= 1.0 + 1.0 * f;
+    float3 outCol = float3(r, g, b);
+    if (all(outCol == 0.0))
+    {
+        outCol = bg;
+    }
 
-    const float2 uv2 = frac(uv * float2(4, 4) + float2(0, -g_time * 1.0));
-    const float sd2 = sdfHeart(uv2);
-    const float f2 = 0.3f + 0.5 * min(f, step(sd2, abs(sin(sd2 * 4 - g_time * 8))));
-    rgb.g *= f2;
-
-    return float4(sRGB2L_(rgb), 1.0);
+    return float4(sRGB2L_(outCol), 1.0);
 }

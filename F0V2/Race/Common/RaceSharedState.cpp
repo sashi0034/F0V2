@@ -50,15 +50,25 @@ namespace Race
 
         // -----------------------------------------------
 
-        const RenderTargetParams gimmickTextureParams =
-            RenderTargetParams()
+        gimmickTextures.boostPad =
+            RenderTargetParams{}
             .setRtv(
                 RtvParams{}
-                .setSize({256, 256})
+                .setSize(Size::One() * 128)
                 .setClearColor(ColorF32{1.0f, 1.0f}));
 
-        gimmickTextures.boostPad = gimmickTextureParams;
+        gimmickTextures.jumpPad =
+            RenderTargetParams{}
+            .setRtv(
+                RtvParams{}
+                .setSize(Size::One() * 128)
+                .setClearColor(ColorF32{1.0f, 1.0f}));
 
-        gimmickTextures.pitZone = gimmickTextureParams;
+        gimmickTextures.pitZone =
+            RenderTargetParams{}
+            .setRtv(
+                RtvParams{}
+                .setSize(Size::One() * 256)
+                .setClearColor(ColorF32{1.0f, 1.0f}));
     }
 }
