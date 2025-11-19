@@ -93,12 +93,14 @@ private:
         m_cb10->g_time += InGameDeltaTime();
 
         m_frameCount++;
-        if ((m_frameCount % 6) == 0)
+        if ((m_frameCount % 5) == 0)
         {
             drawGimmickTexture();
         }
     }
 
+    // TODO: テクスチャのミップ対応
+    // - MipSlice を変えて UAV を作成し、ComputeShader で書き込む
     void drawGimmickTexture()
     {
         m_cb10.upload();

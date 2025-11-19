@@ -56,10 +56,10 @@ namespace
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, uvRect.tl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, uvRect.tr()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, uvRect.bl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, uvRect.br()};
+        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 2;
@@ -71,10 +71,10 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, uvRect.tl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, uvRect.tr()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, uvRect.bl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, uvRect.br()};
+        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 1;
@@ -167,13 +167,13 @@ namespace
         const FaceVertex& l1,
         const FaceVertex& r1,
         GimmickTriangleAttribute::kind_t gimmick,
-        const CourseModelBuilderOptions& options
-    )
+        const CourseModelBuilderOptions& options,
+        const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, Float2{}};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, Float2{1, 0}};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, Float2{0, 1}};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, Float2{1, 1}};
+        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 2;
@@ -185,10 +185,10 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, Float2{}};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, Float2{1, 0}};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, Float2{0, 1}};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, Float2{1, 1}};
+        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 1;
@@ -265,8 +265,8 @@ namespace
             int v_offset{};
             int i_offset{};
 
-            constexpr float v_step = 1.0f / startingLineStripCount;
-            float u{};
+            constexpr float texH = 1.0f / startingLineStripCount;
+            float texW{};
             for (int m = 0; m < startingLineStripCount; ++m)
             {
                 auto& s0 = segment.midwayStrips[m];
@@ -280,13 +280,13 @@ namespace
                 if (m == 0)
                 {
                     assert((s1.center - s0.center).length()>0);
-                    u = v_step * (s0.rightmost - s0.leftmost).length() / (s1.center - s0.center).length();
+                    texW = texH * (s0.rightmost - s0.leftmost).length() / (s1.center - s0.center).length();
                 }
 
                 pushGroundFaces(
                     vertices, indices, v_offset, i_offset,
                     l0, r0, l1, r1,
-                    options, RectF{0.0f, v_step * m, u, v_step});
+                    options, RectF{0.0f, texH * m, texW, texH});
             }
 
             model.shapes.push_back(ModelShape{
@@ -906,6 +906,8 @@ namespace
         int v_offset{};
         int i_offset{};
 
+        float texH{};
+        float texY{};
         for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
@@ -919,11 +921,21 @@ namespace
             const FaceVertex l1{lr1.first + s1.normal * padElevation, s1.normal};
             const FaceVertex r1{lr1.second + s1.normal * padElevation, s1.normal};
 
+            if (texH == 0.0f)
+            {
+                texH = 2.0f * (s1.center - s0.center).length() / (s0.rightmost - s0.leftmost).length();
+            }
+            else if (texH > 0.0f)
+            {
+                texY += texH;
+            }
+
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
                 l0, r0, l1, r1,
                 GimmickTriangleAttribute::kind_t::PitZone,
-                options);
+                options,
+                RectF{0.0f, texY, 1.0f, texH});
         }
 
         model.shapes.push_back(ModelShape{

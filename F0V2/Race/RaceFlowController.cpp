@@ -303,7 +303,7 @@ private:
         // スピードメーター
         DrawLabelText(ToUtf32(std::format("{:.0f} km/h", player.state.m_velocity.length() * 10.0f)),
                       28.0f,
-                      Screen::SizeF().movedBy(-20.0f, -12.0f),
+                      Screen::SizeF().movedBy(-32.0f, -20.0f),
 
                       Alignment9::BottomRight);
 
