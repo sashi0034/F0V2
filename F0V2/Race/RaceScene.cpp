@@ -9,6 +9,7 @@
 #include "Ai/CharacterAi.h"
 #include "Ai/MetaAi.h"
 #include "Ai/SpatialAi.h"
+#include "Common/CourseFileInfo.h"
 #include "Common/RaceSharedState.h"
 #include "Player/Player.h"
 #include "Stage/StageManager.h"
@@ -28,6 +29,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     ActorContainer m_children{};
 
     RaceContextContent m_state{};
+
+    CourseFileInfo m_courseFileInfo{};
 
     RaceDrawManager m_drawManager{};
 
@@ -65,6 +68,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     void Init()
     {
+        m_courseFileInfo = GetCourseFileInfoByPath(g_sharedState->coursePath);
+
         m_drawManager = m_children.birth(RaceDrawManager());
         m_drawManager.init();
 
@@ -125,6 +130,11 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     const RaceContextContent& state() const override
     {
         return m_state;
+    }
+
+    const CourseFileInfo& courseFileInfo() const override
+    {
+        return m_courseFileInfo;
     }
 
     void registerDrawer(const std::shared_ptr<IRaceDrawer>& drawer) override

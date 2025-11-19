@@ -2,9 +2,9 @@
 #include "RaceSetupScene.h"
 
 #include "Asset0.h"
-#include "CourseFileInfo.h"
 #include "Race/Common/AiRank.h"
 #include "Race/Common/CourseData.h"
+#include "Race/Common/CourseFileInfo.h"
 #include "Race/Common/CourseSegmentBuilder.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
@@ -165,7 +165,7 @@ private:
                     s_selectedItem.aiRank,
                     m_rowIndex == 0);
 
-        const auto& courseInfo = GetAllCourseFileInfos()[s_selectedItem.courseIndex];
+        const auto& courseInfo = Race::GetAllCourseFileInfos()[s_selectedItem.courseIndex];
         drawItemRow(lineRegions[1],
                     U"\U000F0982",
                     U"コース",
@@ -237,7 +237,7 @@ private:
         else if (m_rowIndex == 1)
         {
             s_selectedItem.courseIndex =
-                Modulo<int>(s_selectedItem.courseIndex + dir.x, GetAllCourseFileInfos().size());
+                Modulo<int>(s_selectedItem.courseIndex + dir.x, Race::GetAllCourseFileInfos().size());
         }
         else if (m_rowIndex == 2)
         {
@@ -279,7 +279,7 @@ namespace RaceSetup
 
     std::string RaceSetupScene::selectedCourseFilepath() const
     {
-        const auto& courseInfo = GetAllCourseFileInfos()[s_selectedItem.courseIndex];
+        const auto& courseInfo = Race::GetAllCourseFileInfos()[s_selectedItem.courseIndex];
         return courseInfo.filepath;
     }
 

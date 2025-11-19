@@ -4,6 +4,7 @@
 #include "Asset.generated.h"
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
+#include "Common/CourseFileInfo.h"
 #include "Common/RaceSharedState.h"
 #include "UI/UI_DurabilityBar.h"
 #include "UI/UI_LabelText.h"
@@ -143,9 +144,9 @@ private:
 
     void processRaceFlow(AwaitContext& await)
     {
-        m_backgroundMusic = Asset_music::MetropolitanBreeze_loop();
+        m_backgroundMusic = GetRaceContext().courseFileInfo().music;
         m_backgroundMusic.play(); // TODO
-        m_backgroundMusic.setLoop({2.500f, 40.000f});
+        m_backgroundMusic.setLoop(GetRaceContext().courseFileInfo().musicLoopRanges[0]);
 
         g_sharedState->isRaceStarted = false;
 
@@ -167,7 +168,7 @@ private:
 
         popupMajorBanner(MajorBanner::YouGotBoostPower, U"You've Got Boost Power !", 5.0f);
 
-        m_backgroundMusic.setLoopAndTransition({40.000f, 60.000f});
+        m_backgroundMusic.setLoopAndTransition(GetRaceContext().courseFileInfo().musicLoopRanges[1]);
 
         // -----------------------------------------------
 
@@ -179,7 +180,7 @@ private:
 
         popupMajorBanner(MajorBanner::TheFinalLap, U"The Final Lap !", 5.0f);
 
-        m_backgroundMusic.setLoopAndTransition({84.700f, 102.800f});
+        m_backgroundMusic.setLoopAndTransition(GetRaceContext().courseFileInfo().musicLoopRanges[2]);
 
         // -----------------------------------------------
 

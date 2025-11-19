@@ -7,6 +7,8 @@ namespace Race
 {
     struct RaceContextContent;
 
+    struct CourseFileInfo;
+
     class StageManager;
 
     class SpatialAi;
@@ -22,6 +24,8 @@ namespace Race
 
         virtual RaceContextContent& state() = 0;
         virtual const RaceContextContent& state() const = 0;
+
+        virtual const CourseFileInfo& courseFileInfo() const = 0;
 
         virtual void registerDrawer(const std::shared_ptr<IRaceDrawer>& drawer) = 0;
         virtual void unregisterDrawer(const IRaceDrawer* drawer) = 0;

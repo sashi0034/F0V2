@@ -1,7 +1,7 @@
 #pragma once
-#include "TY/Array.h"
+#include "ResourcePathWrapper.h"
 
-namespace RaceSetup
+namespace Race
 {
     struct CourseFileInfo
     {
@@ -10,7 +10,11 @@ namespace RaceSetup
         std::u32string description1;
         std::u32string description2;
         int difficulty;
+        MusicAudioPathWrapper music;
+        std::array<AudioLoopRange, 3> musicLoopRanges;
     };
 
     const Array<CourseFileInfo>& GetAllCourseFileInfos();
+
+    const CourseFileInfo& GetCourseFileInfoByPath(const std::string& path);
 }

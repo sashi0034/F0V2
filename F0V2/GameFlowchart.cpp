@@ -41,6 +41,7 @@ namespace
         Array<Race::CourseSegment> segments{};
         BuildCourseSegmentIfNeeded(segments, course.nodes);
 
+        Race::g_sharedState->coursePath = courseFilepath;
         Race::g_sharedState->courseSegments = std::move(segments);
     }
 }

@@ -19,6 +19,8 @@ namespace Race
 
         float farDepth = 500.0f;
 
+        std::string coursePath{};
+
         Array<CourseSegment> courseSegments{};
 
         struct
