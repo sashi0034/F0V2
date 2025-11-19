@@ -67,10 +67,10 @@ float4 PS(PSInput input) : SV_Target
     float r = length(st);
     float d = min(abs(cos(phase)) + 0.4, abs(sin(phase)) + 1.1) * 0.32;
 
-    float3 color = lerp(0.8, float3(0, 0.4, 1), 0.1 + 0.8 * input.uv.y);
+    float3 color = lerp(float3(1, 0.87, 0.13), float3(1, 0.47, 0.03), input.uv.y);
 
     float petal = step(r, d);
-    color = lerp(color, lerp(float3(1, 0.3, 1), 1, r * 2.5), petal);
+    color = lerp(color, lerp(float3(1, 0.3, 1), float3(0.65, 0.03, 0.93), r * 2.5), petal);
 
     float cap = step(distance(0, st), 0.07);
     color = lerp(color, float3(0.99, 0.78, 0), cap);
