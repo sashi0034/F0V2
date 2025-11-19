@@ -11,8 +11,6 @@ namespace Race
 {
     struct RaceSharedState : IInlineComponent
     {
-        float groundPositionY = -50.0f;
-
         float fov = 75.0_deg;
 
         float nearDepth = 0.1f;
@@ -38,6 +36,12 @@ namespace Race
         } cb{};
 
         RenderTarget shadowMap{};
+
+        struct
+        {
+            RenderTarget boostPad{};
+            RenderTarget pitZone{};
+        } gimmickTextures{};
 
         bool isRaceStarted{};
 

@@ -4,6 +4,7 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "StageStaticCollider.h"
+#include "GimmickTextureDrawer.h"
 #include "CB/Skydome.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
@@ -192,6 +193,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
     StageStaticCollider m_staticCollider{};
 
+    GimmickTextureDrawer m_gimmickTextureDrawer{};
+
     Array<start_position> m_startPositions{};
 
     DistanceCache m_distanceCache{};
@@ -269,6 +272,9 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         m_staticCollider = StageStaticCollider();
         m_staticCollider.build(colliders);
 
+        m_gimmickTextureDrawer = m_children.birth(GimmickTextureDrawer());
+        m_gimmickTextureDrawer.init();
+
         buildStartPositions();
 
         buildDistanceCache();
@@ -277,6 +283,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 private:
     void update() override
     {
+        m_children.updateEach();
+
         auto& segments = g_sharedState->courseSegments;
 
         // コース中心を線分で描画
@@ -409,8 +417,9 @@ private:
         {
             for (int z = -5; z <= 5; ++z)
             {
+                constexpr float groundY = -50.0f;
                 m_groundPlaneDrawer
-                    .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, g_sharedState->groundPositionY, z * 100.0f}))
+                    .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, groundY, z * 100.0f}))
                     .draw();
             }
         }

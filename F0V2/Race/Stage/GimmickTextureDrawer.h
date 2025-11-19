@@ -3,10 +3,10 @@
 
 namespace Race
 {
-    class Stage_template : public ActorHandle
+    class GimmickTextureDrawer : public ActorHandle
     {
     public:
-        Stage_template();
+        GimmickTextureDrawer();
 
         void init();
 

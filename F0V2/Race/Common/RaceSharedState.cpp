@@ -47,5 +47,18 @@ namespace Race
                 .setClearColor(ColorF32{1.0f, 1.0f}) // FIXME?
                 .setFormat(DXGI_FORMAT_R32_FLOAT)
             );
+
+        // -----------------------------------------------
+
+        const RenderTargetParams gimmickTextureParams =
+            RenderTargetParams()
+            .setRtv(
+                RtvParams{}
+                .setSize({256, 256})
+                .setClearColor(ColorF32{1.0f, 1.0f}));
+
+        gimmickTextures.boostPad = gimmickTextureParams;
+
+        gimmickTextures.pitZone = gimmickTextureParams;
     }
 }

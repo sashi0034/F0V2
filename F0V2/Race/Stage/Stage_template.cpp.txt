@@ -1,8 +1,6 @@
 
 #include "Asset.generated.h"
 #include "TY/ActorContainer.h"
-#include "TY/ModelDrawer.h"
-#include "TY_Extension/GameObjectBase.h"
 
 using namespace Race;
 
@@ -10,34 +8,26 @@ namespace
 {
 }
 
-struct Stage_template::Impl : GameObjectBase
+struct Stage_template::Impl : ActorBase
 {
+#if defined(_DEBUG)
+    std::u32string m_debugName = U"Stage_template";
+#endif
     ActorContainer m_children{};
-
-    ModelDrawer m_drawer{};
 
     void Init()
     {
-        m_drawer =
-            ModelDrawerParams{}
-            .setModel(Asset_model::cinnamon)
-            .setShader(Asset_shader::model);
     }
 
 private:
     void update() override
     {
-        m_drawer.uploadWorldMatrix(Mat4x4::Identity()).draw();
+        m_children.updateEach();
     }
 
     void killed() override
     {
         m_children.killEach();
-    }
-
-    std::u32string name() const override
-    {
-        return U"Stage_template";
     }
 };
 
@@ -51,10 +41,9 @@ namespace Race
     void Stage_template::init()
     {
         p_impl->Init();
-        GameObjectHandle::init();
     }
 
-    std::shared_ptr<GameObjectBase> Stage_template::asGameObject() const
+    std::shared_ptr<ActorBase> Stage_template::asActor() const
     {
         return p_impl;
     }

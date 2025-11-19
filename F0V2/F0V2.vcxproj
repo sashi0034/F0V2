@@ -176,6 +176,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\shader\fsr1\ffx_fsr1.h" />
     <Content Include="asset\shader\fsr1\fsr1_easu_cs.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_rcas_cs.hlsl" />
+    <Content Include="asset\shader\gimmick_pit_zone.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <Content Include="asset\shader\scenery1_cs.hlsl" />
@@ -192,6 +193,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <ClCompile Include="Race\Machine\MachineEffectDrawer.cpp" />
     <ClCompile Include="Race\RaceDrawQualityController.cpp" />
     <ClCompile Include="Race\RaceDrawUpscaler.cpp" />
+    <ClCompile Include="Race\Stage\GimmickTextureDrawer.cpp" />
     <ClCompile Include="Race\UI\UI_DurabilityBar.cpp" />
     <ClCompile Include="Race\UI\UI_LabelText.cpp" />
     <ClCompile Include="Race\Machine\MachineDrawer.cpp" />
@@ -327,6 +329,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <ClInclude Include="Race\Machine\MachineEffectDrawer.h" />
     <ClInclude Include="Race\RaceDrawQualityController.h" />
     <ClInclude Include="Race\RaceDrawUpscaler.h" />
+    <ClInclude Include="Race\Stage\GimmickTextureDrawer.h" />
     <ClInclude Include="Race\UI\UI_DurabilityBar.h" />
     <ClInclude Include="Race\UI\UI_LabelText.h" />
     <ClInclude Include="Race\IRaceDrawer.h" />

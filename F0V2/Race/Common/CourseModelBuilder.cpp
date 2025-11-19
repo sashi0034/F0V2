@@ -2,6 +2,7 @@
 #include "CourseModelBuilder.h"
 
 #include "CourseConstants.h"
+#include "RaceSharedState.h"
 #include "TY/DynamicTexture.h"
 #include "TY/Image.h"
 #include "TY/Quaternion.h"
@@ -931,8 +932,9 @@ namespace
         model.materials.push_back({
             .name = "pit_zone",
             .parameters = {
-                .diffuse = Palette::Violet.sRGBToLinear().toFloat3()
-            }
+                .diffuse = Float3::One()
+            },
+            .diffuseTexture = g_sharedState->gimmickTextures.pitZone.getFrontRtv()
         });
     }
 

@@ -14,46 +14,47 @@
 
 using namespace Race;
 
-constexpr int maxParticleCount = 1024;
-
-struct EffectModelBuffer : IGenericModelBuffer
-{
-    GenericModelShapeBufferElement m_shape{};
-
-    EffectModelBuffer()
-    {
-        m_shape.materialIndex = 0;
-        m_shape.indexBuffer = IndexBuffer::Placeholder(0);
-    }
-
-    int shapeCount() const override
-    {
-        return 1; // Assuming a single shape
-    }
-
-    GenericModelShapeBufferElement shapeAt(int index) const override
-    {
-        return m_shape;
-    }
-
-    int materialCount() const override
-    {
-        return 1; // Assuming a single material for the shape
-    }
-
-    ConstantBufferArrayImpl materialCbv() const override
-    {
-        return {Empty};
-    }
-
-    Array<Array<ShaderResourceType>> materialSrv() const override
-    {
-        return {};
-    }
-};
-
 namespace
 {
+    constexpr int maxParticleCount = 1024;
+
+    // TODO
+    struct DrawerModelBuffer : IGenericModelBuffer
+    {
+        GenericModelShapeBufferElement m_shape{};
+
+        DrawerModelBuffer()
+        {
+            m_shape.materialIndex = 0;
+            m_shape.indexBuffer = IndexBuffer::Placeholder(0);
+        }
+
+        int shapeCount() const override
+        {
+            return 1; // Assuming a single shape
+        }
+
+        GenericModelShapeBufferElement shapeAt(int index) const override
+        {
+            return m_shape;
+        }
+
+        int materialCount() const override
+        {
+            return 1; // Assuming a single material for the shape
+        }
+
+        ConstantBufferArrayImpl materialCbv() const override
+        {
+            return {Empty};
+        }
+
+        Array<Array<ShaderResourceType>> materialSrv() const override
+        {
+            return {};
+        }
+    };
+
     struct ParticleElement
     {
         Float3 worldPos;
@@ -92,7 +93,7 @@ struct MachineEffectDrawer::Impl : IRaceDrawer
 
     void Init()
     {
-        const auto model = std::make_shared<EffectModelBuffer>();
+        const auto model = std::make_shared<DrawerModelBuffer>();
 
         m_indexBuffer = model->m_shape.indexBuffer;
 
