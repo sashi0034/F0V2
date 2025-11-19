@@ -98,7 +98,9 @@ private:
     {
         m_children.updateEach();
 
+#if defined(_DEBUG) && 1
         ImmediatePrint("Music: {:.03f}s", Asset_music::MetropolitanBreeze_loop().posSec());
+#endif
 
         // ゲームオーバーチェック
         const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
@@ -286,6 +288,8 @@ private:
                     MakeTimeoutTask(60.0s)
                 }
             );
+
+            m_backgroundMusic.stop();
 
             g_sharedState->isRaceEnded = true;
         });

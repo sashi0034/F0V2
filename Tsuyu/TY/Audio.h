@@ -37,6 +37,8 @@ namespace TY
 
         void play() const;
 
+        void stop(float fadeOutDuration = 1.0f) const;
+
         void setLoop(AudioLoopRange loop);
 
         void setLoopAndTransition(AudioLoopRange loop);

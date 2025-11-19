@@ -58,6 +58,19 @@ namespace
         s_audioState.global.setPause(newHandle, false);
     }
 
+    void stopMusic(const MusicData& musicData, float fadeOutDuration)
+    {
+        if (fadeOutDuration > 0.0f)
+        {
+            s_audioState.global.fadeVolume(musicData.handle, 0.0f, fadeOutDuration);
+            s_audioState.global.schedulePause(musicData.handle, fadeOutDuration);
+        }
+        else
+        {
+            s_audioState.global.stop(musicData.handle);
+        }
+    }
+
     void loopMusicIfNeeded(MusicData& musicData)
     {
         const auto [startSec, endSec] = musicData.loopRange;
@@ -70,6 +83,17 @@ namespace
         {
             return;
         }
+
+        // -----------------------------------------------
+        // ループ実行
+
+        if (s_audioState.global.seek(musicData.handle, startSec) == SoLoud::SO_NO_ERROR)
+        {
+            return;
+        }
+
+        // -----------------------------------------------
+        // workaround: ループ出来ない場合は再作成
 
         s_audioState.global.stop(musicData.handle);
 
@@ -183,9 +207,26 @@ struct MusicAudio::Impl
             return;
         }
 
+        if (s_audioState.currentMusic)
+        {
+            stopMusic(*s_audioState.currentMusic, 1.0f);
+
+            s_audioState.currentMusic = nullptr;
+        }
+
         m_data->handle = s_audioState.music.play(m_data->wavStream);
 
         s_audioState.currentMusic = m_data;
+    }
+
+    void Stop(float fadeDuration)
+    {
+        if (s_audioState.currentMusic == m_data)
+        {
+            s_audioState.currentMusic = nullptr;
+        }
+
+        stopMusic(*m_data, fadeDuration);
     }
 
     void SetLoop(const AudioLoopRange& loopRange)
@@ -250,6 +291,14 @@ namespace TY
         if (p_impl)
         {
             p_impl->Play();
+        }
+    }
+
+    void MusicAudio::stop(float fadeOutDuration) const
+    {
+        if (p_impl)
+        {
+            p_impl->Stop(fadeOutDuration);
         }
     }
 
