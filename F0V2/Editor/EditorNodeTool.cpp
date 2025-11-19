@@ -175,7 +175,7 @@ private:
 
         for (const auto i : rebuildIndexes)
         {
-            const auto modelBuffer = BuildCourseModel(m_segments[i]);
+            const auto modelBuffer = BuildCourseModel(m_segments[i], {});
             if (modelBuffer.isEmpty())
             {
                 m_courseDrawers[i] = {};

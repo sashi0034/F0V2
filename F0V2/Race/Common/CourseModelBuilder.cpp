@@ -2,14 +2,41 @@
 #include "CourseModelBuilder.h"
 
 #include "CourseConstants.h"
+#include "TY/DynamicTexture.h"
+#include "TY/Image.h"
 #include "TY/Quaternion.h"
 #include "TY/Immediate3D.h"
+#include "TY/InlineComponent.h"
 #include "TY/Palette.h"
+#include "TY/Rect.h"
 
 using namespace Race;
 
 namespace
 {
+    Image createStartingLineImage()
+    {
+        constexpr int half = 32;
+        Image image{Size{half * 2, half * 2}};
+        for (int y = 0; y < image.size().x; ++y)
+        {
+            for (int x = 0; x < image.size().y; ++x)
+            {
+                const bool isWhite = (x / half + y / half) % 2 == 0;
+                image[{x, y}] = (isWhite ? Palette::White : Palette::Black).toColorU8();
+            }
+        }
+
+        return image;
+    }
+
+    struct BuilderCache : IInlineComponent
+    {
+        DynamicTexture startingLineTexture{createStartingLineImage()};
+    };
+
+    InlineComponent<BuilderCache> s_builderCache{};
+
     struct FaceVertex
     {
         Float3 pos{};
@@ -25,12 +52,13 @@ namespace
         const FaceVertex& r0,
         const FaceVertex& l1,
         const FaceVertex& r1,
-        CoursePolygoneCollider* outCollider = nullptr)
+        const CourseModelBuilderOptions& options,
+        const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, Float2{}};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, Float2{1, 0}};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, Float2{0, 1}};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, Float2{1, 1}};
+        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, uvRect.tl()};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, uvRect.tr()};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, uvRect.bl()};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, uvRect.br()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 2;
@@ -42,10 +70,10 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, Float2{}};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, Float2{1, 0}};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, Float2{0, 1}};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, Float2{1, 1}};
+        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, uvRect.tl()};
+        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, uvRect.tr()};
+        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, uvRect.bl()};
+        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, uvRect.br()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 1;
@@ -57,7 +85,7 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        if (outCollider)
+        if (options.outCollider)
         {
             const std::array normals_00_10_01_11{
                 /* 00: */ l0.normal, /* 10: */ r0.normal, /* 01: */ l1.normal, /* 11: */ r1.normal
@@ -86,15 +114,19 @@ namespace
             if (CD.dot(N) >= 0)
             {
                 // 10-01 対角線
-                outCollider->groundTris.push_back(IndexedTriangle{p10, p01, p00, outCollider->groundAttrs.size()});
-                outCollider->groundAttrs.push_back(GroundTriangleAttribute{
+                options.outCollider->groundTris.push_back(IndexedTriangle{
+                    p10, p01, p00, options.outCollider->groundAttrs.size()
+                });
+                options.outCollider->groundAttrs.push_back(GroundTriangleAttribute{
                     GroundTriangleAttribute::Triangle_10_01_00,
                     normals_00_10_01_11,
                     p11
                 });
 
-                outCollider->groundTris.push_back(IndexedTriangle{p10, p11, p01, outCollider->groundAttrs.size()});
-                outCollider->groundAttrs.push_back(GroundTriangleAttribute{
+                options.outCollider->groundTris.push_back(IndexedTriangle{
+                    p10, p11, p01, options.outCollider->groundAttrs.size()
+                });
+                options.outCollider->groundAttrs.push_back(GroundTriangleAttribute{
                     GroundTriangleAttribute::Triangle_10_11_01,
                     normals_00_10_01_11,
                     p00
@@ -103,15 +135,19 @@ namespace
             else
             {
                 // 00-11 対角線
-                outCollider->groundTris.push_back(IndexedTriangle{p00, p10, p11, outCollider->groundAttrs.size()});
-                outCollider->groundAttrs.push_back(GroundTriangleAttribute{
+                options.outCollider->groundTris.push_back(IndexedTriangle{
+                    p00, p10, p11, options.outCollider->groundAttrs.size()
+                });
+                options.outCollider->groundAttrs.push_back(GroundTriangleAttribute{
                     GroundTriangleAttribute::Triangle_00_10_11,
                     normals_00_10_01_11,
                     p01
                 });
 
-                outCollider->groundTris.push_back(IndexedTriangle{p00, p11, p01, outCollider->groundAttrs.size()});
-                outCollider->groundAttrs.push_back(GroundTriangleAttribute{
+                options.outCollider->groundTris.push_back(IndexedTriangle{
+                    p00, p11, p01, options.outCollider->groundAttrs.size()
+                });
+                options.outCollider->groundAttrs.push_back(GroundTriangleAttribute{
                     GroundTriangleAttribute::Triangle_00_11_01,
                     normals_00_10_01_11,
                     p10
@@ -130,7 +166,7 @@ namespace
         const FaceVertex& l1,
         const FaceVertex& r1,
         GimmickTriangleAttribute::kind_t gimmick,
-        CoursePolygoneCollider* outCollider = nullptr
+        const CourseModelBuilderOptions& options
     )
     {
         vertices[v_offset] = ModelVertex{l1.pos, l1.normal, Float2{}};
@@ -163,61 +199,110 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        if (outCollider)
+        if (options.outCollider)
         {
-            outCollider->gimmickTris.push_back(IndexedTriangle{
-                l1.pos, l0.pos, r1.pos, outCollider->gimmickAttrs.size()
+            options.outCollider->gimmickTris.push_back(IndexedTriangle{
+                l1.pos, l0.pos, r1.pos, options.outCollider->gimmickAttrs.size()
             });
-            outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
+            options.outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
                 gimmick
             });
 
-            outCollider->gimmickTris.push_back(IndexedTriangle{
-                r1.pos, l0.pos, r0.pos, outCollider->gimmickAttrs.size()
+            options.outCollider->gimmickTris.push_back(IndexedTriangle{
+                r1.pos, l0.pos, r0.pos, options.outCollider->gimmickAttrs.size()
             });
-            outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
+            options.outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
                 gimmick
             });
         }
     }
 
     void buildRoadModel(
-        ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+        ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
-        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
-        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
-        int v_offset{};
-        int i_offset{};
+        const bool createStartingLine = options.createStartingLine;
+        constexpr int startingLineStripCount = 2;
 
-        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
         {
-            auto& s0 = segment.midwayStrips[m];
-            auto& s1 = segment.midwayStrips[m + 1];
+            Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
+            Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
+            int v_offset{};
+            int i_offset{};
 
-            const FaceVertex l0{s0.leftmost, s0.normal};
-            const FaceVertex r0{s0.rightmost, s0.normal};
-            const FaceVertex l1{s1.leftmost, s1.normal};
-            const FaceVertex r1{s1.rightmost, s1.normal};
+            const int m0 = createStartingLine ? startingLineStripCount : 0;
+            for (int m = m0; m < segment.midwayStrips.size() - 1; ++m)
+            {
+                auto& s0 = segment.midwayStrips[m];
+                auto& s1 = segment.midwayStrips[m + 1];
 
-            pushGroundFaces(
-                vertices, indices, v_offset, i_offset,
-                l0, r0, l1, r1,
-                outCollider);
+                const FaceVertex l0{s0.leftmost, s0.normal};
+                const FaceVertex r0{s0.rightmost, s0.normal};
+                const FaceVertex l1{s1.leftmost, s1.normal};
+                const FaceVertex r1{s1.rightmost, s1.normal};
+
+                pushGroundFaces(
+                    vertices, indices, v_offset, i_offset,
+                    l0, r0, l1, r1,
+                    options);
+            }
+
+            model.shapes.push_back(ModelShape{
+                std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+            });
+            model.materials.push_back({
+                .name = "plain",
+                .parameters = {
+                    .diffuse = sRGB(Float3::One() * 0.5f).toFloat3()
+                }
+            });
         }
 
-        model.shapes.push_back(ModelShape{
-            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "plain",
-            .parameters = {
-                .diffuse = sRGB(Float3::One() * 0.5f).toFloat3()
+        if (createStartingLine)
+        {
+            Array<ModelVertex> vertices(startingLineStripCount * 8);
+            Array<uint16_t> indices(startingLineStripCount * 12);
+            int v_offset{};
+            int i_offset{};
+
+            constexpr float v_step = 1.0f / startingLineStripCount;
+            float u{};
+            for (int m = 0; m < startingLineStripCount; ++m)
+            {
+                auto& s0 = segment.midwayStrips[m];
+                auto& s1 = segment.midwayStrips[m + 1];
+
+                const FaceVertex l0{s0.leftmost, s0.normal};
+                const FaceVertex r0{s0.rightmost, s0.normal};
+                const FaceVertex l1{s1.leftmost, s1.normal};
+                const FaceVertex r1{s1.rightmost, s1.normal};
+
+                if (m == 0)
+                {
+                    assert((s1.center - s0.center).length()>0);
+                    u = v_step * (s0.rightmost - s0.leftmost).length() / (s1.center - s0.center).length();
+                }
+
+                pushGroundFaces(
+                    vertices, indices, v_offset, i_offset,
+                    l0, r0, l1, r1,
+                    options, RectF{0.0f, v_step * m, u, v_step});
             }
-        });
+
+            model.shapes.push_back(ModelShape{
+                std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+            });
+            model.materials.push_back({
+                .name = "starting_line",
+                .parameters = {
+                    .diffuse = Float3::One(),
+                },
+                .diffuseTexture = s_builderCache->startingLineTexture,
+            });
+        }
     }
 
     void buildPipeModel(
-        ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+        ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         // TODO: 終端部分の調整
 
@@ -292,7 +377,7 @@ namespace
                     pushGroundFaces(
                         vertices, indices, v_offset, i_offset,
                         l0, r0, l1, r1,
-                        outCollider);
+                        options);
                 }
             }
         }
@@ -325,7 +410,7 @@ namespace
                 pushGroundFaces(
                     vertices, indices, v_offset, i_offset,
                     l0, r0, l1, r1,
-                    outCollider);
+                    options);
             }
         }
 
@@ -373,7 +458,7 @@ namespace
                     pushGroundFaces(
                         vertices, indices, v_offset, i_offset,
                         l0, r0, l1, r1,
-                        outCollider);
+                        options);
                 }
             }
         }
@@ -389,7 +474,7 @@ namespace
         });
     }
 
-    void buildCylinderModel(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildCylinderModel(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         constexpr int subdivision = CylinderSubdivision;
         constexpr int entryExitSubdivision = CylinderSubdivision * 2;
@@ -462,7 +547,6 @@ namespace
                     r0.pos = cap_r0.pos * (1 - s0_rate) + cap_r1.pos * s0_rate;
                     l1.pos = cap_l0.pos * (1 - s1_rate) + cap_l1.pos * s1_rate;
                     r1.pos = cap_r0.pos * (1 - s1_rate) + cap_r1.pos * s1_rate;
-                    // TODO: 法線計算を修正
                     l0.normal = (cap_l0.normal * (1 - s0_rate) + cap_l1.normal * s0_rate).normalized();
                     r0.normal = (cap_r0.normal * (1 - s0_rate) + cap_r1.normal * s0_rate).normalized();
                     l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
@@ -471,7 +555,7 @@ namespace
                     pushGroundFaces(
                         vertices, indices, v_offset, i_offset,
                         l0, r0, l1, r1,
-                        outCollider);
+                        options);
                 }
             }
         }
@@ -529,7 +613,7 @@ namespace
                 pushGroundFaces(
                     vertices, indices, v_offset, i_offset,
                     l0, r0, l1, r1,
-                    outCollider);
+                    options);
             }
         }
 
@@ -583,7 +667,7 @@ namespace
                     pushGroundFaces(
                         vertices, indices, v_offset, i_offset,
                         l0, r0, l1, r1,
-                        outCollider);
+                        options);
                 }
             }
         }
@@ -601,7 +685,7 @@ namespace
 
     // -----------------------------------------------
 
-    void buildBarrier_Road(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildBarrier_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 2 * 8);
         Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 2 * 12);
@@ -634,12 +718,12 @@ namespace
                 vertices, indices, v_offset, i_offset,
                 l0b, l1b, l0t, l1t,
                 GimmickTriangleAttribute::kind_t::Barrier,
-                outCollider);
+                options);
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
                 r1b, r0b, r1t, r0t,
                 GimmickTriangleAttribute::kind_t::Barrier,
-                outCollider);
+                options);
         }
 
         model.shapes.push_back(ModelShape{
@@ -653,7 +737,7 @@ namespace
         });
     }
 
-    void buildBoostPad_Road(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildBoostPad_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         constexpr float padElevation = 0.5f;
         constexpr float padLength = 10.0f;
@@ -700,7 +784,7 @@ namespace
             vertices, indices, v_offset, i_offset,
             l0, r0, l1, r1,
             GimmickTriangleAttribute::kind_t::BoostPad,
-            outCollider);
+            options);
 
         model.shapes.push_back(ModelShape{
             std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
@@ -713,7 +797,7 @@ namespace
         });
     }
 
-    void buildJumpPad_Road(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildJumpPad_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         constexpr float padElevation = 0.5f;
         constexpr float padLength = 10.0f;
@@ -760,7 +844,7 @@ namespace
             vertices, indices, v_offset, i_offset,
             l0, r0, l1, r1,
             GimmickTriangleAttribute::kind_t::JumpPad,
-            outCollider);
+            options);
 
         model.shapes.push_back(ModelShape{
             std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
@@ -805,7 +889,8 @@ namespace
         }
     }
 
-    void buildPitZone_Road(ModelData& model, const CourseSegment& segment, LCR lcr, CoursePolygoneCollider* outCollider)
+    void buildPitZone_Road(ModelData& model, const CourseSegment& segment, LCR lcr,
+                           const CourseModelBuilderOptions& options)
     {
         constexpr float padElevation = 0.5f;
 
@@ -837,7 +922,7 @@ namespace
                 vertices, indices, v_offset, i_offset,
                 l0, r0, l1, r1,
                 GimmickTriangleAttribute::kind_t::PitZone,
-                outCollider);
+                options);
         }
 
         model.shapes.push_back(ModelShape{
@@ -851,7 +936,7 @@ namespace
         });
     }
 
-    void buildGimmickModel(ModelData& model, const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    void buildGimmickModel(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         for (const auto& gimmick : segment.gimmicks)
         {
@@ -860,44 +945,44 @@ namespace
             case CourseGimmickKind::Barrier:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildBarrier_Road(model, segment, outCollider);
+                    buildBarrier_Road(model, segment, options);
                 }
                 break;
             case CourseGimmickKind::BoostPad_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildBoostPad_Road(model, segment, outCollider);
+                    buildBoostPad_Road(model, segment, options);
                 }
                 break;
             case CourseGimmickKind::JumpPad_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildJumpPad_Road(model, segment, outCollider);
+                    buildJumpPad_Road(model, segment, options);
                 }
                 break;
             case CourseGimmickKind::PitZone_L:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildPitZone_Road(model, segment, LCR::L, outCollider);
+                    buildPitZone_Road(model, segment, LCR::L, options);
                 }
                 break;
             case CourseGimmickKind::PitZone_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildPitZone_Road(model, segment, LCR::C, outCollider);
+                    buildPitZone_Road(model, segment, LCR::C, options);
                 }
                 break;
             case CourseGimmickKind::PitZone_R:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildPitZone_Road(model, segment, LCR::R, outCollider);
+                    buildPitZone_Road(model, segment, LCR::R, options);
                 }
                 break;
             case CourseGimmickKind::PitZone_LR:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildPitZone_Road(model, segment, LCR::L, outCollider);
-                    buildPitZone_Road(model, segment, LCR::R, outCollider);
+                    buildPitZone_Road(model, segment, LCR::L, options);
+                    buildPitZone_Road(model, segment, LCR::R, options);
                 }
                 break;
             default:
@@ -910,7 +995,7 @@ namespace
 
 namespace Race
 {
-    ModelBuffer BuildCourseModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider)
+    ModelBuffer BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         assert(segment.midwayStrips.size() > 0);
 
@@ -918,15 +1003,15 @@ namespace Race
 
         if (segment.style == CourseSegmentStyle::Road)
         {
-            buildRoadModel(model, segment, outCollider);
+            buildRoadModel(model, segment, options);
         }
         else if (segment.style == CourseSegmentStyle::Pipe)
         {
-            buildPipeModel(model, segment, outCollider);
+            buildPipeModel(model, segment, options);
         }
         else if (segment.style == CourseSegmentStyle::Cylinder)
         {
-            buildCylinderModel(model, segment, outCollider);
+            buildCylinderModel(model, segment, options);
         }
         else if (segment.style == CourseSegmentStyle::Gap)
         {
@@ -938,7 +1023,7 @@ namespace Race
             return {};
         }
 
-        buildGimmickModel(model, segment, outCollider);
+        buildGimmickModel(model, segment, options);
 
         return model;
     }

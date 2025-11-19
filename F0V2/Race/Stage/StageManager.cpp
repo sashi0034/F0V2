@@ -233,10 +233,19 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         m_courseLength = 0.0f;
         m_triangleCount = 0;
         Array<CoursePolygoneCollider> colliders{};
-        for (const auto& segment : g_sharedState->courseSegments)
+        for (int i = 0; i < g_sharedState->courseSegments.size(); ++i)
         {
+            const auto& segment = g_sharedState->courseSegments[i];
+
             colliders.push_back({});
-            const auto courseModel = BuildCourseModel(segment, &colliders.back());
+            const auto courseModel = BuildCourseModel(
+                segment,
+                {
+                    .createStartingLine = i == 0,
+                    .outCollider = &colliders.back()
+                }
+            );
+
             if (courseModel.isEmpty())
             {
                 m_courseDrawers.push_back({});

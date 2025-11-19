@@ -16,5 +16,11 @@ namespace Race
         Array<GimmickTriangleAttribute> gimmickAttrs{};
     };
 
-    ModelBuffer BuildCourseModel(const CourseSegment& segment, CoursePolygoneCollider* outCollider = nullptr);
+    struct CourseModelBuilderOptions
+    {
+        bool createStartingLine{};
+        CoursePolygoneCollider* outCollider = nullptr;
+    };
+
+    ModelBuffer BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options);
 }
