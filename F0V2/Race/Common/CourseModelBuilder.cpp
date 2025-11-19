@@ -906,7 +906,6 @@ namespace
         int v_offset{};
         int i_offset{};
 
-        float texH{};
         float texY{};
         for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
         {
@@ -921,14 +920,7 @@ namespace
             const FaceVertex l1{lr1.first + s1.normal * padElevation, s1.normal};
             const FaceVertex r1{lr1.second + s1.normal * padElevation, s1.normal};
 
-            if (texH == 0.0f)
-            {
-                texH = 2.0f * (s1.center - s0.center).length() / (s0.rightmost - s0.leftmost).length();
-            }
-            else if (texH > 0.0f)
-            {
-                texY += texH;
-            }
+            const float texH = 2.0f * (s1.center - s0.center).length() / (s0.rightmost - s0.leftmost).length();
 
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
@@ -936,6 +928,8 @@ namespace
                 GimmickTriangleAttribute::kind_t::PitZone,
                 options,
                 RectF{0.0f, texY, 1.0f, texH});
+
+            texY += texH;
         }
 
         model.shapes.push_back(ModelShape{

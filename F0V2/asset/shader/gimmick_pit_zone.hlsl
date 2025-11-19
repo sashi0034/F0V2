@@ -1,3 +1,7 @@
+#define PI 3.14159265359
+#define TWO_PI (PI * 2)
+#define HALF_PI (PI * 0.5)
+
 Texture2D<float4> g_texture0 : register(t10);
 
 SamplerState g_sampler0 : register(s0);
@@ -57,11 +61,33 @@ float sdfHeart(float2 st)
 
 float4 PS(PSInput input) : SV_Target
 {
-    float d = sdfHeart(input.uv);
+    float2 uv = input.uv;
+    uv.y -= g_time * 0.1f;
+    uv = frac(uv);
 
-    float3 rgb = float3(1, 1, 1);
+    float2 fracUV = uv.x;
+    fracUV.y = abs(0.5f - frac(uv.y));
 
-    rgb.gb = step(d, abs(sin(d * 8 - g_time)));
+    const float3 tlC = float3(0.99, 0.4, 0.57);
+    const float3 trC = float3(1, 0.6, 0.07);
+    const float3 brC = float3(1, 0.4, 0);
+    const float3 blC = tlC;
+
+    float3 rgb =
+        tlC * (1 - fracUV.x) * (1 - fracUV.y) +
+        trC * fracUV.x * (1 - fracUV.y) +
+        brC * fracUV.x * fracUV.y +
+        blC * (1 - fracUV.x) * fracUV.y;
+
+    const float sd1 = sdfHeart(uv);
+    const float f = 1.0 - step(sd1, abs(sin(sd1 * 12 - g_time * 4)));
+    rgb += f * 0.3;
+    rgb.rb *= 1.0 + 1.0 * f;
+
+    const float2 uv2 = frac(uv * float2(4, 4) + float2(0, -g_time * 1.0));
+    const float sd2 = sdfHeart(uv2);
+    const float f2 = 0.3f + 0.5 * min(f, step(sd2, abs(sin(sd2 * 8 - g_time * 8))));
+    rgb.g *= f2;
 
     return float4(sRGB2L_(rgb), 1.0);
 }
