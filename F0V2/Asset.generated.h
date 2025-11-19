@@ -56,5 +56,6 @@ namespace Asset_sound
 
 namespace Asset_music
 {
-    static const inline MusicAudioPathWrapper chi_no_isan{"asset/music/chi_no_isan.mp3"};
+    static const inline MusicAudioPathWrapper GURUGURU_loop{"asset/music/GURUGURU_loop.mp3"};
+    static const inline MusicAudioPathWrapper MetropolitanBreeze_loop{"asset/music/MetropolitanBreeze_loop.mp3"};
 }
