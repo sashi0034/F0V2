@@ -332,17 +332,17 @@ private:
 
             // -----------------------------------------------
 
-            float snapSize = 3.0f;
+            static float s_snapSize = 5.0f;
             if (ImGui::Button("Snap Nodes XYZ"))
             {
-                snapNodesXYZ(nodeList, snapSize);
+                snapNodesXYZ(nodeList, s_snapSize);
             }
 
             ImGui::SameLine();
 
-            if (ImGui::InputFloat("Snap Size", &snapSize, 1.0f, 5.0f))
+            if (ImGui::InputFloat("Snap Size", &s_snapSize, 1.0f, 5.0f))
             {
-                snapSize = std::max(0.1f, snapSize);
+                s_snapSize = std::max(0.1f, s_snapSize);
             }
         }
 
