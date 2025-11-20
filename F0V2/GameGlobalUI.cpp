@@ -16,8 +16,10 @@ namespace
     void debugUI()
     {
 #if defined(_DEBUG)
-        if (IsDebugTomlHotReloaded())
+        static bool s_initialized{};
+        if (not s_initialized || IsDebugTomlHotReloaded())
         {
+            s_initialized = true;
             g_debugService.drawScenery = GetDebugTomlValue("draw_scenery", g_debugService.drawScenery);
         }
 
