@@ -302,39 +302,28 @@ float L(float3 p)
     );
 }
 
-// scene1 vehicle/drone SDF (accurate reconstruction)
 float sdfV(float3 p)
 {
-    const float offset = 1.0;
-    p.zx -= 5.0;
+    float3 p1 = p;
 
-    if (p.y < 0) p *= -1;
+    p1.y += 100.0 + sin(p.x + p.z);
+    p1.x += g_time * 15.0;
+    p1.z += g_time * 15.0;
 
-    if (p.x < p.z) p.xz = p.zx;
+    p1.xz = center_repeat(p1.xz, 10.0);
 
-    p.z = center_repeat(p.z, offset * 5.0);
-
-    p.y -= 0.25;
-
-    p.x -= g_time * 2.0;
-    float x0 = p.x;
-
-    p.x = center_repeat(p.x, offset);
-
-    float d = smoothMin(sdfBox(p + float3(0, 0.1 * sin(x0), 0), 0.1), sdfSphere(p, 0.1), 0.15);
-
-    return d;
+    return sdfSphere(p1, 1.0);
 }
 
 // https://www.shadertoy.com/view/MdXSWn
-float sdfP(float3 p)
+float sdfO(float3 p)
 {
     // p.zx = frac((p.zx + V2(20.0)) / 40.0) * 40.0 - V2(20.0);
 
     const float Scale0 = 0.05;
     p *= Scale0;
 
-    p.zx = center_repeat(p.zx, 50.0);
+    p.zx = center_repeat(p.zx, 37.5);
 
     p.zx = pmod(p.zx, 5.0);
     p.zy = pmod(p.zy, 5.0);
@@ -353,6 +342,7 @@ float sdfP(float3 p)
     float d = sdfCylinder(p, h, r);
     const float Scale = 0.8;
     const int Iterations = 20;
+
     for (int i = 0; i < Iterations; i++)
     {
         if (i == Iterations - 1)
@@ -379,41 +369,9 @@ float sdfP(float3 p)
     return d / Scale0;
 }
 
-float sdfO(float3 p)
-{
-    // return max(max(sdfP(p), -sdfSphere(p, 7.5)), sdfSphere(p, 10.0));
-    return sdfP(p);
-    // return max(sdfP(p), -sdfSphere(p, 7.5));
-}
-
-float sdfTree(float3 p)
-{
-    float scale = 0.8;
-    float3 size = float3(0.1, 1.0, 0.1);
-    float d = sdfBox(p, size);
-    for (int i = 0; i < 7; i++)
-    {
-        float3 q = abs(p);
-        q.y -= size.y;
-        q.xy = mul(rotate2d(0.5), q.xy);
-        d = min(d, sdfBox(p, size));
-        p = q;
-        size *= scale;
-    }
-
-    return d;
-}
-
 SdfAndMat scanSdf(float3 pos)
 {
     SdfAndMat result = emptySdfAndMat();
-
-    // float dSphere = sdfSphere(pos - float3(0, 0, 0), 0.1);
-    // if (dSphere < result.sdf)
-    // {
-    //     result.sdf = dSphere;
-    //     result.mat = 1.0;
-    // }
 
     float sdO = sdfO(pos);
     if (sdO < result.sdf)
@@ -422,12 +380,12 @@ SdfAndMat scanSdf(float3 pos)
         result.mat = MAT_SOLID;
     }
 
-    // float sdV = sdfV(pos);
-    // if (sdV < result.sdf)
-    // {
-    //     result.sdf = sdV;
-    //     result.mat = MAT_VEHICLE;
-    // }
+    float sdV = sdfV(pos);
+    if (sdV < result.sdf)
+    {
+        result.sdf = sdV;
+        result.mat = MAT_VEHICLE;
+    }
 
     return result;
 }
@@ -633,9 +591,9 @@ RayMarchResult rayMarch(
         {
             albedo = sRGB2L(0.83, 0.7, 0.24);
         }
-        else
+        else // if (r.d.mat == MAT_VEHICLE)
         {
-            albedo = sRGB2L(0.85, 0.17, 0.26);
+            albedo = sRGB2L(1, 0.47, 0.03);
         }
 
         const float3 N = scanNormal(r.pos);
