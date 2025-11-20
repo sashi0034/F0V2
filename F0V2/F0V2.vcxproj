@@ -194,6 +194,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\engine\graphics_stub.hlsl" />
     <Content Include="asset\engine\shape2d.hlsl" />
     <Content Include="asset\engine\shape3d.hlsl" />
+    <Content Include="asset\shader\scenery2_cs.hlsl" />
     <ClCompile Include="GameGlobalUI.cpp" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
     <ClCompile Include="RaceSetup\RaceSetupScene.cpp" />

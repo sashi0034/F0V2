@@ -109,17 +109,17 @@ float2x2 rotate2d(float a)
     return float2x2(c, -s, s, c);
 }
 
-float2 pmod(float2 p, float c)
+float2 pmod(float2 p, float r)
 {
-    float a = atan2(p.y, p.x) + PI / c;
+    float a = atan2(p.y, p.x) + PI / r;
 
-    const float n = 2.0 * PI / c;
+    const float n = 2.0 * PI / r;
     a = floor(a / n) * n;
 
     return mul(rotate2d(-a), p);
 }
 
-float2 safe_pmod(float2 p, float c)
+float2 safe_pmod(float2 p, float r)
 {
     float2 result;
     if (p.x == 0 && p.y == 0)
@@ -128,7 +128,7 @@ float2 safe_pmod(float2 p, float c)
     }
     else
     {
-        result = pmod(p, c);
+        result = pmod(p, r);
     }
 
     return result;
@@ -242,82 +242,81 @@ float sdfCylinder(float3 p, float h, float r)
     return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
-float sdfTorus(float3 p, float2 t)
-{
-    float2 q = float2(length(p.xz) - t.x, p.y);
-    return length(q) - t.y;
-}
-
-static float g_mandelbulb_t0;
-
-float sdfP(float3 p)
-{
-    const float Scale0 = 0.005;
-    p *= Scale0;
-
-    p.zx = safe_pmod(p.zx, 5.0);
-
-    p.z -= 2.0;
-
-    p.y = abs(p.y) - 1.25;
-
-    p.xyz = p.xzy;
-
-    float3 z = p;
-    float power = 8.0;
-    float r, theta, phi;
-    float dr = 1.0;
-
-    float t0 = 1.0;
-    const int Iterations = 7;
-    for (int i = 0; i < Iterations; ++i)
-    {
-        r = length(z);
-        if (r > 2.0)
-        {
-            continue;
-        }
-
-        theta = atan(z.y / z.x);
-        phi = asin(z.z / r);
-        dr = pow(r, power - 1.0) * dr * power + 1.0;
-
-        r = pow(r, power);
-        theta = theta * power;
-        phi = phi * power;
-
-        z = r * float3(cos(theta) * cos(phi), sin(theta) * cos(phi), sin(phi)) + p;
-        z.z -= sin(1.0 * g_time);
-
-        t0 = min(t0, r);
-    }
-
-    g_mandelbulb_t0 = t0;
-
-    return (0.5 * log(r) * r / dr) / Scale0;
-}
-
 float sdfV(float3 p)
 {
     float3 p1 = p;
 
     p1.y += 100.0 + sin(p.x + p.z);
-    p1.x += g_time * 1.5;
-    p1.z += g_time * 1.5;
+    p1.x += g_time * 15.0;
+    p1.z += g_time * 15.0;
 
     p1.xz = center_repeat(p1.xz, 10.0);
 
-    return sdfSphere(p1, 5.0);
+    return sdfSphere(p1, 1.0);
+}
+
+// https://www.shadertoy.com/view/MdXSWn
+float sdfO(float3 p)
+{
+    // p.zx = frac((p.zx + V2(20.0)) / 40.0) * 40.0 - V2(20.0);
+
+    const float Scale0 = 0.05;
+    p *= Scale0;
+
+    p.zx = center_repeat(p.zx, 37.5);
+
+    p.zx = pmod(p.zx, 5.0);
+    p.zy = pmod(p.zy, 5.0);
+
+    // p = abs(p);
+    //
+    // if (p.z < p.y) p.zy = p.yz;
+    // if (p.z < p.x) p.zx = p.xz;
+    // if (p.y < p.x) p.yx = p.xy;
+
+    p -= float3(0, 0, 10);
+    // p.zy = mul(rotate2d(g_time), p.zy);
+
+    float h = 2.0;
+    float r = 0.1;
+    float d = sdfCylinder(p, h, r);
+    const float Scale = 0.8;
+    const int Iterations = 20;
+
+    for (int i = 0; i < Iterations; i++)
+    {
+        if (i == Iterations - 1)
+        {
+            float d_ = smoothMin(d, sdfCylinder(p, h, r), 0.1);
+            d = lerp(d, d_, 0.5);
+            break;
+        }
+        else
+        {
+            d = smoothMin(d, sdfCylinder(p, h, r), 0.1);
+        }
+
+        p = abs(p);
+        // p.xz = abs(p.xz);
+        p.y -= h;
+        p.zx = mul(rotate2d(HALF_PI * (0.2 + 0.1 * sin(g_time * 3.0))), p.zx);
+        p.xy = mul(rotate2d(0.45), p.xy);
+
+        h *= Scale;
+        r *= Scale;
+    }
+
+    return d / Scale0;
 }
 
 SdfAndMat scanSdf(float3 pos)
 {
     SdfAndMat result = emptySdfAndMat();
 
-    float sdP = sdfP(pos);
-    if (sdP < result.sdf)
+    float sdO = sdfO(pos);
+    if (sdO < result.sdf)
     {
-        result.sdf = sdP;
+        result.sdf = sdO;
         result.mat = MAT_SOLID;
     }
 
@@ -401,7 +400,7 @@ RaycastResult raycast(float3 pos, float3 dir, float distanceLimit, bool hasHint,
 float3 computeSkyColor(float3 V)
 {
     const float t = 0.5 * (-V.y + 1.0);
-    return lerp(sRGB2L(0.67, 0.78, 0.91), sRGB2L(0.93, 0.55, 0.26), t);
+    return lerp(sRGB2L(0.93, 0.55, 0.26), sRGB2L(0.67, 0.78, 0.91), t);
 }
 
 struct LightParameters
@@ -475,7 +474,6 @@ float3 computeLighting(LightingInput input)
     float fogEnd = 500.0;
 
     float fogFactor = saturate((input.viewDistance - fogStart) / (fogEnd - fogStart));
-    // fogFactor = 0;
 
     color = lerp(color, computeSkyColor(input.V), fogFactor);
 
@@ -531,11 +529,11 @@ RayMarchResult rayMarch(
         float3 albedo;
         if (r.d.mat == MAT_SOLID)
         {
-            albedo = lerp(sRGB2L(0.64, 0.03, 1), sRGB2L(0.93, 0.72, 0.04), 0.5 + 0.5 * sin(2.0 * g_mandelbulb_t0));
+            albedo = sRGB2L(0.83, 0.7, 0.24);
         }
         else // if (r.d.mat == MAT_VEHICLE)
         {
-            albedo = sRGB2L(0.69, 0.88, 0.9);
+            albedo = sRGB2L(1, 0.47, 0.03);
         }
 
         const float3 N = scanNormal(r.pos);
