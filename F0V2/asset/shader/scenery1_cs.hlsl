@@ -252,14 +252,14 @@ static float g_mandelbulb_t0;
 
 float sdfP(float3 p)
 {
-    const float Scale0 = 0.005;
+    const float Scale0 = 0.01;
     p *= Scale0;
 
-    p.zx = safe_pmod(p.zx, 5.0);
+    p.zx = center_repeat(p.zx, 3.125);
 
-    p.z -= 2.0;
+    p.zx = pmod(p.zx, 3.0);
 
-    p.y = abs(p.y) - 1.25;
+    p.y = abs(p.y) - 1.5;
 
     p.xyz = p.xzy;
 
