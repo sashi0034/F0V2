@@ -37,6 +37,7 @@ namespace
             }
 
             reload();
+            s_hotReloaded = true;
             return true;
         }
 
