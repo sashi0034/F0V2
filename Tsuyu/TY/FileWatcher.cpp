@@ -62,6 +62,6 @@ namespace TY
 
     bool FileWatcher::wasChangedThisFrame() const
     {
-        return p_impl->m_timestamp = System::FrameCount();
+        return p_impl->m_timestamp == System::FrameCount();
     }
 }
