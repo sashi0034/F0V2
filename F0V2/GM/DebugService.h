@@ -11,6 +11,8 @@ inline namespace GM_inline
         int monitorMachineId{};
 
         bool disablePlayerInput{};
+
+        bool drawScenery{};
     };
 
     inline DebugService g_debugService{};

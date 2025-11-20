@@ -3,6 +3,7 @@
 
 #include "Asset.generated.h"
 #include "RaceSharedState.h"
+#include "GM/DebugService.h"
 #include "Race/IRaceDrawer.h"
 #include "TY/ComputeDispatcher.h"
 #include "TY/Graphics3D.h"
@@ -147,7 +148,7 @@ struct RaceDeferredShadingDrawer::Impl
         m_cb.upload();
 
 #if defined(_DEBUG)
-        if (not GetDebugTomlValue<bool>("draw_scenery"))
+        if (not g_debugService.drawScenery)
         {
             m_debugDrawer.Draw(renderScale);
         }

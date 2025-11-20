@@ -8,6 +8,7 @@
 #include "TY/KeyboardInput.h"
 #include "TY/Mouse.h"
 #include "TY/System.h"
+#include "Util/DebugTomlValue.h"
 #include "Util/ImmediatePrint.h"
 
 namespace
@@ -15,6 +16,11 @@ namespace
     void debugUI()
     {
 #if defined(_DEBUG)
+        if (IsDebugTomlHotReloaded())
+        {
+            g_debugService.drawScenery = GetDebugTomlValue("draw_scenery", g_debugService.drawScenery);
+        }
+
         ImGui::Begin("System Window");
 
         static bool s_sleep{};;
@@ -63,6 +69,8 @@ namespace
         ImGui::InputInt("monitorMachineId", &g_debugService.monitorMachineId);
 
         ImGui::Checkbox("diablePlayerInput", &g_debugService.disablePlayerInput);
+
+        ImGui::Checkbox("drawScenery", &g_debugService.drawScenery);
 
         ImGui::End();
 #endif

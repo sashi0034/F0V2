@@ -14,6 +14,8 @@ namespace
 
     toml::parse_result s_parseResult{};
 
+    bool s_hotReloaded{};
+
     struct DebugTomlValueAddon : IAddon
     {
         FileWatcher m_watcher{debugTomlPath.data()};
@@ -55,9 +57,12 @@ namespace
 
         bool update() override
         {
+            s_hotReloaded = false;
+
             if (m_watcher.wasChangedThisFrame())
             {
                 reload();
+                s_hotReloaded = true;
             }
 
             return true;
@@ -76,5 +81,10 @@ namespace Util_inline
     {
         assert(not s_parseResult.empty());
         return s_parseResult["debug"];
+    }
+
+    bool IsDebugTomlHotReloaded()
+    {
+        return s_hotReloaded;
     }
 }

@@ -6,6 +6,7 @@
 #include "StageStaticCollider.h"
 #include "GimmickTextureDrawer.h"
 #include "CB/Skydome.h"
+#include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
 #include "Race/Common/CourseModelBuilder.h"
@@ -385,13 +386,11 @@ private:
     void drawPlaceholderScenery() const
     {
 #if defined(_DEBUG)
-        if (GetDebugTomlValue<bool>("draw_scenery"))
+        if (g_debugService.drawScenery)
+#endif
         {
             return;
         }
-#else
-        return;
-#endif
 
         for (int x = -5; x <= 5; ++x)
         {
