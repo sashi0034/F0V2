@@ -7,7 +7,7 @@
 #include "RaceDrawUpscaler.h"
 
 #include "Asset.generated.h"
-#include "Common/RaceSharedState.h"
+#include "RaceSharedState.h"
 #include "TY/ComputeDispatcher.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/GenericModelBuffer.h"

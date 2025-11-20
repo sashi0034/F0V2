@@ -1,26 +1,22 @@
 ﻿#include "pch.h"
 #include "RaceDrawManager.h"
 
-#include "Asset.generated.h"
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "RaceContextContent.h"
 #include "RaceDrawQualityController.h"
-#include "RaceDrawUpscaler.h"
+#include "Common/RaceDeferredShadingDrawer.h"
+#include "Common/RaceDrawUpscaler.h"
 #include "Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
-#include "TY/ComputeDispatcher.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Graphics3D.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/Logger.h"
-#include "TY/ModelDrawer.h"
 #include "TY/RenderTarget.h"
 #include "TY/RenderTargetTexture.h"
 #include "TY/Screen.h"
-#include "TY/System.h"
-#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -43,65 +39,6 @@ namespace
         Float2 g_mouseUV{};
         float g_time{};
     };
-
-    class SceneryDrawer
-    {
-    public:
-        void Init()
-        {
-            m_outputTexture =
-                RenderTargetTextureParams()
-                .setSize(g_sharedState->gbufferTarget.size())
-                .setClearColor(ColorF32{0.0f, 0.0f});
-
-            m_dispatcher =
-                ComputeDispatcherParams{}
-                .setCS(Asset_shader::scenery1_cs)
-                .setSamplers({
-                    GraphicsSamplerOptions{}
-                    .setAddress(GraphicsAddressMode::Border)
-                    .setFilter(GraphicsFilterMode::Linear),
-                    GraphicsSamplerOptions{}
-                    .setFilter(GraphicsFilterMode::Linear)
-                    .setComparison(GraphicsComparisonFunction::Greater)
-                    .setMaxAnisotropy(1)
-                })
-                .setCbv({m_cb})
-                .setSrv({
-                    g_sharedState->gbuffer.albedo,
-                    g_sharedState->gbuffer.normal,
-                    g_sharedState->gbuffer.viewDistance,
-                    g_sharedState->gbufferTarget.getDepthBuffer(),
-                    g_sharedState->shadowMap.getFrontRtv(),
-                })
-                .setUav({m_outputTexture});
-        }
-
-        void Draw(float renderScale)
-        {
-            m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
-            m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
-            m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
-            m_cb->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
-            m_cb->g_time = System::Time();
-            m_cb.upload();
-
-            const Size rtvSize = g_sharedState->gbufferTarget.size();
-            constexpr int threadsPerGroup = 32;
-            const int threadGroup = (rtvSize.x * rtvSize.y / 2) / threadsPerGroup;
-            m_dispatcher.dispatch(threadGroup);
-        }
-
-        RenderTargetTexture GetOutputTexture() const
-        {
-            return m_outputTexture;
-        }
-
-    private:
-        ConstantBufferWrapper<Scenery_b10> m_cb{};
-        UnorderedRenderTargetTexture m_outputTexture{};
-        ComputeDispatcher m_dispatcher{};
-    };
 }
 
 struct RaceDrawManager::Impl : ActorBase
@@ -114,7 +51,7 @@ struct RaceDrawManager::Impl : ActorBase
 
     Array<DrawerElement> m_drawers{};
 
-    SceneryDrawer m_sceneryDrawer{};
+    RaceDeferredShadingDrawer m_deferredShadingDrawer{};
 
     RenderTarget m_transparentDrawTarget{};
 
@@ -124,14 +61,14 @@ struct RaceDrawManager::Impl : ActorBase
 
     void Init()
     {
-        m_sceneryDrawer.Init();
+        m_deferredShadingDrawer.init();
 
         m_transparentDrawTarget =
             RenderTargetParams()
-            .setRtv(m_sceneryDrawer.GetOutputTexture())
+            .setRtv(m_deferredShadingDrawer.getOutputTexture())
             .setDepthBuffer(g_sharedState->gbufferTarget.getDepthBuffer());
 
-        m_drawUpscaler.init(m_sceneryDrawer.GetOutputTexture());
+        m_drawUpscaler.init(m_deferredShadingDrawer.getOutputTexture());
     }
 
     void Unregister(const IRaceDrawer* drawer)
@@ -186,11 +123,11 @@ private:
         }
 
         m_qualityController.update();
-        const auto qualityTarget = m_qualityController.getQualityData();
+        const auto qualityData = m_qualityController.getQualityData();
 
         // GBuffer パス
         {
-            g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * qualityTarget.renderScale});
+            g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * qualityData.renderScale});
             const auto bind = g_sharedState->gbufferTarget.scopedClearBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
@@ -199,18 +136,15 @@ private:
             }
         }
 
-        // レイマーチング
-#if defined(_DEBUG)
-        if (GetDebugTomlValue<bool>("draw_scenery"))
-#endif
+        // レイマーチング & ディファードシェーディングパス
         {
-            m_sceneryDrawer.Draw(qualityTarget.renderScale);
+            m_deferredShadingDrawer.draw(qualityData.renderScale);
         }
 
         // 半透明描画パス
         // TODO: 半透明オブジェクトはリニア色空間で描画するべきかも? 要調査
         {
-            m_transparentDrawTarget.setViewport(RectF{Screen::SizeF() * qualityTarget.renderScale});
+            m_transparentDrawTarget.setViewport(RectF{Screen::SizeF() * qualityData.renderScale});
             const auto bind = m_transparentDrawTarget.scopedBind();
 
             for (int i = 0; i < m_drawers.size(); ++i)
@@ -222,7 +156,7 @@ private:
         // アップスケーリング
         {
             Immediate2D::Texture output =
-                m_drawUpscaler.upscale(qualityTarget.renderScale, qualityTarget.fsrEnabled);
+                m_drawUpscaler.upscale(qualityData.renderScale, qualityData.fsrEnabled);
             output.pushAuto();
             ImmediateDrawer::Global().draw();
         }
