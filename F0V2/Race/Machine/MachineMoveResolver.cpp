@@ -520,7 +520,7 @@ namespace
             if (not state.isDead())
             {
                 state.m_durability = PositiveF32(
-                    Min<float>(props.maxDurability, state.m_durability + 500.0f * InGameDeltaTime()));
+                    Min<float>(props.maxDurability, state.m_durability + 750.0f * InGameDeltaTime()));
             }
 
             return;

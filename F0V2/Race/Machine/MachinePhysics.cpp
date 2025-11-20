@@ -259,7 +259,7 @@ namespace Race
         if (deviceInput.boostRequested &&
             isBoostUnlocked(state) &&
             state.m_durability > boostEnergyCost &&
-            state.m_manualBoost < 0.5f)
+            state.m_manualBoost < 0.1f)
         {
             state.m_manualBoost = 1.0f;
             state.m_durability = PositiveF32(state.m_durability - boostEnergyCost);
