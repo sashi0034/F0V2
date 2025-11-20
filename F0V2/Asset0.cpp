@@ -41,7 +41,7 @@ namespace
 
             // -----------------------------------------------
 
-            const std::string zxProtoPath = "asset/font/0xProto/0xProto-Regular.ttf";
+            const std::string zxProtoPath = "asset/engine/font/0xProto/0xProto-Regular.ttf";
 
             m_ZXProto_24_bitmap = BitmapFont(zxProtoPath, 24);
 
