@@ -10,6 +10,7 @@ namespace Race
         std::u32string description1;
         std::u32string description2;
         int difficulty;
+        ComputeShaderPathWrapper sceneryPath;
         MusicAudioPathWrapper music;
         std::array<AudioLoopRange, 3> musicLoopRanges;
     };

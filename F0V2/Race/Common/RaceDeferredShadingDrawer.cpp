@@ -2,15 +2,14 @@
 #include "RaceDeferredShadingDrawer.h"
 
 #include "Asset.generated.h"
+#include "CourseFileInfo.h"
 #include "RaceSharedState.h"
 #include "GM/DebugService.h"
-#include "Race/IRaceDrawer.h"
 #include "TY/ComputeDispatcher.h"
 #include "TY/Graphics3D.h"
 #include "TY/Mat4x4.h"
 #include "TY/RenderTargetTexture.h"
 #include "TY/System.h"
-#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -34,9 +33,15 @@ namespace
             const UnorderedRenderTargetTexture& outputTexture,
             const ConstantBufferWrapper<Scenery_b10>& cb)
         {
+            ComputeShaderPathWrapper cs = GetCourseFileInfoByPath(g_sharedState->coursePath).sceneryPath;
+            if (cs.isEmpty())
+            {
+                cs = Asset_shader::scenery1_cs;
+            }
+
             m_dispatcher =
                 ComputeDispatcherParams{}
-                .setCS(Asset_shader::scenery1_cs)
+                .setCS(cs)
                 .setSamplers({
                     GraphicsSamplerOptions{}
                     .setAddress(GraphicsAddressMode::Border)

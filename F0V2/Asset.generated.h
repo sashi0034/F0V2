@@ -21,6 +21,7 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper phong_shadow{"asset/shader/phong_shadow.hlsl"};
     static const inline GraphicsShaderPathWrapper r32_float_visualizer{"asset/shader/r32_float_visualizer.hlsl"};
     static const inline ComputeShaderPathWrapper scenery1_cs{"asset/shader/scenery1_cs.hlsl"};
+    static const inline ComputeShaderPathWrapper scenery2_cs{"asset/shader/scenery2_cs.hlsl"};
     static const inline ComputeShaderPathWrapper shadertoy_cs{"asset/shader/shadertoy_cs.hlsl"};
     static const inline PixelShaderPathWrapper shadertoy_ps{"asset/shader/shadertoy_ps.hlsl"};
     static const inline GraphicsShaderPathWrapper shadow_caster{"asset/shader/shadow_caster.hlsl"};

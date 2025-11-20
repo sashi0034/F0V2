@@ -21,6 +21,7 @@ namespace Race
             .description1 = U"広大な平原と緩やかな丘陵が広がり、初心者に最適なコースです。",
             .description2 = U"銀河連邦の広報ホログラムでも「安全・安心」と謳われています。",
             .difficulty = 1,
+            .sceneryPath = Asset_shader::scenery1_cs,
             .music = Asset_music::GURUGURU_loop,
             .musicLoopRanges = {
                 AudioLoopRange{10.000f, 81.250f},
@@ -35,6 +36,7 @@ namespace Race
             .description1 = U"重力や磁場が乱れた危険な惑星であり、高度なテクニックが必要です。",
             .description2 = U"ヘリウム3の採掘所としても知られ、近年は恒星間企業勢力の利権争いが激化しています。",
             .difficulty = 5,
+            .sceneryPath = Asset_shader::scenery2_cs,
             .music = Asset_music::MetropolitanBreeze_loop,
             .musicLoopRanges = {
                 AudioLoopRange{2.500f, 40.000f},

@@ -20,21 +20,31 @@ namespace TY
         {
         }
 
+        [[nodiscard]]
         const std::string& path() const
         {
             return m_path;
         }
 
+        [[nodiscard]]
+        bool isEmpty() const
+        {
+            return m_path.empty();
+        }
+
+        [[nodiscard]]
         resource_type fetchResource() const
         {
             return GetCache().fetch(m_path, nullptr);
         }
 
+        [[nodiscard]]
         resource_type operator ()() const
         {
             return fetchResource();
         }
 
+        [[nodiscard]]
         operator resource_type() const
         {
             return fetchResource();
