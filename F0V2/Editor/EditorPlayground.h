@@ -14,6 +14,8 @@ namespace Editor
 
         std::shared_ptr<ActorBase> asActor() const override;
 
+        void drawGBuffer() const;
+
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl;

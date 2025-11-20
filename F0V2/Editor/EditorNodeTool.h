@@ -12,6 +12,10 @@ namespace Editor
 
         std::shared_ptr<GameObjectBase> asGameObject() const override;
 
+        void drawGBuffer() const;
+
+        void debugUI() const;
+
     private:
         struct Impl;
         std::shared_ptr<Impl> p_impl;

@@ -9,6 +9,8 @@
 #include "EditorNodeTool.h"
 #include "GM/DebugService.h"
 #include "Race/Common/CourseData.h"
+#include "Race/Common/RaceDeferredShadingDrawer.h"
+#include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Screen.h"
 #include "TY/ImmediateDrawer.h"
@@ -93,6 +95,8 @@ struct EditorScene::Impl : ActorBase
 
     std::string m_courseFilepath = defaultCourseFilepath;
 
+    RaceDeferredShadingDrawer m_deferredShadingDrawer{};
+
     void init()
     {
         reloadCourseData();
@@ -102,6 +106,8 @@ struct EditorScene::Impl : ActorBase
 
         m_debugPlayground = m_children.birth(EditorPlayground());
         m_debugPlayground.init();
+
+        m_deferredShadingDrawer.init();
     }
 
     void update() override
@@ -112,16 +118,33 @@ struct EditorScene::Impl : ActorBase
 
         // hierarchWindow(GlobalGameObjectHierarchy().list());
 
-        ImGui::Begin("Editor Scene");
+        constexpr float renderScale = 1.0f;
 
-        ImGui::Text(std::format("m_courseFilepath: {}", m_courseFilepath).c_str());
-
-        if (ImGui::Button("Reload Course Data"))
+        // GBuffer パス
         {
-            reloadCourseData();
+            g_sharedState->gbufferTarget.setViewport(RectF{Screen::SizeF() * renderScale});
+            const auto bind = g_sharedState->gbufferTarget.scopedClearBind();
+
+            m_debugNodeEditor.drawGBuffer();
+
+            m_debugPlayground.drawGBuffer();
         }
 
-        ImGui::End();
+        // レイマーチング & ディファードシェーディングパス
+        {
+            m_deferredShadingDrawer.draw(renderScale);
+
+            Immediate2D::Texture{m_deferredShadingDrawer.getOutputTexture()}
+                .resized(Screen::Size())
+                .pushAuto();
+        }
+
+        // UI
+        {
+            m_debugNodeEditor.debugUI();
+        }
+
+        drawUI();
     }
 
     void killed() override
@@ -139,6 +162,20 @@ private:
 #endif
 
         g_editorState->course = LoadCourseData(m_courseFilepath);
+    }
+
+    void drawUI()
+    {
+        ImGui::Begin("Editor Scene");
+
+        ImGui::Text(std::format("m_courseFilepath: {}", m_courseFilepath).c_str());
+
+        if (ImGui::Button("Reload Course Data"))
+        {
+            reloadCourseData();
+        }
+
+        ImGui::End();
     }
 };
 

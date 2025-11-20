@@ -396,7 +396,7 @@ private:
         {
             for (int z = -5; z <= 5; ++z)
             {
-                constexpr float groundY = -50.0f;
+                constexpr float groundY = -100.0f;
                 m_groundPlaneDrawer
                     .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, groundY, z * 100.0f}))
                     .draw();

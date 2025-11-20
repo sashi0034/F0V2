@@ -48,17 +48,12 @@ struct EditorNodeTool::Impl : GameObjectBase
         m_torusDrawer =
             ModelDrawerParams{}
             .setModel(model)
-            .setShader(Asset_shader::lambert)
-            .setCbv10AndLater({g_editorState->lambert});
+            .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
+            .setShader(Asset_shader::gbuffer_pass);
     }
 
-private:
-    void update() override
+    void DrawGBuffer()
     {
-        nodeTool();
-
-        buildSegmentsIfNeeded();
-
         // コースの節点部分をトーラスで描画
         for (int i = 0; i < m_segments.size(); ++i)
         {
@@ -71,17 +66,15 @@ private:
         {
             m_courseDrawers[i].draw();
         }
-
-        courseDebugUI(m_segments);
     }
 
-    void courseDebugUI(const Array<CourseSegment>& segments)
+    void DebugUI()
     {
         // コース中心を線分で描画
         Immediate3D::LineSet lineSet{};
-        for (int i = 0; i < segments.size(); ++i)
+        for (int i = 0; i < m_segments.size(); ++i)
         {
-            const auto& segment = segments[i];
+            const auto& segment = m_segments[i];
             for (int j = 0; j < segment.midwayStrips.size() - 1; ++j)
             {
                 const Float3 d0 = segment.midwayStrips[j].normal;
@@ -97,9 +90,9 @@ private:
 
         // インデックスをテキスト描画
         const auto worldToScreen = Graphics3D::WorldToScreen();
-        for (int i = 0; i < segments.size(); ++i)
+        for (int i = 0; i < m_segments.size(); ++i)
         {
-            const auto& segment = segments[i];
+            const auto& segment = m_segments[i];
             auto p1InScreen = worldToScreen.transformPoint(segment.p1);
             if (not InRange(p1InScreen.z, 0.0f, 1.0f))
             {
@@ -127,14 +120,14 @@ private:
 
         // -----------------------------------------------
 
-        if (InRange(m_activeNodeIndex, 0, static_cast<int>(segments.size() - 1)))
+        if (InRange(m_activeNodeIndex, 0, static_cast<int>(m_segments.size() - 1)))
         {
             auto text =
                 std::format("[{}] {:.2f}, {:.2f}, {:.2f}",
                             m_activeNodeIndex,
-                            segments[m_activeNodeIndex].p1.x,
-                            segments[m_activeNodeIndex].p1.y,
-                            segments[m_activeNodeIndex].p1.z);
+                            m_segments[m_activeNodeIndex].p1.x,
+                            m_segments[m_activeNodeIndex].p1.y,
+                            m_segments[m_activeNodeIndex].p1.z);
 
             if (DebugUI::DragButton(RectF{Screen::Center(), Float2{240, 24}}, ToUtf32(text)))
             {
@@ -164,6 +157,14 @@ private:
         ImmediateDrawer::Global().draw();
     }
 
+private:
+    void update() override
+    {
+        nodeTool();
+
+        buildSegmentsIfNeeded();
+    }
+
     void buildSegmentsIfNeeded()
     {
         const auto rebuildIndexes = BuildCourseSegmentIfNeeded(m_segments, g_editorState->course.nodes);
@@ -185,8 +186,8 @@ private:
                 m_courseDrawers[i] =
                     ModelDrawerParams{}
                     .setModel(modelBuffer)
-                    .setShader(Asset_shader::lambert)
-                    .setCbv10AndLater({g_editorState->lambert});
+                    .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
+                    .setShader(Asset_shader::gbuffer_pass);
             }
         }
     }
@@ -367,5 +368,15 @@ namespace Editor
     std::shared_ptr<GameObjectBase> EditorNodeTool::asGameObject() const
     {
         return p_impl;
+    }
+
+    void EditorNodeTool::drawGBuffer() const
+    {
+        p_impl->DrawGBuffer();
+    }
+
+    void EditorNodeTool::debugUI() const
+    {
+        p_impl->DebugUI();
     }
 }
