@@ -1,0 +1,103 @@
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier', 'PitZone_LR' ]
+pos = [ -365.0, 0.0, 165.0 ]
+roll = 0
+style = 'Road'
+width = 50
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier' ]
+pos = [ -165.0, 50.0, -80.0 ]
+roll = 0
+style = 'Road'
+width = 100
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier', 'BoostPad_C' ]
+pos = [ -20.0, 65.0, -175.0 ]
+roll = 45
+style = 'Road'
+width = 100
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier', 'PitZone_R' ]
+pos = [ 160.0, 25.0, -195.0 ]
+roll = 45
+style = 'Road'
+width = 100
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier', 'BoostPad_C' ]
+pos = [ 540.0, 5.0, 220.0 ]
+roll = 90
+style = 'Road'
+width = 100
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier', 'BoostPad_C', 'PitZone_L' ]
+pos = [ 515.0, -40.0, 465.0 ]
+roll = 75
+style = 'Road'
+width = 100
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier', 'BoostPad_C' ]
+pos = [ 355.0, -25.0, 740.0 ]
+roll = 45
+style = 'Road'
+width = 100
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier' ]
+pos = [ 175.0, 55.0, 785.0 ]
+roll = 45
+style = 'Cylinder'
+width = 50
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier' ]
+pos = [ -140.0, 50.0, 860.0 ]
+roll = 0
+style = 'Cylinder'
+width = 50
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier' ]
+pos = [ -515.0, 60.0, 775.0 ]
+roll = 0
+style = 'Cylinder'
+width = 50
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier' ]
+pos = [ -415.0, 35.0, 540.0 ]
+roll = 0
+style = 'Road'
+width = 50
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier' ]
+pos = [ -375.0, 15.0, 415.0 ]
+roll = -30
+style = 'Road'
+width = 95
+
+[[nodes]]
+centerOffset = 0
+gimmicks = [ 'Barrier' ]
+pos = [ -450.0, -5.0, 295.0 ]
+roll = 0
+style = 'Road'
+width = 100
