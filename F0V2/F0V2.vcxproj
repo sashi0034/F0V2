@@ -195,8 +195,10 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\engine\shape2d.hlsl" />
     <Content Include="asset\engine\shape3d.hlsl" />
     <Content Include="asset\shader\scenery2_cs.hlsl" />
+    <Content Include="asset\shader\race_setup_background_cs.hlsl" />
     <ClCompile Include="GameGlobalUI.cpp" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
+    <ClCompile Include="RaceSetup\RaceSetupBackgroundDrawer.cpp" />
     <ClCompile Include="RaceSetup\RaceSetupScene.cpp" />
     <ClCompile Include="Race\Ai\MetaAi.cpp" />
     <ClCompile Include="Race\Common\CourseFileInfo.cpp" />
@@ -330,6 +332,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <ClInclude Include="GameGlobalUI.h" />
     <ClInclude Include="GamePalette.h" />
     <ClInclude Include="GM\GamepadConfigModal.h" />
+    <ClInclude Include="RaceSetup\RaceSetupBackgroundDrawer.h" />
     <ClInclude Include="RaceSetup\RaceSetupScene.h" />
     <ClInclude Include="Race\Ai\CharacterAiInputCommand.h" />
     <ClInclude Include="Race\Ai\MetaAi.h" />

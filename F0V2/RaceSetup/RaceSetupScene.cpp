@@ -2,6 +2,7 @@
 #include "RaceSetupScene.h"
 
 #include "Asset0.h"
+#include "RaceSetupBackgroundDrawer.h"
 #include "Race/Common/AiRank.h"
 #include "Race/Common/CourseData.h"
 #include "Race/Common/CourseFileInfo.h"
@@ -114,8 +115,11 @@ struct RaceSetupScene::Impl : ActorBase
 
     bool m_confirmed{};
 
+    RaceSetupBackgroundDrawer m_backgroundDrawer{};
+
     void Init()
     {
+        m_backgroundDrawer.init();
     }
 
 private:
@@ -123,9 +127,7 @@ private:
     {
         handleInput();
 
-        Immediate2D::Rect{Screen::RectF()}
-            .setColor(ColorF32{0.1f})
-            .pushAuto();
+        m_backgroundDrawer.draw();
 
         const auto uiRegion = Screen::RectF().stretched(-400.0f, -320.0f);
 
