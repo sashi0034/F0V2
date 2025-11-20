@@ -307,7 +307,7 @@ float sdfV(float3 p)
 
     p1.xz = center_repeat(p1.xz, 10.0);
 
-    return sdfSphere(p1, 5.0);
+    return sdfSphere(p1, 5.5);
 }
 
 SdfAndMat scanSdf(float3 pos)

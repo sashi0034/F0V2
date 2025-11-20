@@ -242,17 +242,15 @@ float sdfCylinder(float3 p, float h, float r)
     return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
+// 地面
 float sdfV(float3 p)
 {
-    float3 p1 = p;
+    float base = p.y + 200.0f;
 
-    p1.y += 100.0 + sin(p.x + p.z);
-    p1.x += g_time * 15.0;
-    p1.z += g_time * 15.0;
+    float n = sin(p.x * 0.05 + g_time) * cos(p.z * (0.025 + 0.0125 * sin(g_time * 0.5)));
+    base += n * 20.0;
 
-    p1.xz = center_repeat(p1.xz, 10.0);
-
-    return sdfSphere(p1, 1.0);
+    return base;
 }
 
 // https://www.shadertoy.com/view/MdXSWn
