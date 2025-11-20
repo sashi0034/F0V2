@@ -160,7 +160,7 @@ struct EditorNodeTool::Impl : GameObjectBase
 private:
     void update() override
     {
-        nodeTool();
+        nodeToolUI();
 
         buildSegmentsIfNeeded();
     }
@@ -192,11 +192,11 @@ private:
         }
     }
 
-    void nodeTool()
+    void nodeToolUI()
     {
         ImGui::Begin("Node Tool");
 
-        ImGui::BeginChild("list_region", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() * 4), true);
+        ImGui::BeginChild("list_region", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() * 6), true);
 
         Array<int> removeIndex{};
         auto& nodeList = g_editorState->course.nodes;
@@ -329,9 +329,34 @@ private:
                 m_segments.clear();
                 buildSegmentsIfNeeded();
             }
+
+            // -----------------------------------------------
+
+            float snapSize = 3.0f;
+            if (ImGui::Button("Snap Nodes XYZ"))
+            {
+                snapNodesXYZ(nodeList, snapSize);
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::InputFloat("Snap Size", &snapSize, 1.0f, 5.0f))
+            {
+                snapSize = std::max(0.1f, snapSize);
+            }
         }
 
         ImGui::End();
+    }
+
+    static void snapNodesXYZ(Array<CourseNode>& nodes, float grid)
+    {
+        for (auto& n : nodes)
+        {
+            n.pos.x = std::round(n.pos.x / grid) * grid;
+            n.pos.y = std::round(n.pos.y / grid) * grid;
+            n.pos.z = std::round(n.pos.z / grid) * grid;
+        }
     }
 
     float orderPriority() const override
