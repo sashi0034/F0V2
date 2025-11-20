@@ -118,7 +118,7 @@ struct EditorScene::Impl : ActorBase
 
         // hierarchWindow(GlobalGameObjectHierarchy().list());
 
-        constexpr float renderScale = 1.0f;
+        constexpr float renderScale = 0.4f;
 
         // GBuffer パス
         {
@@ -135,6 +135,7 @@ struct EditorScene::Impl : ActorBase
             m_deferredShadingDrawer.draw(renderScale);
 
             Immediate2D::Texture{m_deferredShadingDrawer.getOutputTexture()}
+                .trimmed(RectF{Screen::Size() * renderScale})
                 .resized(Screen::Size())
                 .pushAuto();
         }
