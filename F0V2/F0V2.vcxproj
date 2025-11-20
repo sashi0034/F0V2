@@ -169,6 +169,8 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\.gitignore" />
     <Content Include="asset\debug.example.toml" />
     <Content Include="asset\debug.toml" />
+    <Content Include="asset\engine\font\0xProto\0xProto-Regular.ttf" />
+    <Content Include="asset\engine\font\0xProto\README.md" />
     <Content Include="asset\image\particle.png" />
     <Content Include="asset\music\chi_no_isan.mp3" />
     <Content Include="asset\script\bundle_build.py" />
@@ -188,6 +190,10 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <Content Include="asset\shader\cheap_aa.hlsl" />
     <Content Include="asset\shader\simple_particle.hlsl" />
     <Content Include="asset\shader\simple_deferred_cs.hlsl" />
+    <Content Include="asset\engine\compute_stub.hlsl" />
+    <Content Include="asset\engine\graphics_stub.hlsl" />
+    <Content Include="asset\engine\shape2d.hlsl" />
+    <Content Include="asset\engine\shape3d.hlsl" />
     <ClCompile Include="GameGlobalUI.cpp" />
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
     <ClCompile Include="RaceSetup\RaceSetupScene.cpp" />
@@ -247,8 +253,6 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <ClCompile Include="Util\DebugUI.cpp" />
     <ClCompile Include="Util\ImmediatePrint.cpp" />
     <ClCompile Include="Util\Utilities.cpp" />
-    <Content Include="asset\font\0xProto\0xProto-Regular.ttf" />
-    <Content Include="asset\font\0xProto\README.md" />
     <Content Include="asset\font\RocknRoll\OFL.txt" />
     <Content Include="asset\font\RocknRoll\README-JP.md" />
     <Content Include="asset\font\RocknRoll\README.md" />
