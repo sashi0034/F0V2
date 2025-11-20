@@ -26,6 +26,7 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper shadow_caster{"asset/shader/shadow_caster.hlsl"};
     static const inline GraphicsShaderPathWrapper shadow_caster_old{"asset/shader/shadow_caster_old.hlsl"};
     static const inline GraphicsShaderPathWrapper simple_compute{"asset/shader/simple_compute.hlsl"};
+    static const inline ComputeShaderPathWrapper simple_deferred_cs{"asset/shader/simple_deferred_cs.hlsl"};
     static const inline GraphicsShaderPathWrapper simple_particle{"asset/shader/simple_particle.hlsl"};
     static const inline GraphicsShaderPathWrapper skydome{"asset/shader/skydome.hlsl"};
     static const inline GraphicsShaderPathWrapper wave_test{"asset/shader/wave_test.hlsl"};

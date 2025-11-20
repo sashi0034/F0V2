@@ -181,8 +181,6 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 {
     ActorContainer m_children{};
 
-    ModelDrawer m_skydomeDrawer{};
-
     ModelDrawer m_groundPlaneDrawer{};
 
     Array<ModelDrawer> m_courseDrawers{};
@@ -202,23 +200,6 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
-
-        auto skydome_b4 = ConstantBufferWrapper<Skydome_b10>{};
-        skydome_b4->topColor = ColorF32{0.3f, 0.0f, 1.0f};
-        skydome_b4->bottomColor = ColorF32{1.0f, 1.0f, 1.0f};
-        skydome_b4->sphereRadius = g_sharedState->farDepth;
-        skydome_b4.upload();
-
-        m_skydomeDrawer = ModelDrawer{
-            ModelDrawerParams{}
-            .setModel(PrimitiveModel3D::Sphere(g_sharedState->farDepth, ColorF32{0.5, 0.7, 1.0}))
-            .setShader(Asset_shader::skydome)
-            .setOptions(GraphicsOptions::Default3D()
-                        .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None))
-                        .setDepth(GraphicsDepthOptions::Default3D().setWriteMask(false))
-            )
-            .setCbv10AndLater({skydome_b4})
-        };
 
         // -----------------------------------------------
 
@@ -411,7 +392,6 @@ private:
 #else
         return;
 #endif
-        m_skydomeDrawer.uploadWorldMatrix(Mat4x4::Translate(GetRaceContextContent().camera.eyePosition())).draw();
 
         for (int x = -5; x <= 5; ++x)
         {

@@ -15,13 +15,6 @@ using namespace Race;
 
 namespace
 {
-    struct DrawerElement
-    {
-        std::shared_ptr<IRaceDrawer> drawer;
-        bool initialized{};
-        RaceDrawParameters parameters{};
-    };
-
     struct Scenery_b10
     {
         Mat4x4 g_projectionMatrixInv{};
@@ -36,7 +29,9 @@ namespace
     class SceneryDrawer
     {
     public:
-        void Init(const UnorderedRenderTargetTexture& outputTexture)
+        void Init(
+            const UnorderedRenderTargetTexture& outputTexture,
+            const ConstantBufferWrapper<Scenery_b10>& cb)
         {
             m_dispatcher =
                 ComputeDispatcherParams{}
@@ -50,7 +45,7 @@ namespace
                     .setComparison(GraphicsComparisonFunction::Greater)
                     .setMaxAnisotropy(1)
                 })
-                .setCbv({m_cb})
+                .setCbv({cb})
                 .setSrv({
                     g_sharedState->gbuffer.albedo,
                     g_sharedState->gbuffer.normal,
@@ -63,29 +58,70 @@ namespace
 
         void Draw(float renderScale)
         {
-            m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
-            m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
-            m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
-            m_cb->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
-            m_cb->g_time = System::Time();
-            m_cb.upload();
-
-            const Size rtvSize = g_sharedState->gbufferTarget.size();
+            const Size rtvSize = g_sharedState->gbufferTarget.size() * renderScale;
             constexpr int threadsPerGroup = 32;
             const int threadGroup = (rtvSize.x * rtvSize.y / 2) / threadsPerGroup;
             m_dispatcher.dispatch(threadGroup);
         }
 
     private:
-        ConstantBufferWrapper<Scenery_b10> m_cb{};
         ComputeDispatcher m_dispatcher{};
     };
+
+#if defined(_DEBUG)
+    class SimpleDeferredDrawer
+    {
+    public:
+        void Init(
+            const UnorderedRenderTargetTexture& outputTexture,
+            const ConstantBufferWrapper<Scenery_b10>& cb)
+        {
+            // TODO: 使ってないリソースの整理
+            m_dispatcher =
+                ComputeDispatcherParams{}
+                .setCS(Asset_shader::simple_deferred_cs)
+                .setSamplers({
+                    GraphicsSamplerOptions{}
+                    .setAddress(GraphicsAddressMode::Border)
+                    .setFilter(GraphicsFilterMode::Linear),
+                    GraphicsSamplerOptions{}
+                    .setFilter(GraphicsFilterMode::Linear)
+                    .setComparison(GraphicsComparisonFunction::Greater)
+                    .setMaxAnisotropy(1)
+                })
+                .setCbv({cb})
+                .setSrv({
+                    g_sharedState->gbuffer.albedo,
+                    g_sharedState->gbuffer.normal,
+                    g_sharedState->gbuffer.viewDistance,
+                    g_sharedState->gbufferTarget.getDepthBuffer(),
+                })
+                .setUav({outputTexture});
+        }
+
+        void Draw(float renderScale)
+        {
+            const Size rtvSize = g_sharedState->gbufferTarget.size() * renderScale;
+            m_dispatcher.dispatch(rtvSize.x / 4, rtvSize.y / 8);
+        }
+
+    private:
+        ComputeDispatcher m_dispatcher{};
+    };
+#endif
 }
 
 struct RaceDeferredShadingDrawer::Impl
 {
-    SceneryDrawer m_sceneryDrawer{};
     UnorderedRenderTargetTexture m_outputTexture{};
+
+    ConstantBufferWrapper<Scenery_b10> m_cb{};
+
+    SceneryDrawer m_sceneryDrawer{};
+
+#if defined(_DEBUG)
+    SimpleDeferredDrawer m_debugDrawer{};
+#endif
 
     void Init()
     {
@@ -94,13 +130,28 @@ struct RaceDeferredShadingDrawer::Impl
             .setSize(g_sharedState->gbufferTarget.size())
             .setClearColor(ColorF32{0.0f, 0.0f});
 
-        m_sceneryDrawer.Init(m_outputTexture);
+        m_sceneryDrawer.Init(m_outputTexture, m_cb);
+
+#if defined(_DEBUG)
+        m_debugDrawer.Init(m_outputTexture, m_cb);
+#endif
     }
 
     void Draw(float renderScale)
     {
+        m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
+        m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
+        m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
+        m_cb->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
+        m_cb->g_time = System::Time();
+        m_cb.upload();
+
 #if defined(_DEBUG)
-        if (GetDebugTomlValue<bool>("draw_scenery"))
+        if (not GetDebugTomlValue<bool>("draw_scenery"))
+        {
+            m_debugDrawer.Draw(renderScale);
+        }
+        else
 #endif
         {
             m_sceneryDrawer.Draw(renderScale);
