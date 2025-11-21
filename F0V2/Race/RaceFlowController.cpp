@@ -520,6 +520,7 @@ private:
     {
         m_children.killEach();
 
+        Audio::StopAllSounds();
         Audio::StopMusic();
 
         GetRaceContext().unregisterDrawer(this);

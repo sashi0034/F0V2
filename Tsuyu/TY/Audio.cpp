@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Audio.h"
 
+#include <ranges>
 #include <soloud_wavstream.h>
 
 #include "IComponent.h"
@@ -25,6 +26,17 @@ namespace
 
     AudioComponent* s_audioComponent;
 
+    struct ISoundAudio
+    {
+        virtual ~ISoundAudio() = default;
+    };
+
+    struct SoundData
+    {
+        SoLoud::Wav wav{};
+        SoLoud::handle uniqueHandle{};
+    };
+
     struct MusicData
     {
         SoLoud::WavStream wavStream{};
@@ -44,6 +56,7 @@ namespace
         SoLoud::Bus music;
         SoLoud::handle musicHandle{};
 
+        std::unordered_map<ISoundAudio*, std::shared_ptr<SoundData>> soundDatas{};
         std::shared_ptr<MusicData> currentMusic{};
     } s_audioState{};
 
@@ -152,26 +165,32 @@ namespace
     };
 }
 
-struct SoundAudio::Impl
+struct SoundAudio::Impl : ISoundAudio
 {
-    SoLoud::Wav m_wav{};
-    SoLoud::handle m_uniqueHandle{};
+    std::shared_ptr<SoundData> m_data{std::make_shared<SoundData>()};
     float m_lastShotTime{};
 
     bool Init(const std::string& path)
     {
-        if (m_wav.load(path.data()) != SoLoud::SO_NO_ERROR)
+        if (m_data->wav.load(path.data()) != SoLoud::SO_NO_ERROR)
         {
             LogError("SoundAudio: Failed to load sound from path: {}", path);
             return false;
         }
 
+        s_audioState.soundDatas[this] = m_data;
+
         return true;
+    }
+
+    ~Impl()
+    {
+        s_audioState.soundDatas.erase(this);
     }
 
     void SetLoopEnabled(bool enabled)
     {
-        m_wav.setLooping(enabled);
+        m_data->wav.setLooping(enabled);
     }
 
     void PlayUnique(float volume)
@@ -181,34 +200,34 @@ struct SoundAudio::Impl
             return;
         }
 
-        if (s_audioState.global.isValidVoiceHandle(m_uniqueHandle))
+        if (s_audioState.global.isValidVoiceHandle(m_data->uniqueHandle))
         {
             return;
         }
 
-        m_uniqueHandle = s_audioState.sound.play(m_wav);
-        s_audioState.global.setVolume(m_uniqueHandle, volume);
+        m_data->uniqueHandle = s_audioState.sound.play(m_data->wav);
+        s_audioState.global.setVolume(m_data->uniqueHandle, volume);
     }
 
     bool IsPlayingUnique() const
     {
-        return s_audioState.global.isValidVoiceHandle(m_uniqueHandle);
+        return s_audioState.global.isValidVoiceHandle(m_data->uniqueHandle);
     }
 
     void StopUnique(float fadeOutDuration)
     {
-        if (m_uniqueHandle && s_audioState.global.isValidVoiceHandle(m_uniqueHandle))
+        if (m_data->uniqueHandle && s_audioState.global.isValidVoiceHandle(m_data->uniqueHandle))
         {
             if (fadeOutDuration > 0.0f)
             {
-                s_audioState.global.fadeVolume(m_uniqueHandle, 0.0f, fadeOutDuration);
-                s_audioState.global.scheduleStop(m_uniqueHandle, fadeOutDuration);
-                m_uniqueHandle = {};
+                s_audioState.global.fadeVolume(m_data->uniqueHandle, 0.0f, fadeOutDuration);
+                s_audioState.global.scheduleStop(m_data->uniqueHandle, fadeOutDuration);
+                m_data->uniqueHandle = {};
                 // TODO: m_uniqueHandle を別の変数に移しておき、次の PlayUnique() で即座に停止
             }
             else
             {
-                s_audioState.global.stop(m_uniqueHandle);
+                s_audioState.global.stop(m_data->uniqueHandle);
             }
         }
     }
@@ -228,7 +247,7 @@ struct SoundAudio::Impl
 
         m_lastShotTime = System::Time();
 
-        const auto handle = s_audioState.sound.play(m_wav);
+        const auto handle = s_audioState.sound.play(m_data->wav);
         s_audioState.global.setVolume(handle, volume);
     }
 };
@@ -323,6 +342,17 @@ namespace TY
     void Audio::SetMusicVolume(float volume)
     {
         s_audioState.global.setVolume(s_audioState.musicHandle, volume);
+    }
+
+    void Audio::StopAllSounds()
+    {
+        for (const auto& soundData : s_audioState.soundDatas | std::views::values)
+        {
+            s_audioState.global.stop(soundData->uniqueHandle);
+            soundData->uniqueHandle = {};
+        }
+
+        // TODO: Stop one-shot sounds as well
     }
 
     void Audio::StopMusic(float fadeOutDuration)

@@ -11,6 +11,8 @@ namespace TY
 
         void SetMusicVolume(float volume);
 
+        void StopAllSounds();
+
         void StopMusic(float fadeOutDuration = 0.5f);
     }
 
