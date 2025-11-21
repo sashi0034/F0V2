@@ -32,6 +32,7 @@ namespace TY
         t.insert("axis_rx", axis_rx);
         t.insert("axis_ry", axis_ry);
 
+        // TODO: ディレクトリが存在しない場合の対処
         try
         {
             std::ofstream stream(path);

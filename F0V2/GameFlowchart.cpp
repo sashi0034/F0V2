@@ -22,9 +22,12 @@
 #include "TY_Extension/AwaitContext.h"
 #include "TY_Extension/GameObjectBase.h"
 #include "Util/DebugTomlValue.h"
+#include "Util/ImmediatePrint.h"
 
 namespace
 {
+    std::string saveDirectory = "save/";
+
     std::string gamepadConfigPath = "save/gamepad.toml";
 
     struct IFlowchart
@@ -140,6 +143,11 @@ struct GameFlowchart::Impl : GameObjectBase
 
     void Init()
     {
+        if (not std::filesystem::exists(saveDirectory))
+        {
+            std::filesystem::create_directory(saveDirectory);
+        }
+
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile(gamepadConfigPath));
 
         Audio::SetMusicVolume(0.1f); // TODO: 音量
@@ -153,6 +161,11 @@ private:
 #if defined(_DEBUG)
         Audio::SetEnabled(GetDebugTomlValue<bool>("enable_audio"));
 #endif
+
+        if (IsUsingGamepad() && not std::filesystem::exists(gamepadConfigPath))
+        {
+            ImmediatePrint(U"Press 'F2' to configure your gamepad.");
+        }
 
         if (KeyF2.down())
         {
