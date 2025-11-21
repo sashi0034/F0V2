@@ -19,7 +19,7 @@ namespace
 {
     constexpr float defaultFadeOutDuration = 0.5f;
 
-    constexpr float defaultFadeInDuration = 1.0f;
+    constexpr float defaultFadeInDuration = 0.5f;
 
     struct AudioComponent;
 
