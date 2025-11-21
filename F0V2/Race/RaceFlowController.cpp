@@ -2,6 +2,8 @@
 #include "RaceFlowController.h"
 
 #include "Asset.generated.h"
+#include "Asset0.h"
+#include "GameGlobalUI.h"
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "Common/CourseFileInfo.h"
@@ -378,6 +380,11 @@ private:
 
         drawSpecialUI();
 
+        if (IsGameStatsVisible()) // FIXME
+        {
+            drawTutorial();
+        }
+
         // -----------------------------------------------
 
         ImmediateDrawer::Global().draw();
@@ -462,6 +469,38 @@ private:
                 Screen::RectF().middleCenter(), Alignment9::MiddleCenter,
                 Palette::Orange);
             return;
+        }
+    }
+
+    void drawTutorial() const
+    {
+        Array<std::u32string> messages{};
+
+        std::u32string boostMessage =
+            GetRaceContext().machineManager().machineList()[PlayerMachineId].state.isBoostUnlocked()
+                ? U"ブースト"
+                : U"?";
+        if (IsUsingGamepad())
+        {
+            messages.push_back(U"左スティック: 横移動");
+            messages.push_back(U"A: アクセル");
+            messages.push_back(U"B: " + boostMessage);
+            messages.push_back(U"L: 左ドリフト | R: 右ドリフト");
+        }
+        else
+        {
+            messages.push_back(U"A, D: 横移動");
+            messages.push_back(U"Shift: アクセル");
+            messages.push_back(U"Space: " + boostMessage);
+            messages.push_back(U"左矢印: 左ドリフト | 右矢印: 右ドリフト");
+        }
+
+        for (int i = 0; i < messages.size(); ++i)
+        {
+            Immediate2D_Text::MPlus1_Sdf(messages[i])
+                .setSize(16.0f)
+                .setPosition({80.0f, 80.0f + i * 24.0f})
+                .pushAuto();
         }
     }
 
