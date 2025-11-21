@@ -25,7 +25,9 @@ ASSET_SUBDIRECTORIES = [
     "fsr1",
     "image",
     "model",
+    "music",
     "shader",
+    "sound",
 ]
 
 
