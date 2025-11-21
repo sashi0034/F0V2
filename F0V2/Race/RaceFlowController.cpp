@@ -182,7 +182,7 @@ private:
 
         Asset_sound::GotBoostPower().playOneShot();
 
-        m_backgroundMusic.setLoopAndTransition(GetRaceContext().courseFileInfo().musicLoopRanges[1]);
+        m_backgroundMusic.setLoop(GetRaceContext().courseFileInfo().musicLoopRanges[1]);
 
         // -----------------------------------------------
 
@@ -196,7 +196,7 @@ private:
 
         Asset_sound::FinalRap().playOneShot();
 
-        m_backgroundMusic.setLoopAndTransition(GetRaceContext().courseFileInfo().musicLoopRanges[2]);
+        m_backgroundMusic.setLoop(GetRaceContext().courseFileInfo().musicLoopRanges[2]);
 
         // -----------------------------------------------
 
