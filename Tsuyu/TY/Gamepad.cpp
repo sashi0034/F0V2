@@ -103,6 +103,16 @@ namespace TY
         return {rawState().axes[s_mapping.axis_rx], rawState().axes[s_mapping.axis_ry]};
     }
 
+    Float2 GamepadInput::previousAxisL() const
+    {
+        return {rawState().previousAxes[s_mapping.axis_lx], rawState().previousAxes[s_mapping.axis_ly]};
+    }
+
+    Float2 GamepadInput::previousAxisR() const
+    {
+        return {rawState().previousAxes[s_mapping.axis_rx], rawState().previousAxes[s_mapping.axis_ry]};
+    }
+
     bool IsUsingGamepad()
     {
         return Gamepad_singleton::IsUsingGamepad();

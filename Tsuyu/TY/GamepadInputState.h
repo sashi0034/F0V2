@@ -25,7 +25,9 @@ namespace TY
 
         GamepadButtonState povRight{};
 
-        axes_type axes;
+        axes_type previousAxes{};
+
+        axes_type axes{};
 
         Array<int> getDownButtonIndexes() const;
 

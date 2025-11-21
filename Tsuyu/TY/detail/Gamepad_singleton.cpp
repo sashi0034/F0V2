@@ -69,11 +69,11 @@ namespace
         return false;
     }
 
-    bool isGamepadAxesActivated(const GamepadInputState::axes_type& previousAxes, const GamepadInputState& state)
+    bool isGamepadAxesActivated(const GamepadInputState& state)
     {
         for (int i = 0; i < state.axes.size(); ++i)
         {
-            const auto diff = Abs(state.axes[i] - previousAxes[i]);
+            const auto diff = Abs(state.axes[i] - state.previousAxes[i]);
             if (diff > 0.5f)
             {
                 return true;
@@ -142,7 +142,7 @@ struct GamepadImpl
         if (SUCCEEDED(m_gamepad->GetDeviceState(sizeof(DIJOYSTATE), &js)))
         {
             // 入力状態を更新
-            const auto previousAces = m_inputState.axes;
+            m_inputState.previousAxes = m_inputState.axes;
 
             m_inputState.axes[0] = normalizeAxis(js.lX);
             m_inputState.axes[1] = normalizeAxis(js.lY);
@@ -169,7 +169,7 @@ struct GamepadImpl
             if (not m_usingGamepad)
             {
                 m_usingGamepad =
-                    isGamepadButtonActivated(m_inputState) || isGamepadAxesActivated(previousAces, m_inputState);
+                    isGamepadButtonActivated(m_inputState) || isGamepadAxesActivated(m_inputState);
             }
         }
         else

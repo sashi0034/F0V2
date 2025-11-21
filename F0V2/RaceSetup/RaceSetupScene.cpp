@@ -217,7 +217,7 @@ private:
 
         if (IsUsingGamepad())
         {
-            dirOpt = GamepadUtils::GetTriggeredDpad();
+            dirOpt = GamepadUtils::GetTriggeredDpadOrLStick();
             confirmTriggered = MainGamepad.a().down;
         }
         else

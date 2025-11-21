@@ -36,9 +36,15 @@ namespace TY
         Down,
     };
 
+    [[nodiscard]]
+    std::optional<Direction4> PointToDirection(const Float2& point);
+
+    [[nodiscard]]
     Point DirectionToPoint(Direction4 dir);
 
+    [[nodiscard]]
     bool IsDirectionHorizontal(Direction4 dir);
 
+    [[nodiscard]]
     Direction4 ReverseDirection(Direction4 dir);
 }

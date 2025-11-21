@@ -30,6 +30,23 @@ namespace TY
         }
     }
 
+    std::optional<Direction4> PointToDirection(const Float2& point)
+    {
+        if (point.isZero())
+        {
+            return std::nullopt;
+        }
+
+        if (Abs(point.x) > Abs(point.y))
+        {
+            return point.x > 0.0f ? Direction4::Right : Direction4::Left;
+        }
+        else
+        {
+            return point.y > 0.0f ? Direction4::Down : Direction4::Up;
+        }
+    }
+
     Point DirectionToPoint(Direction4 dir)
     {
         constexpr std::array points = {

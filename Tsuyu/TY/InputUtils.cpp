@@ -4,6 +4,10 @@
 #include "Gamepad.h"
 #include "KeyboardInput.h"
 
+namespace
+{
+}
+
 namespace TY
 {
     std::optional<Direction4> KeyboardUtils::GetTriggeredArrow()
@@ -83,5 +87,28 @@ namespace TY
         }
 
         return result;
+    }
+
+    std::optional<Direction4> GamepadUtils::GetTriggeredLStick()
+    {
+        const auto previousAxisL = MainGamepad.previousAxisL();
+        const auto currentAxisL = MainGamepad.axisL();
+
+        const std::optional<Direction4> previousDir =
+            previousAxisL.lengthSq() >= 0.5f * 0.5f ? PointToDirection(previousAxisL) : std::nullopt;
+        const std::optional<Direction4> currentDir =
+            currentAxisL.lengthSq() >= 0.5f * 0.5f ? PointToDirection(currentAxisL) : std::nullopt;
+
+        return previousDir != currentDir ? currentDir : std::nullopt;
+    }
+
+    std::optional<Direction4> GamepadUtils::GetTriggeredDpadOrLStick()
+    {
+        if (auto dir = GetTriggeredDpad(); dir.has_value())
+        {
+            return dir;
+        }
+
+        return GetTriggeredLStick();
     }
 }
