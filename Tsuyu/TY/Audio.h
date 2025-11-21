@@ -10,6 +10,8 @@ namespace TY
         void SetSoundVolume(float volume);
 
         void SetMusicVolume(float volume);
+
+        void StopMusic(float fadeOutDuration = 0.5f);
     }
 
     struct AudioLoopRange

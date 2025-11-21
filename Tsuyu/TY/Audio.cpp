@@ -322,6 +322,15 @@ namespace TY
         s_audioState.global.setVolume(s_audioState.musicHandle, volume);
     }
 
+    void Audio::StopMusic(float fadeOutDuration)
+    {
+        if (s_audioState.currentMusic)
+        {
+            stopMusic(*s_audioState.currentMusic, fadeOutDuration);
+            s_audioState.currentMusic = nullptr;
+        }
+    }
+
     SoundAudio::SoundAudio(const std::string& path)
         : p_impl(std::make_shared<Impl>())
     {

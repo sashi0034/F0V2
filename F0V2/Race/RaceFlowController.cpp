@@ -166,6 +166,8 @@ private:
 
         popupMajorBanner(MajorBanner::YouGotBoostPower, U"You've Got Boost Power !", 5.0f);
 
+        Asset_sound::GotBoostPower().playOneShot();
+
         m_backgroundMusic.setLoopAndTransition(GetRaceContext().courseFileInfo().musicLoopRanges[1]);
 
         // -----------------------------------------------
@@ -177,6 +179,8 @@ private:
         });
 
         popupMajorBanner(MajorBanner::TheFinalLap, U"The Final Lap !", 5.0f);
+
+        Asset_sound::FinalRap().playOneShot();
 
         m_backgroundMusic.setLoopAndTransition(GetRaceContext().courseFileInfo().musicLoopRanges[2]);
 
@@ -201,6 +205,8 @@ private:
 
         const int playerRank = GetRaceContext().machineManager().getEvaluation(PlayerMachineId).rank;
 
+        Asset_music::Shiro().play();
+
         await.waitForTime(2.5s);
 
         m_playerFinalRank = playerRank;
@@ -219,18 +225,22 @@ private:
 #endif
 
         m_countdown = 3;
+        Asset_sound::CountThree().playOneShot();
 
         await.waitForTime(1.0f);
 
         m_countdown--;
+        Asset_sound::CountTwo().playOneShot();
 
         await.waitForTime(1.0f);
 
         m_countdown--;
+        Asset_sound::CountOne().playOneShot();
 
         await.waitForTime(1.0f);
 
         m_countdown--;
+        Asset_sound::CountGo().playOneShot();
 
         popupMajorBanner(MajorBanner::Go, U"Go !", 3.0f);
     }
@@ -288,7 +298,7 @@ private:
                 }
             );
 
-            m_backgroundMusic.stop();
+            Audio::StopMusic();
 
             g_sharedState->isRaceEnded = true;
         });
