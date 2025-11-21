@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CourseConstants.h"
+#include "CourseGimmick.h"
 #include "TY/Array.h"
 #include "TY/Vector3D.h"
 
@@ -11,18 +12,6 @@ namespace Race
         Pipe,
         Cylinder,
         Gap,
-        Max // end marker
-    };
-
-    enum class CourseGimmickKind : uint8_t
-    {
-        Barrier,
-        BoostPad_C,
-        JumpPad_C,
-        PitZone_L,
-        PitZone_C,
-        PitZone_R,
-        PitZone_LR,
         Max // end marker
     };
 

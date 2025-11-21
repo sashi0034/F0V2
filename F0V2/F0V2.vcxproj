@@ -338,6 +338,7 @@ xcopy /Y "$(SolutionDir)external\freetype\objs\$(Platform)\$(Configuration)\free
     <ClInclude Include="Race\Ai\MetaAi.h" />
     <ClInclude Include="Race\Common\AiRank.h" />
     <ClInclude Include="Race\Common\CourseFileInfo.h" />
+    <ClInclude Include="Race\Common\CourseGimmick.h" />
     <ClInclude Include="Race\Common\RaceDeferredShadingDrawer.h" />
     <ClInclude Include="Race\Common\RaceDrawUpscaler.h" />
     <ClInclude Include="Race\Machine\MachineEffectDrawer.h" />

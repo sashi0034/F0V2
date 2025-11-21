@@ -33,17 +33,4 @@ namespace Race
         std::array<Float3, 4> ArrangePoints_00_10_01_11(
             const Float3& p0, const Float3& p1, const Float3& p2, const GroundTriangleAttribute& attr);
     }
-
-    struct GimmickTriangleAttribute
-    {
-        enum class kind_t : uint8_t
-        {
-            Barrier,
-            BoostPad,
-            JumpPad,
-            PitZone,
-        };
-
-        kind_t kind;
-    };
 }
