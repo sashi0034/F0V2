@@ -241,7 +241,7 @@ namespace Race
         }
 
         // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);
-        Float3 gravity = state.m_gravity; // TODO: 地面方向の成分を除去
+        Float3 gravity = state.m_gravity; // FIXME: 地面方向の成分を除去?
         state.m_velocity += gravity * 50.0f * InGameDeltaTime();
 
         auto deviceInput = props.input;
@@ -255,16 +255,22 @@ namespace Race
             applyInputAccel(state, props);
         }
 
+        // ブースト入力処理
+        state.m_manualBoostCooldownTime = Max(0.0f, state.m_manualBoostCooldownTime - InGameDeltaTime());
+
         constexpr float boostEnergyCost = 800.0f;
         if (deviceInput.boostRequested &&
             isBoostUnlocked(state) &&
             state.m_durability > boostEnergyCost &&
-            state.m_manualBoost < 0.1f)
+            state.m_manualBoost < 0.1f &&
+            state.m_manualBoostCooldownTime <= 0.0f)
         {
             state.m_manualBoost = 1.0f;
+            state.m_manualBoostCooldownTime = 2.0f;
             state.m_durability = PositiveF32(state.m_durability - boostEnergyCost);
         }
 
+        // 最大速度制限
         constexpr float maxVelocity = 500.0f;
         if (state.m_velocity.lengthSq() > Math::Square(maxVelocity))
         {

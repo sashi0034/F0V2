@@ -35,6 +35,8 @@ namespace Race
 
         float m_manualBoost{};
 
+        float m_manualBoostCooldownTime{};
+
         float m_passiveBoost{};
 
         PositiveF32 m_durability{};
