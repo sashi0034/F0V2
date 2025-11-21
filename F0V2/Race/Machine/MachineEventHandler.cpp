@@ -72,14 +72,26 @@ private:
         m_children.updateEach();
     }
 
+    static SegmentAndStrip getFallRecoveryPosition(const MachinePhysicsState& state)
+    {
+        const auto targetSegmentAntStrip = state.m_lastGroundContactLocation;
+
+        // TODO: 崖付近から離れるようにしたい
+
+        return targetSegmentAntStrip;
+    }
+
     void handleFallingOffCourse(AwaitContext& await, MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
         float rate{};
         const auto fromPose = state.m_pose;
 
-        auto& segments = GetRaceContext().stageManager().courseSegments();
-        const auto& targetSegmentAntStrip = state.m_lastGroundContactLocation;
-        auto& targetStrip = segments[targetSegmentAntStrip.segmentIndex].midwayStrips[targetSegmentAntStrip.stripIndex];
+        const auto& segments = GetRaceContext().stageManager().courseSegments();
+
+        const auto& targetSegmentAntStrip = getFallRecoveryPosition(state);
+
+        const auto& targetStrip =
+            segments[targetSegmentAntStrip.segmentIndex].midwayStrips[targetSegmentAntStrip.stripIndex];
 
         float targetElevation = 5.0f;
         if (targetStrip.style == CourseSegmentStyle::Cylinder)
