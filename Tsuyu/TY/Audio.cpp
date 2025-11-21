@@ -118,6 +118,9 @@ namespace
                 return false;
             }
 
+            constexpr int maxActiveVoiceCount = 72;
+            s_audioState.global.setMaxActiveVoiceCount(maxActiveVoiceCount);
+
             s_audioState.soundHandle = s_audioState.global.play(s_audioState.sound);
             s_audioState.musicHandle = s_audioState.global.play(s_audioState.music);
             s_audioComponent = this;
