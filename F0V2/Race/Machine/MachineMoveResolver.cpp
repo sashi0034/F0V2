@@ -457,6 +457,7 @@ namespace
 #endif
 
         state.m_durability = PositiveF32(state.m_durability - 5.0f);
+        state.m_isTouchingBarrier = true;
 
         // state.m_surfaceNormal = {};
         // state.m_surfaceToTriangle = {};
@@ -667,6 +668,11 @@ namespace
 
     // -----------------------------------------------
 
+    void resetBeforeResolve(MachinePhysicsState& state)
+    {
+        state.m_isTouchingBarrier = false;
+    }
+
     void resolveMachineMove(
         MachinePhysicsState& state,
         const Float3& moveVector,
@@ -769,6 +775,7 @@ namespace Race
 {
     void ResolveMachineMove(MachinePhysicsState& state, const Float3& moveVector, const MachinePhysicsProps& props)
     {
+        resetBeforeResolve(state);
         resolveMachineMove(state, moveVector, props, true, 0);
     }
 

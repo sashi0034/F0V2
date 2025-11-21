@@ -176,7 +176,7 @@ private:
             const auto updateOutcome = UpdateMachinePhysicsState(machine().state, machine().props);
             GetRaceContext().machineManager().eventHandler().handleIfNeeded(machine().id());
 
-            playUpdateOutcomeSound(updateOutcome);
+            playSoundIfNeeded(updateOutcome);
         }
 
 #if defined(_DEBUG)
@@ -187,7 +187,7 @@ private:
 #endif
     }
 
-    void playUpdateOutcomeSound(const MachinePhysicsUpdateOutcome updateOutcome)
+    void playSoundIfNeeded(const MachinePhysicsUpdateOutcome updateOutcome)
     {
         if (updateOutcome.accelInputAccepted)
         {
@@ -218,6 +218,11 @@ private:
         if (updateOutcome.boostInputAccepted)
         {
             Asset_sound::Boost().playOneShot();
+        }
+
+        if (machine().state.m_isTouchingBarrier)
+        {
+            Asset_sound::Collide().playOneShot();
         }
     }
 

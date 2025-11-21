@@ -49,6 +49,8 @@ namespace Race
 
         SegmentAndStrip m_lastGroundContactLocation{};
 
+        bool m_isTouchingBarrier{};
+
         [[nodiscard]]
         Float3 rightVector() const;
 
