@@ -342,7 +342,8 @@ namespace Race
         {
             state.m_lapProgress = EvaluateLapProgress(state.m_lapProgress, nearestSegmentAndStrip);
 
-            if (state.m_reachedLapProgress.isLessThan(state.m_lapProgress))
+            if (not state.isHovering() &&
+                state.m_reachedLapProgress.isLessThan(state.m_lapProgress))
             {
                 state.m_reachedLapProgress = state.m_lapProgress;
             }
