@@ -120,7 +120,7 @@ private:
 
         if (not m_raceFinished)
         {
-            int currentLap = player.state.m_reachedLapProgress.lapIndex;
+            int currentLap = player.state.m_markedLapProgress.lapIndex;
             if (InRange<int>(currentLap, 0, m_measuredLapTimes.size() - 1))
             {
                 m_measuredLapTimes[currentLap] += InGameDeltaTime();
@@ -175,7 +175,7 @@ private:
         await.waitForTrue([&]()
         {
             const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
-            return player.state.m_lapProgress.lapIndex == 1;
+            return player.state.m_markedLapProgress.lapIndex == 1;
         });
 
         popupMajorBanner(MajorBanner::YouGotBoostPower, U"You've Got Boost Power !", 5.0f);
@@ -189,7 +189,7 @@ private:
         await.waitForTrue([&]()
         {
             const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
-            return player.state.m_lapProgress.lapIndex == 2;
+            return player.state.m_markedLapProgress.lapIndex == 2;
         });
 
         popupMajorBanner(MajorBanner::TheFinalLap, U"The Final Lap !", 5.0f);
@@ -364,7 +364,7 @@ private:
         // ラップタイム
         DrawLabelText(
             ToUtf32("Lap {} / {}",
-                    Min<int>(m_measuredLapTimes.size(), player.state.m_reachedLapProgress.lapIndex + 1),
+                    Min<int>(m_measuredLapTimes.size(), player.state.m_markedLapProgress.lapIndex + 1),
                     m_measuredLapTimes.size()),
             24.0f,
             Screen::TopRightF().movedBy(-20.0f, 40.0f),
@@ -372,12 +372,12 @@ private:
 
         for (int i = 0; i < m_measuredLapTimes.size(); ++i)
         {
-            if (i > player.state.m_reachedLapProgress.lapIndex)
+            if (i > player.state.m_markedLapProgress.lapIndex)
             {
                 break;
             }
 
-            const bool isCurrentLap = (i == player.state.m_reachedLapProgress.lapIndex);
+            const bool isCurrentLap = (i == player.state.m_markedLapProgress.lapIndex);
 
             const float lapTime = m_measuredLapTimes[i];
             DrawLabelText(

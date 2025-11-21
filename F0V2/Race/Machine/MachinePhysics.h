@@ -44,7 +44,7 @@ namespace Race
 
         LapProgress m_lapProgress{};
 
-        LapProgress m_reachedLapProgress{};
+        LapProgress m_markedLapProgress{};
 
         bool m_isFallingOffCourse{};
 
