@@ -51,7 +51,10 @@ namespace Race
         SegmentAndStrip m_lastGroundContactLocation{};
 
         GimmickFlagBits m_previousTouchingGimmicks{};
+
         GimmickFlagBits m_touchingGimmicks{};
+
+        float m_lastAttackedByOtherMachineTime{};
 
         [[nodiscard]]
         Float3 rightVector() const;

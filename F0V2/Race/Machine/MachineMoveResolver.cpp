@@ -590,8 +590,12 @@ namespace
             // ブーストアタック成立
             otherMachineState.m_velocity += state.m_upVector * 50.0f;
 
-            // TODO: 連続フレームでヒット防止
-            otherMachineState.m_durability = PositiveF32(otherMachineState.m_durability - 500.0f);
+            // 攻撃ダメージ処理
+            if (InGameElapsedTime() - otherMachineState.m_lastAttackedByOtherMachineTime >= 0.1f)
+            {
+                otherMachineState.m_durability = PositiveF32(otherMachineState.m_durability - 500.0f);
+                otherMachineState.m_lastAttackedByOtherMachineTime = InGameElapsedTime();
+            }
         }
         else
         {
