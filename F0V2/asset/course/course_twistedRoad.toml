@@ -200,7 +200,7 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'JumpPad_C' ]
+gimmicks = [ 'Barrier', 'JumpPad_C' ]
 pos = [ -85.0, 185.0, 470.0 ]
 roll = -30
 style = 'Road'
@@ -209,7 +209,7 @@ width = 65
 [[nodes]]
 centerOffset = 0
 gimmicks = []
-pos = [ 20.0, 95.0, 410.0 ]
+pos = [ 15.0, 95.0, 445.0 ]
 roll = 20
 style = 'Gap'
 width = 75
@@ -217,15 +217,15 @@ width = 75
 [[nodes]]
 centerOffset = 0
 gimmicks = []
-pos = [ 10.0, 80.0, 410.0 ]
+pos = [ 10.0, 80.0, 440.0 ]
 roll = -30
 style = 'Gap'
 width = 65
 
 [[nodes]]
 centerOffset = 0
-gimmicks = []
-pos = [ 20.0, 65.0, 410.0 ]
+gimmicks = [ 'Barrier' ]
+pos = [ 15.0, 65.0, 435.0 ]
 roll = 45
 style = 'Road'
 width = 100
@@ -241,23 +241,23 @@ width = 75
 [[nodes]]
 centerOffset = 0
 gimmicks = [ 'Barrier' ]
-pos = [ 275.0, 45.0, 470.0 ]
+pos = [ 270.0, 35.0, 480.0 ]
 roll = -15
 style = 'Road'
-width = 65
-
-[[nodes]]
-centerOffset = 0
-gimmicks = [ 'Barrier' ]
-pos = [ 300.0, 40.0, 370.0 ]
-roll = -15
-style = 'Road'
-width = 65
+width = 60
 
 [[nodes]]
 centerOffset = 0
 gimmicks = []
-pos = [ 85.0, 20.0, 330.0 ]
+pos = [ 290.0, 40.0, 390.0 ]
+roll = -15
+style = 'Road'
+width = 60
+
+[[nodes]]
+centerOffset = 0
+gimmicks = []
+pos = [ 100.0, 20.0, 310.0 ]
 roll = -30
 style = 'Cylinder'
 width = 75
@@ -265,7 +265,7 @@ width = 75
 [[nodes]]
 centerOffset = 0
 gimmicks = []
-pos = [ -95.0, -10.0, 225.0 ]
+pos = [ -85.0, -10.0, 210.0 ]
 roll = -30
 style = 'Cylinder'
 width = 75

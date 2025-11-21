@@ -469,6 +469,8 @@ private:
     {
         m_children.killEach();
 
+        Audio::StopMusic();
+
         GetRaceContext().unregisterDrawer(this);
     }
 };
