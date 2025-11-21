@@ -38,7 +38,8 @@ void Main()
 
     ActorContainer actors{};
 
-    actors.birth(F0V2::GameFlowchart());
+    auto flowchart = actors.birth(GameFlowchart());
+    flowchart.init();
 
     while (System::Update())
     {

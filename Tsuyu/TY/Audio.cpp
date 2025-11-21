@@ -37,8 +37,12 @@ namespace
         bool enabled{true};
 
         SoLoud::Soloud global; // Engine
+
         SoLoud::Bus sound;
+        SoLoud::handle soundHandle{};
+
         SoLoud::Bus music;
+        SoLoud::handle musicHandle{};
 
         std::shared_ptr<MusicData> currentMusic{};
     } s_audioState{};
@@ -114,8 +118,8 @@ namespace
                 return false;
             }
 
-            s_audioState.global.play(s_audioState.sound);
-            s_audioState.global.play(s_audioState.music);
+            s_audioState.soundHandle = s_audioState.global.play(s_audioState.sound);
+            s_audioState.musicHandle = s_audioState.global.play(s_audioState.music);
             s_audioComponent = this;
             return true;
         }
@@ -149,7 +153,7 @@ struct SoundAudio::Impl
 {
     SoLoud::Wav m_wav{};
     SoLoud::handle m_uniqueHandle{};
-    float m_lastOneShotTime{};
+    float m_lastShotTime{};
 
     bool Init(const std::string& path)
     {
@@ -214,12 +218,12 @@ struct SoundAudio::Impl
         }
 
         constexpr float minInterval = 0.1f; // seconds
-        if (System::Time() - minInterval < m_lastOneShotTime)
+        if (System::Time() - minInterval < m_lastShotTime)
         {
             return;
         }
 
-        m_lastOneShotTime = System::Time();
+        m_lastShotTime = System::Time();
 
         const auto handle = s_audioState.sound.play(m_wav);
         s_audioState.global.setVolume(handle, volume);
@@ -306,6 +310,16 @@ namespace TY
         s_audioState.enabled = enabled;
 
         // TODO: Pause all sounds/music if disabled
+    }
+
+    void Audio::SetSoundVolume(float volume)
+    {
+        s_audioState.global.setVolume(s_audioState.soundHandle, volume);
+    }
+
+    void Audio::SetMusicVolume(float volume)
+    {
+        s_audioState.global.setVolume(s_audioState.musicHandle, volume);
     }
 
     SoundAudio::SoundAudio(const std::string& path)

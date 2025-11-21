@@ -132,7 +132,7 @@ struct Flowcharts
     };
 };
 
-struct F0V2::GameFlowchart::Impl : GameObjectBase
+struct GameFlowchart::Impl : GameObjectBase
 {
     ActorContainer m_children{};
 
@@ -141,6 +141,8 @@ struct F0V2::GameFlowchart::Impl : GameObjectBase
     void Init()
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile(gamepadConfigPath));
+
+        Audio::SetMusicVolume(0.1f); // TODO: 音量
 
         restartFlowchart();
     }

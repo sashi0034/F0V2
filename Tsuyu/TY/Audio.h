@@ -6,6 +6,10 @@ namespace TY
     namespace Audio
     {
         void SetEnabled(bool enabled);
+
+        void SetSoundVolume(float volume);
+
+        void SetMusicVolume(float volume);
     }
 
     struct AudioLoopRange
