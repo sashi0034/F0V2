@@ -11,6 +11,7 @@
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
 #include "TY/Gamepad.h"
+#include "TY/GameTime.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mouse.h"
 #include "TY/Palette.h"
@@ -19,6 +20,7 @@
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/Pose.h"
 #include "Util/DebugTomlValue.h"
+#include "Util/ImmediatePrint.h"
 
 using namespace Race;
 
@@ -38,6 +40,8 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
     Float3 m_cameraUp{0, 1, 0};
 
     MachineId m_machineId{PlayerMachineId};
+
+    float m_previousAttackedByOtherMachineTime{};
 
     void Init()
     {
@@ -268,6 +272,12 @@ private:
         else
         {
             Asset_sound::DeathUp().stopUnique();
+        }
+
+        if (m_previousAttackedByOtherMachineTime != machineState.m_lastAttackedByOtherMachineTime)
+        {
+            m_previousAttackedByOtherMachineTime = machineState.m_lastAttackedByOtherMachineTime;
+            Asset_sound::Attacked().playOneShot();
         }
     }
 

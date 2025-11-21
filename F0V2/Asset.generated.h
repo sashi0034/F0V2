@@ -58,6 +58,7 @@ namespace Asset_model
 namespace Asset_sound
 {
     static const inline SoundAudioPathWrapper Accel{"asset/sound/Accel.mp3"};
+    static const inline SoundAudioPathWrapper Attacked{"asset/sound/Attacked.mp3"};
     static const inline SoundAudioPathWrapper Boost{"asset/sound/Boost.mp3"};
     static const inline SoundAudioPathWrapper ButtonLR{"asset/sound/ButtonLR.mp3"};
     static const inline SoundAudioPathWrapper ButtonOK{"asset/sound/ButtonOK.mp3"};
@@ -71,6 +72,7 @@ namespace Asset_sound
     static const inline SoundAudioPathWrapper DeathUp{"asset/sound/DeathUp.mp3"};
     static const inline SoundAudioPathWrapper Drift{"asset/sound/Drift.mp3"};
     static const inline SoundAudioPathWrapper FinalRap{"asset/sound/FinalRap.mp3"};
+    static const inline SoundAudioPathWrapper Finish{"asset/sound/Finish.mp3"};
     static const inline SoundAudioPathWrapper GotBoostPower{"asset/sound/GotBoostPower.mp3"};
     static const inline SoundAudioPathWrapper JumpPad{"asset/sound/JumpPad.mp3"};
     static const inline SoundAudioPathWrapper RecoverPad{"asset/sound/RecoverPad.mp3"};

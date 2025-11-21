@@ -219,6 +219,7 @@ private:
 
         const int playerRank = GetRaceContext().machineManager().getEvaluation(PlayerMachineId).rank;
 
+        Asset_sound::Finish().playOneShot();
         Asset_music::Shiro().play();
 
         await.waitForTime(2.5s);
