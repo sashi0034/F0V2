@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "Player.h"
 
+#include "Asset.generated.h"
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
@@ -172,8 +173,10 @@ private:
         else
 #endif
         {
-            UpdateMachinePhysicsState(machine().state, machine().props);
+            const auto updateOutcome = UpdateMachinePhysicsState(machine().state, machine().props);
             GetRaceContext().machineManager().eventHandler().handleIfNeeded(machine().id());
+
+            playUpdateOutcomeSound(updateOutcome);
         }
 
 #if defined(_DEBUG)
@@ -182,6 +185,40 @@ private:
             machine().state.m_durability = machine().props.maxDurability;
         }
 #endif
+    }
+
+    void playUpdateOutcomeSound(const MachinePhysicsUpdateOutcome updateOutcome)
+    {
+        if (updateOutcome.accelInputAccepted)
+        {
+            if (not Asset_sound::Accel().isPlayingUnique())
+            {
+                Asset_sound::Accel().setLoopEnabled(true);
+                Asset_sound::Accel().playUnique(2.0f); // TODO
+            }
+        }
+        else
+        {
+            Asset_sound::Accel().stopUnique();
+        }
+
+        if (updateOutcome.driftInputAccepted)
+        {
+            if (not Asset_sound::Drift().isPlayingUnique())
+            {
+                Asset_sound::Drift().setLoopEnabled(true);
+                Asset_sound::Drift().playUnique(0.5f);
+            }
+        }
+        else
+        {
+            Asset_sound::Drift().stopUnique();
+        }
+
+        if (updateOutcome.boostInputAccepted)
+        {
+            Asset_sound::Boost().playOneShot();
+        }
     }
 
     void debugUI()

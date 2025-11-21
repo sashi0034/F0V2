@@ -95,5 +95,12 @@ namespace Race
 
     void SetupMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);
 
-    void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);
+    struct MachinePhysicsUpdateOutcome
+    {
+        bool accelInputAccepted{};
+        bool driftInputAccepted{};
+        bool boostInputAccepted{};
+    };
+
+    MachinePhysicsUpdateOutcome UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);
 }

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "RaceSetupScene.h"
 
+#include "Asset.generated.h"
 #include "Asset0.h"
 #include "RaceSetupBackgroundDrawer.h"
 #include "Race/Common/AiRank.h"
@@ -248,12 +249,24 @@ private:
             {
                 // NOTE: コースの読み込みは呼び出し側で行う
                 Race::g_sharedState->aiRank = static_cast<Race::AiRank>(s_selectedItem.aiRank);
+
+                Asset_sound::ButtonOK().playOneShot();
                 return;
             }
         }
 
         m_rowIndex += dir.y;
         m_rowIndex = Math::Clamp(m_rowIndex, 0, 2);
+
+        // 音
+        if (dir.x != 0)
+        {
+            Asset_sound::ButtonLR().playOneShot();
+        }
+        else if (dir.y != 0)
+        {
+            Asset_sound::ButtonUD().playOneShot();
+        }
     }
 
     void killed() override

@@ -67,7 +67,7 @@ namespace
         if (fadeOutDuration > 0.0f)
         {
             s_audioState.global.fadeVolume(musicData.handle, 0.0f, fadeOutDuration);
-            s_audioState.global.schedulePause(musicData.handle, fadeOutDuration);
+            s_audioState.global.scheduleStop(musicData.handle, fadeOutDuration);
         }
         else
         {
@@ -148,7 +148,8 @@ namespace
 struct SoundAudio::Impl
 {
     SoLoud::Wav m_wav{};
-    float m_lastPlayedTime{};
+    SoLoud::handle m_uniqueHandle{};
+    float m_lastOneShotTime{};
 
     bool Init(const std::string& path)
     {
@@ -161,6 +162,50 @@ struct SoundAudio::Impl
         return true;
     }
 
+    void SetLoopEnabled(bool enabled)
+    {
+        m_wav.setLooping(enabled);
+    }
+
+    void PlayUnique(float volume)
+    {
+        if (not s_audioState.enabled)
+        {
+            return;
+        }
+
+        if (s_audioState.global.isValidVoiceHandle(m_uniqueHandle))
+        {
+            return;
+        }
+
+        m_uniqueHandle = s_audioState.sound.play(m_wav);
+        s_audioState.global.setVolume(m_uniqueHandle, volume);
+    }
+
+    bool IsPlayingUnique() const
+    {
+        return s_audioState.global.isValidVoiceHandle(m_uniqueHandle);
+    }
+
+    void StopUnique(float fadeOutDuration)
+    {
+        if (m_uniqueHandle && s_audioState.global.isValidVoiceHandle(m_uniqueHandle))
+        {
+            if (fadeOutDuration > 0.0f)
+            {
+                s_audioState.global.fadeVolume(m_uniqueHandle, 0.0f, fadeOutDuration);
+                s_audioState.global.scheduleStop(m_uniqueHandle, fadeOutDuration);
+                m_uniqueHandle = {};
+                // TODO: m_uniqueHandle を別の変数に移しておき、次の PlayUnique() で即座に停止
+            }
+            else
+            {
+                s_audioState.global.stop(m_uniqueHandle);
+            }
+        }
+    }
+
     void PlayOneShot(float volume)
     {
         if (not s_audioState.enabled)
@@ -169,12 +214,12 @@ struct SoundAudio::Impl
         }
 
         constexpr float minInterval = 0.1f; // seconds
-        if (System::Time() - minInterval < m_lastPlayedTime)
+        if (System::Time() - minInterval < m_lastOneShotTime)
         {
             return;
         }
 
-        m_lastPlayedTime = System::Time();
+        m_lastOneShotTime = System::Time();
 
         const auto handle = s_audioState.sound.play(m_wav);
         s_audioState.global.setVolume(handle, volume);
@@ -248,7 +293,7 @@ struct MusicAudio::Impl
         }
 
         s_audioState.global.fadeVolume(m_data->handle, 0.0f, defaultFadeOutDuration);
-        s_audioState.global.schedulePause(m_data->handle, defaultFadeOutDuration);
+        s_audioState.global.scheduleStop(m_data->handle, defaultFadeOutDuration);
 
         playMusicFrom(*m_data, m_data->loopRange.beginSec, defaultFadeInDuration);
     }
@@ -269,6 +314,35 @@ namespace TY
         if (not p_impl->Init(path))
         {
             p_impl.reset();
+        }
+    }
+
+    void SoundAudio::setLoopEnabled(bool enabled)
+    {
+        if (p_impl)
+        {
+            p_impl->SetLoopEnabled(enabled);
+        }
+    }
+
+    void SoundAudio::playUnique(float volume) const
+    {
+        if (p_impl)
+        {
+            p_impl->PlayUnique(volume);
+        }
+    }
+
+    bool SoundAudio::isPlayingUnique() const
+    {
+        return p_impl ? p_impl->IsPlayingUnique() : false;
+    }
+
+    void SoundAudio::stopUnique(float fadeOutDuration) const
+    {
+        if (p_impl)
+        {
+            p_impl->StopUnique(fadeOutDuration);
         }
     }
 

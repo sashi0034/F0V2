@@ -21,6 +21,14 @@ namespace TY
 
         SoundAudio(const std::string& path);
 
+        void setLoopEnabled(bool enabled);
+
+        void playUnique(float volume = 1.0f) const;
+
+        bool isPlayingUnique() const;
+
+        void stopUnique(float fadeOutDuration = 0.5f) const;
+
         void playOneShot(float volume = 1.0f) const;
 
     private:

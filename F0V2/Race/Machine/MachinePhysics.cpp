@@ -233,11 +233,13 @@ namespace Race
         state.m_durability = props.maxDurability;
     }
 
-    void UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
+    MachinePhysicsUpdateOutcome UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props)
     {
+        MachinePhysicsUpdateOutcome updateOutcome{};
+
         if (not g_sharedState->isRaceStarted || state.m_isRunningEventProcess)
         {
-            return;
+            return updateOutcome;
         }
 
         // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);
@@ -253,6 +255,8 @@ namespace Race
         if (deviceInput.accelPressed)
         {
             applyInputAccel(state, props);
+
+            updateOutcome.accelInputAccepted = true;
         }
 
         // ブースト入力処理
@@ -268,6 +272,8 @@ namespace Race
             state.m_manualBoost = 1.0f;
             state.m_manualBoostCooldownTime = 2.0f;
             state.m_durability = PositiveF32(state.m_durability - boostEnergyCost);
+
+            updateOutcome.boostInputAccepted = true;
         }
 
         // 最大速度制限
@@ -302,6 +308,8 @@ namespace Race
             {
                 state.m_driftOffset = maxSlipOffset * Math::Sign(state.m_driftOffset);
             }
+
+            updateOutcome.driftInputAccepted = true;
         }
 
         if (Math::Sign(driftTrigger) != Math::Sign(state.m_driftOffset))
@@ -470,5 +478,7 @@ namespace Race
                 state.m_velocity = {};
             }
         }
+
+        return updateOutcome;
     }
 }

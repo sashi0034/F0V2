@@ -144,19 +144,17 @@ private:
 
     void processRaceFlow(AwaitContext& await)
     {
-        m_backgroundMusic = GetRaceContext().courseFileInfo().music;
-        m_backgroundMusic.play(); // TODO
-        m_backgroundMusic.setLoop(GetRaceContext().courseFileInfo().musicLoopRanges[0]);
-
         g_sharedState->isRaceStarted = false;
 
         await.waitForFrames(1);
 
+        m_backgroundMusic = GetRaceContext().courseFileInfo().music;
+        m_backgroundMusic.play(); // TODO
+        m_backgroundMusic.setLoop(GetRaceContext().courseFileInfo().musicLoopRanges[0]);
+
         process321Go(await);
 
         g_sharedState->isRaceStarted = true;
-
-        Asset_sound::block_crash.fetchResource().playOneShot(); // TODO
 
         // -----------------------------------------------
 
