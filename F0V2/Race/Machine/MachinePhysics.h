@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "LapProgress.h"
 #include "MachineConstants.h"
+#include "Race/Common/CourseGimmick.h"
 #include "TY/Color.h"
 #include "TY_Extension/Pose.h"
 #include "Util/PositiveValue.h"
@@ -49,7 +50,8 @@ namespace Race
 
         SegmentAndStrip m_lastGroundContactLocation{};
 
-        bool m_isTouchingBarrier{};
+        GimmickFlagBits m_previousTouchingGimmicks{};
+        GimmickFlagBits m_touchingGimmicks{};
 
         [[nodiscard]]
         Float3 rightVector() const;

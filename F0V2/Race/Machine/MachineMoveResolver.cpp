@@ -457,7 +457,6 @@ namespace
 #endif
 
         state.m_durability = PositiveF32(state.m_durability - 5.0f);
-        state.m_isTouchingBarrier = true;
 
         // state.m_surfaceNormal = {};
         // state.m_surfaceToTriangle = {};
@@ -489,6 +488,9 @@ namespace
         switch (hit.attribute.kind)
         {
         case GimmickTriangleAttribute::kind_t::Barrier: {
+            // Barrier 衝突
+            state.m_touchingGimmicks |= GimmickFlag::Barrier;
+
             // Barrier の押し戻し処理
             auto pushback = pushbackFromTriangle(state, fromPos, toPos, hit.triangle);
             state.m_pose.position = pushback.newPos;
@@ -500,6 +502,8 @@ namespace
         }
         case GimmickTriangleAttribute::kind_t::BoostPad: {
             // Boost 発生
+            state.m_touchingGimmicks |= GimmickFlag::BoostPad;
+
             state.m_passiveBoost = 1.0f;
             return;
         }
@@ -507,6 +511,8 @@ namespace
             if (not state.m_surfaceNormal.isZero())
             {
                 // Jump 発生
+                state.m_touchingGimmicks |= GimmickFlag::JumpPad;
+
                 state.m_velocity = state.m_velocity - state.m_gravity * state.m_gravity.dot(state.m_velocity);
                 state.m_velocity = state.m_velocity - state.m_gravity * 50.0;
 
@@ -520,6 +526,8 @@ namespace
             // 回復
             if (not state.isDead())
             {
+                state.m_touchingGimmicks |= GimmickFlag::PitZone;
+
                 state.m_durability = PositiveF32(
                     Min<float>(props.maxDurability, state.m_durability + 750.0f * InGameDeltaTime()));
             }
@@ -670,7 +678,8 @@ namespace
 
     void resetBeforeResolve(MachinePhysicsState& state)
     {
-        state.m_isTouchingBarrier = false;
+        state.m_previousTouchingGimmicks = state.m_touchingGimmicks;
+        state.m_touchingGimmicks = 0;
     }
 
     void resolveMachineMove(

@@ -189,12 +189,17 @@ private:
 
     void playSoundIfNeeded(const MachinePhysicsUpdateOutcome updateOutcome)
     {
+        const auto& machineState = machine().state;
+
+        // -----------------------------------------------
+        // 操作入力の効果音
+
         if (updateOutcome.accelInputAccepted)
         {
             if (not Asset_sound::Accel().isPlayingUnique())
             {
                 Asset_sound::Accel().setLoopEnabled(true);
-                Asset_sound::Accel().playUnique(2.0f); // TODO
+                Asset_sound::Accel().playUnique(2.0f); // TODO: 音量
             }
         }
         else
@@ -220,9 +225,49 @@ private:
             Asset_sound::Boost().playOneShot();
         }
 
-        if (machine().state.m_isTouchingBarrier)
+        // -----------------------------------------------
+        // ギミック接触の効果音
+
+        const GimmickFlagBits newTouchingGimmicks =
+            machineState.m_touchingGimmicks & (~machineState.m_previousTouchingGimmicks);
+
+        if (machineState.m_touchingGimmicks & GimmickFlag::Barrier)
         {
             Asset_sound::Collide().playOneShot();
+        }
+
+        if (newTouchingGimmicks & GimmickFlag::BoostPad)
+        {
+            Asset_sound::Boost().playOneShot();
+        }
+
+        if (newTouchingGimmicks & GimmickFlag::JumpPad)
+        {
+            Asset_sound::JumpPad().playOneShot();
+        }
+
+        if (machineState.m_touchingGimmicks & GimmickFlag::PitZone)
+        {
+            if (not Asset_sound::RecoverPad().isPlayingUnique())
+            {
+                Asset_sound::RecoverPad().setLoopEnabled(true);
+                Asset_sound::RecoverPad().playUnique();
+            }
+        }
+        else
+        {
+            Asset_sound::RecoverPad().stopUnique();
+        }
+
+        // -----------------------------------------------
+
+        if (machineState.m_isFallingOffCourse)
+        {
+            Asset_sound::DeathUp().playUnique();
+        }
+        else
+        {
+            Asset_sound::DeathUp().stopUnique();
         }
     }
 

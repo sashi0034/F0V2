@@ -26,4 +26,17 @@ namespace Race
 
         kind_t kind;
     };
+
+    using GimmickFlagBits = uint32_t;
+
+    namespace GimmickFlag
+    {
+        enum : GimmickFlagBits
+        {
+            Barrier = 1 << 0,
+            BoostPad = 1 << 1,
+            JumpPad = 1 << 2,
+            PitZone = 1 << 3,
+        };
+    }
 }
