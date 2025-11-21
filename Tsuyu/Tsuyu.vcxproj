@@ -454,7 +454,7 @@
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">
       <Project>{371b9fa9-4c90-4ac6-a123-aced756d6c77}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\external\freetype\builds\windows\vc2010\freetype.vcxproj">
+    <ProjectReference Include="..\external\freetype\builds\windows\vc2022\freetype.vcxproj">
       <Project>{78b079bd-9fc7-4b9e-b4a6-96da0f00248b}</Project>
     </ProjectReference>
     <ProjectReference Include="..\external\SoLoud\SoLoud.vcxproj">
