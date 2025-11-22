@@ -667,7 +667,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-#if 1
+#if 0
     // シャドウマップのデバッグ
     const float debugMapSize = 800.0;
     if (all((float2(firstCoord)) < debugMapSize))
