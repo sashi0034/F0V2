@@ -667,12 +667,12 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-#if 0
+#if 1
     // シャドウマップのデバッグ
     const float debugMapSize = 800.0;
-    if (all(pixelF < debugMapSize))
+    if (all((float2(firstCoord)) < debugMapSize))
     {
-        float2 uv = (pixelF + 0.5) / debugMapSize;
+        float2 uv = (float2(firstCoord) + 0.5) / debugMapSize;
         float shadow = g_shadowMap.SampleLevel(g_sampler0, uv, 0.0).r;
         if (shadow != 1.0)
         {
@@ -682,6 +682,10 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         {
             g_output[firstCoord] = float4(0.0, 0.0, 0.0, 1.0);
         }
+
+        const int secondOffsetX = isOddY == 0 ? 1 : -1;
+        const float2 secondCoord = firstCoord + int2(secondOffsetX, 0);
+        g_output[secondCoord] = g_output[firstCoord];
 
         return;
     }
