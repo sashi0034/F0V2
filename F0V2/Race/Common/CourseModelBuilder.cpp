@@ -530,14 +530,21 @@ namespace
                 cap_l0.normal = s0.normal;
                 cap_r0.normal = s0.normal;
 
-                const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
-                const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
-                const Float3 v0 = Quaternion(axis, angle0).rotate(n);
-                const Float3 v1 = Quaternion(axis, angle1).rotate(n);
-                cap_l1.pos = s1.center + v0 * outerEntryExitRadius;
-                cap_r1.pos = s1.center + v1 * outerEntryExitRadius;
-                cap_l1.normal = -v0;
-                cap_r1.normal = -v1;
+                {
+                    const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
+                    const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
+                    const Float3 v0 = Quaternion(axis, angle0).rotate(n).normalized();
+                    const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
+
+                    // 中央部分の勾配を緩やかにする係数
+                    const float smoothness0 = (1.0f - 0.5f * n.dot(-v0));
+                    const float smoothness1 = (1.0f - 0.5f * n.dot(-v1));
+
+                    cap_l1.pos = s1.center + v0 * outerEntryExitRadius * smoothness0;
+                    cap_r1.pos = s1.center + v1 * outerEntryExitRadius * smoothness1;
+                    cap_l1.normal = -v0;
+                    cap_r1.normal = -v1;
+                }
 
                 for (int s = 0; s < CylinderEntryExitStrips; ++s)
                 {
@@ -637,14 +644,21 @@ namespace
 
                 FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
 
-                const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
-                const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
-                const Float3 v0 = Quaternion(axis, angle0).rotate(n);
-                const Float3 v1 = Quaternion(axis, angle1).rotate(n);
-                cap_l0.pos = s0.center + v0 * outerEntryExitRadius;
-                cap_r0.pos = s0.center + v1 * outerEntryExitRadius;
-                cap_l0.normal = -v0;
-                cap_r0.normal = -v1;
+                {
+                    const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
+                    const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
+                    const Float3 v0 = Quaternion(axis, angle0).rotate(n).normalized();
+                    const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
+
+                    // 中央部分の勾配を緩やかにする係数
+                    // const float smoothness0 = (1.0f - 0.5f * n.dot(-v0));
+                    // const float smoothness1 = (1.0f - 0.5f * n.dot(-v1));
+
+                    cap_l0.pos = s0.center + v0 * outerEntryExitRadius; // * smoothness0;
+                    cap_r0.pos = s0.center + v1 * outerEntryExitRadius; // * smoothness1;
+                    cap_l0.normal = -v0;
+                    cap_r0.normal = -v1;
+                }
 
                 cap_l1.pos = s1.leftmost * (1 - t0) + s1.rightmost * t0;
                 cap_r1.pos = s1.leftmost * (1 - t1) + s1.rightmost * t1;
