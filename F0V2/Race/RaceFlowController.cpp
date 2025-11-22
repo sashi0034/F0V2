@@ -4,6 +4,7 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "GameGlobalUI.h"
+#include "GamePalette.h"
 #include "IRaceContext.h"
 #include "IRaceDrawer.h"
 #include "Common/CourseFileInfo.h"
@@ -81,6 +82,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
 
     MusicAudio m_backgroundMusic{};
 
+    bool m_boostTutorialEnabled{};
+
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
@@ -128,6 +131,12 @@ private:
         }
 
         debugUI();
+
+        // チュートリアル更新
+        if (m_boostTutorialEnabled && (IsUsingGamepad() && MainGamepad.b().down))
+        {
+            m_boostTutorialEnabled = false;
+        }
 
         // TODO: リタイア本実装
         {
@@ -179,6 +188,8 @@ private:
         });
 
         popupMajorBanner(MajorBanner::YouGotBoostPower, U"You've Got Boost Power !", 5.0f);
+
+        m_boostTutorialEnabled = true;
 
         Asset_sound::GotBoostPower().playOneShot();
 
@@ -398,6 +409,8 @@ private:
             drawTutorial();
         }
 
+        drawBoostTutorialIfNeeded();
+
         // -----------------------------------------------
 
         ImmediateDrawer::Global().draw();
@@ -495,17 +508,17 @@ private:
                 : U"?";
         if (IsUsingGamepad())
         {
-            messages.push_back(U"左スティック: 横移動");
-            messages.push_back(U"A: アクセル");
-            messages.push_back(U"B: " + boostMessage);
-            messages.push_back(U"L: 左ドリフト | R: 右ドリフト");
+            messages.push_back(U"[ 左スティック ]: 横移動");
+            messages.push_back(U"[ A ]: アクセル");
+            messages.push_back(U"[ B ]: " + boostMessage);
+            messages.push_back(U"[ L ]: 左ドリフト | [ R ]: 右ドリフト");
         }
         else
         {
-            messages.push_back(U"A, D: 横移動");
-            messages.push_back(U"Shift: アクセル");
-            messages.push_back(U"Space: " + boostMessage);
-            messages.push_back(U"左矢印: 左ドリフト | 右矢印: 右ドリフト");
+            messages.push_back(U"[ A ], [ D ]: 横移動");
+            messages.push_back(U"[ Shift ]: アクセル");
+            messages.push_back(U"[ Space ]: " + boostMessage);
+            messages.push_back(U"[ 左矢印 ]: 左ドリフト | [ 右矢印 ]: 右ドリフト");
         }
 
         for (int i = 0; i < messages.size(); ++i)
@@ -514,6 +527,28 @@ private:
                 .setSize(16.0f)
                 .setPosition({80.0f, 80.0f + i * 24.0f})
                 .pushAuto();
+        }
+    }
+
+    void drawBoostTutorialIfNeeded() const
+    {
+        if (not m_boostTutorialEnabled)
+        {
+            return;
+        }
+
+        if (IsUsingGamepad())
+        {
+            auto text =
+                Immediate2D_Text::MPlus1_Sdf(U"[ B ] でブースト")
+                .setSize(24.0f)
+                .setPosition(Screen::RectF().getRelativePoint({0.5f, 0.375f}), Alignment9::MiddleCenter)
+                .setColor(ColorF32{0.3f})
+                .cache();
+            Immediate2D::RoundRect{text.region.stretched(32.0f, 4.0f)}
+                .setColor(GamePalette::GamingGreen)
+                .pushAuto();
+            text.pushAuto();
         }
     }
 
