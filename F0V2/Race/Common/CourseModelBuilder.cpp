@@ -537,8 +537,8 @@ namespace
                     const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
 
                     // 中央部分の勾配を緩やかにする係数
-                    const float smoothness0 = (1.0f - 0.5f * n.dot(-v0));
-                    const float smoothness1 = (1.0f - 0.5f * n.dot(-v1));
+                    const float smoothness0 = 0.5f + Math::Square(t0 - 0.5f);
+                    const float smoothness1 = 0.5f + Math::Square(t1 - 0.5f);
 
                     cap_l1.pos = s1.center + v0 * outerEntryExitRadius * smoothness0;
                     cap_r1.pos = s1.center + v1 * outerEntryExitRadius * smoothness1;
@@ -651,8 +651,8 @@ namespace
                     const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
 
                     // 中央部分の勾配を緩やかにする係数
-                    // const float smoothness0 = (1.0f - 0.5f * n.dot(-v0));
-                    // const float smoothness1 = (1.0f - 0.5f * n.dot(-v1));
+                    // const float smoothness0 = 0.5f + Math::Square(t0 - 0.5f);
+                    // const float smoothness1 = 0.5f + Math::Square(t1 - 0.5f);
 
                     cap_l0.pos = s0.center + v0 * outerEntryExitRadius; // * smoothness0;
                     cap_r0.pos = s0.center + v1 * outerEntryExitRadius; // * smoothness1;
