@@ -133,7 +133,8 @@ private:
 
         if (IsUsingGamepad())
         {
-            input.accelPressed = MainGamepad.a().pressed;
+            input.accelPressed = MainGamepad.a().pressed ||
+                (machine().state.isBoostUnlocked() && MainGamepad.b().pressed);
 
             input.boostRequested = MainGamepad.b().down;
 
