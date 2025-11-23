@@ -65,7 +65,7 @@ namespace
         switch (rank)
         {
         case AiRank::Weak:
-            return {-150.0f, -25.0f};
+            return {-175.0f, -50.0f};
         case AiRank::Normal:
             return {-100.0f, 25.0f};
         case AiRank::Strong:
