@@ -22,7 +22,6 @@ ASSET_SUBDIRECTORIES = [
     "course",
     "engine",
     "font",
-    "fsr1",
     "image",
     "model",
     "music",
