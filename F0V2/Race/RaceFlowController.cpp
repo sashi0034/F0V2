@@ -74,7 +74,7 @@ namespace
 
         bool IsReversing() const
         {
-            return m_reverseCount >= 50;
+            return m_reverseCount >= 15;
         }
 
     private:
