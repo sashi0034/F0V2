@@ -291,7 +291,10 @@ private:
 
         ImGui::DragFloat3("Position", &machine().state.m_pose.position.x, 0.1f);
 
-        if (ImGui::CollapsingHeader("Checkpoint Teleport"))
+        // -----------------------------------------------
+        ImGui::Separator();
+
+        // if (ImGui::CollapsingHeader("Checkpoint Teleport"))
         {
             static int s_checkpointIndex{};
             ImGui::InputInt("Checkpoint Index", &s_checkpointIndex);
