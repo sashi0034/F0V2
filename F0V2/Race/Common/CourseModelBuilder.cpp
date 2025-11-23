@@ -537,11 +537,11 @@ namespace
                     const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
 
                     // 中央部分の勾配を緩やかにする係数
-                    const float smoothness0 = 0.5f + Math::Square(t0 - 0.5f);
-                    const float smoothness1 = 0.5f + Math::Square(t1 - 0.5f);
+                    // const float smoothness0 = 0.5f + Math::Square(t0 - 0.5f);
+                    // const float smoothness1 = 0.5f + Math::Square(t1 - 0.5f);
 
-                    cap_l1.pos = s1.center + v0 * outerEntryExitRadius * smoothness0;
-                    cap_r1.pos = s1.center + v1 * outerEntryExitRadius * smoothness1;
+                    cap_l1.pos = s1.center + v0 * outerEntryExitRadius; // * smoothness0;
+                    cap_r1.pos = s1.center + v1 * outerEntryExitRadius; // * smoothness1;
                     cap_l1.normal = -v0;
                     cap_r1.normal = -v1;
                 }
