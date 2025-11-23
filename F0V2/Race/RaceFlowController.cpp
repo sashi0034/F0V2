@@ -178,7 +178,7 @@ private:
             // 仮実装: ESC 長押しでリタイア
             static float s_duration{};
             s_duration = KeyEscape.pressed() ? s_duration + InGameDeltaTime() : 0.0f;
-            if (s_duration > 1.0f)
+            if (s_duration > 0.5f)
             {
                 s_duration = 0.0f;
                 g_sharedState->isRaceEnded = true;
