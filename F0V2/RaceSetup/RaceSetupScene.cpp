@@ -236,11 +236,19 @@ private:
         {
             s_selectedItem.aiRank =
                 Modulo(s_selectedItem.aiRank + dir.x, static_cast<int>(Race::AiRank::Max));
+            if (confirmTriggered.value())
+            {
+                m_rowIndex++;
+            }
         }
         else if (m_rowIndex == 1)
         {
             s_selectedItem.courseIndex =
                 Modulo<int>(s_selectedItem.courseIndex + dir.x, Race::GetAllCourseFileInfos().size());
+            if (confirmTriggered.value())
+            {
+                m_rowIndex++;
+            }
         }
         else if (m_rowIndex == 2)
         {

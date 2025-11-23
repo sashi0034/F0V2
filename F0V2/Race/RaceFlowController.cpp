@@ -51,6 +51,36 @@ namespace
             << std::setw(2) << hundredths;
         return oss.str();
     }
+
+    class ReverseDirectionChecker
+    {
+    public:
+        void Update(const MachinePhysicsState& state)
+        {
+            if (state.m_lapProgress != m_previousLapProgress)
+            {
+                if (state.m_lapProgress.isLessThan(m_previousLapProgress))
+                {
+                    m_reverseCount++;
+                }
+                else
+                {
+                    m_reverseCount = 0;
+                }
+            }
+
+            m_previousLapProgress = state.m_lapProgress;
+        }
+
+        bool IsReversing() const
+        {
+            return m_reverseCount >= 50;
+        }
+
+    private:
+        int m_reverseCount{};
+        LapProgress m_previousLapProgress{};
+    };
 }
 
 struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
@@ -81,6 +111,8 @@ struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>,
     std::array<float, 3> m_measuredLapTimes{};
 
     MusicAudio m_backgroundMusic{};
+
+    ReverseDirectionChecker m_reverseDirectionChecker{};
 
     bool m_boostTutorialEnabled{};
 
@@ -131,6 +163,9 @@ private:
         }
 
         debugUI();
+
+        // 逆走チェック
+        m_reverseDirectionChecker.Update(player.state);
 
         // チュートリアル更新
         if (m_boostTutorialEnabled && (IsUsingGamepad() && MainGamepad.b().down))
@@ -494,6 +529,21 @@ private:
                 64.0f,
                 Screen::RectF().middleCenter(), Alignment9::MiddleCenter,
                 Palette::Orange);
+            return;
+        }
+
+        if (m_reverseDirectionChecker.IsReversing())
+        {
+            DrawSpecialLabelText(
+                U"Reverse Course !",
+                64.0f,
+                Screen::RectF().getRelativePoint({0.5f, 0.25f}), Alignment9::MiddleCenter,
+                Palette::Orange);
+            Immediate2D_Text::MPlus1_Sdf(U"\U000F17B0")
+                .setSize(256.0f)
+                .setPosition(Screen::RectF().middleCenter(), Alignment9::MiddleCenter)
+                .setColor(Palette::Orange)
+                .pushAuto();
             return;
         }
     }
