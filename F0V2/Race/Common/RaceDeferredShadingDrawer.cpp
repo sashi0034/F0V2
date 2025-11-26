@@ -6,10 +6,10 @@
 #include "RaceSharedState.h"
 #include "GM/DebugService.h"
 #include "TY/ComputeDispatcher.h"
+#include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
 #include "TY/Mat4x4.h"
 #include "TY/RenderTargetTexture.h"
-#include "TY/System.h"
 
 using namespace Race;
 
@@ -149,7 +149,7 @@ struct RaceDeferredShadingDrawer::Impl
         m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
         m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
         m_cb->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
-        m_cb->g_time = System::Time();
+        m_cb->g_time = InGameElapsedTime();
         m_cb.upload();
 
 #if defined(_DEBUG)
