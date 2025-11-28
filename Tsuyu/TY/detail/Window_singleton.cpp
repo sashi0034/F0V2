@@ -1,11 +1,12 @@
 ﻿#include "pch.h"
 #include "Window_singleton.h"
 
-#include "RenderContext_singleton.h"
-#include "TY/Vector2D.h"
+#include <dbt.h>
 
-#include "backends/imgui_impl_win32.h"
 #include "EngineTimer.h"
+#include "Gamepad_singleton.h"
+#include "RenderContext_singleton.h"
+#include "backends/imgui_impl_win32.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -273,6 +274,15 @@ namespace
             {
                 s_engineWindow.SetBorderlessFullscreen(not s_engineWindow.m_fullscreen);
             }
+        case WM_DEVICECHANGE:
+            if (wParam == DBT_DEVICEARRIVAL ||
+                wParam == DBT_DEVICEREMOVECOMPLETE ||
+                wParam == DBT_DEVNODES_CHANGED)
+            {
+                Gamepad_singleton::OnDeviceChanged();
+            }
+
+            break;
         }
 
         if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))

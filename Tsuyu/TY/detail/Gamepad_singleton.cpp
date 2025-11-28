@@ -93,6 +93,8 @@ struct GamepadImpl
 
     bool m_usingGamepad{};
 
+    bool m_deviceChanged{};
+
     void Init()
     {
         assert(Window_singleton::IsInitialized());
@@ -108,7 +110,11 @@ struct GamepadImpl
 
     void Update()
     {
-        reacquireIfNeeded();
+        if (m_deviceChanged)
+        {
+            m_deviceChanged = false;
+            reacquireIfNeeded();
+        }
 
         if (not m_gamepad)
         {
@@ -183,6 +189,11 @@ struct GamepadImpl
         if (m_gamepad) m_gamepad->Unacquire();
         if (m_gamepad) m_gamepad->Release();
         if (m_di) m_di->Release();
+    }
+
+    void OnDeviceChanged()
+    {
+        m_deviceChanged = true;
     }
 
 private:
@@ -278,6 +289,11 @@ namespace TY::detail
     {
         s_gamepad.Shutdown();
         s_gamepad = {};
+    }
+
+    void Gamepad_singleton::OnDeviceChanged()
+    {
+        s_gamepad.OnDeviceChanged();
     }
 
     const GamepadInputState& Gamepad_singleton::GetInputState()

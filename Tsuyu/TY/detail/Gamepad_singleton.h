@@ -11,6 +11,8 @@ namespace TY::detail
 
         void Shutdown();
 
+        void OnDeviceChanged();
+
         const GamepadInputState& GetInputState();
 
         bool IsUsingGamepad();
