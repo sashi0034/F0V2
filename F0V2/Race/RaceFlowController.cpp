@@ -168,9 +168,22 @@ private:
         m_reverseDirectionChecker.Update(player.state);
 
         // チュートリアル更新
-        if (m_boostTutorialEnabled && (IsUsingGamepad() && MainGamepad.b().down))
+        if (m_boostTutorialEnabled)
         {
-            m_boostTutorialEnabled = false;
+            bool done;
+            if (IsUsingGamepad())
+            {
+                done = MainGamepad.b().down;
+            }
+            else
+            {
+                done = KeySpace.down();
+            }
+
+            if (done)
+            {
+                m_boostTutorialEnabled = false;
+            }
         }
 
         // TODO: リタイア本実装
@@ -587,19 +600,18 @@ private:
             return;
         }
 
-        if (IsUsingGamepad())
-        {
-            auto text =
-                Immediate2D_Text::MPlus1_Sdf(U"[ B ] でブースト")
-                .setSize(24.0f)
-                .setPosition(Screen::RectF().getRelativePoint({0.5f, 0.375f}), Alignment9::MiddleCenter)
-                .setColor(ColorF32{0.3f})
-                .cache();
-            Immediate2D::RoundRect{text.region.stretched(32.0f, 4.0f)}
-                .setColor(GamePalette::GamingGreen)
-                .pushAuto();
-            text.pushAuto();
-        }
+        auto text =
+            Immediate2D_Text::MPlus1_Sdf(ToUtf32(
+                "[ {} ] でブースト",
+                IsUsingGamepad() ? "B" : "Space"))
+            .setSize(24.0f)
+            .setPosition(Screen::RectF().getRelativePoint({0.5f, 0.375f}), Alignment9::MiddleCenter)
+            .setColor(ColorF32{0.3f})
+            .cache();
+        Immediate2D::RoundRect{text.region.stretched(32.0f, 4.0f)}
+            .setColor(GamePalette::GamingGreen)
+            .pushAuto();
+        text.pushAuto();
     }
 
     void killed() override
