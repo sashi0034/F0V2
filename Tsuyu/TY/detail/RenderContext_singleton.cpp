@@ -14,6 +14,7 @@
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
 #include "TY/ProcessUtils.h"
+#include "TY/Utils.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -164,8 +165,14 @@ struct RenderContextImpl
         m_adapter = findBestAdapter();
         if (not m_adapter)
         {
-            LogError.writeln("No suitable hardware adapter found");
+            LogError("RenderContext: No suitable hardware adapter found");
             return;
+        }
+        else
+        {
+            DXGI_ADAPTER_DESC adapterDesc{};
+            m_adapter->GetDesc(&adapterDesc);
+            LogInfo("RenderContext: Using adapter: {}", ToUtf8(adapterDesc.Description));
         }
 
         // Direct3D デバイスの初期化
