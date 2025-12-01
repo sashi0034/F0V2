@@ -596,6 +596,9 @@ namespace
                 otherMachineState.m_durability = PositiveF32(otherMachineState.m_durability - 500.0f);
                 otherMachineState.m_lastAttackedByOtherMachineTime = InGameElapsedTime();
             }
+
+            // 攻撃側は少し回復する
+            state.m_durability = PositiveF32(state.m_durability + 100.0f);
         }
         else
         {
@@ -680,10 +683,15 @@ namespace
 
     // -----------------------------------------------
 
-    void resetBeforeResolve(MachinePhysicsState& state)
+    void onBeforeResolve(MachinePhysicsState& state)
     {
         state.m_previousTouchingGimmicks = state.m_touchingGimmicks;
         state.m_touchingGimmicks = 0;
+    }
+
+    void onAfterResolve(MachinePhysicsState& state, const MachinePhysicsProps& props)
+    {
+        state.m_durability = PositiveF32(Min<float>(props.maxDurability, state.m_durability));
     }
 
     void resolveMachineMove(
@@ -788,8 +796,11 @@ namespace Race
 {
     void ResolveMachineMove(MachinePhysicsState& state, const Float3& moveVector, const MachinePhysicsProps& props)
     {
-        resetBeforeResolve(state);
+        onBeforeResolve(state);
+
         resolveMachineMove(state, moveVector, props, true, 0);
+
+        onAfterResolve(state, props);
     }
 
     void ResolveMachineGroundContact(MachinePhysicsState& state)
