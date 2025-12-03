@@ -122,7 +122,7 @@ struct RaceSetupScene::Impl : ActorBase
     {
         m_backgroundDrawer.init();
 
-#if 1 // 展示用
+#if 0 // 展示用
         s_selectedItem = {};
 #endif
     }
