@@ -150,7 +150,7 @@ struct GameFlowchart::Impl : GameObjectBase
 
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile(gamepadConfigPath));
 
-        Audio::SetMusicVolume(0.1f); // TODO: 音量
+        Audio::SetMusicVolume(0.25f); // TODO: 音量
 
         restartFlowchart();
     }
