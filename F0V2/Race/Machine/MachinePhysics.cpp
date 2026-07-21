@@ -269,19 +269,37 @@ namespace Race
 
         // ブースト入力処理
         state.m_manualBoostCooldownTime = Max(0.0f, state.m_manualBoostCooldownTime - InGameDeltaTime());
+        state.m_boostComboCountdown = Max(0.0f, state.m_boostComboCountdown - InGameDeltaTime());
 
         constexpr float boostEnergyCost = 800.0f;
-        if (deviceInput.boostRequested &&
-            isBoostUnlocked(state) &&
-            state.m_durability > boostEnergyCost &&
-            state.m_manualBoost < 0.1f &&
-            state.m_manualBoostCooldownTime <= 0.0f)
+        if (deviceInput.boostRequested)
         {
-            state.m_manualBoost = 1.0f;
-            state.m_manualBoostCooldownTime = 2.0f;
-            state.m_durability = PositiveF32(state.m_durability - boostEnergyCost);
+            if (isBoostUnlocked(state) &&
+                state.m_durability > boostEnergyCost &&
+                state.m_manualBoost < 0.1f &&
+                state.m_manualBoostCooldownTime <= 0.0f)
+            {
+                if (state.m_boostComboCountdown > 0.0f)
+                {
+                    // コンボ発生
+                    state.m_boostComboCount++;
+                }
 
-            updateOutcome.boostInputAccepted = true;
+                const float comboBonus = state.m_boostComboCount * 0.1f; // TODO: 調整
+                state.m_manualBoost = 1.0f + comboBonus;
+                state.m_manualBoostCooldownTime = 2.0f + comboBonus;
+                state.m_boostComboCountdown = state.m_manualBoostCooldownTime + 0.5f;
+
+                state.m_durability = PositiveF32(state.m_durability - boostEnergyCost);
+
+                updateOutcome.boostInputAccepted = true;
+            }
+            else
+            {
+                // コンボ中止
+                state.m_boostComboCountdown = 0.0f;
+                state.m_boostComboCount = 0.0f;
+            }
         }
 
         // 最大速度制限
@@ -294,7 +312,9 @@ namespace Race
         // ブースト処理
         if (state.m_manualBoost > 0.0f)
         {
-            state.m_velocity += state.m_forwardVector * 150.0f * Min(1.0f, state.m_manualBoost) * InGameDeltaTime();
+            // const float comboBonus = 1.0f + state.m_boostComboCount * 0.1f;
+            const float speed = 150.0f * Min(1.0f, state.m_manualBoost);
+            state.m_velocity += state.m_forwardVector * speed * InGameDeltaTime();
 
             state.m_manualBoost = Max<float>(0.0f, state.m_manualBoost - InGameDeltaTime());
         }

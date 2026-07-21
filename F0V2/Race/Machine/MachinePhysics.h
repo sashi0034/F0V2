@@ -38,6 +38,10 @@ namespace Race
 
         float m_manualBoostCooldownTime{};
 
+        float m_boostComboCountdown{};
+
+        int m_boostComboCount{};
+
         float m_passiveBoost{};
 
         PositiveF32 m_durability{};
