@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "RaceFlowController.h"
+#include "RaceController.h"
 
 #include "Asset.generated.h"
 #include "Asset0.h"
@@ -83,10 +83,10 @@ namespace
     };
 }
 
-struct RaceFlowController::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
+struct RaceController::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
 {
 #if defined(_DEBUG)
-    std::string m_debugName{"RaceFlowController"};
+    std::string m_debugName{"RaceController"};
 #endif
 
     ActorContainer m_children{};
@@ -627,17 +627,17 @@ private:
 
 namespace Race
 {
-    RaceFlowController::RaceFlowController() :
+    RaceController::RaceController() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void RaceFlowController::init()
+    void RaceController::init()
     {
         p_impl->Init();
     }
 
-    std::shared_ptr<ActorBase> RaceFlowController::asActor() const
+    std::shared_ptr<ActorBase> RaceController::asActor() const
     {
         return p_impl;
     }
