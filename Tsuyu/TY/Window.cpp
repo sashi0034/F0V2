@@ -23,6 +23,16 @@ namespace TY
         Window_singleton::Resize(size);
     }
 
+    Point Window::GetPosition()
+    {
+        return Window_singleton::GetPosition();
+    }
+
+    void Window::SetPosition(Point position)
+    {
+        Window_singleton::SetPosition(position);
+    }
+
     bool Window::IsActive()
     {
         return Window_singleton::IsActive();

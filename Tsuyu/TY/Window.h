@@ -15,6 +15,11 @@ namespace TY
         void Resize(Size size);
 
         [[nodiscard]]
+        Point GetPosition();
+
+        void SetPosition(Point position);
+
+        [[nodiscard]]
         bool IsActive();
     }
 }

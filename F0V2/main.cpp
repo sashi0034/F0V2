@@ -20,6 +20,7 @@
 #include "TY/ActorContainer.h"
 #include "Util/DebugTomlValue.h"
 #include "Util/ImmediatePrint.h"
+#include "Util/WindowsPlacementAddon.h"
 
 void Main()
 {
@@ -27,6 +28,8 @@ void Main()
     InitLivePPAddon();
 
     InitDebugTomlValueAddon();
+
+    InitWindowsPlacementAddon();
 #endif
 
     InitImmediatePrintAddon();
