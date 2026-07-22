@@ -14,6 +14,7 @@
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
 #include "TY/Palette.h"
+#include "TY/Periodic.h"
 #include "TY/Screen.h"
 #include "TY/Utils.h"
 
@@ -77,6 +78,35 @@ private:
         // 耐久値バー
         {
             m_durabilityBar.draw();
+        }
+
+        // -----------------------------------------------
+        // ブーストコンボ
+        if (player.state.m_boostComboCountdown > 0)
+        {
+            const auto color =
+                player.state.m_manualBoostCooldownTime > 0.0f
+                    ? Palette::Orange
+                    : GamePalette::GamingGreen;
+            const float offsetX = (Periodic::Square1_1(0.3f) < 0.0f ? -1 : 1) * 4.0f;
+            DrawLabelText(
+                ToUtf32("BOOST"),
+                24.0f,
+                Screen::BottomCenterF().movedBy({offsetX, -96.0f}),
+                Alignment9::BottomCenter,
+                color);
+
+            // TODO: 発生中は荒ぶっている、コンボチャンス時に停止っていうのもいいかも
+
+            if (player.state.m_boostComboCount > 0)
+            {
+                DrawLabelText(
+                    ToUtf32(std::format("COMBO {}", player.state.m_boostComboCount)),
+                    24.0f,
+                    Screen::BottomCenterF().movedBy({offsetX, -64.0f}),
+                    Alignment9::BottomCenter,
+                    color);
+            }
         }
 
         // -----------------------------------------------

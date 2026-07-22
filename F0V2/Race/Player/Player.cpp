@@ -181,12 +181,6 @@ private:
             const auto updateOutcome = UpdateMachinePhysicsState(machine().state, machine().props);
             GetRaceContext().machineManager().eventHandler().handleIfNeeded(machine().id());
 
-            // TODO: コンボ UI
-            {
-                ImmediatePrint_MiddleCenter("m_boostComboCount: {}", machine().state.m_boostComboCount);
-                ImmediatePrint_MiddleCenter("m_boostComboCountdown: {}", machine().state.m_boostComboCountdown);
-            }
-
             playSoundIfNeeded(updateOutcome);
         }
 
