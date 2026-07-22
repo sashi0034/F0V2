@@ -2,7 +2,7 @@
 
 namespace Race
 {
-    enum class AiRank : uint8_t
+    enum class AIRank : uint8_t
     {
         Weak,
         Normal,

@@ -1,8 +1,8 @@
 ﻿#include "pch.h"
-#include "CharacterAi.h"
+#include "CharacterAI.h"
 
 #include "Asset.generated.h"
-#include "CharacterAiLogic.h"
+#include "CharacterAILogic.h"
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
@@ -27,10 +27,10 @@ namespace
 #endif
 }
 
-struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
+struct CharacterAI::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
 {
 #if defined(_DEBUG)
-    std::string m_debugName = "CharacterAi";
+    std::string m_debugName = "CharacterAI";
 #endif
 
     int m_aiId{};
@@ -39,7 +39,7 @@ struct CharacterAi::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceD
 
     MachineDrawer m_drawer{};
 
-    CharacterAiLogicState m_logicState{};
+    CharacterAILogicState m_logicState{};
 
     void Init(int aiId)
     {
@@ -93,7 +93,7 @@ private:
         else
 #endif
         {
-            machine().props.input = UpdateCharacterAiLogic(m_logicState, machine());
+            machine().props.input = UpdateCharacterAILogic(m_logicState, machine());
         }
 
 #if defined(_DEBUG)
@@ -226,27 +226,27 @@ private:
 
 namespace Race
 {
-    CharacterAi::CharacterAi() :
+    CharacterAI::CharacterAI() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void CharacterAi::init(int aiId)
+    void CharacterAI::init(int aiId)
     {
         p_impl->Init(aiId);
     }
 
-    MachineId CharacterAi::machineId() const
+    MachineId CharacterAI::machineId() const
     {
         return p_impl->MachineId();
     }
 
-    void CharacterAi::setInputCommand(const CharacterAiInputCommand& command)
+    void CharacterAI::setInputCommand(const CharacterAIInputCommand& command)
     {
         p_impl->m_logicState.m_inputCommand = command;
     }
 
-    std::shared_ptr<ActorBase> CharacterAi::asActor() const
+    std::shared_ptr<ActorBase> CharacterAI::asActor() const
     {
         return p_impl;
     }

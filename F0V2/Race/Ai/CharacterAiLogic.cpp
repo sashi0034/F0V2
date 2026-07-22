@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
-#include "CharacterAiLogic.h"
+#include "CharacterAILogic.h"
 
-#include "SpatialAi.h"
+#include "SpatialAI.h"
 #include "Race/IRaceContext.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/GameTime.h"
@@ -96,14 +96,14 @@ namespace
 
 namespace Race
 {
-    MachinePhysicsProps::input_t UpdateCharacterAiLogic(CharacterAiLogicState& state, const MachinePhysicsUnit& machine)
+    MachinePhysicsProps::input_t UpdateCharacterAILogic(CharacterAILogicState& state, const MachinePhysicsUnit& machine)
     {
         MachinePhysicsProps::input_t input{};
 
         const auto& machineState = machine.state;
         const auto& machineProps = machine.props;
 
-        const auto& spatialData = GetRaceContext().spatialAi().data();
+        const auto& spatialData = GetRaceContext().spatialAI().data();
         const auto& currentLap = machineState.m_lapProgress;
         const auto& currentWaypoint = spatialData.fetchWaypoint(currentLap.segmentIndex, currentLap.stripIndex);
 
@@ -204,7 +204,7 @@ namespace Race
         if (state.m_aiId == 0 &&
             GetDebugTomlValue<bool>("print_diagnostics"))
         {
-            ImmediatePrint_TopRight("[CharacterAi#{}]", state.m_aiId);
+            ImmediatePrint_TopRight("[CharacterAI#{}]", state.m_aiId);
             ImmediatePrint_TopRight("targetWaypoint: {}", targetWaypoint.indexInList);
             ImmediatePrint_TopRight("accelPressed: {}", input.accelPressed);
             ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);

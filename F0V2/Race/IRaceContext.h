@@ -11,11 +11,11 @@ namespace Race
 
     class StageManager;
 
-    class SpatialAi;
+    class SpatialAI;
 
-    class CharacterAi;
+    class CharacterAI;
 
-    class MetaAi;
+    class MetaAI;
 
     class IRaceContext
     {
@@ -36,14 +36,14 @@ namespace Race
         virtual MachineManager& machineManager() = 0;
         virtual const MachineManager& machineManager() const = 0;
 
-        virtual SpatialAi& spatialAi() = 0;
-        virtual const SpatialAi& spatialAi() const = 0;
+        virtual SpatialAI& spatialAI() = 0;
+        virtual const SpatialAI& spatialAI() const = 0;
 
-        virtual Array<CharacterAi>& characterAiList() = 0;
-        virtual const Array<CharacterAi>& characterAiList() const = 0;
+        virtual Array<CharacterAI>& characterAIList() = 0;
+        virtual const Array<CharacterAI>& characterAIList() const = 0;
 
-        // virtual MetaAi& metaAi() = 0;
-        // virtual const MetaAi& metaAi() const = 0;
+        // virtual MetaAI& metaAI() = 0;
+        // virtual const MetaAI& metaAI() const = 0;
     };
 
     IRaceContext& GetRaceContext();

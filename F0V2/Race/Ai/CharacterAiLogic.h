@@ -1,18 +1,18 @@
 ﻿#pragma once
-#include "CharacterAiInputCommand.h"
+#include "CharacterAIInputCommand.h"
 #include "Race/Machine/MachinePhysicsUnit.h"
 
 namespace Race
 {
-    struct CharacterAiLogicState
+    struct CharacterAILogicState
     {
-        CharacterAiInputCommand m_inputCommand;
+        CharacterAIInputCommand m_inputCommand;
 
         int m_aiId{};
         int m_lastLapIndex{};
     };
 
-    MachinePhysicsProps::input_t UpdateCharacterAiLogic(
-        CharacterAiLogicState& state,
+    MachinePhysicsProps::input_t UpdateCharacterAILogic(
+        CharacterAILogicState& state,
         const MachinePhysicsUnit& machine);
 }

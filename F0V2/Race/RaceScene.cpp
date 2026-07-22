@@ -6,9 +6,9 @@
 #include "RaceContextContent.h"
 #include "RaceDrawManager.h"
 #include "RaceFlowController.h"
-#include "Ai/CharacterAi.h"
-#include "Ai/MetaAi.h"
-#include "Ai/SpatialAi.h"
+#include "AI/CharacterAI.h"
+#include "AI/MetaAI.h"
+#include "AI/SpatialAI.h"
 #include "Common/CourseFileInfo.h"
 #include "Common/RaceSharedState.h"
 #include "Player/Player.h"
@@ -44,11 +44,11 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     Player m_player{};
 
-    SpatialAi m_spatialAi{};
+    SpatialAI m_spatialAI{};
 
-    Array<CharacterAi> m_characterAiList{};
+    Array<CharacterAI> m_characterAIList{};
 
-    MetaAi m_metaAi{};
+    MetaAI m_metaAI{};
 
     Impl(bool context)
     {
@@ -85,8 +85,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_player = m_children.birth(Player());
         m_player.init();
 
-        m_spatialAi = m_children.birth(SpatialAi());
-        m_spatialAi.init();
+        m_spatialAI = m_children.birth(SpatialAI());
+        m_spatialAI.init();
 
         int aiCount = 98;
 #if defined(_DEBUG)
@@ -98,12 +98,12 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         for (int i = 0; i < aiCount; ++i)
         {
-            m_characterAiList.push_back(m_children.birth(CharacterAi()));
-            m_characterAiList.back().init(i);
+            m_characterAIList.push_back(m_children.birth(CharacterAI()));
+            m_characterAIList.back().init(i);
         }
 
-        m_metaAi = m_children.birth(MetaAi());
-        m_metaAi.init();
+        m_metaAI = m_children.birth(MetaAI());
+        m_metaAI.init();
     }
 
     void update() override
@@ -167,34 +167,34 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         return m_machineManager;
     }
 
-    SpatialAi& spatialAi() override
+    SpatialAI& spatialAI() override
     {
-        return m_spatialAi;
+        return m_spatialAI;
     }
 
-    const SpatialAi& spatialAi() const override
+    const SpatialAI& spatialAI() const override
     {
-        return m_spatialAi;
+        return m_spatialAI;
     }
 
-    Array<CharacterAi>& characterAiList() override
+    Array<CharacterAI>& characterAIList() override
     {
-        return m_characterAiList;
+        return m_characterAIList;
     }
 
-    const Array<CharacterAi>& characterAiList() const override
+    const Array<CharacterAI>& characterAIList() const override
     {
-        return m_characterAiList;
+        return m_characterAIList;
     }
 
-    // MetaAi& metaAi() override
+    // MetaAI& metaAI() override
     // {
-    //     return m_metaAi;
+    //     return m_metaAI;
     // }
     //
-    // const MetaAi& metaAi() const override
+    // const MetaAI& metaAI() const override
     // {
-    //     return m_metaAi;
+    //     return m_metaAI;
     // }
 };
 

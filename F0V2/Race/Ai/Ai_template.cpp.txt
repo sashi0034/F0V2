@@ -10,7 +10,7 @@ namespace
 {
 }
 
-struct Ai_template::Impl : GameObjectBase
+struct AI_template::Impl : GameObjectBase
 {
     ActorContainer m_children{};
 
@@ -37,24 +37,24 @@ private:
 
     std::u32string name() const override
     {
-        return U"Ai_template";
+        return U"AI_template";
     }
 };
 
 namespace Race
 {
-    Ai_template::Ai_template() :
+    AI_template::AI_template() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void Ai_template::init()
+    void AI_template::init()
     {
         p_impl->Init();
         GameObjectHandle::init();
     }
 
-    std::shared_ptr<GameObjectBase> Ai_template::asGameObject() const
+    std::shared_ptr<GameObjectBase> AI_template::asGameObject() const
     {
         return p_impl;
     }

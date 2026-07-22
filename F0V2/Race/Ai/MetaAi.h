@@ -3,10 +3,10 @@
 
 namespace Race
 {
-    class MetaAi : public GameObjectHandle
+    class MetaAI : public GameObjectHandle
     {
     public:
-        MetaAi();
+        MetaAI();
 
         void init() override;
 
