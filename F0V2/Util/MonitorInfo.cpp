@@ -1,17 +1,10 @@
 #include "pch.h"
-#include "MonitorConfiguration.h"
+#include "MonitorInfo.h"
 
 #include "TY/Utils.h"
 
 namespace
 {
-    struct MonitorInfo
-    {
-        std::string deviceName;
-        RECT rect{};
-        bool primary{};
-    };
-
     BOOL CALLBACK collectMonitor(HMONITOR monitor, HDC, LPRECT, LPARAM data)
     {
         MONITORINFOEXW info{};
@@ -33,7 +26,7 @@ namespace
 
 namespace Util_inline
 {
-    std::string SerializeCurrentMonitorConfiguration()
+    std::vector<MonitorInfo> EnumerateMonitors()
     {
         std::vector<MonitorInfo> monitors{};
         EnumDisplayMonitors(nullptr, nullptr, collectMonitor, reinterpret_cast<LPARAM>(&monitors));
@@ -43,17 +36,6 @@ namespace Util_inline
             return a.deviceName < b.deviceName;
         });
 
-        std::string result{};
-        for (const auto& monitor : monitors)
-        {
-            result += std::format("{}:{},{},{},{},{};",
-                                  monitor.deviceName,
-                                  monitor.rect.left,
-                                  monitor.rect.top,
-                                  monitor.rect.right,
-                                  monitor.rect.bottom,
-                                  monitor.primary);
-        }
-        return result;
+        return monitors;
     }
 }

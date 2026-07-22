@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "WindowsPlacementAddon.h"
 
-#include "MonitorConfiguration.h"
+#include "MonitorInfo.h"
 
 #include "TY/Addon.h"
 #include "TY/IAddon.h"
@@ -18,6 +18,21 @@ namespace
         Point position{};
     };
 
+    std::string getMonitorConfiguration()
+    {
+        const auto monitors = Util_inline::EnumerateMonitors();
+        std::string result{};
+        for (const auto& monitor : monitors)
+        {
+            result += std::format("{},{},{},{};",
+                                  monitor.rect.left,
+                                  monitor.rect.top,
+                                  monitor.rect.right,
+                                  monitor.rect.bottom);
+        }
+        return result;
+    }
+
     struct WindowsPlacementAddon : IAddon
     {
         Point m_position{};
@@ -33,7 +48,7 @@ namespace
         bool init() override
         {
             m_position = Window::GetPosition();
-            m_monitorConfiguration = SerializeCurrentMonitorConfiguration();
+            m_monitorConfiguration = getMonitorConfiguration();
 
             if (not std::filesystem::exists(placementFilePath))
             {
@@ -102,7 +117,7 @@ namespace
         {
             try
             {
-                m_monitorConfiguration = SerializeCurrentMonitorConfiguration();
+                m_monitorConfiguration = getMonitorConfiguration();
                 setPlacement(m_monitorConfiguration, m_position);
 
                 const std::filesystem::path path{placementFilePath};

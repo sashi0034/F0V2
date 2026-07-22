@@ -164,7 +164,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
-    <ClCompile Include="Util\MonitorConfiguration.cpp" />
+    <ClCompile Include="Util\MonitorInfo.cpp" />
     <ClCompile Include="Util\WindowsPlacementAddon.cpp" />
     <Content Include="asset\.gitignore" />
     <Content Include="asset\debug.example.toml" />
@@ -412,7 +412,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Util\DebugTomlValue.h" />
     <ClInclude Include="Util\DebugUI.h" />
     <ClInclude Include="Util\ImmediatePrint.h" />
-    <ClInclude Include="Util\MonitorConfiguration.h" />
+    <ClInclude Include="Util\MonitorInfo.h" />
     <ClInclude Include="Util\Utilities.h" />
     <ClInclude Include="Util\WindowsPlacementAddon.h" />
   </ItemGroup>
