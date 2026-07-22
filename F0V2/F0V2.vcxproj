@@ -164,6 +164,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <ClCompile Include="Race\UI\RaceUIController.cpp" />
     <ClCompile Include="Util\MonitorInfo.cpp" />
     <ClCompile Include="Util\WindowsPlacementAddon.cpp" />
     <Content Include="asset\.gitignore" />
@@ -342,8 +343,10 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Common\RaceDeferredShadingDrawer.h" />
     <ClInclude Include="Race\Common\RaceDrawUpscaler.h" />
     <ClInclude Include="Race\Machine\MachineEffectDrawer.h" />
+    <ClInclude Include="Race\RaceControlState.h" />
     <ClInclude Include="Race\RaceDrawQualityController.h" />
     <ClInclude Include="Race\Stage\GimmickTextureDrawer.h" />
+    <ClInclude Include="Race\UI\RaceUIController.h" />
     <ClInclude Include="Race\UI\UI_DurabilityBar.h" />
     <ClInclude Include="Race\UI\UI_LabelText.h" />
     <ClInclude Include="Race\IRaceDrawer.h" />
