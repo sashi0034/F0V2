@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <type_traits>
+#include <cmath>
 
 #include "Integer2D.h"
-#include "TemplateHelper.h"
 
 namespace TY
 {
@@ -44,6 +44,11 @@ namespace TY
         constexpr Vector2D(const Integer2D<OtherType>& other) noexcept
             : x(other.x), y(other.y)
         {
+        }
+
+        static constexpr Vector2D FromAngle(value_type angle) noexcept
+        {
+            return {std::cos(angle), std::sin(angle)};
         }
 
         [[nodiscard]]

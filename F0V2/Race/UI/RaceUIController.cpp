@@ -82,29 +82,49 @@ private:
 
         // -----------------------------------------------
         // ブーストコンボ
-        if (player.state.m_boostComboCountdown > 0)
+        if (player.state.m_boostComboCountdown > 0.0f || player.state.m_manualBoostCooldownTime > 0.0f)
         {
-            const auto color =
-                player.state.m_manualBoostCooldownTime > 0.0f
-                    ? Palette::Orange
-                    : GamePalette::GamingGreen;
-            const float offsetX = (Periodic::Square1_1(0.3f) < 0.0f ? -1 : 1) * 4.0f;
+            const auto color = Palette::Orange;
+            // player.state.m_manualBoostCooldownTime > 0.0f
+            //     ? Palette::Orange
+            //     : GamePalette::GamingGreen;
+
+            // 文字が荒ぶってるけどコンボチャンス時だけ停止
+            Float2 offset{};
+            if (player.state.m_manualBoostCooldownTime > 0.0f)
+            {
+                const float noiseTable[] = {0, 2, 4, 1, 3,};
+                const float noise = noiseTable[(static_cast<int>(System::Time() * 1000) / 50) % std::size(noiseTable)];
+                offset = Float2::FromAngle(noise * (Math::TwoPiF / std::size(noiseTable))) * 4.0f;
+            }
+
             DrawLabelText(
-                ToUtf32("BOOST"),
+                ToUtf32(player.state.m_boostComboCount == 0 ? "Boost" : "Boost Combo"),
                 24.0f,
-                Screen::BottomCenterF().movedBy({offsetX, -96.0f}),
+                Screen::BottomCenterF().movedBy(offset.movedY(-96.0f)),
                 Alignment9::BottomCenter,
                 color);
 
-            // TODO: 発生中は荒ぶっている、コンボチャンス時に停止っていうのもいいかも
+            std::u32string comboMessage{};
+            if (player.state.m_boostComboCount == 0)
+            {
+                if (player.state.m_manualBoostCooldownTime <= 0.0f)
+                {
+                    comboMessage = U"Combo Chance !";
+                }
+            }
+            else
+            {
+                comboMessage = ToUtf32(std::format("{} Combo", player.state.m_boostComboCount));
+            }
 
-            if (player.state.m_boostComboCount > 0)
+            if (not comboMessage.empty())
             {
                 DrawLabelText(
-                    ToUtf32(std::format("COMBO {}", player.state.m_boostComboCount)),
-                    24.0f,
-                    Screen::BottomCenterF().movedBy({offsetX, -64.0f}),
-                    Alignment9::BottomCenter,
+                    comboMessage,
+                    32.0f,
+                    Screen::BottomCenterF().movedBy(offset.movedY(-80.0f)),
+                    Alignment9::TopCenter,
                     color);
             }
         }
