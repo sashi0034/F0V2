@@ -93,6 +93,7 @@ private:
             Float2 offset{};
             if (player.state.m_manualBoostCooldownTime > 0.0f)
             {
+                // TODO: 最初はもっと荒ぶらせる
                 const float noiseTable[] = {0, 2, 4, 1, 3,};
                 const float noise = noiseTable[(static_cast<int>(System::Time() * 1000) / 50) % std::size(noiseTable)];
                 offset = Float2::FromAngle(noise * (Math::TwoPiF / std::size(noiseTable))) * 4.0f;
@@ -106,16 +107,15 @@ private:
                 color);
 
             std::u32string comboMessage{};
-            if (player.state.m_boostComboCount == 0)
-            {
-                if (player.state.m_manualBoostCooldownTime <= 0.0f)
-                {
-                    comboMessage = U"Combo Chance !";
-                }
-            }
-            else
+            if (player.state.m_boostComboCount > 0)
             {
                 comboMessage = ToUtf32(std::format("{} Combo", player.state.m_boostComboCount));
+            }
+
+            if (player.state.m_manualBoostCooldownTime <= 0.0f)
+            {
+                // TODO: 文字がちょっとずつ出るアニメーション
+                comboMessage = U"Combo Chance !";
             }
 
             if (not comboMessage.empty())
