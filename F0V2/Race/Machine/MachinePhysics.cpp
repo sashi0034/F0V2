@@ -269,7 +269,12 @@ namespace Race
 
         // ブースト入力処理
         state.m_manualBoostCooldownTime = Max(0.0f, state.m_manualBoostCooldownTime - InGameDeltaTime());
+
         state.m_boostComboCountdown = Max(0.0f, state.m_boostComboCountdown - InGameDeltaTime());
+        if (state.m_boostComboCountdown <= 0.0f)
+        {
+            state.m_boostComboCount = 0;
+        }
 
         constexpr float boostEnergyCost = 800.0f;
         if (deviceInput.boostRequested)
@@ -298,7 +303,7 @@ namespace Race
             {
                 // コンボ中止
                 state.m_boostComboCountdown = 0.0f;
-                state.m_boostComboCount = 0.0f;
+                state.m_boostComboCount = 0;
             }
         }
 
