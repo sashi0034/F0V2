@@ -7,7 +7,7 @@
 #include "Race/Common/RaceSharedState.h"
 #include "TY/InlineComponent.h"
 #include "TY/ModelDrawer.h"
-#include "TY/PrimitiveModel3D.h"
+#include "TY/ModelLoader.h"
 
 using namespace Race;
 
@@ -15,7 +15,8 @@ namespace
 {
     struct MachineDrawerCache : IInlineComponent
     {
-        ModelData modelData = PrimitiveModel3D::Capsule(MachineRadius, MachineHeight, ColorF32{1.0f});
+        ModelData modelData = // PrimitiveModel3D::Capsule(MachineRadius, MachineHeight, ColorF32{1.0f});
+            ModelLoader::Load(Asset_model::aero_machine.path());
 
         ModelShapeBuffer shapeBuffer = ModelShapeBuffer{modelData.shapes};
     };
@@ -56,7 +57,8 @@ struct MachineDrawer::Impl
     {
         const auto& machine = GetRaceContext().machineManager().machineList()[m_id];
 
-        Mat4x4 localRotation = Mat4x4(Quaternion::RotateX(Math::HalfPiF));
+        Mat4x4 localRotation = // Mat4x4(Quaternion::RotateX(Math::HalfPiF));
+            Mat4x4::Identity();
         if (machine.state.isDead())
         {
             localRotation = Mat4x4::Identity(); // TODO: 死亡グラフィック

@@ -44,6 +44,7 @@ namespace Asset_image
 
 namespace Asset_model
 {
+    static const inline ModelPathWrapper aero_machine{"asset/model/aero_machine.obj"};
     static const inline ModelPathWrapper cinnamon{"asset/model/cinnamon.obj"};
     static const inline ModelPathWrapper dirty_plane{"asset/model/dirty_plane.obj"};
     static const inline ModelPathWrapper moji_hashi{"asset/model/moji_hashi.obj"};
