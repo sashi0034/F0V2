@@ -58,7 +58,8 @@ struct MachineDrawer::Impl
         const auto& machine = GetRaceContext().machineManager().machineList()[m_id];
 
         Mat4x4 localRotation = // Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-            Mat4x4::Identity();
+            // Mat4x4::Identity();
+            Mat4x4(Quaternion::RotateX(Math::PiF));
         if (machine.state.isDead())
         {
             localRotation = Mat4x4::Identity(); // TODO: 死亡グラフィック
