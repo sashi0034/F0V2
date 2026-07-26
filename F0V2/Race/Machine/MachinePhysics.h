@@ -94,6 +94,8 @@ namespace Race
 
             float driftTrigger{}; // [-1.0f, 1.0f]
 
+            bool rapidDriftRequested{};
+
             float cheatBoostFactor{1.0f};
         } input{};
 

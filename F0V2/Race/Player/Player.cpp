@@ -43,6 +43,10 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
 
     float m_previousAttackedByOtherMachineTime{};
 
+    float m_rapidDriftGracePeriod{};
+
+    MachinePhysicsProps::input_t m_previousInput{};
+
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
@@ -159,6 +163,26 @@ private:
                 (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
         }
 
+        // 二連入力処理
+        const bool driftInputReleased = input.driftTrigger == 0.0 && m_previousInput.driftTrigger != 0.0;
+        const bool wantsRapidDrift =
+            driftInputReleased && Math::Sign(input.rightHandling) == Math::Sign(m_previousInput.driftTrigger);
+        m_rapidDriftGracePeriod = Max(0.0f, m_rapidDriftGracePeriod - InGameDeltaTime());
+
+        if (m_rapidDriftGracePeriod > 0.0f)
+        {
+            input.rapidDriftRequested = m_rapidDriftGracePeriod > 0.0f && wantsRapidDrift;
+
+            ImmediatePrint_MiddleCenter("Rapid Drift: {:.02f}", m_rapidDriftGracePeriod); // TODO: Remove this
+        }
+        else // m_rapidDriftGracePeriod == 0.0f
+        {
+            if (wantsRapidDrift)
+            {
+                m_rapidDriftGracePeriod = 0.1f; // 猶予時間
+            }
+        }
+
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)
         {
@@ -166,6 +190,7 @@ private:
         }
 #endif
 
+        m_previousInput = machine().props.input;
         machine().props.input = input;
 
 #if defined(_DEBUG)

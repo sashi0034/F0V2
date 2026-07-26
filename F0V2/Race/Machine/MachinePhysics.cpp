@@ -334,6 +334,15 @@ namespace Race
             state.m_passiveBoost = Max<float>(0.0f, state.m_passiveBoost - InGameDeltaTime());
         }
 
+        // ラピッドドリフト
+        if (deviceInput.rapidDriftRequested)
+        {
+            // TODO: 調整
+            state.m_forwardVector += state.rightVector() * deviceInput.rightHandling * 0.1f;
+            state.m_forwardVector = state.m_forwardVector.normalized();
+            ImmediatePrint_MiddleCenter("OK");
+        }
+
         // ドリフト操作
         const float driftTrigger = deviceInput.driftTrigger; // state.isHovering() ? 0.0f : deviceInputt.driftTrigger;
         if (driftTrigger != 0.0f)
