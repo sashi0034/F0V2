@@ -232,7 +232,10 @@ namespace Race
         state = {};
 
         state.m_pose.position = startPosition.position;
-        state.m_pose.rotation = Quaternion::FromUnitVectors(Float3{0, 0, 1}, startPosition.forward);
+
+        const Float3 startRight = startPosition.up.cross(startPosition.forward).normalized();
+        const Float3 startUp = startPosition.forward.cross(startRight).normalized();
+        state.m_pose.rotation = Quaternion::FromAxes(startRight, startUp, startPosition.forward);
 
         state.m_forwardVector = startPosition.forward;
 
@@ -484,8 +487,10 @@ namespace Race
         }
 #endif
 
+        const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
+        const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
         const Quaternion targetRotation =
-            Quaternion::FromUnitVectors(Float3{0, 0, 1}, slippedForwardVector); // TODO: pitch
+            Quaternion::FromAxes(slippedRightVector, slippedUpVector, slippedForwardVector);
 
         // 滑らかに回転
         for (const auto dt : StandardStep_60Hz())
