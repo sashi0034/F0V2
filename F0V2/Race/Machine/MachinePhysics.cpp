@@ -335,12 +335,42 @@ namespace Race
         }
 
         // ラピッドドリフト
-        if (deviceInput.rapidDriftRequested)
+        const bool canTriggerRapidDrift = state.m_rapidDriftTime == 0.0f && not state.m_stabilizingAfterRapidDrift;
+        if (canTriggerRapidDrift && deviceInput.rapidDriftRequested)
         {
             // TODO: 調整
-            state.m_forwardVector += state.rightVector() * deviceInput.rightHandling * 0.1f;
-            state.m_forwardVector = state.m_forwardVector.normalized();
-            ImmediatePrint_MiddleCenter("OK");
+            state.m_rapidDriftTime = 0.1f;
+            state.m_stabilizingAfterRapidDrift = false;
+        }
+
+        if (state.m_rapidDriftTime > 0.0f)
+        {
+            // 傾く
+            state.m_rollAmount += deviceInput.rightHandling * (Math::TwoPiF * 0.25f) * InGameDeltaTime();
+
+            state.m_rapidDriftTime = Max<float>(0.0f, state.m_rapidDriftTime - InGameDeltaTime());
+            if (state.m_rapidDriftTime == 0.0f)
+            {
+                state.m_stabilizingAfterRapidDrift = true;
+            }
+        }
+
+        if (state.m_stabilizingAfterRapidDrift)
+        {
+            // TODO: 改良
+            state.m_rollAmount = 0.0f;
+
+            // 体制復帰
+            for (const float dt : StandardStep_60Hz())
+            {
+                state.m_rollAmount = Math::Lerp(state.m_rollAmount, 0.0f, dt * 5.0f);
+            }
+
+            if (Abs(state.m_rollAmount) < 0.1f)
+            {
+                state.m_rollAmount = 0.0f;
+                state.m_stabilizingAfterRapidDrift = false;
+            }
         }
 
         // ドリフト操作
@@ -442,7 +472,8 @@ namespace Race
                 r *= Math::Sign(state.m_driftOffset);
 
                 const float velocityLength = state.m_velocity.length();
-                state.m_velocity = state.m_velocity + state.rightVector() * r;
+                state.m_velocity =
+                    state.m_velocity + state.rightVector() * (r + state.m_rollAmount * velocityLength); // FIXME 
                 state.m_velocity = state.m_velocity.normalized() * velocityLength;
 
                 rightShift = r;
@@ -453,7 +484,8 @@ namespace Race
             }
 
             constexpr float steeringSensitivity = 0.015f;
-            state.m_forwardVector += state.rightVector() * rightShift * steeringSensitivity;
+            state.m_forwardVector +=
+                state.rightVector() * (rightShift * steeringSensitivity + state.m_rollAmount * 1.0f); // FIXME
             state.m_forwardVector = state.m_forwardVector.normalized();
         }
 
@@ -500,6 +532,7 @@ namespace Race
         const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
         const Quaternion targetRotation =
             Quaternion::FromAxes(slippedRightVector, slippedUpVector, slippedForwardVector);
+        // TODO: state.m_rollAmount だけロール回転
 
         // 滑らかに回転
         for (const auto dt : StandardStep_60Hz())
