@@ -36,9 +36,9 @@ namespace Race
 
         float m_driftOffset{};
 
-        float m_rapidDriftTime{};
+        float m_impulseTurnTime{};
 
-        bool m_stabilizingAfterRapidDrift{};
+        bool m_stabilizingAfterImpulseTurn{};
 
         float m_manualBoost{};
 
@@ -100,7 +100,7 @@ namespace Race
 
             float driftTrigger{}; // [-1.0f, 1.0f]
 
-            bool rapidDriftRequested{};
+            bool impulseTurnRequested{};
 
             float cheatBoostFactor{1.0f};
         } input{};

@@ -43,7 +43,7 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
 
     float m_previousAttackedByOtherMachineTime{};
 
-    float m_rapidDriftGracePeriod{};
+    float m_impulseTurnGracePeriod{};
 
     MachinePhysicsProps::input_t m_previousInput{};
 
@@ -165,21 +165,22 @@ private:
 
         // 二連入力処理
         const bool driftInputReleased = input.driftTrigger == 0.0 && m_previousInput.driftTrigger != 0.0;
-        const bool wantsRapidDrift =
+        const bool wantsImpulseTurn =
             driftInputReleased && Math::Sign(input.rightHandling) == Math::Sign(m_previousInput.driftTrigger);
-        m_rapidDriftGracePeriod = Max(0.0f, m_rapidDriftGracePeriod - InGameDeltaTime());
+        m_impulseTurnGracePeriod = Max(0.0f, m_impulseTurnGracePeriod - InGameDeltaTime());
 
-        if (m_rapidDriftGracePeriod > 0.0f)
+        if (m_impulseTurnGracePeriod > 0.0f)
         {
-            input.rapidDriftRequested = m_rapidDriftGracePeriod > 0.0f && wantsRapidDrift;
+            input.impulseTurnRequested = m_impulseTurnGracePeriod > 0.0f && wantsImpulseTurn;
 
-            ImmediatePrint_MiddleCenter("Rapid Drift: {:.02f}", m_rapidDriftGracePeriod); // TODO: Remove this
+            ImmediatePrint_MiddleCenter("m_impulseTurnGracePeriod: {:.02f}", m_impulseTurnGracePeriod);
+            // TODO: Remove this
         }
-        else // m_rapidDriftGracePeriod == 0.0f
+        else // m_impulseTurnGracePeriod == 0.0f
         {
-            if (wantsRapidDrift)
+            if (wantsImpulseTurn)
             {
-                m_rapidDriftGracePeriod = 0.1f; // 猶予時間
+                m_impulseTurnGracePeriod = 0.1f; // 猶予時間
             }
         }
 

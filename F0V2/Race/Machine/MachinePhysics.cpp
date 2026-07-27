@@ -334,28 +334,28 @@ namespace Race
             state.m_passiveBoost = Max<float>(0.0f, state.m_passiveBoost - InGameDeltaTime());
         }
 
-        // ラピッドドリフト
-        const bool canTriggerRapidDrift = state.m_rapidDriftTime == 0.0f && not state.m_stabilizingAfterRapidDrift;
-        if (canTriggerRapidDrift && deviceInput.rapidDriftRequested)
+        // インパルスターン
+        const bool canTriggerImpulseTurn = state.m_impulseTurnTime == 0.0f && not state.m_stabilizingAfterImpulseTurn;
+        if (canTriggerImpulseTurn && deviceInput.impulseTurnRequested)
         {
             // TODO: 調整
-            state.m_rapidDriftTime = 0.1f;
-            state.m_stabilizingAfterRapidDrift = false;
+            state.m_impulseTurnTime = 0.1f;
+            state.m_stabilizingAfterImpulseTurn = false;
         }
 
-        if (state.m_rapidDriftTime > 0.0f)
+        if (state.m_impulseTurnTime > 0.0f)
         {
             // 傾く
             state.m_rollAmount += deviceInput.rightHandling * (Math::TwoPiF * 0.25f) * InGameDeltaTime();
 
-            state.m_rapidDriftTime = Max<float>(0.0f, state.m_rapidDriftTime - InGameDeltaTime());
-            if (state.m_rapidDriftTime == 0.0f)
+            state.m_impulseTurnTime = Max<float>(0.0f, state.m_impulseTurnTime - InGameDeltaTime());
+            if (state.m_impulseTurnTime == 0.0f)
             {
-                state.m_stabilizingAfterRapidDrift = true;
+                state.m_stabilizingAfterImpulseTurn = true;
             }
         }
 
-        if (state.m_stabilizingAfterRapidDrift)
+        if (state.m_stabilizingAfterImpulseTurn)
         {
             // TODO: 改良
             state.m_rollAmount = 0.0f;
@@ -369,7 +369,7 @@ namespace Race
             if (Abs(state.m_rollAmount) < 0.1f)
             {
                 state.m_rollAmount = 0.0f;
-                state.m_stabilizingAfterRapidDrift = false;
+                state.m_stabilizingAfterImpulseTurn = false;
             }
         }
 
