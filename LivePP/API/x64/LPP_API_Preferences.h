@@ -72,6 +72,7 @@ typedef struct LppProjectPreferences
 		const char* objectFileExtensions;
 		const char* libraryFileExtensions;
 		const char* sourcePathFilters;
+		const char* pathRemapping;
 		int captureToolchainEnvironmentTimeout;
 
 		struct PreBuild
@@ -90,6 +91,7 @@ typedef struct LppProjectPreferences
 	struct Compiler
 	{
 		const wchar_t* overrideLocation;			// isOverridden must be set to true
+		const wchar_t* workingDirectory;			// isOverridden must be set to true
 		const char* commandLineOptions;
 		bool captureEnvironment;
 		bool isOverridden;
@@ -102,6 +104,7 @@ typedef struct LppProjectPreferences
 	struct Linker
 	{
 		const wchar_t* overrideLocation;			// isOverridden must be set to true
+		const wchar_t* workingDirectory;			// isOverridden must be set to true
 		const char* commandLineOptions;
 		bool captureEnvironment;
 		bool isOverridden;
@@ -150,6 +153,7 @@ LPP_API LppProjectPreferences LppCreateDefaultProjectPreferences(void)
 	prefs.hotReload.objectFileExtensions = ".obj;.o";
 	prefs.hotReload.libraryFileExtensions = ".lib;.a";
 	prefs.hotReload.sourcePathFilters = "";
+	prefs.hotReload.pathRemapping = "";
 	prefs.hotReload.captureToolchainEnvironmentTimeout = 10000;
 	prefs.hotReload.preBuild.isEnabled = false;
 	prefs.hotReload.preBuild.executable = L"";
@@ -160,6 +164,7 @@ LPP_API LppProjectPreferences LppCreateDefaultProjectPreferences(void)
 	prefs.hotReload.callHotReloadHooksForHaltedProcesses = false;
 
 	prefs.compiler.overrideLocation = L"";
+	prefs.compiler.workingDirectory = L"";
 	prefs.compiler.commandLineOptions = "";
 	prefs.compiler.captureEnvironment = true;
 	prefs.compiler.isOverridden = false;
@@ -169,6 +174,7 @@ LPP_API LppProjectPreferences LppCreateDefaultProjectPreferences(void)
 	prefs.compiler.removeSourceDependencies = false;
 
 	prefs.linker.overrideLocation = L"";
+	prefs.linker.workingDirectory = L"";
 	prefs.linker.commandLineOptions = "";
 	prefs.linker.captureEnvironment = true;
 	prefs.linker.isOverridden = false;

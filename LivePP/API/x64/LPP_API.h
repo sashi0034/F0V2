@@ -252,7 +252,7 @@ LPP_API void LppInternalCheckVersion(LppAgentModule lppModule)
 // Creates a default agent, either loading the project preferences from a file, or passing them along.
 LPP_API LppDefaultAgent LppInternalCreateDefaultAgentANSI(const LppLocalPreferences* const localPreferences, const char* const absoluteOrRelativePathWithoutTrailingSlash, const char* const absoluteOrRelativePathToProjectPreferences, const LppProjectPreferences* const projectPreferences)
 {
-	LppDefaultAgent agent = LPP_DEFAULT_INIT(LPP_INVALID_MODULE);
+	LppDefaultAgent agent = LPP_DEFAULT_INIT(0);
 	LppAgentModule lppModule = LppInternalLoadAgentLibraryANSI(absoluteOrRelativePathWithoutTrailingSlash);
 	if (lppModule == LPP_INVALID_MODULE)
 	{
@@ -263,10 +263,11 @@ LPP_API LppDefaultAgent LppInternalCreateDefaultAgentANSI(const LppLocalPreferen
 
 	// the module is valid, store it in the agent
 	agent.internalModuleDoNotUse = lppModule;
-
-	typedef void LppStartupFunction(LppDefaultAgent*, const LppLocalPreferences* const, const char* const, const LppProjectPreferences* const);
-	LppStartupFunction* startup = LPP_REINTERPRET_CAST(LppStartupFunction*)(LppPlatformGetFunctionAddress(lppModule, "LppStartupDefaultAgentANSI"));
-	startup(&agent, localPreferences, absoluteOrRelativePathToProjectPreferences, projectPreferences);
+	{
+		typedef void LppStartupFunction(LppDefaultAgent*, const LppLocalPreferences* const, const char* const, const LppProjectPreferences* const);
+		LppStartupFunction* startup = LPP_REINTERPRET_CAST(LppStartupFunction*)(LppPlatformGetFunctionAddress(lppModule, "LppStartupDefaultAgentANSI"));
+		startup(&agent, localPreferences, absoluteOrRelativePathToProjectPreferences, projectPreferences);
+	}
 
 	return agent;
 }
@@ -274,7 +275,7 @@ LPP_API LppDefaultAgent LppInternalCreateDefaultAgentANSI(const LppLocalPreferen
 // Creates a default agent, either loading the project preferences from a file, or passing them along.
 LPP_API LppDefaultAgent LppInternalCreateDefaultAgent(const LppLocalPreferences* const localPreferences, const wchar_t* const absoluteOrRelativePathWithoutTrailingSlash, const wchar_t* const absoluteOrRelativePathToProjectPreferences, const LppProjectPreferences* const projectPreferences)
 {
-	LppDefaultAgent agent = LPP_DEFAULT_INIT(LPP_INVALID_MODULE);
+	LppDefaultAgent agent = LPP_DEFAULT_INIT(0);
 	LppAgentModule lppModule = LppInternalLoadAgentLibrary(absoluteOrRelativePathWithoutTrailingSlash);
 	if (lppModule == LPP_INVALID_MODULE)
 	{
@@ -285,10 +286,11 @@ LPP_API LppDefaultAgent LppInternalCreateDefaultAgent(const LppLocalPreferences*
 
 	// the module is valid, store it in the agent
 	agent.internalModuleDoNotUse = lppModule;
-
-	typedef void LppStartupFunction(LppDefaultAgent*, const LppLocalPreferences* const, const wchar_t* const, const LppProjectPreferences* const);
-	LppStartupFunction* startup = LPP_REINTERPRET_CAST(LppStartupFunction*)(LppPlatformGetFunctionAddress(lppModule, "LppStartupDefaultAgent"));
-	startup(&agent, localPreferences, absoluteOrRelativePathToProjectPreferences, projectPreferences);
+	{
+		typedef void LppStartupFunction(LppDefaultAgent*, const LppLocalPreferences* const, const wchar_t* const, const LppProjectPreferences* const);
+		LppStartupFunction* startup = LPP_REINTERPRET_CAST(LppStartupFunction*)(LppPlatformGetFunctionAddress(lppModule, "LppStartupDefaultAgent"));
+		startup(&agent, localPreferences, absoluteOrRelativePathToProjectPreferences, projectPreferences);
+	}
 
 	return agent;
 }
@@ -296,7 +298,7 @@ LPP_API LppDefaultAgent LppInternalCreateDefaultAgent(const LppLocalPreferences*
 // Creates a synchronized agent, either loading the project preferences from a file, or passing them along.
 LPP_API LppSynchronizedAgent LppInternalCreateSynchronizedAgentANSI(const LppLocalPreferences* const localPreferences, const char* const absoluteOrRelativePathWithoutTrailingSlash, const char* const absoluteOrRelativePathToProjectPreferences, const LppProjectPreferences* const projectPreferences)
 {
-	LppSynchronizedAgent agent = LPP_DEFAULT_INIT(LPP_INVALID_MODULE);
+	LppSynchronizedAgent agent = LPP_DEFAULT_INIT(0);
 	LppAgentModule lppModule = LppInternalLoadAgentLibraryANSI(absoluteOrRelativePathWithoutTrailingSlash);
 	if (lppModule == LPP_INVALID_MODULE)
 	{
@@ -307,10 +309,11 @@ LPP_API LppSynchronizedAgent LppInternalCreateSynchronizedAgentANSI(const LppLoc
 
 	// the module is valid, store it in the agent
 	agent.internalModuleDoNotUse = lppModule;
-
-	typedef void LppStartupFunction(LppSynchronizedAgent*, const LppLocalPreferences* const, const char* const, const LppProjectPreferences* const);
-	LppStartupFunction* startup = LPP_REINTERPRET_CAST(LppStartupFunction*)(LppPlatformGetFunctionAddress(lppModule, "LppStartupSynchronizedAgentANSI"));
-	startup(&agent, localPreferences, absoluteOrRelativePathToProjectPreferences, projectPreferences);
+	{
+		typedef void LppStartupFunction(LppSynchronizedAgent*, const LppLocalPreferences* const, const char* const, const LppProjectPreferences* const);
+		LppStartupFunction* startup = LPP_REINTERPRET_CAST(LppStartupFunction*)(LppPlatformGetFunctionAddress(lppModule, "LppStartupSynchronizedAgentANSI"));
+		startup(&agent, localPreferences, absoluteOrRelativePathToProjectPreferences, projectPreferences);
+	}
 
 	return agent;
 }
@@ -318,7 +321,7 @@ LPP_API LppSynchronizedAgent LppInternalCreateSynchronizedAgentANSI(const LppLoc
 // Creates a synchronized agent, either loading the project preferences from a file, or passing them along.
 LPP_API LppSynchronizedAgent LppInternalCreateSynchronizedAgent(const LppLocalPreferences* const localPreferences, const wchar_t* const absoluteOrRelativePathWithoutTrailingSlash, const wchar_t* const absoluteOrRelativePathToProjectPreferences, const LppProjectPreferences* const projectPreferences)
 {
-	LppSynchronizedAgent agent = LPP_DEFAULT_INIT(LPP_INVALID_MODULE);
+	LppSynchronizedAgent agent = LPP_DEFAULT_INIT(0);
 	LppAgentModule lppModule = LppInternalLoadAgentLibrary(absoluteOrRelativePathWithoutTrailingSlash);
 	if (lppModule == LPP_INVALID_MODULE)
 	{
@@ -329,10 +332,11 @@ LPP_API LppSynchronizedAgent LppInternalCreateSynchronizedAgent(const LppLocalPr
 
 	// the module is valid, store it in the agent
 	agent.internalModuleDoNotUse = lppModule;
-
-	typedef void LppStartupFunction(LppSynchronizedAgent*, const LppLocalPreferences* const, const wchar_t* const, const LppProjectPreferences* const);
-	LppStartupFunction* startup = LPP_REINTERPRET_CAST(LppStartupFunction*)(LppPlatformGetFunctionAddress(lppModule, "LppStartupSynchronizedAgent"));
-	startup(&agent, localPreferences, absoluteOrRelativePathToProjectPreferences, projectPreferences);
+	{
+		typedef void LppStartupFunction(LppSynchronizedAgent*, const LppLocalPreferences* const, const wchar_t* const, const LppProjectPreferences* const);
+		LppStartupFunction* startup = LPP_REINTERPRET_CAST(LppStartupFunction*)(LppPlatformGetFunctionAddress(lppModule, "LppStartupSynchronizedAgent"));
+		startup(&agent, localPreferences, absoluteOrRelativePathToProjectPreferences, projectPreferences);
+	}
 
 	return agent;
 }
