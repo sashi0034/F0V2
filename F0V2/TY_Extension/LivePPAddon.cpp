@@ -6,6 +6,7 @@
 // include the API for Windows, 64-bit, C++
 #include "../LivePP/API/x64/LPP_API_x64_CPP.h"
 #include "TY/Addon.h"
+#include "TY/Window.h"
 
 using namespace TY;
 
@@ -50,6 +51,8 @@ namespace
                 // client code can do whatever it wants here, e.g. synchronize across several threads, the network, etc.
                 // ...
                 m_lppAgent.Reload(lpp::LPP_RELOAD_BEHAVIOUR_WAIT_UNTIL_CHANGES_ARE_APPLIED);
+
+                Window::SetForeground();
 
                 s_hotReloaded = true;
             }

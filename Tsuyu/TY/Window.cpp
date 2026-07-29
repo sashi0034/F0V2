@@ -33,6 +33,11 @@ namespace TY
         Window_singleton::SetPosition(position);
     }
 
+    void Window::SetForeground()
+    {
+        SetForegroundWindow(Window_singleton::Handle());
+    }
+
     bool Window::IsActive()
     {
         return Window_singleton::IsActive();

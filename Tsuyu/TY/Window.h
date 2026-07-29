@@ -19,6 +19,8 @@ namespace TY
 
         void SetPosition(Point position);
 
+        void SetForeground();
+
         [[nodiscard]]
         bool IsActive();
     }
