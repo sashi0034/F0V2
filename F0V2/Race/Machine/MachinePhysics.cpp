@@ -346,7 +346,8 @@ namespace Race
         if (state.m_impulseTurnTime > 0.0f)
         {
             // 傾く
-            state.m_rollAmount += deviceInput.rightHandling * (Math::TwoPiF * 0.25f) * InGameDeltaTime();
+            const float impulseIntensity = state.m_velocity.length() / 1000.0f;
+            state.m_rollAmount += deviceInput.rightHandling * (Math::TwoPiF * impulseIntensity) * InGameDeltaTime();
 
             state.m_impulseTurnTime = Max<float>(0.0f, state.m_impulseTurnTime - InGameDeltaTime());
             if (state.m_impulseTurnTime == 0.0f)
@@ -374,7 +375,7 @@ namespace Race
         }
 
         // ドリフト操作
-        const float driftTrigger = deviceInput.driftTrigger; // state.isHovering() ? 0.0f : deviceInputt.driftTrigger;
+        const float driftTrigger = deviceInput.driftTrigger; // state.isHovering() ? 0.0f : deviceInput.driftTrigger;
         if (driftTrigger != 0.0f)
         {
             state.m_driftOffset += static_cast<float>(driftTrigger) * InGameDeltaTime();
@@ -471,10 +472,10 @@ namespace Race
 
                 r *= Math::Sign(state.m_driftOffset);
 
-                const float velocityLength = state.m_velocity.length();
-                state.m_velocity =
-                    state.m_velocity + state.rightVector() * (r + state.m_rollAmount * velocityLength); // FIXME 
-                state.m_velocity = state.m_velocity.normalized() * velocityLength;
+                //     const float velocityLength = state.m_velocity.length();
+                //     state.m_velocity =
+                //         state.m_velocity + state.rightVector() * (r + state.m_rollAmount * velocityLength); // FIXME 
+                //     state.m_velocity = state.m_velocity.normalized() * velocityLength;
 
                 rightShift = r;
             }
@@ -484,9 +485,19 @@ namespace Race
             }
 
             constexpr float steeringSensitivity = 0.015f;
-            state.m_forwardVector +=
-                state.rightVector() * (rightShift * steeringSensitivity + state.m_rollAmount * 1.0f); // FIXME
+            state.m_forwardVector += state.rightVector() * (rightShift * steeringSensitivity);
             state.m_forwardVector = state.m_forwardVector.normalized();
+
+            if (state.m_rollAmount != 0.0f)
+            {
+                // インパルスターン等による速度偏向
+                const Float3 previousForward = state.m_forwardVector;
+                state.m_forwardVector += state.rightVector() * state.m_rollAmount * 1.0f;
+                state.m_forwardVector = state.m_forwardVector.normalized();
+
+                state.m_velocity =
+                    Quaternion::FromUnitVectors(previousForward, state.m_forwardVector).rotate(state.m_velocity);
+            }
         }
 
         // -----------------------------------------------
@@ -545,6 +556,22 @@ namespace Race
         state.m_upVector = updateUpVector(state);
 
         ResolveMachineGroundContact(state);
+
+        // 速度の偏向 (向きを　slippedForwardVector に近づける)
+        {
+            const float previousSpeed = state.m_velocity.length();
+
+            const Float3& rv = slippedRightVector;
+            state.m_velocity =
+                state.m_velocity - rv * rv.dot(state.m_velocity) * InGameDeltaTime() * 0.5f;
+
+            const float speedLoss = previousSpeed - state.m_velocity.length();
+
+            // NOTE: この加算で速度ベクトルのマンハッタン距離は保たれているが、全体の速度エネルギーは減少する
+            state.m_velocity += slippedForwardVector * speedLoss;
+
+            // ImmediatePrint_MiddleCenter("{:.02f}", state.m_velocity.length() - previousSpeed);
+        }
 
         // 速度の減衰
         for (const auto dt : StandardStep_60Hz())
