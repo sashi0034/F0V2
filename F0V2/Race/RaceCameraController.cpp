@@ -83,7 +83,10 @@ private:
     {
         const Float3 forwardVector = machine.state.m_forwardVector;
 
-        outTarget = machine.state.m_pose.position + machine.state.m_upVector * 5.0f;
+        const float targetUpLength = // TODO; 改良
+            5.0f + 0.5f * std::sqrtf(Abs(machine.state.m_pitchRate)) * Math::Sign(machine.state.m_pitchRate);
+
+        outTarget = machine.state.m_pose.position + machine.state.m_upVector * targetUpLength;
 
         constexpr float cameraBackward = 10.0f;
         constexpr float cameraHeight = 5.0f;
@@ -119,7 +122,7 @@ private:
 
         ImGui::Checkbox("Fix Camera Up", &s_fixedCameraUp);
 
-        ImGui::End(); 
+        ImGui::End();
 #endif
     }
 };
