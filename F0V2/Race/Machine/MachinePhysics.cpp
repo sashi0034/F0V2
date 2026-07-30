@@ -565,18 +565,18 @@ namespace Race
 
         // 速度の偏向 (向きを　slippedForwardVector に近づける)
         {
-            const float previousSpeed = state.m_velocity.length();
+            const float previousSpeedSq = state.m_velocity.lengthSq();
 
+            const Float3& fv = slippedForwardVector;
             const Float3& rv = slippedRightVector;
             state.m_velocity =
                 state.m_velocity - rv * rv.dot(state.m_velocity) * InGameDeltaTime() * 0.5f;
 
-            const float speedLoss = previousSpeed - state.m_velocity.length();
+            const float f_ = std::sqrt(previousSpeedSq - Math::Square(rv.dot(state.m_velocity)));
+            constexpr float attenuation = 0.85f;
+            state.m_velocity = state.m_velocity + fv * (f_ - fv.dot(state.m_velocity)) * attenuation;
 
-            // NOTE: この加算で速度ベクトルのマンハッタン距離は保たれているが、全体の速度エネルギーは減少する
-            state.m_velocity += slippedForwardVector * speedLoss;
-
-            // ImmediatePrint_MiddleCenter("{:.02f}", state.m_velocity.length() - previousSpeed);
+            // ImmediatePrint_MiddleCenter("{:.02f}", state.m_velocity.length() - std::sqrt(previousSpeedSq));
         }
 
         // 速度の減衰
