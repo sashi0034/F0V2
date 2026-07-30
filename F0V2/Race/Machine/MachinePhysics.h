@@ -32,9 +32,9 @@ namespace Race
 
         Float3 m_surfaceToTriangle{};
 
-        float m_rollAmount{}; // neutral: 0.0f
-
         float m_driftOffset{};
+
+        float m_impulseTurn{}; // neutral: 0.0f
 
         float m_impulseTurnTime{};
 
