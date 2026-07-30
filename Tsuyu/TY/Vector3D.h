@@ -107,6 +107,11 @@ namespace TY
             return Vector3D(x * rhs, y * rhs, z * rhs);
         }
 
+        [[nodiscard]] friend constexpr Vector3D operator*(value_type lhs, const Vector3D& rhs)
+        {
+            return Vector3D(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
+        }
+
         [[nodiscard]] constexpr Vector3D operator*(const Vector3D& rhs) const
         {
             return Vector3D(x * rhs.x, y * rhs.y, z * rhs.z);
