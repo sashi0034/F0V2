@@ -23,12 +23,13 @@ namespace
         if (state.isHovering())
         {
             // 空中にいるときは滑らかに重力方向へ m_upVector を調整
-            const Float3 targetUpVector = -state.m_gravity;
+            Float3 targetUpVector = -state.m_gravity;
 
-            if (upVector.dot(targetUpVector) < -0.9f)
+            if (targetUpVector.dot(upVector) < -0.9f)
             {
-                // upVector と targetUpVector が真反対の場合は slerp が安定しないので回避
-                upVector = (upVector + upVector.cross(state.m_forwardVector) * 1.0f).normalized();
+                // upVector と targetUpVector が真反対のときに毎フレーム upVector を slerp すると、
+                // m_forwardVector までグルグル回転するのでズラす 
+                targetUpVector = state.rightVector();
             }
 
             for (const auto dt : StandardStep_60Hz())

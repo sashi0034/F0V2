@@ -23,6 +23,7 @@ namespace Race
         float width{};
 
         Float3 toNext{}; // 次点へのベクトル
+        // TODO: Float3 directionToNext{};
         float lengthToNext{};
         Float3 normal{};
 

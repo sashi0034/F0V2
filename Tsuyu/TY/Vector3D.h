@@ -206,13 +206,45 @@ namespace TY
                 this->x * rhs.y - this->y * rhs.x);
         }
 
+        /// @remark Both `this` and `target` must be normalized.
         [[nodiscard]] Vector3D slerp(const Vector3D& target, value_type t) const
         {
             float dot = this->dot(target);
-            dot = std::clamp(dot, -1.0f, 1.0f);
+            dot = std::clamp(dot, static_cast<value_type>(-1), static_cast<value_type>(1));
             float theta = std::acos(dot) * t;
             Vector3D relative = (target - (*this) * dot).normalized();
             return (*this) * std::cos(theta) + relative * std::sin(theta);
+        }
+
+        /// @remark `this`, `target`, and `fallbackAxis` must all be normalized.
+        [[nodiscard]] Vector3D safe_slerp(
+            const Vector3D& target,
+            value_type t,
+            const Vector3D& fallbackAxis) const
+        {
+            const value_type dot =
+                std::clamp(target.dot(*this), static_cast<value_type>(-1), static_cast<value_type>(1));
+            if (dot < static_cast<value_type>(-0.999))
+            {
+                Vector3D axis = this->cross(fallbackAxis);
+
+                if (axis.lengthSq() < static_cast<value_type>(1e-8))
+                {
+                    // `fallbackAxis` is parallel to `this`.
+                    const Vector3D helper =
+                        std::abs(this->x) < static_cast<value_type>(0.9) ? Vector3D{1, 0, 0} : Vector3D{0, 1, 0};
+                    axis = this->cross(helper);
+                }
+
+                axis = axis.normalized();
+
+                const value_type angle = std::acos(dot) * t;
+
+                // Rodrigues' rotation formula.
+                return (*this) * std::cos(angle) + axis.cross(*this) * std::sin(angle);
+            }
+
+            return this->slerp(target, t);
         }
 
         [[nodiscard]] value_type lengthSq() const
