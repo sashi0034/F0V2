@@ -502,7 +502,7 @@ namespace Race
                     Float3 v = state.m_velocity - upVelocity;
 
                     const float t = Min(0.1f, Abs(state.m_impulseTurn));
-                    v = v.length() * v.normalized().slerp(state.m_forwardVector, t);
+                    v = v.length() * v.normalized().safe_slerp(state.m_forwardVector, t, state.m_upVector);
 
                     state.m_velocity = upVelocity + v;
                 }
