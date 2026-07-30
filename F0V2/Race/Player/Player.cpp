@@ -67,32 +67,6 @@ private:
         return GetRaceContext().machineManager().fetchMachine(PlayerMachineId);
     }
 
-    void computeEyeAndTarget(Float3& outEye, Float3& outTarget) const
-    {
-        const Float3 forwardVector = machine().state.m_forwardVector;
-
-        outTarget = machine().state.m_pose.position + machine().state.m_upVector * 5.0f;
-
-        constexpr float cameraBackward = 10.0f;
-        constexpr float cameraHeight = 5.0f;
-
-        const Float3 optimalEyePos =
-            outTarget - forwardVector.normalized() * cameraBackward + m_cameraUp * cameraHeight;
-
-        const auto ray = LineSegment3D{outTarget, optimalEyePos};
-        const auto hit =
-            GetRaceContext().stageManager().stageStaticCollider().rayCastGround(ray);
-        if (hit.has_value())
-        {
-            // 地面にカメラが遮られているなら、その面に垂線の足をおろしてカメラ位置とする
-            const Float3 H = hit->triangle.asPlane().projection(optimalEyePos);
-            outEye = H;
-            return;
-        }
-
-        outEye = optimalEyePos;
-    }
-
     void update() override
     {
         m_drawer.update();
