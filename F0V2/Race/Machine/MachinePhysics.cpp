@@ -541,9 +541,15 @@ namespace Race
 
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
         const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
+
+        const float viewRollAmount = state.m_driftOffset * 0.25f + state.m_rollAmount * 100.0f;
+        const Quaternion rollRotation{slippedForwardVector, -viewRollAmount};
+
         const Quaternion targetRotation =
-            Quaternion::FromAxes(slippedRightVector, slippedUpVector, slippedForwardVector);
-        // TODO: state.m_rollAmount だけロール回転
+            Quaternion::FromAxes(
+                rollRotation.rotate(slippedRightVector),
+                rollRotation.rotate(slippedUpVector),
+                slippedForwardVector);
 
         // 滑らかに回転
         for (const auto dt : StandardStep_60Hz())
