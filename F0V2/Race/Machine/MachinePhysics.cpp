@@ -348,8 +348,8 @@ namespace Race
         if (state.m_impulseTurnTime > 0.0f)
         {
             // 傾く
-            const float impulseIntensity = state.m_velocity.length() / 1000.0f;
-            state.m_impulseTurn += deviceInput.rightHandling * (Math::TwoPiF * impulseIntensity) * InGameDeltaTime();
+            const float impulseIntensity = state.m_velocity.length() / 100.0f;
+            state.m_impulseTurn += deviceInput.rightHandling * impulseIntensity * InGameDeltaTime();
 
             state.m_impulseTurnTime = Max<float>(0.0f, state.m_impulseTurnTime - InGameDeltaTime());
             if (state.m_impulseTurnTime == 0.0f)
@@ -360,16 +360,10 @@ namespace Race
 
         if (state.m_stabilizingAfterImpulseTurn)
         {
-            // TODO: 改良
-            state.m_impulseTurn = 0.0f;
-
             // 体制復帰
-            for (const float dt : StandardStep_60Hz())
-            {
-                state.m_impulseTurn = Math::Lerp(state.m_impulseTurn, 0.0f, dt * 5.0f);
-            }
-
-            if (Abs(state.m_impulseTurn) < 0.1f)
+            const auto s = Math::Sign(state.m_impulseTurn);
+            state.m_impulseTurn -= s * 2.0f * InGameDeltaTime();
+            if (s != Math::Sign(state.m_impulseTurn))
             {
                 state.m_impulseTurn = 0.0f;
                 state.m_stabilizingAfterImpulseTurn = false;
@@ -381,7 +375,7 @@ namespace Race
         if (driftTrigger != 0.0f)
         {
             state.m_driftOffset += static_cast<float>(driftTrigger) * InGameDeltaTime();
-            constexpr float maxSlipOffset = 5.0f;
+            constexpr float maxSlipOffset = 1.0f;
             if (Abs(state.m_driftOffset) > maxSlipOffset)
             {
                 state.m_driftOffset = maxSlipOffset * Math::Sign(state.m_driftOffset);
@@ -494,8 +488,9 @@ namespace Race
                 // state.m_velocity =
                 //     Quaternion::FromUnitVectors(previousForward, state.m_forwardVector).rotate(state.m_velocity);
 
+                const float t = Min(0.1f, Abs(state.m_impulseTurn));
                 state.m_velocity =
-                    state.m_velocity.normalized().slerp(state.m_forwardVector, 0.1f) * state.m_velocity.length();
+                    state.m_velocity.normalized().slerp(state.m_forwardVector, t) * state.m_velocity.length();
             }
         }
 
@@ -541,7 +536,7 @@ namespace Race
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
         const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
 
-        const float rollAmount = state.m_driftOffset * 0.25f + state.m_impulseTurn * 100.0f;
+        const float rollAmount = deviceInput.rightHandling * 0.5f + state.m_impulseTurn * 100.0f;
         const Quaternion rollRotation{slippedForwardVector, -rollAmount};
 
         const Quaternion targetRotation =
