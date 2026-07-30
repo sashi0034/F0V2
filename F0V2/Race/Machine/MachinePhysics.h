@@ -34,6 +34,8 @@ namespace Race
 
         float m_driftOffset{};
 
+        float m_rawPitchRate{};
+
         float m_pitchRate{};
 
         float m_impulseTurn{}; // neutral: 0.0f

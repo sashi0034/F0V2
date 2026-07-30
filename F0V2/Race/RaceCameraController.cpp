@@ -83,8 +83,7 @@ private:
     {
         const Float3 forwardVector = machine.state.m_forwardVector;
 
-        const float targetUpLength = // TODO; 改良
-            5.0f + 0.5f * std::sqrtf(Abs(machine.state.m_pitchRate)) * Math::Sign(machine.state.m_pitchRate);
+        const float targetUpLength = 5.0f + 0.5f * machine.state.m_pitchRate; // TODO; 改良
 
         outTarget = machine.state.m_pose.position + machine.state.m_upVector * targetUpLength;
 

@@ -264,11 +264,11 @@ namespace Race
         {
             if (state.m_pitchRate < 0.0f)
             {
-                gravityFactor *= std::sqrt(-state.m_pitchRate) * 5.0f;
+                gravityFactor *= -state.m_pitchRate * 5.0f;
             }
             else if (state.m_pitchRate > 0.0f)
             {
-                gravityFactor *= 1.0f - std::sqrt(state.m_pitchRate) * 0.5f;
+                gravityFactor *= 1.0f - state.m_pitchRate * 0.5f;
             }
         }
 
@@ -390,19 +390,20 @@ namespace Race
         // ピッチ操作
         if (state.isHovering())
         {
-            const float speed = Math::Sign(deviceInput.pitch) == Math::Sign(state.m_pitchRate) ? 2.0f : 10.0f;
-            state.m_pitchRate += speed * deviceInput.pitch * InGameDeltaTime();
-            if (Abs(state.m_pitchRate) > 1.0f)
+            const float speed = Math::Sign(deviceInput.pitch) == Math::Sign(state.m_rawPitchRate) ? 2.0f : 10.0f;
+            state.m_rawPitchRate += speed * deviceInput.pitch * InGameDeltaTime();
+            if (Abs(state.m_rawPitchRate) > 1.0f)
             {
-                state.m_pitchRate = 1.0f * Math::Sign(state.m_pitchRate);
+                state.m_rawPitchRate = 1.0f * Math::Sign(state.m_rawPitchRate);
             }
         }
         else
         {
-            state.m_pitchRate = 0.0f;
+            state.m_rawPitchRate = 0.0f;
         }
 
-        // ImmediatePrint_MiddleCenter("{}", state.m_pitchRate);
+        state.m_pitchRate = std::sqrt(Abs(state.m_rawPitchRate)) * Math::Sign(state.m_rawPitchRate);
+        // ImmediatePrint_MiddleCenter("{}", state.m_rawPitchRate);
 
         // ドリフト操作
         const float driftTrigger = deviceInput.driftTrigger; // state.isHovering() ? 0.0f : deviceInput.driftTrigger;
@@ -429,7 +430,7 @@ namespace Race
             }
         }
 
-        const float viewPitch = 1.5f * std::sqrt(Abs(state.m_pitchRate)) * Math::Sign(state.m_pitchRate);
+        const float viewPitch = 1.5f * state.m_pitchRate;
         Float3 slippedForwardVector =
             state.m_forwardVector + state.rightVector() * state.m_driftOffset + state.m_upVector * viewPitch;
         slippedForwardVector = slippedForwardVector.normalized();
