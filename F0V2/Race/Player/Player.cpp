@@ -144,6 +144,8 @@ private:
 
             input.rightHandling = MainGamepad.axisL().x;
 
+            input.pitch = MainGamepad.axisL().y;
+
             const bool lt = MainGamepad.lt().pressed || MainGamepad.lb().pressed;
             const bool rt = MainGamepad.rt().pressed || MainGamepad.rb().pressed;
 
@@ -161,6 +163,9 @@ private:
 
             input.driftTrigger =
                 (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
+
+            input.pitch =
+                (KeyW.pressed() ? -1.0f : (KeyS.pressed() ? 1.0f : 0.0f));
         }
 
         // 二連入力処理

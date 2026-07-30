@@ -256,7 +256,23 @@ namespace Race
 
         // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);
         Float3 gravity = state.m_gravity; // FIXME: 地面方向の成分を除去?
-        state.m_velocity += gravity * 50.0f * InGameDeltaTime();
+
+        float gravityFactor = 50.0f;
+
+        // ピッチに応じた重力方向移動量
+        if (state.isHovering())
+        {
+            if (state.m_pitchRate < 0.0f)
+            {
+                gravityFactor *= std::sqrt(-state.m_pitchRate) * 5.0f;
+            }
+            else if (state.m_pitchRate > 0.0f)
+            {
+                gravityFactor *= 1.0f - std::sqrt(state.m_pitchRate) * 0.5f;
+            }
+        }
+
+        state.m_velocity += gravity * gravityFactor * InGameDeltaTime();
 
         auto deviceInput = props.input;
         if (state.isDead())
@@ -343,7 +359,7 @@ namespace Race
             state.m_impulseTurnTime = 0.1f;
             state.m_stabilizingAfterImpulseTurn = false;
 
-            state.m_velocity = state.m_velocity * 0.99f;
+            state.m_velocity = state.m_velocity * 0.95f;
         }
 
         if (state.m_impulseTurnTime > 0.0f)
@@ -371,6 +387,23 @@ namespace Race
             }
         }
 
+        // ピッチ操作
+        if (state.isHovering())
+        {
+            const float speed = Math::Sign(deviceInput.pitch) == Math::Sign(state.m_pitchRate) ? 2.0f : 10.0f;
+            state.m_pitchRate += speed * deviceInput.pitch * InGameDeltaTime();
+            if (Abs(state.m_pitchRate) > 1.0f)
+            {
+                state.m_pitchRate = 1.0f * Math::Sign(state.m_pitchRate);
+            }
+        }
+        else
+        {
+            state.m_pitchRate = 0.0f;
+        }
+
+        // ImmediatePrint_MiddleCenter("{}", state.m_pitchRate);
+
         // ドリフト操作
         const float driftTrigger = deviceInput.driftTrigger; // state.isHovering() ? 0.0f : deviceInput.driftTrigger;
         if (driftTrigger != 0.0f)
@@ -396,7 +429,9 @@ namespace Race
             }
         }
 
-        Float3 slippedForwardVector = state.m_forwardVector + state.rightVector() * state.m_driftOffset;
+        const float viewPitch = 1.5f * std::sqrt(Abs(state.m_pitchRate)) * Math::Sign(state.m_pitchRate);
+        Float3 slippedForwardVector =
+            state.m_forwardVector + state.rightVector() * state.m_driftOffset + state.m_upVector * viewPitch;
         slippedForwardVector = slippedForwardVector.normalized();
 
         // 移動処理
@@ -449,7 +484,7 @@ namespace Race
 
         for (const float dt : StandardStep_60Hz())
         {
-            // 左ジョイスティック操作
+            // 左ジョイスティック操作: 左右
             const float rightHandling = deviceInput.rightHandling;
             float rightShift;
             if (state.m_driftOffset != 0.0f)

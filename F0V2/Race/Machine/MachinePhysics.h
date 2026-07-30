@@ -34,6 +34,8 @@ namespace Race
 
         float m_driftOffset{};
 
+        float m_pitchRate{};
+
         float m_impulseTurn{}; // neutral: 0.0f
 
         float m_impulseTurnTime{};
@@ -97,6 +99,8 @@ namespace Race
             bool boostRequested{};
 
             float rightHandling{}; // [-1.0f, 1.0f]
+
+            float pitch{}; // [-1.0f, 1.0f]: negative = pitch up, positive = pitch down
 
             float driftTrigger{}; // [-1.0f, 1.0f]
 
