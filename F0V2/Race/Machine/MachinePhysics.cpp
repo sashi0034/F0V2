@@ -341,6 +341,8 @@ namespace Race
             // TODO: 調整
             state.m_impulseTurnTime = 0.1f;
             state.m_stabilizingAfterImpulseTurn = false;
+
+            state.m_velocity = state.m_velocity * 0.99f;
         }
 
         if (state.m_impulseTurnTime > 0.0f)
@@ -495,8 +497,11 @@ namespace Race
                 state.m_forwardVector += state.rightVector() * state.m_rollAmount * 1.0f;
                 state.m_forwardVector = state.m_forwardVector.normalized();
 
+                // state.m_velocity =
+                //     Quaternion::FromUnitVectors(previousForward, state.m_forwardVector).rotate(state.m_velocity);
+
                 state.m_velocity =
-                    Quaternion::FromUnitVectors(previousForward, state.m_forwardVector).rotate(state.m_velocity);
+                    state.m_velocity.normalized().slerp(state.m_forwardVector, 0.1f) * state.m_velocity.length();
             }
         }
 
