@@ -12,7 +12,8 @@ namespace Race
         float size,
         const Float2& pos,
         Alignment9 alignment,
-        const std::optional<ColorF32>& colorOpt)
+        const std::optional<ColorF32>& colorOpt,
+        const std::optional<ColorF32>& backgroundOpt)
     {
         auto t = Immediate2D_Text::Audiowide_Sdf(text)
                  .setSize(size)
@@ -21,7 +22,7 @@ namespace Race
                  .cache();
 
         Immediate2D::RoundRect{t.region.stretched(8.0f, -4.0f)}
-            .setColor(ColorF32{0.15f})
+            .setColor(backgroundOpt.value_or(LabelTextBackground))
             .pushAuto();
 
         for (int i = 0; i < t.characters.size(); ++i)
@@ -32,7 +33,7 @@ namespace Race
             }
 
             Immediate2D::RoundRect{t.characters[i].rect()}
-                .setColor(ColorF32{0.15f})
+                .setColor(backgroundOpt.value_or(LabelTextBackground))
                 .pushAuto();
         }
 
@@ -44,7 +45,8 @@ namespace Race
         float size,
         const Float2& pos,
         Alignment9 alignment,
-        const std::optional<ColorF32>& colorOpt)
+        const std::optional<ColorF32>& colorOpt,
+        const std::optional<ColorF32>& backgroundOpt)
     {
         auto t = Immediate2D_Text::Audiowide_Sdf(text)
                  .setSize(size)
@@ -55,7 +57,7 @@ namespace Race
         Immediate2D::RoundRect{
                 RectF{t.region.center(), Alignment9::MiddleCenter, SizeF{t.region.w + 64.0f, size * 0.75f}}
             }
-            .setColor(ColorF32{0.15f})
+            .setColor(backgroundOpt.value_or(LabelTextBackground))
             .setRoundness(40.0f)
             .pushAuto();
 
@@ -65,7 +67,7 @@ namespace Race
         //     .append(t.region.middleRight().movedX(40.0f))
         //     .append(t.region.bottomCenter().movedY(20.0f))
         //     .setThickness(40.0f)
-        //     .setColor(ColorF32{0.15f})
+        //     .setColor(backgroundOpt.value_or(LabelTextBackground))
         //     .asCycle()
         //     .pushAuto();
 
@@ -77,7 +79,7 @@ namespace Race
             }
 
             Immediate2D::RoundRect{t.characters[i].rect()}
-                .setColor(ColorF32{0.15f})
+                .setColor(backgroundOpt.value_or(LabelTextBackground))
                 .setRoundness(20.0f)
                 .pushAuto();
         }

@@ -296,11 +296,10 @@ namespace Race
             state.m_boostComboCount = 0;
         }
 
-        constexpr float boostEnergyCost = 800.0f;
         if (deviceInput.boostRequested)
         {
             if (isBoostUnlocked(state) &&
-                state.m_durability > boostEnergyCost &&
+                state.m_durability > props.boostCost &&
                 state.m_manualBoost < 0.1f &&
                 state.m_manualBoostCooldownTime <= 0.0f)
             {
@@ -313,9 +312,9 @@ namespace Race
                 const float comboBonus = state.m_boostComboCount * 0.1f; // TODO: 調整
                 state.m_manualBoost = 1.0f + comboBonus;
                 state.m_manualBoostCooldownTime = 2.0f + comboBonus;
-                state.m_boostComboCountdown = state.m_manualBoostCooldownTime + 0.5f;
+                state.m_boostComboCountdown = state.m_manualBoostCooldownTime + 1.0f;
 
-                state.m_durability = PositiveF32(state.m_durability - boostEnergyCost);
+                state.m_durability = PositiveF32(state.m_durability - props.boostCost);
 
                 updateOutcome.boostInputAccepted = true;
             }

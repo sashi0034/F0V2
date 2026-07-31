@@ -82,49 +82,44 @@ private:
 
         // -----------------------------------------------
         // ブーストコンボ
-        if (player.state.m_boostComboCountdown > 0.0f || player.state.m_manualBoostCooldownTime > 0.0f)
         {
-            const auto color = Palette::Orange;
-            // player.state.m_manualBoostCooldownTime > 0.0f
-            //     ? Palette::Orange
-            //     : GamePalette::GamingGreen;
-
-            // 文字が荒ぶってるけどコンボチャンス時だけ停止
-            Float2 offset{};
+            const Float2 middleCenter = Screen::RectF().getRelativePoint({0.5f, 0.375f});
             if (player.state.m_manualBoostCooldownTime > 0.0f)
             {
-                // TODO: 最初はもっと荒ぶらせる
-                const float noiseTable[] = {0, 2, 4, 1, 3,};
-                const float noise = noiseTable[(static_cast<int>(System::Time() * 1000) / 50) % std::size(noiseTable)];
-                offset = Float2::FromAngle(noise * (Math::TwoPiF / std::size(noiseTable))) * 4.0f;
-            }
+                // 文字が荒ぶってるけどコンボチャンス時だけ停止
+                Float2 offset{};
+                if (player.state.m_manualBoostCooldownTime > 0.0f)
+                {
+                    // TODO: 最初はもっと荒ぶらせる
+                    const float noiseTable[] = {0, 2, 4, 1, 3,};
+                    const float noise = noiseTable[(static_cast<int>(System::Time() * 1000) / 50) % std::size(
+                        noiseTable)];
+                    const float amplitude = player.state.m_manualBoost > 0.9f ? 12.0f : 4.0f;
+                    offset = Float2::FromAngle(noise * (Math::TwoPiF / std::size(noiseTable))) * amplitude;
+                }
 
-            DrawLabelText(
-                ToUtf32(player.state.m_boostComboCount == 0 ? "Boost" : "Boost Combo"),
-                24.0f,
-                Screen::BottomCenterF().movedBy(offset.movedY(-96.0f)),
-                Alignment9::BottomCenter,
-                color);
-
-            std::u32string comboMessage{};
-            if (player.state.m_boostComboCount > 0)
-            {
-                comboMessage = ToUtf32(std::format("{} Combo", player.state.m_boostComboCount));
-            }
-
-            if (player.state.m_manualBoostCooldownTime <= 0.0f)
-            {
-                // TODO: 文字がちょっとずつ出るアニメーション
-                comboMessage = U"Combo Chance !";
-            }
-
-            if (not comboMessage.empty())
-            {
+                const auto color =
+                    player.state.m_boostComboCountdown > 0.0f ? Palette::Orange : Palette::LightSteelBlue;
                 DrawLabelText(
-                    comboMessage,
-                    32.0f,
-                    Screen::BottomCenterF().movedBy(offset.movedY(-80.0f)),
-                    Alignment9::TopCenter,
+                    ToUtf32(player.state.m_boostComboCount == 0
+                                ? "Boost"
+                                : std::format("Boost Combo [{}]", player.state.m_boostComboCount)),
+                    24.0f,
+                    middleCenter.movedBy(offset),
+                    Alignment9::BottomCenter,
+                    color);
+            }
+            else if (player.state.m_boostComboCountdown > 0.0f)
+            {
+                // TODO: 「再ブースト可能」表示の UI にする?
+                const auto color = player.state.m_durability > player.props.boostCost
+                                       ? GamePalette::GamingGreen
+                                       : Palette::LightSteelBlue;
+                DrawSpecialLabelText(
+                    ToUtf32("Re-Boost Available [{}]", player.state.m_boostComboCount + 1),
+                    24.0f,
+                    middleCenter,
+                    Alignment9::MiddleCenter,
                     color);
             }
         }

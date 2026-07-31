@@ -112,6 +112,8 @@ namespace Race
         } input{};
 
         PositiveF32 maxDurability{5000.0f};
+        
+        PositiveF32 boostCost{800.0f};
 
         float peakVelocity{};
 
