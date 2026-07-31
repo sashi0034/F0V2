@@ -264,7 +264,7 @@ namespace Race
         {
             if (state.m_pitchRate < 0.0f)
             {
-                gravityFactor *= -state.m_pitchRate * 5.0f;
+                gravityFactor *= 1.0f + (-state.m_pitchRate) * 4.0f;
             }
             else if (state.m_pitchRate > 0.0f)
             {
@@ -312,7 +312,7 @@ namespace Race
                 const float comboBonus = state.m_boostComboCount * 0.1f; // TODO: 調整
                 state.m_manualBoost = 1.0f + comboBonus;
                 state.m_manualBoostCooldownTime = 2.0f + comboBonus;
-                state.m_boostComboCountdown = state.m_manualBoostCooldownTime + 1.0f;
+                state.m_boostComboCountdown = state.m_manualBoostCooldownTime + 0.5f;
 
                 state.m_durability = PositiveF32(state.m_durability - props.boostCost);
 
