@@ -11,6 +11,8 @@
 #include "AI/SpatialAI.h"
 #include "Common/CourseFileInfo.h"
 #include "Common/RaceSharedState.h"
+#include "Effect/MachineEffectEmitter.h"
+#include "Effect/RaceEffectDrawer.h"
 #include "Player/Player.h"
 #include "Stage/StageManager.h"
 #include "TY/ActorContainer.h"
@@ -34,6 +36,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     RaceDrawManager m_drawManager{};
 
+    RaceEffectDrawer m_effectDrawer{};
+
     RaceController m_raceController{};
 
     StageManager m_stageManager{};
@@ -49,6 +53,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     Array<CharacterAI> m_characterAIList{};
 
     MetaAI m_metaAI{};
+
+    MachineEffectEmitter m_machineEffectEmitter{};
 
     Impl(bool context)
     {
@@ -72,6 +78,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         m_drawManager = m_children.birth(RaceDrawManager());
         m_drawManager.init();
+
+        m_effectDrawer = m_children.birth(RaceEffectDrawer());
+        m_effectDrawer.init();
 
         m_raceController = m_children.birth(RaceController());
         m_raceController.init();
@@ -104,6 +113,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         m_metaAI = m_children.birth(MetaAI());
         m_metaAI.init();
+
+        m_machineEffectEmitter = m_children.birth(MachineEffectEmitter());
+        m_machineEffectEmitter.init();
     }
 
     void update() override
@@ -145,6 +157,16 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     void unregisterDrawer(const IRaceDrawer* drawer) override
     {
         m_drawManager.unregisterDrawer(drawer);
+    }
+
+    RaceEffectDrawer& effectDrawer() override
+    {
+        return m_effectDrawer;
+    }
+
+    const RaceEffectDrawer& effectDrawer() const override
+    {
+        return m_effectDrawer;
     }
 
     StageManager& stageManager() override

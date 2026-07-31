@@ -5,6 +5,7 @@
 
 namespace Asset_shader
 {
+    static const inline GraphicsShaderPathWrapper billboard_effect{"asset/shader/billboard_effect.hlsl"};
     static const inline GraphicsShaderPathWrapper blinn_phong{"asset/shader/blinn_phong.hlsl"};
     static const inline GraphicsShaderPathWrapper cheap_aa{"asset/shader/cheap_aa.hlsl"};
     static const inline GraphicsShaderPathWrapper default2d{"asset/shader/default2d.hlsl"};

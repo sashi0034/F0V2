@@ -11,6 +11,8 @@ namespace Race
 
     class StageManager;
 
+    class RaceEffectDrawer;
+
     class SpatialAI;
 
     class CharacterAI;
@@ -29,6 +31,9 @@ namespace Race
 
         virtual void registerDrawer(const std::shared_ptr<IRaceDrawer>& drawer) = 0;
         virtual void unregisterDrawer(const IRaceDrawer* drawer) = 0;
+
+        virtual RaceEffectDrawer& effectDrawer() = 0;
+        virtual const RaceEffectDrawer& effectDrawer() const = 0;
 
         virtual StageManager& stageManager() = 0;
         virtual const StageManager& stageManager() const = 0;
