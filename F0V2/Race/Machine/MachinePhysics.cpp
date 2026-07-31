@@ -390,7 +390,16 @@ namespace Race
         // ピッチ操作
         if (state.isHovering())
         {
-            const float speed = Math::Sign(deviceInput.pitch) == Math::Sign(state.m_rawPitchRate) ? 2.0f : 10.0f;
+            if (Abs(deviceInput.pitch) < 0.5f || Math::Sign(deviceInput.pitch) != Math::Sign(state.m_rawPitchRate))
+            {
+                // 弱い入力なら減衰
+                for (const auto dt : StandardStep_60Hz())
+                {
+                    state.m_rawPitchRate *= 0.5f;
+                }
+            }
+
+            constexpr float speed = 2.0f;
             state.m_rawPitchRate += speed * deviceInput.pitch * InGameDeltaTime();
             if (Abs(state.m_rawPitchRate) > 1.0f)
             {

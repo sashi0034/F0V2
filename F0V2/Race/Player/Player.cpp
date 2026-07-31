@@ -151,9 +151,6 @@ private:
         if (m_impulseTurnGracePeriod > 0.0f)
         {
             input.impulseTurnRequested = m_impulseTurnGracePeriod > 0.0f && wantsImpulseTurn;
-
-            ImmediatePrint_MiddleCenter("m_impulseTurnGracePeriod: {:.02f}", m_impulseTurnGracePeriod);
-            // TODO: Remove this
         }
         else // m_impulseTurnGracePeriod == 0.0f
         {
