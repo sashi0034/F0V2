@@ -703,7 +703,7 @@ namespace
     {
         constexpr int maxNest = 3;
 
-        if (moveVector.lengthSq() < 1e-6f)
+        if (not state.isHovering() && moveVector.lengthSq() < 1e-6f)
         {
             return;
         }
