@@ -83,6 +83,12 @@ private:
         // -----------------------------------------------
         // ブーストコンボ
         {
+            std::u32string comboText{};
+            for (int i = 0; i < player.state.m_boostComboCount; ++i)
+            {
+                comboText += U"\U000F04CE";
+            }
+
             const Float2 middleCenter = Screen::RectF().getRelativePoint({0.5f, 0.375f});
             if (player.state.m_manualBoostCooldownTime > 0.0f)
             {
@@ -101,9 +107,9 @@ private:
                 const auto color =
                     player.state.m_boostComboCountdown > 0.0f ? Palette::Orange : Palette::LightSteelBlue;
                 DrawLabelText(
-                    ToUtf32(player.state.m_boostComboCount == 0
-                                ? "Boost"
-                                : std::format("Boost Combo [{}]", player.state.m_boostComboCount)),
+                    player.state.m_boostComboCount == 0
+                        ? U"Boost"
+                        : U"Boost " + comboText,
                     24.0f,
                     middleCenter.movedBy(offset),
                     Alignment9::BottomCenter,
@@ -111,16 +117,19 @@ private:
             }
             else if (player.state.m_boostComboCountdown > 0.0f)
             {
-                // TODO: 「再ブースト可能」表示の UI にする?
                 const auto color = player.state.m_durability > player.props.boostCost
                                        ? GamePalette::GamingGreen
-                                       : Palette::LightSteelBlue;
-                DrawSpecialLabelText(
-                    ToUtf32("Re-Boost Available [{}]", player.state.m_boostComboCount + 1),
-                    24.0f,
-                    middleCenter,
-                    Alignment9::MiddleCenter,
-                    color);
+                                       : Palette::Gray;
+                auto text =
+                    Immediate2D_Text::MPlus1_Sdf(U"再ブースト可能 \U000F04CE" + comboText)
+                    .setSize(24.0f)
+                    .setPosition(Screen::RectF().getRelativePoint({0.5f, 0.375f}), Alignment9::MiddleCenter)
+                    .setColor(ColorF32{0.3f})
+                    .cache();
+                Immediate2D::RoundRect{text.region.stretched(16.0f, 2.0f)}
+                    .setColor(color)
+                    .pushAuto();
+                text.pushAuto();
             }
         }
 
@@ -336,7 +345,7 @@ private:
             .setPosition(Screen::RectF().getRelativePoint({0.5f, 0.375f}), Alignment9::MiddleCenter)
             .setColor(ColorF32{0.3f})
             .cache();
-        Immediate2D::RoundRect{text.region.stretched(32.0f, 4.0f)}
+        Immediate2D::RoundRect{text.region.stretched(16.0f, 2.0f)}
             .setColor(GamePalette::GamingGreen)
             .pushAuto();
         text.pushAuto();
