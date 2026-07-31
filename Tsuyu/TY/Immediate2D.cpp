@@ -280,6 +280,9 @@ namespace TY
             callback({posTL, posBR, uvTL, uvBR});
         }
 
+        regionTL.x = position.x;
+        regionBR.x = penPos.x;
+
         const SizeF regionSize = regionBR - regionTL;
         offsetToApply = -(regionTL - position) - regionSize * pivot;
 

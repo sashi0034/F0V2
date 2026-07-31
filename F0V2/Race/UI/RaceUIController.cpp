@@ -174,7 +174,7 @@ private:
             const bool isCurrentLap = (i == player.state.m_markedLapProgress.lapIndex);
             const float lapTime = state.m_measuredLapTimes[i];
             DrawLabelText(
-                ToUtf32(formatLapTime(lapTime) + " "), // TODO: エンジン側のバグ調査 (末尾に + " " 入れると安定する)
+                ToUtf32(formatLapTime(lapTime)),
                 24.0f,
                 Screen::TopRightF().movedBy(-20.0f, 80.0f + i * 32.0f),
                 Alignment9::TopRight,
