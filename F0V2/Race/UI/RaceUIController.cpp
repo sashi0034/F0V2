@@ -82,6 +82,7 @@ private:
 
         // -----------------------------------------------
         // ブーストコンボ
+        if (state.m_playerFinalRank == -1) // (結果確定後は描画しない)
         {
             std::u32string comboText{};
             for (int i = 0; i < player.state.m_boostComboCount; ++i)
@@ -260,6 +261,13 @@ private:
                             GetRaceContext().machineManager().machineList().size()),
                     96.0f,
                     Screen::MiddleCenterF(), Alignment9::MiddleCenter);
+
+                const float totalTime = std::accumulate(
+                    state.m_measuredLapTimes.begin(), state.m_measuredLapTimes.end(), 0.0f);
+                DrawSpecialLabelText(
+                    ToUtf32(formatLapTime(totalTime)),
+                    32.0f,
+                    Screen::RectF().getRelativePoint({0.5f, 0.375f}), Alignment9::MiddleCenter);
             }
             return;
         }
