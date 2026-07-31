@@ -514,7 +514,7 @@ namespace
                 state.m_touchingGimmicks |= GimmickFlag::JumpPad;
 
                 state.m_velocity = state.m_velocity - state.m_gravity * state.m_gravity.dot(state.m_velocity);
-                state.m_velocity = state.m_velocity - state.m_gravity * 50.0;
+                state.m_velocity = state.m_velocity - state.m_gravity * 100.0;
 
                 state.m_surfaceNormal = {};
                 state.m_surfaceToTriangle = {};

@@ -257,7 +257,7 @@ namespace Race
         // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);
         Float3 gravity = state.m_gravity; // FIXME: 地面方向の成分を除去?
 
-        float gravityFactor = 50.0f;
+        float gravityFactor = 100.0f;
 
         // ピッチに応じた重力方向移動量
         if (state.isHovering())
