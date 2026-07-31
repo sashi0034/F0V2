@@ -428,6 +428,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="asset\image\particle-pack\" />
     <Folder Include="asset\shadertoy\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
