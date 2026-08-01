@@ -6,30 +6,6 @@
 
 namespace Race
 {
-    struct BoostTrailVfxSpawnParams
-    {
-        Float3 worldPosition{};
-        ColorF32 color{1.0f};
-        float intensity{1.0f};
-    };
-
-    class BoostTrailVfxSystem : public IRaceVfxSystem
-    {
-    public:
-        BoostTrailVfxSystem();
-
-        void emit(const BoostTrailVfxSpawnParams& params);
-
-        void onRegistered() override;
-        void update(const RaceVfxFrameContext& context) override;
-        void drawTransparent() const override;
-        void onUnregistered() override;
-
-    private:
-        struct Impl;
-        std::shared_ptr<Impl> p_impl;
-    };
-
     struct DriftSparkVfxSpawnParams
     {
         Float3 worldPosition{};

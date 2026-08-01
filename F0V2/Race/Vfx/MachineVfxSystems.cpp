@@ -3,23 +3,14 @@
 
 #include "Asset.generated.h"
 #include "BillboardVfxRenderer.h"
-#include "SimpleParticleVfxRenderer.h"
 #include "TY/Array.h"
 
 using namespace Race;
 
 namespace
 {
-    constexpr int boostTrailCapacity = 4096;
     constexpr int driftSparkCapacity = 2048;
     constexpr int collisionRingCapacity = 512;
-
-    struct BoostTrailParticle
-    {
-        Float3 worldPosition{};
-        ColorF32 color{};
-        float scale{};
-    };
 
     struct DriftSparkParticle
     {
@@ -40,54 +31,6 @@ namespace
         ColorF32 endColor{};
     };
 }
-
-struct BoostTrailVfxSystem::Impl
-{
-    SimpleParticleVfxRenderer m_renderer{};
-    Array<BoostTrailParticle> m_particles{};
-
-    void Emit(const BoostTrailVfxSpawnParams& params)
-    {
-        if (m_particles.size() >= boostTrailCapacity)
-        {
-            return;
-        }
-
-        ColorF32 color = params.color;
-        color.a = 1.0f;
-        m_particles.push_back(BoostTrailParticle{
-            .worldPosition = params.worldPosition,
-            .color = color,
-            .scale = 1.0f + params.intensity,
-        });
-    }
-
-    void Update(const RaceVfxFrameContext& context)
-    {
-        Array<SimpleParticleRenderElement> renderElements{};
-        renderElements.reserve(m_particles.size());
-
-        for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
-        {
-            auto& particle = m_particles[i];
-            particle.color.a -= context.deltaTime;
-            particle.scale = Max(0.0f, particle.scale - 5.0f * context.deltaTime);
-            if (particle.color.a <= 0.0f)
-            {
-                m_particles.remove_at(i);
-                continue;
-            }
-
-            renderElements.push_back(SimpleParticleRenderElement{
-                .worldPosition = particle.worldPosition,
-                .color = particle.color,
-                .scale = particle.scale,
-            });
-        }
-
-        m_renderer.upload(renderElements, context.cameraUp, context.cameraRight);
-    }
-};
 
 // TODO: 修正
 struct DriftSparkVfxSystem::Impl
@@ -195,37 +138,6 @@ struct CollisionRingVfxSystem::Impl
 
 namespace Race
 {
-    BoostTrailVfxSystem::BoostTrailVfxSystem() :
-        p_impl(std::make_shared<Impl>())
-    {
-    }
-
-    void BoostTrailVfxSystem::emit(const BoostTrailVfxSpawnParams& params)
-    {
-        p_impl->Emit(params);
-    }
-
-    void BoostTrailVfxSystem::onRegistered()
-    {
-        p_impl->m_renderer.init(Asset_image::particle, boostTrailCapacity);
-    }
-
-    void BoostTrailVfxSystem::update(const RaceVfxFrameContext& context)
-    {
-        p_impl->Update(context);
-    }
-
-    void BoostTrailVfxSystem::drawTransparent() const
-    {
-        p_impl->m_renderer.draw();
-    }
-
-    void BoostTrailVfxSystem::onUnregistered()
-    {
-        p_impl->m_particles.clear();
-        p_impl->m_renderer.finalize();
-    }
-
     DriftSparkVfxSystem::DriftSparkVfxSystem() :
         p_impl(std::make_shared<Impl>())
     {

@@ -41,6 +41,14 @@ namespace TY
 
         explicit constexpr ColorF32(std::string_view code);
 
+        ColorF32 withR(float r_) const { return ColorF32{r_, g, b, a}; }
+
+        ColorF32 withG(float g_) const { return ColorF32{r, g_, b, a}; }
+
+        ColorF32 withB(float b_) const { return ColorF32{r, g, b_, a}; }
+
+        ColorF32 withAlpha(float a_) const { return ColorF32{r, g, b, a_}; }
+
         [[nodiscard]]
         ColorF32 lerp(const ColorF32& other, float rate) const;
 

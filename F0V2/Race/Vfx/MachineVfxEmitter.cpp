@@ -1,8 +1,10 @@
 #include "pch.h"
 #include "MachineVfxEmitter.h"
 
+#include "Asset.generated.h"
 #include "MachineVfxSystems.h"
 #include "RaceVfxDrawer.h"
+#include "SimpleParticleVfxRenderer.h"
 #include "Race/IRaceContext.h"
 #include "Race/Machine/MachineConstants.h"
 #include "Race/Machine/MachinePhysicsUnit.h"
@@ -14,6 +16,7 @@ using namespace Race;
 
 namespace
 {
+    constexpr int BoostTrailCapacity = 4096;
     constexpr float DriftEmitInterval = 0.05f;
     constexpr float DriftThreshold = 0.05f;
 
@@ -25,24 +28,143 @@ namespace
         float previousAttackedTime{};
         bool initialized{};
     };
+
+    // -----------------------------------------------
+
+    struct BoostVfx : IRaceVfxSystem
+    {
+        struct Particle
+        {
+            Float3 worldPosition{};
+            ColorF32 color{};
+            float scale{};
+        };
+
+        SimpleParticleVfxRenderer m_renderer{};
+        Array<Particle> m_particles{};
+
+        void onRegistered() override
+        {
+            m_renderer.init(Asset_image::particle, BoostTrailCapacity);
+        }
+
+        void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
+        {
+            const bool isBoosting =
+                machine.state.m_manualBoost > 0.0f || machine.state.m_passiveBoost > 0.0f;
+
+            if (not isBoosting && state.boostIntensity <= 0.0f)
+            {
+                return;
+            }
+
+            if (isBoosting)
+            {
+                if (state.boostIntensity == 0.0f)
+                {
+                    state.lastBoostEmitPosition = machine.state.m_pose.position;
+                }
+
+                state.boostIntensity = 1.0f;
+            }
+            else
+            {
+                state.boostIntensity = Max(0.0f, state.boostIntensity - InGameDeltaTime());
+                if (state.boostIntensity <= 0.0f)
+                {
+                    return;
+                }
+            }
+
+            const Float3 emitPosition = machine.state.m_pose.position;
+            const float emitThreshold = 1.0f - 0.1f * Periodic::Sine0_1(0.1s, InGameElapsedTime());
+            const float distanceSinceLastEmit = (emitPosition - state.lastBoostEmitPosition).length();
+
+            if (distanceSinceLastEmit < emitThreshold)
+            {
+                return;
+            }
+
+            const int emitCount = static_cast<int>(distanceSinceLastEmit / emitThreshold);
+            const Float3 emitDirection = (emitPosition - state.lastBoostEmitPosition).normalized();
+            const Float3 emitRight = machine.state.rightVector();
+
+            for (int j = 0; j < emitCount; ++j)
+            {
+                if (m_particles.size() >= BoostTrailCapacity)
+                {
+                    break;
+                }
+
+                const Float3 particlePosition =
+                    state.lastBoostEmitPosition + emitDirection * emitThreshold * (j + 1) +
+                    emitRight * (0.5f * Periodic::Sine1_1(0.15s, InGameElapsedTime()));
+
+                m_particles.push_back(Particle{
+                    .worldPosition = particlePosition,
+                    .color = machine.props.themeColor.withAlpha(1.0f),
+                    .scale = 1.0f + state.boostIntensity,
+                });
+            }
+
+            state.lastBoostEmitPosition = emitPosition;
+        }
+
+        void update(const RaceVfxFrameContext& context) override
+        {
+            Array<SimpleParticleRenderElement> renderElements{};
+            renderElements.reserve(m_particles.size());
+
+            for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
+            {
+                auto& particle = m_particles[i];
+                particle.color.a -= context.deltaTime;
+                particle.scale = Max(0.0f, particle.scale - 5.0f * context.deltaTime);
+                if (particle.color.a <= 0.0f)
+                {
+                    m_particles.remove_at(i);
+                    continue;
+                }
+
+                renderElements.push_back(SimpleParticleRenderElement{
+                    .worldPosition = particle.worldPosition,
+                    .color = particle.color,
+                    .scale = particle.scale,
+                });
+            }
+
+            m_renderer.upload(renderElements, context.cameraUp, context.cameraRight);
+        }
+
+        void drawTransparent() const override
+        {
+            m_renderer.draw();
+        }
+
+        void onUnregistered() override
+        {
+            m_particles.clear();
+            m_renderer.finalize();
+        }
+    };
 }
 
 struct MachineVfxEmitter::Impl : ActorBase
 {
     Array<StatePerMachine> m_machineStates{MaxMachineCount};
 
-    std::shared_ptr<BoostTrailVfxSystem> m_boostTrailSystem{};
+    std::shared_ptr<BoostVfx> m_boostVfx{};
     std::shared_ptr<DriftSparkVfxSystem> m_driftSparkSystem{};
     std::shared_ptr<CollisionRingVfxSystem> m_collisionRingSystem{};
 
     void Init()
     {
-        m_boostTrailSystem = std::make_shared<BoostTrailVfxSystem>();
+        m_boostVfx = std::make_shared<BoostVfx>();
         m_driftSparkSystem = std::make_shared<DriftSparkVfxSystem>();
         m_collisionRingSystem = std::make_shared<CollisionRingVfxSystem>();
 
         auto& vfxDrawer = GetRaceContext().vfxDrawer();
-        vfxDrawer.registerVfxSystem(m_boostTrailSystem);
+        vfxDrawer.registerVfxSystem(m_boostVfx);
         vfxDrawer.registerVfxSystem(m_driftSparkSystem);
         vfxDrawer.registerVfxSystem(m_collisionRingSystem);
     }
@@ -59,71 +181,15 @@ private:
             if (not state.initialized)
             {
                 state.initialized = true;
+
                 state.lastBoostEmitPosition = machine.state.m_pose.position;
                 state.previousAttackedTime = machine.state.m_lastAttackedByOtherMachineTime;
             }
 
-            emitBoostParticles(machine, state);
+            m_boostVfx->emitIfNeeded(machine, state);
             emitDriftParticles(machine, state);
             emitCollisionParticle(machine, state);
         }
-    }
-
-    void emitBoostParticles(const MachinePhysicsUnit& machine, StatePerMachine& state) const
-    {
-        const bool isBoosting =
-            machine.state.m_manualBoost > 0.0f || machine.state.m_passiveBoost > 0.0f;
-
-        if (not isBoosting && state.boostIntensity <= 0.0f)
-        {
-            return;
-        }
-
-        if (isBoosting)
-        {
-            if (state.boostIntensity == 0.0f)
-            {
-                state.lastBoostEmitPosition = machine.state.m_pose.position;
-            }
-
-            state.boostIntensity = 1.0f;
-        }
-        else
-        {
-            state.boostIntensity = Max(0.0f, state.boostIntensity - InGameDeltaTime());
-            if (state.boostIntensity <= 0.0f)
-            {
-                return;
-            }
-        }
-
-        const Float3 emitPosition = machine.state.m_pose.position;
-        const float emitThreshold = 1.0f - 0.1f * Periodic::Sine0_1(0.1s, InGameElapsedTime());
-        const float distanceSinceLastEmit = (emitPosition - state.lastBoostEmitPosition).length();
-
-        if (distanceSinceLastEmit < emitThreshold)
-        {
-            return;
-        }
-
-        const int emitCount = static_cast<int>(distanceSinceLastEmit / emitThreshold);
-        const Float3 emitDirection = (emitPosition - state.lastBoostEmitPosition).normalized();
-        const Float3 emitRight = machine.state.rightVector();
-
-        for (int j = 0; j < emitCount; ++j)
-        {
-            const Float3 particlePosition =
-                state.lastBoostEmitPosition + emitDirection * emitThreshold * (j + 1) +
-                emitRight * (0.5f * Periodic::Sine1_1(0.15s, InGameElapsedTime()));
-
-            m_boostTrailSystem->emit(BoostTrailVfxSpawnParams{
-                .worldPosition = particlePosition,
-                .color = machine.props.themeColor,
-                .intensity = state.boostIntensity,
-            });
-        }
-
-        state.lastBoostEmitPosition = emitPosition;
     }
 
     void emitDriftParticles(const MachinePhysicsUnit& machine, StatePerMachine& state) const
@@ -190,16 +256,9 @@ private:
     void killed() override
     {
         auto& vfxDrawer = GetRaceContext().vfxDrawer();
-        if (vfxDrawer.isAlive())
-        {
-            vfxDrawer.unregisterVfxSystem(m_collisionRingSystem.get());
-            vfxDrawer.unregisterVfxSystem(m_driftSparkSystem.get());
-            vfxDrawer.unregisterVfxSystem(m_boostTrailSystem.get());
-        }
-
-        m_collisionRingSystem.reset();
-        m_driftSparkSystem.reset();
-        m_boostTrailSystem.reset();
+        vfxDrawer.unregisterVfxSystem(m_collisionRingSystem.get());
+        vfxDrawer.unregisterVfxSystem(m_driftSparkSystem.get());
+        vfxDrawer.unregisterVfxSystem(m_boostVfx.get());
     }
 };
 
