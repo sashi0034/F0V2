@@ -7,6 +7,7 @@
 #include "TY/DynamicTexture.h"
 #include "TY/Gamepad.h"
 #include "TY/GameTime.h"
+#include "TY/GenericModelBufferTemplates.h"
 #include "TY/Graphics3D.h"
 #include "TY/KeyboardInput.h"
 #include "TY/Mat4x4.h"
@@ -117,42 +118,6 @@ namespace
 
         alignas(16) Float3 g_lightDirection;
         alignas(16) Float3 g_eyePosition;
-    };
-
-    struct OceanModelBuffer : IGenericModelBuffer
-    {
-        GenericModelShapeBufferElement m_shape{};
-
-        OceanModelBuffer(int density)
-        {
-            m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder((density - 1) * (density - 1) * 6);
-        }
-
-        int shapeCount() const override
-        {
-            return 1; // Assuming a single shape for the ocean
-        }
-
-        GenericModelShapeBufferElement shapeAt(int index) const override
-        {
-            return m_shape;
-        }
-
-        int materialCount() const override
-        {
-            return 1; // Assuming a single material for the ocean
-        }
-
-        ConstantBufferArrayImpl materialCbv() const override
-        {
-            return ConstantBufferImpl{1};
-        }
-
-        Array<Array<ShaderResourceType>> materialSrv() const override
-        {
-            return {};
-        }
     };
 
     struct OceanObject
@@ -274,7 +239,8 @@ struct Testbed_Ocean_impl
 
     Array<OceanObject> makeOceanObjects(int density)
     {
-        auto oceanModel = std::make_shared<OceanModelBuffer>(density);
+        const int indexCount = (density - 1) * (density - 1) * 6;
+        auto oceanModel = std::make_shared<SingleShapeModelBuffer>(indexCount, ConstantBufferImpl{1});
 
         Array<OceanObject> oceanObjects;
         constexpr int maxVisibleRange = 5;

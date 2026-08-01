@@ -7,6 +7,7 @@
 #include "TY/ConstantBuffer.h"
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/GameTime.h"
+#include "TY/GenericModelBufferTemplates.h"
 #include "TY/ModelDrawer.h"
 
 using namespace Race;
@@ -16,43 +17,6 @@ namespace
     struct Gimmick_b10
     {
         float g_time;
-    };
-
-    // TODO
-    struct DrawerModelBuffer : IGenericModelBuffer
-    {
-        GenericModelShapeBufferElement m_shape{};
-
-        DrawerModelBuffer()
-        {
-            m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder(6);
-        }
-
-        int shapeCount() const override
-        {
-            return 1; // Assuming a single shape
-        }
-
-        GenericModelShapeBufferElement shapeAt(int index) const override
-        {
-            return m_shape;
-        }
-
-        int materialCount() const override
-        {
-            return 1; // Assuming a single material for the shape
-        }
-
-        ConstantBufferArrayImpl materialCbv() const override
-        {
-            return {Empty};
-        }
-
-        Array<Array<ShaderResourceType>> materialSrv() const override
-        {
-            return {};
-        }
     };
 }
 
@@ -75,7 +39,7 @@ struct GimmickTextureDrawer::Impl : ActorBase
 
     void Init()
     {
-        const auto model = std::make_shared<DrawerModelBuffer>();
+        const auto model = std::make_shared<SingleShapeModelBuffer>(6);
 
         m_boostPadDrawer = GenericModelDrawer{
             GenericModelDrawerParams{}

@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "TY/ConstantBufferArray.h"
 #include "TY/ConstantBufferWrapper.h"
-#include "TY/GenericModelBuffer.h"
+#include "TY/GenericModelBufferTemplates.h"
 #include "TY/GenericModelDrawer.h"
 #include "TY/StructuredBufferWrapper.h"
 
@@ -12,43 +12,6 @@ using namespace Race;
 
 namespace
 {
-    struct DrawerModelBuffer : IGenericModelBuffer
-    {
-        GenericModelShapeBufferElement m_shape{};
-
-        DrawerModelBuffer()
-        {
-            m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder(0);
-        }
-
-        int shapeCount() const override
-        {
-            return 1;
-        }
-
-        GenericModelShapeBufferElement shapeAt(int index) const override
-        {
-            assert(index == 0);
-            return m_shape;
-        }
-
-        int materialCount() const override
-        {
-            return 1;
-        }
-
-        ConstantBufferArrayImpl materialCbv() const override
-        {
-            return {Empty};
-        }
-
-        Array<Array<ShaderResourceType>> materialSrv() const override
-        {
-            return {};
-        }
-    };
-
     struct GpuParticleElement
     {
         Float3 worldPosition;
@@ -84,8 +47,8 @@ struct SimpleParticleEffectRenderer::Impl
         assert(not image.isEmpty());
         assert(capacity > 0);
 
-        const auto model = std::make_shared<DrawerModelBuffer>();
-        m_indexBuffer = model->m_shape.indexBuffer;
+        m_indexBuffer = IndexBuffer::Placeholder(0);
+        const auto model = std::make_shared<SingleShapeModelBuffer>(m_indexBuffer);
 
         m_drawer = GenericModelDrawer{
             GenericModelDrawerParams{}
