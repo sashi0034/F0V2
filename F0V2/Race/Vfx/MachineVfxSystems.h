@@ -1,27 +1,27 @@
 #pragma once
 
-#include "IRaceEffectSystem.h"
+#include "IRaceVfxSystem.h"
 #include "TY/Color.h"
 #include "TY/Vector3D.h"
 
 namespace Race
 {
-    struct BoostTrailEffectSpawnParams
+    struct BoostTrailVfxSpawnParams
     {
         Float3 worldPosition{};
         ColorF32 color{1.0f};
         float intensity{1.0f};
     };
 
-    class BoostTrailEffectSystem : public IRaceEffectSystem
+    class BoostTrailVfxSystem : public IRaceVfxSystem
     {
     public:
-        BoostTrailEffectSystem();
+        BoostTrailVfxSystem();
 
-        void emit(const BoostTrailEffectSpawnParams& params);
+        void emit(const BoostTrailVfxSpawnParams& params);
 
         void onRegistered() override;
-        void update(const RaceEffectFrameContext& context) override;
+        void update(const RaceVfxFrameContext& context) override;
         void drawTransparent() const override;
         void onUnregistered() override;
 
@@ -30,21 +30,21 @@ namespace Race
         std::shared_ptr<Impl> p_impl;
     };
 
-    struct DriftSparkEffectSpawnParams
+    struct DriftSparkVfxSpawnParams
     {
         Float3 worldPosition{};
         Float3 velocity{};
     };
 
-    class DriftSparkEffectSystem : public IRaceEffectSystem
+    class DriftSparkVfxSystem : public IRaceVfxSystem
     {
     public:
-        DriftSparkEffectSystem();
+        DriftSparkVfxSystem();
 
-        void emit(const DriftSparkEffectSpawnParams& params);
+        void emit(const DriftSparkVfxSpawnParams& params);
 
         void onRegistered() override;
-        void update(const RaceEffectFrameContext& context) override;
+        void update(const RaceVfxFrameContext& context) override;
         void drawTransparent() const override;
         void onUnregistered() override;
 
@@ -53,21 +53,21 @@ namespace Race
         std::shared_ptr<Impl> p_impl;
     };
 
-    struct CollisionRingEffectSpawnParams
+    struct CollisionRingVfxSpawnParams
     {
         Float3 worldPosition{};
         ColorF32 color{1.0f};
     };
 
-    class CollisionRingEffectSystem : public IRaceEffectSystem
+    class CollisionRingVfxSystem : public IRaceVfxSystem
     {
     public:
-        CollisionRingEffectSystem();
+        CollisionRingVfxSystem();
 
-        void emit(const CollisionRingEffectSpawnParams& params);
+        void emit(const CollisionRingVfxSpawnParams& params);
 
         void onRegistered() override;
-        void update(const RaceEffectFrameContext& context) override;
+        void update(const RaceVfxFrameContext& context) override;
         void drawTransparent() const override;
         void onUnregistered() override;
 

@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "MachineEffectEmitter.h"
+#include "MachineVfxEmitter.h"
 
-#include "MachineEffectSystems.h"
-#include "RaceEffectDrawer.h"
+#include "MachineVfxSystems.h"
+#include "RaceVfxDrawer.h"
 #include "Race/IRaceContext.h"
 #include "Race/Machine/MachineConstants.h"
 #include "Race/Machine/MachinePhysicsUnit.h"
@@ -27,24 +27,24 @@ namespace
     };
 }
 
-struct MachineEffectEmitter::Impl : ActorBase
+struct MachineVfxEmitter::Impl : ActorBase
 {
     Array<StatePerMachine> m_machineStates{MaxMachineCount};
 
-    std::shared_ptr<BoostTrailEffectSystem> m_boostTrailSystem{};
-    std::shared_ptr<DriftSparkEffectSystem> m_driftSparkSystem{};
-    std::shared_ptr<CollisionRingEffectSystem> m_collisionRingSystem{};
+    std::shared_ptr<BoostTrailVfxSystem> m_boostTrailSystem{};
+    std::shared_ptr<DriftSparkVfxSystem> m_driftSparkSystem{};
+    std::shared_ptr<CollisionRingVfxSystem> m_collisionRingSystem{};
 
     void Init()
     {
-        m_boostTrailSystem = std::make_shared<BoostTrailEffectSystem>();
-        m_driftSparkSystem = std::make_shared<DriftSparkEffectSystem>();
-        m_collisionRingSystem = std::make_shared<CollisionRingEffectSystem>();
+        m_boostTrailSystem = std::make_shared<BoostTrailVfxSystem>();
+        m_driftSparkSystem = std::make_shared<DriftSparkVfxSystem>();
+        m_collisionRingSystem = std::make_shared<CollisionRingVfxSystem>();
 
-        auto& effectDrawer = GetRaceContext().effectDrawer();
-        effectDrawer.registerEffectSystem(m_boostTrailSystem);
-        effectDrawer.registerEffectSystem(m_driftSparkSystem);
-        effectDrawer.registerEffectSystem(m_collisionRingSystem);
+        auto& vfxDrawer = GetRaceContext().vfxDrawer();
+        vfxDrawer.registerVfxSystem(m_boostTrailSystem);
+        vfxDrawer.registerVfxSystem(m_driftSparkSystem);
+        vfxDrawer.registerVfxSystem(m_collisionRingSystem);
     }
 
 private:
@@ -116,7 +116,7 @@ private:
                 state.lastBoostEmitPosition + emitDirection * emitThreshold * (j + 1) +
                 emitRight * (0.5f * Periodic::Sine1_1(0.15s, InGameElapsedTime()));
 
-            m_boostTrailSystem->emit(BoostTrailEffectSpawnParams{
+            m_boostTrailSystem->emit(BoostTrailVfxSpawnParams{
                 .worldPosition = particlePosition,
                 .color = machine.props.themeColor,
                 .intensity = state.boostIntensity,
@@ -154,7 +154,7 @@ private:
 
         for (const float side : {-1.0f, 1.0f})
         {
-            m_driftSparkSystem->emit(DriftSparkEffectSpawnParams{
+            m_driftSparkSystem->emit(DriftSparkVfxSpawnParams{
                 .worldPosition = rearCenter + machine.state.rightVector() * (MachineRadius * side),
                 .velocity = velocity,
             });
@@ -176,7 +176,7 @@ private:
             return;
         }
 
-        m_collisionRingSystem->emit(CollisionRingEffectSpawnParams{
+        m_collisionRingSystem->emit(CollisionRingVfxSpawnParams{
             .worldPosition = machine.state.m_pose.position,
             .color = machine.props.themeColor,
         });
@@ -189,12 +189,12 @@ private:
 
     void killed() override
     {
-        auto& effectDrawer = GetRaceContext().effectDrawer();
-        if (effectDrawer.isAlive())
+        auto& vfxDrawer = GetRaceContext().vfxDrawer();
+        if (vfxDrawer.isAlive())
         {
-            effectDrawer.unregisterEffectSystem(m_collisionRingSystem.get());
-            effectDrawer.unregisterEffectSystem(m_driftSparkSystem.get());
-            effectDrawer.unregisterEffectSystem(m_boostTrailSystem.get());
+            vfxDrawer.unregisterVfxSystem(m_collisionRingSystem.get());
+            vfxDrawer.unregisterVfxSystem(m_driftSparkSystem.get());
+            vfxDrawer.unregisterVfxSystem(m_boostTrailSystem.get());
         }
 
         m_collisionRingSystem.reset();
@@ -205,17 +205,17 @@ private:
 
 namespace Race
 {
-    MachineEffectEmitter::MachineEffectEmitter() :
+    MachineVfxEmitter::MachineVfxEmitter() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void MachineEffectEmitter::init()
+    void MachineVfxEmitter::init()
     {
         p_impl->Init();
     }
 
-    std::shared_ptr<ActorBase> MachineEffectEmitter::asActor() const
+    std::shared_ptr<ActorBase> MachineVfxEmitter::asActor() const
     {
         return p_impl;
     }

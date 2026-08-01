@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "MachineEffectSystems.h"
+#include "MachineVfxSystems.h"
 
 #include "Asset.generated.h"
-#include "BillboardEffectRenderer.h"
-#include "SimpleParticleEffectRenderer.h"
+#include "BillboardVfxRenderer.h"
+#include "SimpleParticleVfxRenderer.h"
 #include "TY/Array.h"
 
 using namespace Race;
@@ -41,12 +41,12 @@ namespace
     };
 }
 
-struct BoostTrailEffectSystem::Impl
+struct BoostTrailVfxSystem::Impl
 {
-    SimpleParticleEffectRenderer m_renderer{};
+    SimpleParticleVfxRenderer m_renderer{};
     Array<BoostTrailParticle> m_particles{};
 
-    void Emit(const BoostTrailEffectSpawnParams& params)
+    void Emit(const BoostTrailVfxSpawnParams& params)
     {
         if (m_particles.size() >= boostTrailCapacity)
         {
@@ -62,7 +62,7 @@ struct BoostTrailEffectSystem::Impl
         });
     }
 
-    void Update(const RaceEffectFrameContext& context)
+    void Update(const RaceVfxFrameContext& context)
     {
         Array<SimpleParticleRenderElement> renderElements{};
         renderElements.reserve(m_particles.size());
@@ -90,12 +90,12 @@ struct BoostTrailEffectSystem::Impl
 };
 
 // TODO: 修正
-struct DriftSparkEffectSystem::Impl
+struct DriftSparkVfxSystem::Impl
 {
-    BillboardEffectRenderer m_renderer{};
+    BillboardVfxRenderer m_renderer{};
     Array<DriftSparkParticle> m_particles{};
 
-    void Emit(const DriftSparkEffectSpawnParams& params)
+    void Emit(const DriftSparkVfxSpawnParams& params)
     {
         if (m_particles.size() >= driftSparkCapacity)
         {
@@ -108,12 +108,12 @@ struct DriftSparkEffectSystem::Impl
         });
     }
 
-    void Update(const RaceEffectFrameContext& context)
+    void Update(const RaceVfxFrameContext& context)
     {
         const ColorF32 startColor{1.0f, 0.75f, 0.2f, 1.0f};
         const ColorF32 endColor{1.0f, 0.3f, 0.05f, 0.0f};
 
-        Array<BillboardEffectRenderElement> renderElements{};
+        Array<BillboardVfxRenderElement> renderElements{};
         renderElements.reserve(m_particles.size());
 
         for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
@@ -130,7 +130,7 @@ struct DriftSparkEffectSystem::Impl
 
             const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
             const float scale = std::lerp(0.45f, 0.05f, rate);
-            renderElements.push_back(BillboardEffectRenderElement{
+            renderElements.push_back(BillboardVfxRenderElement{
                 .worldPosition = particle.worldPosition,
                 .rotation = particle.rotation,
                 .size = Float2{scale, scale},
@@ -143,12 +143,12 @@ struct DriftSparkEffectSystem::Impl
 };
 
 // TODO: 修正
-struct CollisionRingEffectSystem::Impl
+struct CollisionRingVfxSystem::Impl
 {
-    BillboardEffectRenderer m_renderer{};
+    BillboardVfxRenderer m_renderer{};
     Array<CollisionRingParticle> m_particles{};
 
-    void Emit(const CollisionRingEffectSpawnParams& params)
+    void Emit(const CollisionRingVfxSpawnParams& params)
     {
         if (m_particles.size() >= collisionRingCapacity)
         {
@@ -165,9 +165,9 @@ struct CollisionRingEffectSystem::Impl
         });
     }
 
-    void Update(const RaceEffectFrameContext& context)
+    void Update(const RaceVfxFrameContext& context)
     {
-        Array<BillboardEffectRenderElement> renderElements{};
+        Array<BillboardVfxRenderElement> renderElements{};
         renderElements.reserve(m_particles.size());
 
         for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
@@ -182,7 +182,7 @@ struct CollisionRingEffectSystem::Impl
 
             const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
             const float scale = std::lerp(1.0f, 4.0f, rate);
-            renderElements.push_back(BillboardEffectRenderElement{
+            renderElements.push_back(BillboardVfxRenderElement{
                 .worldPosition = particle.worldPosition,
                 .size = Float2{scale, scale},
                 .color = particle.startColor.lerp(particle.endColor, rate),
@@ -195,94 +195,94 @@ struct CollisionRingEffectSystem::Impl
 
 namespace Race
 {
-    BoostTrailEffectSystem::BoostTrailEffectSystem() :
+    BoostTrailVfxSystem::BoostTrailVfxSystem() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void BoostTrailEffectSystem::emit(const BoostTrailEffectSpawnParams& params)
+    void BoostTrailVfxSystem::emit(const BoostTrailVfxSpawnParams& params)
     {
         p_impl->Emit(params);
     }
 
-    void BoostTrailEffectSystem::onRegistered()
+    void BoostTrailVfxSystem::onRegistered()
     {
         p_impl->m_renderer.init(Asset_image::particle, boostTrailCapacity);
     }
 
-    void BoostTrailEffectSystem::update(const RaceEffectFrameContext& context)
+    void BoostTrailVfxSystem::update(const RaceVfxFrameContext& context)
     {
         p_impl->Update(context);
     }
 
-    void BoostTrailEffectSystem::drawTransparent() const
+    void BoostTrailVfxSystem::drawTransparent() const
     {
         p_impl->m_renderer.draw();
     }
 
-    void BoostTrailEffectSystem::onUnregistered()
+    void BoostTrailVfxSystem::onUnregistered()
     {
         p_impl->m_particles.clear();
         p_impl->m_renderer.finalize();
     }
 
-    DriftSparkEffectSystem::DriftSparkEffectSystem() :
+    DriftSparkVfxSystem::DriftSparkVfxSystem() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void DriftSparkEffectSystem::emit(const DriftSparkEffectSpawnParams& params)
+    void DriftSparkVfxSystem::emit(const DriftSparkVfxSpawnParams& params)
     {
         p_impl->Emit(params);
     }
 
-    void DriftSparkEffectSystem::onRegistered()
+    void DriftSparkVfxSystem::onRegistered()
     {
         p_impl->m_renderer.init(Asset_image::spark_01, driftSparkCapacity);
     }
 
-    void DriftSparkEffectSystem::update(const RaceEffectFrameContext& context)
+    void DriftSparkVfxSystem::update(const RaceVfxFrameContext& context)
     {
         p_impl->Update(context);
     }
 
-    void DriftSparkEffectSystem::drawTransparent() const
+    void DriftSparkVfxSystem::drawTransparent() const
     {
         p_impl->m_renderer.draw();
     }
 
-    void DriftSparkEffectSystem::onUnregistered()
+    void DriftSparkVfxSystem::onUnregistered()
     {
         p_impl->m_particles.clear();
         p_impl->m_renderer.finalize();
     }
 
-    CollisionRingEffectSystem::CollisionRingEffectSystem() :
+    CollisionRingVfxSystem::CollisionRingVfxSystem() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void CollisionRingEffectSystem::emit(const CollisionRingEffectSpawnParams& params)
+    void CollisionRingVfxSystem::emit(const CollisionRingVfxSpawnParams& params)
     {
         p_impl->Emit(params);
     }
 
-    void CollisionRingEffectSystem::onRegistered()
+    void CollisionRingVfxSystem::onRegistered()
     {
         p_impl->m_renderer.init(Asset_image::flame_01, collisionRingCapacity);
     }
 
-    void CollisionRingEffectSystem::update(const RaceEffectFrameContext& context)
+    void CollisionRingVfxSystem::update(const RaceVfxFrameContext& context)
     {
         p_impl->Update(context);
     }
 
-    void CollisionRingEffectSystem::drawTransparent() const
+    void CollisionRingVfxSystem::drawTransparent() const
     {
         p_impl->m_renderer.draw();
     }
 
-    void CollisionRingEffectSystem::onUnregistered()
+    void CollisionRingVfxSystem::onUnregistered()
     {
         p_impl->m_particles.clear();
         p_impl->m_renderer.finalize();

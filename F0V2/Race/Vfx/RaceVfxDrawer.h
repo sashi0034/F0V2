@@ -1,15 +1,20 @@
 #pragma once
 
+#include "IRaceVfxSystem.h"
 #include "TY/ActorHandle.h"
 
 namespace Race
 {
-    class MachineEffectEmitter : public ActorHandle
+    class RaceVfxDrawer : public ActorHandle
     {
     public:
-        MachineEffectEmitter();
+        RaceVfxDrawer();
 
         void init();
+
+        void registerVfxSystem(const std::shared_ptr<IRaceVfxSystem>& system);
+
+        void unregisterVfxSystem(const IRaceVfxSystem* system);
 
         std::shared_ptr<ActorBase> asActor() const override;
 

@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "SimpleParticleEffectRenderer.h"
+#include "BillboardVfxRenderer.h"
 
 #include "Asset.generated.h"
 #include "TY/ConstantBufferArray.h"
@@ -15,12 +15,13 @@ namespace
     struct GpuParticleElement
     {
         Float3 worldPosition;
-        Float3 rgb;
-        float alpha;
-        float scale;
+        float rotation;
+        Float2 size;
+        Float2 padding;
+        Float4 color;
     };
 
-    struct SimpleParticle_b10
+    struct BillboardParticle_b10
     {
         Float3 cameraUp;
         float padding0;
@@ -28,17 +29,17 @@ namespace
         float padding1;
     };
 
-    static_assert(sizeof(GpuParticleElement) == 32);
-    static_assert(sizeof(SimpleParticle_b10) == 32);
+    static_assert(sizeof(GpuParticleElement) == 48);
+    static_assert(sizeof(BillboardParticle_b10) == 32);
 }
 
-struct SimpleParticleEffectRenderer::Impl
+struct BillboardVfxRenderer::Impl
 {
     int m_capacity{};
     IndexBuffer m_indexBuffer{Empty};
     GenericModelDrawer m_drawer{};
     StructuredBufferT<GpuParticleElement> m_particleBuffer{};
-    ConstantBufferWrapper<SimpleParticle_b10> m_particleCB{};
+    ConstantBufferWrapper<BillboardParticle_b10> m_particleCB{};
 
     Impl(const ImagePathWrapper& image, int capacity) :
         m_capacity(capacity),
@@ -61,14 +62,14 @@ struct SimpleParticleEffectRenderer::Impl
                     GraphicsDepthOptions()
                     .setTestEnabled(true)
                     .setWriteMask(false)))
-            .setShader(Asset_shader::simple_particle)
+            .setShader(Asset_shader::billboard_effect)
             .setCbv10AndLater({m_particleCB})
             .setSrv10AndLater({image.fetchResource(), m_particleBuffer})
         };
     }
 
     void Upload(
-        const Array<SimpleParticleRenderElement>& elements,
+        const Array<BillboardVfxRenderElement>& elements,
         const Float3& cameraUp,
         const Float3& cameraRight)
     {
@@ -83,13 +84,13 @@ struct SimpleParticleEffectRenderer::Impl
             const auto& element = elements[i];
             gpuElements.push_back(GpuParticleElement{
                 .worldPosition = element.worldPosition,
-                .rgb = element.color.toFloat3(),
-                .alpha = element.color.a,
-                .scale = element.scale,
+                .rotation = element.rotation,
+                .size = element.size,
+                .color = element.color.toFloat4(),
             });
         }
 
-        m_particleCB.uploadValue(SimpleParticle_b10{
+        m_particleCB.uploadValue(BillboardParticle_b10{
             .cameraUp = cameraUp,
             .cameraRight = cameraRight,
         });
@@ -105,19 +106,24 @@ struct SimpleParticleEffectRenderer::Impl
 
 namespace Race
 {
-    void SimpleParticleEffectRenderer::init(const ImagePathWrapper& image, int capacity)
+    void BillboardVfxRenderer::init(const ImagePathWrapper& image, int capacity)
     {
         assert(not p_impl);
         p_impl = std::make_shared<Impl>(image, capacity);
     }
 
-    void SimpleParticleEffectRenderer::finalize()
+    void BillboardVfxRenderer::finalize()
     {
         p_impl.reset();
     }
 
-    void SimpleParticleEffectRenderer::upload(
-        const Array<SimpleParticleRenderElement>& elements,
+    int BillboardVfxRenderer::capacity() const
+    {
+        return p_impl ? p_impl->m_capacity : 0;
+    }
+
+    void BillboardVfxRenderer::upload(
+        const Array<BillboardVfxRenderElement>& elements,
         const Float3& cameraUp,
         const Float3& cameraRight)
     {
@@ -128,7 +134,7 @@ namespace Race
         }
     }
 
-    void SimpleParticleEffectRenderer::draw() const
+    void BillboardVfxRenderer::draw() const
     {
         if (p_impl)
         {

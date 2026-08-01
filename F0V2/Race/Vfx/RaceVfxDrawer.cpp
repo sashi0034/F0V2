@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "RaceEffectDrawer.h"
+#include "RaceVfxDrawer.h"
 
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
@@ -11,44 +11,44 @@ using namespace Race;
 
 namespace
 {
-    struct EffectSystemElement
+    struct VfxSystemElement
     {
-        std::shared_ptr<IRaceEffectSystem> system{};
+        std::shared_ptr<IRaceVfxSystem> system{};
         mutable bool drawParametersInitialized{};
     };
 }
 
-struct RaceEffectDrawer::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
+struct RaceVfxDrawer::Impl : ActorBase, std::enable_shared_from_this<Impl>, IRaceDrawer
 {
-    Array<EffectSystemElement> m_systems{};
+    Array<VfxSystemElement> m_systems{};
 
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
     }
 
-    void RegisterEffectSystem(const std::shared_ptr<IRaceEffectSystem>& system)
+    void RegisterVfxSystem(const std::shared_ptr<IRaceVfxSystem>& system)
     {
         assert(system);
 
         if (not system || findSystem(system.get()) != m_systems.end())
         {
-            LogError("RaceEffectDrawer::registerEffectSystem(): Invalid or duplicate system.");
+            LogError("RaceVfxDrawer::registerVfxSystem(): Invalid or duplicate system.");
             return;
         }
 
         system->onRegistered();
-        m_systems.push_back(EffectSystemElement{.system = system});
+        m_systems.push_back(VfxSystemElement{.system = system});
     }
 
-    void UnregisterEffectSystem(const IRaceEffectSystem* system)
+    void UnregisterVfxSystem(const IRaceVfxSystem* system)
     {
         assert(system);
 
         const auto it = findSystem(system);
         if (it == m_systems.end())
         {
-            LogError("RaceEffectDrawer::unregisterEffectSystem(): System not found.");
+            LogError("RaceVfxDrawer::unregisterVfxSystem(): System not found.");
             return;
         }
 
@@ -57,11 +57,11 @@ struct RaceEffectDrawer::Impl : ActorBase, std::enable_shared_from_this<Impl>, I
     }
 
 private:
-    auto findSystem(const IRaceEffectSystem* system)
+    auto findSystem(const IRaceVfxSystem* system)
     {
         return std::ranges::find_if(
             m_systems,
-            [system](const EffectSystemElement& element)
+            [system](const VfxSystemElement& element)
             {
                 return element.system.get() == system;
             });
@@ -70,7 +70,7 @@ private:
     void update() override
     {
         const auto& camera = GetRaceContextContent().camera;
-        const RaceEffectFrameContext context{
+        const RaceVfxFrameContext context{
             .deltaTime = InGameDeltaTime(),
             .elapsedTime = InGameElapsedTime(),
             .cameraUp = camera.worldMatrix().up(),
@@ -143,27 +143,27 @@ private:
 
 namespace Race
 {
-    RaceEffectDrawer::RaceEffectDrawer() :
+    RaceVfxDrawer::RaceVfxDrawer() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void RaceEffectDrawer::init()
+    void RaceVfxDrawer::init()
     {
         p_impl->Init();
     }
 
-    void RaceEffectDrawer::registerEffectSystem(const std::shared_ptr<IRaceEffectSystem>& system)
+    void RaceVfxDrawer::registerVfxSystem(const std::shared_ptr<IRaceVfxSystem>& system)
     {
-        p_impl->RegisterEffectSystem(system);
+        p_impl->RegisterVfxSystem(system);
     }
 
-    void RaceEffectDrawer::unregisterEffectSystem(const IRaceEffectSystem* system)
+    void RaceVfxDrawer::unregisterVfxSystem(const IRaceVfxSystem* system)
     {
-        p_impl->UnregisterEffectSystem(system);
+        p_impl->UnregisterVfxSystem(system);
     }
 
-    std::shared_ptr<ActorBase> RaceEffectDrawer::asActor() const
+    std::shared_ptr<ActorBase> RaceVfxDrawer::asActor() const
     {
         return p_impl;
     }

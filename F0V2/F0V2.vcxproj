@@ -164,11 +164,11 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
-    <ClCompile Include="Race\Effect\BillboardEffectRenderer.cpp" />
-    <ClCompile Include="Race\Effect\MachineEffectEmitter.cpp" />
-    <ClCompile Include="Race\Effect\MachineEffectSystems.cpp" />
-    <ClCompile Include="Race\Effect\RaceEffectDrawer.cpp" />
-    <ClCompile Include="Race\Effect\SimpleParticleEffectRenderer.cpp" />
+    <ClCompile Include="Race\Vfx\BillboardVfxRenderer.cpp" />
+    <ClCompile Include="Race\Vfx\MachineVfxEmitter.cpp" />
+    <ClCompile Include="Race\Vfx\MachineVfxSystems.cpp" />
+    <ClCompile Include="Race\Vfx\RaceVfxDrawer.cpp" />
+    <ClCompile Include="Race\Vfx\SimpleParticleVfxRenderer.cpp" />
     <ClCompile Include="Race\UI\RaceUIController.cpp" />
     <ClCompile Include="Util\MonitorInfo.cpp" />
     <ClCompile Include="Util\WindowsPlacementAddon.cpp" />
@@ -182,7 +182,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\script\bundle_build.py" />
     <Content Include="asset\shader\fsr1\ffx_a.h" />
     <Content Include="asset\shader\fsr1\ffx_fsr1.h" />
-    <Content Include="asset\shader\billboard_effect.hlsl" />
+    <Content Include="asset\shader\billboard_vfx.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_easu_cs.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_rcas_cs.hlsl" />
     <Content Include="asset\shader\gimmick_boost_pad.hlsl" />
@@ -347,12 +347,12 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Common\CourseGimmick.h" />
     <ClInclude Include="Race\Common\RaceDeferredShadingDrawer.h" />
     <ClInclude Include="Race\Common\RaceDrawUpscaler.h" />
-    <ClInclude Include="Race\Effect\BillboardEffectRenderer.h" />
-    <ClInclude Include="Race\Effect\IRaceEffectSystem.h" />
-    <ClInclude Include="Race\Effect\MachineEffectEmitter.h" />
-    <ClInclude Include="Race\Effect\MachineEffectSystems.h" />
-    <ClInclude Include="Race\Effect\RaceEffectDrawer.h" />
-    <ClInclude Include="Race\Effect\SimpleParticleEffectRenderer.h" />
+    <ClInclude Include="Race\Vfx\BillboardVfxRenderer.h" />
+    <ClInclude Include="Race\Vfx\IRaceVfxSystem.h" />
+    <ClInclude Include="Race\Vfx\MachineVfxEmitter.h" />
+    <ClInclude Include="Race\Vfx\MachineVfxSystems.h" />
+    <ClInclude Include="Race\Vfx\RaceVfxDrawer.h" />
+    <ClInclude Include="Race\Vfx\SimpleParticleVfxRenderer.h" />
     <ClInclude Include="Race\RaceControlState.h" />
     <ClInclude Include="Race\RaceDrawQualityController.h" />
     <ClInclude Include="Race\Stage\GimmickTextureDrawer.h" />

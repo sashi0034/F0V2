@@ -5,7 +5,7 @@
 
 namespace Race
 {
-    struct RaceEffectFrameContext
+    struct RaceVfxFrameContext
     {
         float deltaTime{};
 
@@ -16,16 +16,16 @@ namespace Race
         Float3 cameraRight{};
     };
 
-    class IRaceEffectSystem : public IRaceDrawer
+    class IRaceVfxSystem : public IRaceDrawer
     {
     public:
-        virtual ~IRaceEffectSystem() = default;
+        virtual ~IRaceVfxSystem() = default;
 
         virtual void onRegistered()
         {
         }
 
-        virtual void update(const RaceEffectFrameContext& context) = 0;
+        virtual void update(const RaceVfxFrameContext& context) = 0;
 
         virtual void onUnregistered()
         {

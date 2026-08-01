@@ -11,8 +11,8 @@
 #include "AI/SpatialAI.h"
 #include "Common/CourseFileInfo.h"
 #include "Common/RaceSharedState.h"
-#include "Effect/MachineEffectEmitter.h"
-#include "Effect/RaceEffectDrawer.h"
+#include "Vfx/MachineVfxEmitter.h"
+#include "Vfx/RaceVfxDrawer.h"
 #include "Player/Player.h"
 #include "Stage/StageManager.h"
 #include "TY/ActorContainer.h"
@@ -36,7 +36,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     RaceDrawManager m_drawManager{};
 
-    RaceEffectDrawer m_effectDrawer{};
+    RaceVfxDrawer m_vfxDrawer{};
 
     RaceController m_raceController{};
 
@@ -54,7 +54,7 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     MetaAI m_metaAI{};
 
-    MachineEffectEmitter m_machineEffectEmitter{};
+    MachineVfxEmitter m_machineVfxEmitter{};
 
     Impl(bool context)
     {
@@ -79,8 +79,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_drawManager = m_children.birth(RaceDrawManager());
         m_drawManager.init();
 
-        m_effectDrawer = m_children.birth(RaceEffectDrawer());
-        m_effectDrawer.init();
+        m_vfxDrawer = m_children.birth(RaceVfxDrawer());
+        m_vfxDrawer.init();
 
         m_raceController = m_children.birth(RaceController());
         m_raceController.init();
@@ -114,8 +114,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_metaAI = m_children.birth(MetaAI());
         m_metaAI.init();
 
-        m_machineEffectEmitter = m_children.birth(MachineEffectEmitter());
-        m_machineEffectEmitter.init();
+        m_machineVfxEmitter = m_children.birth(MachineVfxEmitter());
+        m_machineVfxEmitter.init();
     }
 
     void update() override
@@ -159,14 +159,14 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_drawManager.unregisterDrawer(drawer);
     }
 
-    RaceEffectDrawer& effectDrawer() override
+    RaceVfxDrawer& vfxDrawer() override
     {
-        return m_effectDrawer;
+        return m_vfxDrawer;
     }
 
-    const RaceEffectDrawer& effectDrawer() const override
+    const RaceVfxDrawer& vfxDrawer() const override
     {
-        return m_effectDrawer;
+        return m_vfxDrawer;
     }
 
     StageManager& stageManager() override

@@ -3,30 +3,35 @@
 #include "ResourcePathWrapper.h"
 #include "TY/Array.h"
 #include "TY/Color.h"
+#include "TY/Vector2D.h"
 #include "TY/Vector3D.h"
 
 namespace Race
 {
-    struct SimpleParticleRenderElement
+    struct BillboardVfxRenderElement
     {
         Float3 worldPosition{};
 
-        ColorF32 color{1.0f};
+        float rotation{};
 
-        float scale{1.0f};
+        Float2 size{1.0f, 1.0f};
+
+        ColorF32 color{1.0f};
     };
 
-    class SimpleParticleEffectRenderer
+    class BillboardVfxRenderer
     {
     public:
-        SimpleParticleEffectRenderer() = default;
+        BillboardVfxRenderer() = default;
 
         void init(const ImagePathWrapper& image, int capacity);
 
         void finalize();
 
+        int capacity() const;
+
         void upload(
-            const Array<SimpleParticleRenderElement>& elements,
+            const Array<BillboardVfxRenderElement>& elements,
             const Float3& cameraUp,
             const Float3& cameraRight);
 
