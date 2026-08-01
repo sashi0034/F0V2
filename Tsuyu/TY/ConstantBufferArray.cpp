@@ -181,7 +181,7 @@ struct ConstantBufferArrayImpl::Impl
     {
     }
 
-    void Upload(const uint8_t* data, uint32_t count, CommandListType commandListType)
+    void Upload(const uint8_t* data, uint32_t count)
     {
         assert(count <= m_materialCount);
 
@@ -256,7 +256,7 @@ namespace TY
 
     void ConstantBufferArrayImpl::upload(const void* data, uint32_t materialCount) const
     {
-        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount, CommandListType::Draw);
+        if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data), materialCount);
     }
 
     uint32_t ConstantBufferArrayImpl::materialCount() const
