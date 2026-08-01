@@ -4,6 +4,7 @@
 #include "Asset.generated.h"
 #include "BillboardVfxRenderer.h"
 #include "IRaceVfxSystem.h"
+#include "MultiTextureBillboardVfxRenderer.h"
 #include "RaceVfxDrawer.h"
 #include "SimpleParticleVfxRenderer.h"
 #include "Race/IRaceContext.h"
@@ -162,14 +163,21 @@ namespace
             float lifetime{1.0f};
         };
 
-        BillboardVfxRenderer m_renderer{};
+        MultiTextureBillboardVfxRenderer m_renderer{};
         Array<Particle> m_particles{};
 
         static constexpr int ParticleCapacity = 2048;
 
         void onRegistered() override
         {
-            m_renderer.init(Asset_image::spark_01, ParticleCapacity, GraphicsBlendOptions::Additive());
+            m_renderer.init(
+                {
+                    Asset_image::spark_01,
+                    Asset_image::spark_02,
+                    Asset_image::spark_03,
+                },
+                ParticleCapacity,
+                GraphicsBlendOptions::Additive());
         }
 
         void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
@@ -218,6 +226,9 @@ namespace
             Array<BillboardVfxElement> renderElements{};
             renderElements.reserve(m_particles.size());
             const auto& machines = GetRaceContext().machineManager().machineList();
+            constexpr float animationFps = 10.0f;
+            const int textureCount = m_renderer.textureCount();
+            assert(textureCount > 0);
 
             for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
             {
@@ -248,6 +259,7 @@ namespace
                     .rotation = particle.rotation,
                     .size = Float2{scale, scale},
                     .color = startColor.lerp(endColor, rate),
+                    .textureIndex_ = static_cast<int>(std::floor(particle.age * animationFps)) % textureCount,
                 });
             }
 

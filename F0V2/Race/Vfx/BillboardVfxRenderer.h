@@ -18,6 +18,8 @@ namespace Race
         Float2 size{1.0f, 1.0f};
 
         ColorF32 color{1.0f};
+
+        int textureIndex_{};
     };
 
     class BillboardVfxRenderer
@@ -30,6 +32,7 @@ namespace Race
             int capacity,
             GraphicsBlendOptions blendOptions = GraphicsBlendOptions::AlphaBlend());
 
+        // TODO: これいらない気がする
         void finalize();
 
         int capacity() const;

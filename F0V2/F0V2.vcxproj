@@ -166,6 +166,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Asset0.cpp" />
     <ClCompile Include="Race\Vfx\BillboardVfxRenderer.cpp" />
     <ClCompile Include="Race\Vfx\MachineVfxEmitter.cpp" />
+    <ClCompile Include="Race\Vfx\MultiTextureBillboardVfxRenderer.cpp" />
     <ClCompile Include="Race\Vfx\RaceVfxDrawer.cpp" />
     <ClCompile Include="Race\Vfx\SimpleParticleVfxRenderer.cpp" />
     <ClCompile Include="Race\UI\RaceUIController.cpp" />
@@ -349,6 +350,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Vfx\BillboardVfxRenderer.h" />
     <ClInclude Include="Race\Vfx\IRaceVfxSystem.h" />
     <ClInclude Include="Race\Vfx\MachineVfxEmitter.h" />
+    <ClInclude Include="Race\Vfx\MultiTextureBillboardVfxRenderer.h" />
     <ClInclude Include="Race\Vfx\RaceVfxDrawer.h" />
     <ClInclude Include="Race\Vfx\SimpleParticleVfxRenderer.h" />
     <ClInclude Include="Race\RaceControlState.h" />
