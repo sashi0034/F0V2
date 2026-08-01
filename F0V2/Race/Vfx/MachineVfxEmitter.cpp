@@ -159,7 +159,7 @@ namespace
             float rotation{};
             float angularVelocity{8.0f};
             float age{};
-            float lifetime{0.25f};
+            float lifetime{1.0f};
         };
 
         BillboardVfxRenderer m_renderer{};
@@ -192,7 +192,7 @@ namespace
                 return;
             }
 
-            constexpr float driftEmitInterval = 0.05f;
+            constexpr float driftEmitInterval = 0.1f;
             state.driftEmitCountdown = driftEmitInterval;
 
             for (const float side : {-1.0f, 1.0f})
@@ -204,8 +204,8 @@ namespace
 
                 m_particles.push_back(Particle{
                     .targetMachineId = machine.id(),
-                    .relativePosition = Float3{MachineRadius * side, 0.0f, -MachineHeight * 0.4f},
-                    .velocity = Float3{0.0f, 2.0f, -5.0f},
+                    .relativePosition = Float3{MachineRadius * side, 0.0f, -MachineHeight * 0.75f},
+                    .velocity = -machine.state.m_gravity - machine.state.m_velocity.normalized(),
                 });
             }
         }
@@ -242,7 +242,7 @@ namespace
                     machine.state.m_visualForwardVector * particle.relativePosition.z;
 
                 const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
-                const float scale = std::lerp(0.45f, 0.05f, rate);
+                const float scale = std::lerp(0.95f, 0.55f, rate);
                 renderElements.push_back(BillboardVfxElement{
                     .worldPosition = worldPosition,
                     .rotation = particle.rotation,
