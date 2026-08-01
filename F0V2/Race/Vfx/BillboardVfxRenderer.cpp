@@ -41,7 +41,7 @@ struct BillboardVfxRenderer::Impl
     StructuredBufferT<GpuParticleElement> m_particleBuffer{};
     ConstantBufferWrapper<BillboardParticle_b10> m_particleCB{};
 
-    Impl(const ImagePathWrapper& image, int capacity) :
+    Impl(const ImagePathWrapper& image, int capacity, GraphicsBlendOptions blendOptions) :
         m_capacity(capacity),
         m_particleBuffer(capacity)
     {
@@ -57,7 +57,7 @@ struct BillboardVfxRenderer::Impl
             .setVertexInput({})
             .setOptions(
                 GraphicsOptions()
-                .setBlend(GraphicsBlendOptions::AlphaBlend())
+                .setBlend(blendOptions)
                 .setDepth(
                     GraphicsDepthOptions()
                     .setTestEnabled(true)
@@ -69,7 +69,7 @@ struct BillboardVfxRenderer::Impl
     }
 
     void Upload(
-        const Array<BillboardVfxRenderElement>& elements,
+        const Array<BillboardVfxElement>& elements,
         const Float3& cameraUp,
         const Float3& cameraRight)
     {
@@ -106,10 +106,10 @@ struct BillboardVfxRenderer::Impl
 
 namespace Race
 {
-    void BillboardVfxRenderer::init(const ImagePathWrapper& image, int capacity)
+    void BillboardVfxRenderer::init(const ImagePathWrapper& image, int capacity, GraphicsBlendOptions blendOptions)
     {
         assert(not p_impl);
-        p_impl = std::make_shared<Impl>(image, capacity);
+        p_impl = std::make_shared<Impl>(image, capacity, blendOptions);
     }
 
     void BillboardVfxRenderer::finalize()
@@ -123,7 +123,7 @@ namespace Race
     }
 
     void BillboardVfxRenderer::upload(
-        const Array<BillboardVfxRenderElement>& elements,
+        const Array<BillboardVfxElement>& elements,
         const Float3& cameraUp,
         const Float3& cameraRight)
     {

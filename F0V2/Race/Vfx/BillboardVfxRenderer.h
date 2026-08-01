@@ -3,12 +3,13 @@
 #include "ResourcePathWrapper.h"
 #include "TY/Array.h"
 #include "TY/Color.h"
+#include "TY/GraphicsOptions.h"
 #include "TY/Vector2D.h"
 #include "TY/Vector3D.h"
 
 namespace Race
 {
-    struct BillboardVfxRenderElement
+    struct BillboardVfxElement
     {
         Float3 worldPosition{};
 
@@ -24,14 +25,17 @@ namespace Race
     public:
         BillboardVfxRenderer() = default;
 
-        void init(const ImagePathWrapper& image, int capacity);
+        void init(
+            const ImagePathWrapper& image,
+            int capacity,
+            GraphicsBlendOptions blendOptions = GraphicsBlendOptions::AlphaBlend());
 
         void finalize();
 
         int capacity() const;
 
         void upload(
-            const Array<BillboardVfxRenderElement>& elements,
+            const Array<BillboardVfxElement>& elements,
             const Float3& cameraUp,
             const Float3& cameraRight);
 

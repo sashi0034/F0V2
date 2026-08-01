@@ -45,6 +45,16 @@ namespace TY
         return blend;
     }
 
+    GraphicsBlendOptions GraphicsBlendOptions::Additive()
+    {
+        GraphicsBlendOptions blend;
+        blend.blendEnabled = true;
+        blend.destBlend = BlendMode::One;
+        blend.srcBlendAlpha = BlendMode::Zero;
+        blend.destBlendAlpha = BlendMode::One;
+        return blend;
+    }
+
     GraphicsRasterizerOptions& GraphicsRasterizerOptions::setCull(GraphicsCullMode cull_)
     {
         cull = cull_;

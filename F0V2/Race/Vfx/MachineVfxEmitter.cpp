@@ -169,7 +169,7 @@ namespace
 
         void onRegistered() override
         {
-            m_renderer.init(Asset_image::spark_01, ParticleCapacity);
+            m_renderer.init(Asset_image::spark_01, ParticleCapacity, GraphicsBlendOptions::Additive());
         }
 
         void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
@@ -215,7 +215,7 @@ namespace
             const ColorF32 startColor{1.0f, 0.75f, 0.2f, 1.0f};
             const ColorF32 endColor{1.0f, 0.3f, 0.05f, 0.0f};
 
-            Array<BillboardVfxRenderElement> renderElements{};
+            Array<BillboardVfxElement> renderElements{};
             renderElements.reserve(m_particles.size());
             const auto& machines = GetRaceContext().machineManager().machineList();
 
@@ -243,7 +243,7 @@ namespace
 
                 const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
                 const float scale = std::lerp(0.45f, 0.05f, rate);
-                renderElements.push_back(BillboardVfxRenderElement{
+                renderElements.push_back(BillboardVfxElement{
                     .worldPosition = worldPosition,
                     .rotation = particle.rotation,
                     .size = Float2{scale, scale},
@@ -286,7 +286,7 @@ namespace
 
         void onRegistered() override
         {
-            m_renderer.init(Asset_image::flame_01, ParticleCapacity);
+            m_renderer.init(Asset_image::flame_01, ParticleCapacity, GraphicsBlendOptions::Additive());
         }
 
         void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
@@ -313,7 +313,7 @@ namespace
 
         void update(const RaceVfxFrameContext& context) override
         {
-            Array<BillboardVfxRenderElement> renderElements{};
+            Array<BillboardVfxElement> renderElements{};
             renderElements.reserve(m_particles.size());
 
             for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
@@ -328,7 +328,7 @@ namespace
 
                 const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
                 const float scale = std::lerp(1.0f, 4.0f, rate);
-                renderElements.push_back(BillboardVfxRenderElement{
+                renderElements.push_back(BillboardVfxElement{
                     .worldPosition = particle.worldPosition,
                     .size = Float2{scale, scale},
                     .color = particle.startColor.lerp(particle.endColor, rate),

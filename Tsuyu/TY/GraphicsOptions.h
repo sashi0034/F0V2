@@ -54,15 +54,59 @@ namespace TY
         bool operator ==(const GraphicsSamplerOptions& other) const = default;
     };
 
+    enum class BlendMode : uint8_t
+    {
+        Zero,
+        One,
+        SrcColor,
+        InvSrcColor,
+        SrcAlpha,
+        InvSrcAlpha,
+        DestAlpha,
+        InvDestAlpha,
+        DestColor,
+        InvDestColor,
+        SrcAlphaSaturated,
+        BlendFactor,
+        InvBlendFactor,
+        Src1Color,
+        InvSrc1Color,
+        Src1Alpha,
+        InvSrc1Alpha,
+    };
+
+    enum class BlendOperation : uint8_t
+    {
+        Add,
+        Subtract,
+        RevSubtract,
+        Min,
+        Max,
+    };
+
     struct GraphicsBlendOptions
     {
         bool blendEnabled{};
+        BlendMode srcBlend{BlendMode::SrcAlpha};
+        BlendMode destBlend{BlendMode::InvSrcAlpha};
+        BlendOperation blendOp{BlendOperation::Add};
+        BlendMode srcBlendAlpha{BlendMode::One};
+        BlendMode destBlendAlpha{BlendMode::Zero};
+        BlendOperation blendOpAlpha{BlendOperation::Add};
+
+        // NOTE: BlendOperation::Add の例:
+        // C_out = C_src * srcBlend + C_dest * destBlend
+        // A_out = A_src * srcBlendAlpha + A_dest * destBlendAlpha
+        // src: PixelShader が出力した色
+        // dest: RenderTarget で既に書き込まれていた色
 
         bool operator ==(const GraphicsBlendOptions& other) const = default;
 
         static GraphicsBlendOptions Opaque();
 
         static GraphicsBlendOptions AlphaBlend();
+
+        static GraphicsBlendOptions Additive();
     };
 
     enum class GraphicsCullMode : uint8_t
