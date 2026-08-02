@@ -262,7 +262,7 @@ namespace
                     textureCount - 1);
                 renderElements.push_back(QuadVfxElement{
                     .worldPosition =
-                    machine.state.m_pose.position + machineUp * (MachineRadius * 0.5f) - machineForward,
+                    machine.state.m_pose.position - machineUp * (MachineRadius * 0.25f) - machineForward,
                     .rotation = quadRotation,
                     .size = Float2::One() * MachineRadius * 1.5f * scaleRate,
                     .color = startColor.lerp(endColor, rate),
