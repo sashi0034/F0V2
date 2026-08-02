@@ -186,6 +186,7 @@ namespace
 
             constexpr float driftThreshold = 0.05f;
             const bool shouldEmit =
+                // machine.props.machineId == 0 || // DEBUG
                 not machine.state.isHovering() &&
                 Abs(machine.state.m_driftOffset) >= driftThreshold;
 
@@ -212,7 +213,7 @@ namespace
 
                 m_particles.push_back(Particle{
                     .targetMachineId = machine.id(),
-                    .relativePosition = Float3{MachineRadius * side, 0.0f, -MachineHeight * 0.75f},
+                    .relativePosition = Float3{MachineRadius * side, 0.0f, -MachineCylinderLength * 0.75f},
                     .velocity = -machine.state.m_gravity - machine.state.m_velocity.normalized(),
                 });
             }

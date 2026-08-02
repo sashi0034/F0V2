@@ -78,8 +78,8 @@ namespace
             const Float3& otherForward = other.state.m_visualForwardVector;
             const float otherRadius = other.state.m_radius;
             const LineSegment3D otherLine{
-                otherPosition - otherForward * other.state.m_height * 0.5f,
-                otherPosition + otherForward * other.state.m_height * 0.5f,
+                otherPosition - otherForward * other.state.m_cylinderLength * 0.5f,
+                otherPosition + otherForward * other.state.m_cylinderLength * 0.5f,
             };
 
             std::pair<Float3, Float3> closestPair{};
