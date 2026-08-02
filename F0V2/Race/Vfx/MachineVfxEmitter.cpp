@@ -24,6 +24,7 @@ namespace
         Float3 lastBoostEmitPosition{};
         float driftEmitCountdown{};
         float driftInitialRotation{};
+        bool impulseTurnWasActive{};
         float previousAttackedTime{};
         bool initialized{};
     };
@@ -287,6 +288,125 @@ namespace
 
     // -----------------------------------------------
 
+    struct ImpulseTurnVfx : IRaceVfxSystem
+    {
+        struct Particle
+        {
+            MachineId targetMachineId{};
+            float turnDirection{};
+            float age{};
+            float lifetime{0.5f};
+        };
+
+        MultiTextureQuadVfxRenderer m_renderer{};
+        Array<Particle> m_particles{};
+
+        static constexpr int ParticleCapacity = 128;
+
+        void onRegistered() override
+        {
+            m_renderer.init(
+                {
+                    Asset_image::twirl_01,
+                    Asset_image::twirl_02,
+                    Asset_image::twirl_03,
+                },
+                ParticleCapacity,
+                GraphicsBlendOptions::Additive());
+        }
+
+        void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
+        {
+            const bool impulseTurnIsActive = machine.state.m_impulseTurnTime > 0.0f;
+            const bool impulseTurnStarted = impulseTurnIsActive && not state.impulseTurnWasActive;
+            state.impulseTurnWasActive = impulseTurnIsActive;
+
+            if (not impulseTurnStarted || m_particles.size() >= ParticleCapacity)
+            {
+                return;
+            }
+
+            float turnDirection = Math::Sign(machine.state.m_impulseTurn);
+            if (turnDirection == 0.0f)
+            {
+                turnDirection = Math::Sign(machine.props.input.rightHandling);
+            }
+
+            m_particles.push_back(Particle{
+                .targetMachineId = machine.id(),
+                .turnDirection = turnDirection,
+            });
+        }
+
+        void update(const RaceVfxFrameContext& context) override
+        {
+            Array<QuadVfxElement> renderElements{};
+            renderElements.reserve(m_particles.size());
+            const auto& machines = GetRaceContext().machineManager().machineList();
+            const int textureCount = m_renderer.textureCount();
+            assert(textureCount > 0);
+
+            for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
+            {
+                auto& particle = m_particles[i];
+                particle.age += context.deltaTime;
+                if (
+                    particle.age >= particle.lifetime ||
+                    particle.targetMachineId < 0 ||
+                    particle.targetMachineId >= machines.size())
+                {
+                    m_particles.remove_at(i);
+                    continue;
+                }
+
+                const auto& machine = machines[particle.targetMachineId];
+                const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
+                const Float3 machineForward = machine.state.m_forwardVector;
+                const Float3 machineUp = machine.state.m_upVector;
+                const Float3 machineRight = machine.state.rightVector();
+
+                const Float3 position = machine.state.m_pose.position - machineForward * (MachineRadius * 1.5f * rate);
+
+                const float rotation = particle.turnDirection * Math::TwoPiF * rate;
+                const Quaternion spin{machineForward, rotation};
+                const Quaternion quadRotation = Quaternion::FromAxes(
+                    spin.rotate(machineRight),
+                    spin.rotate(machineUp),
+                    machineForward);
+
+                const float scale = std::lerp(1.0f, 3.0f, rate);
+                const ColorF32 startColor{0.2f, 0.9f, 1.0f, 0.9f};
+                const ColorF32 endColor{0.05f, 0.25f, 1.0f, 0.0f};
+
+                const int textureIndex = Min(
+                    static_cast<int>(rate * textureCount),
+                    textureCount - 1);
+                renderElements.push_back(QuadVfxElement{
+                    .worldPosition = position,
+                    .rotation = quadRotation,
+                    .size = Float2::One() * MachineRadius * scale,
+                    .color = startColor.lerp(endColor, rate),
+                    .textureIndex_ = textureIndex,
+                });
+            }
+
+            m_renderer.upload(renderElements);
+        }
+
+        void drawTransparent() const override
+        {
+            m_renderer.draw();
+        }
+
+        void onUnregistered() override
+        {
+            m_particles.clear();
+            m_renderer.finalize();
+        }
+    };
+
+    // -----------------------------------------------
+
     struct CollisionVfx : IRaceVfxSystem
     {
         struct Particle
@@ -376,17 +496,20 @@ struct MachineVfxEmitter::Impl : ActorBase
 
     std::shared_ptr<BoostVfx> m_boostVfx{};
     std::shared_ptr<DriftVfx> m_driftVfx{};
+    std::shared_ptr<ImpulseTurnVfx> m_impulseTurnVfx{};
     std::shared_ptr<CollisionVfx> m_collisionVfx{};
 
     void Init()
     {
         m_boostVfx = std::make_shared<BoostVfx>();
         m_driftVfx = std::make_shared<DriftVfx>();
+        m_impulseTurnVfx = std::make_shared<ImpulseTurnVfx>();
         m_collisionVfx = std::make_shared<CollisionVfx>();
 
         auto& vfxDrawer = GetRaceContext().vfxDrawer();
         vfxDrawer.registerVfxSystem(m_boostVfx);
         vfxDrawer.registerVfxSystem(m_driftVfx);
+        vfxDrawer.registerVfxSystem(m_impulseTurnVfx);
         vfxDrawer.registerVfxSystem(m_collisionVfx);
     }
 
@@ -409,6 +532,7 @@ private:
 
             m_boostVfx->emitIfNeeded(machine, state);
             m_driftVfx->emitIfNeeded(machine, state);
+            m_impulseTurnVfx->emitIfNeeded(machine, state);
             m_collisionVfx->emitIfNeeded(machine, state);
         }
     }
@@ -422,6 +546,7 @@ private:
     {
         auto& vfxDrawer = GetRaceContext().vfxDrawer();
         vfxDrawer.unregisterVfxSystem(m_collisionVfx.get());
+        vfxDrawer.unregisterVfxSystem(m_impulseTurnVfx.get());
         vfxDrawer.unregisterVfxSystem(m_driftVfx.get());
         vfxDrawer.unregisterVfxSystem(m_boostVfx.get());
     }
