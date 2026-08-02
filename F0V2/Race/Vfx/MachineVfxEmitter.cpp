@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "BillboardVfxRenderer.h"
 #include "IRaceVfxSystem.h"
-#include "MultiTextureBillboardVfxRenderer.h"
+#include "MultiTextureQuadVfxRenderer.h"
 #include "RaceVfxDrawer.h"
 #include "SimpleParticleVfxRenderer.h"
 #include "Race/IRaceContext.h"
@@ -23,6 +23,7 @@ namespace
         float boostIntensity{};
         Float3 lastBoostEmitPosition{};
         float driftEmitCountdown{};
+        float driftInitialRotation{};
         float previousAttackedTime{};
         bool initialized{};
     };
@@ -155,15 +156,12 @@ namespace
         struct Particle
         {
             MachineId targetMachineId{};
-            Float3 relativePosition{};
-            Float3 velocity{};
-            float rotation{};
-            float angularVelocity{8.0f};
+            float initialRotation{};
             float age{};
             float lifetime{1.0f};
         };
 
-        MultiTextureBillboardVfxRenderer m_renderer{};
+        MultiTextureQuadVfxRenderer m_renderer{};
         Array<Particle> m_particles{};
 
         static constexpr int ParticleCapacity = 2048;
@@ -172,9 +170,9 @@ namespace
         {
             m_renderer.init(
                 {
-                    Asset_image::spark_01,
-                    Asset_image::spark_02,
-                    Asset_image::spark_03,
+                    Asset_image::twirl_01,
+                    Asset_image::twirl_02,
+                    Asset_image::twirl_03,
                 },
                 ParticleCapacity,
                 GraphicsBlendOptions::Additive());
@@ -182,6 +180,9 @@ namespace
 
         void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
         {
+            state.driftInitialRotation = std::fmod(
+                state.driftInitialRotation + 10.0f * InGameDeltaTime(),
+                Math::TwoPiF);
             state.driftEmitCountdown = Max(0.0f, state.driftEmitCountdown - InGameDeltaTime());
 
             constexpr float driftThreshold = 0.05f;
@@ -204,30 +205,22 @@ namespace
             constexpr float driftEmitInterval = 0.1f;
             state.driftEmitCountdown = driftEmitInterval;
 
-            for (const float side : {-1.0f, 1.0f})
+            if (m_particles.size() >= ParticleCapacity)
             {
-                if (m_particles.size() >= ParticleCapacity)
-                {
-                    break;
-                }
-
-                m_particles.push_back(Particle{
-                    .targetMachineId = machine.id(),
-                    .relativePosition = Float3{MachineRadius * side, 0.0f, -MachineCylinderLength * 0.75f},
-                    .velocity = -machine.state.m_gravity - machine.state.m_velocity.normalized(),
-                });
+                return;
             }
+
+            m_particles.push_back(Particle{
+                .targetMachineId = machine.id(),
+                .initialRotation = state.driftInitialRotation,
+            });
         }
 
         void update(const RaceVfxFrameContext& context) override
         {
-            const ColorF32 startColor{1.0f, 0.75f, 0.2f, 1.0f};
-            const ColorF32 endColor{1.0f, 0.3f, 0.05f, 0.0f};
-
-            Array<BillboardVfxElement> renderElements{};
+            Array<QuadVfxElement> renderElements{};
             renderElements.reserve(m_particles.size());
             const auto& machines = GetRaceContext().machineManager().machineList();
-            constexpr float animationFps = 10.0f;
             const int textureCount = m_renderer.textureCount();
             assert(textureCount > 0);
 
@@ -235,8 +228,6 @@ namespace
             {
                 auto& particle = m_particles[i];
                 particle.age += context.deltaTime;
-                particle.relativePosition += particle.velocity * context.deltaTime;
-                particle.rotation += particle.angularVelocity * context.deltaTime;
                 if (
                     particle.age >= particle.lifetime ||
                     particle.targetMachineId < 0 ||
@@ -247,24 +238,39 @@ namespace
                 }
 
                 const auto& machine = machines[particle.targetMachineId];
-                const Float3 worldPosition =
-                    machine.state.m_pose.position +
-                    machine.state.rightVector() * particle.relativePosition.x +
-                    machine.state.m_upVector * particle.relativePosition.y +
-                    machine.state.m_visualForwardVector * particle.relativePosition.z;
-
                 const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
-                const float scale = std::lerp(0.95f, 0.55f, rate);
-                renderElements.push_back(BillboardVfxElement{
-                    .worldPosition = worldPosition,
-                    .rotation = particle.rotation,
-                    .size = Float2{scale, scale},
+                const Float3 machineForward = machine.state.m_forwardVector;
+                const Float3 machineUp = machine.state.m_upVector;
+                const Float3 machineRight = machine.state.rightVector();
+                const Float3 quadUp = machineUp.cross(machineRight);
+
+                constexpr float totalRotation = 5.0f;
+                const float rotation = particle.initialRotation + totalRotation * rate;
+                const Quaternion spin{machineUp, rotation};
+                const Quaternion quadRotation = Quaternion::FromAxes(
+                    spin.rotate(machineRight),
+                    spin.rotate(quadUp),
+                    machineUp);
+
+                const float scaleRate = Min(1.0f, Abs(machine.state.m_driftOffset));
+
+                const ColorF32 startColor{1.0f, 0.75f, 0.2f, 1.0f};
+                const ColorF32 endColor{1.0f, 0.3f, 0.05f, 0.0f};
+
+                const int textureIndex = Min(
+                    static_cast<int>(rate * textureCount),
+                    textureCount - 1);
+                renderElements.push_back(QuadVfxElement{
+                    .worldPosition =
+                    machine.state.m_pose.position + machineUp * (MachineRadius * 0.5f) - machineForward,
+                    .rotation = quadRotation,
+                    .size = Float2::One() * MachineRadius * 1.5f * scaleRate,
                     .color = startColor.lerp(endColor, rate),
-                    .textureIndex_ = static_cast<int>(std::floor(particle.age * animationFps)) % textureCount,
+                    .textureIndex_ = textureIndex,
                 });
             }
 
-            m_renderer.upload(renderElements, context.cameraUp, context.cameraRight);
+            m_renderer.upload(renderElements);
         }
 
         void drawTransparent() const override

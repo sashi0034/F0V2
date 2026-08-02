@@ -167,6 +167,8 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Vfx\BillboardVfxRenderer.cpp" />
     <ClCompile Include="Race\Vfx\MachineVfxEmitter.cpp" />
     <ClCompile Include="Race\Vfx\MultiTextureBillboardVfxRenderer.cpp" />
+    <ClCompile Include="Race\Vfx\MultiTextureQuadVfxRenderer.cpp" />
+    <ClCompile Include="Race\Vfx\QuadVfxRenderer.cpp" />
     <ClCompile Include="Race\Vfx\RaceVfxDrawer.cpp" />
     <ClCompile Include="Race\Vfx\SimpleParticleVfxRenderer.cpp" />
     <ClCompile Include="Race\UI\RaceUIController.cpp" />
@@ -183,6 +185,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\shader\fsr1\ffx_a.h" />
     <Content Include="asset\shader\fsr1\ffx_fsr1.h" />
     <Content Include="asset\shader\billboard_vfx.hlsl" />
+    <Content Include="asset\shader\quad_vfx.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_easu_cs.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_rcas_cs.hlsl" />
     <Content Include="asset\shader\gimmick_boost_pad.hlsl" />
@@ -351,6 +354,8 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Vfx\IRaceVfxSystem.h" />
     <ClInclude Include="Race\Vfx\MachineVfxEmitter.h" />
     <ClInclude Include="Race\Vfx\MultiTextureBillboardVfxRenderer.h" />
+    <ClInclude Include="Race\Vfx\MultiTextureQuadVfxRenderer.h" />
+    <ClInclude Include="Race\Vfx\QuadVfxRenderer.h" />
     <ClInclude Include="Race\Vfx\RaceVfxDrawer.h" />
     <ClInclude Include="Race\Vfx\SimpleParticleVfxRenderer.h" />
     <ClInclude Include="Race\RaceControlState.h" />

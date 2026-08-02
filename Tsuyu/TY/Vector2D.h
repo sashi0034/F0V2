@@ -293,6 +293,11 @@ namespace TY
         {
             return {0, 0};
         }
+
+        static constexpr Vector2D One() noexcept
+        {
+            return {1, 1};
+        }
     };
 
     using Double2 = Vector2D<double>;
