@@ -83,8 +83,6 @@ private:
 
     void update() override
     {
-        m_drawer.update();
-
 #if defined(_DEBUG)
         if (s_stopInput)
         {
@@ -110,7 +108,7 @@ private:
             GetRaceContext().machineManager().eventHandler().handleIfNeeded(machine().id());
         }
 
-        ImmediateDrawer::Global().draw();
+        m_drawer.update();
 
         debugUI();
     }

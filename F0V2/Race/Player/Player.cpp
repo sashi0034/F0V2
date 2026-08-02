@@ -69,9 +69,9 @@ private:
 
     void update() override
     {
-        m_drawer.update();
-
         updatePhysics();
+
+        m_drawer.update();
 
         debugUI();
     }
