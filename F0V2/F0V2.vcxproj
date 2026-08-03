@@ -172,6 +172,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Vfx\RaceVfxDrawer.cpp" />
     <ClCompile Include="Race\Vfx\SimpleParticleVfxRenderer.cpp" />
     <ClCompile Include="Race\UI\RaceUIController.cpp" />
+    <ClCompile Include="Util\DoubleTapDetector.cpp" />
     <ClCompile Include="Util\MonitorInfo.cpp" />
     <ClCompile Include="Util\WindowsPlacementAddon.cpp" />
     <Content Include="asset\.gitignore" />
@@ -429,6 +430,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Util\CatmullRom.h" />
     <ClInclude Include="Util\DebugTomlValue.h" />
     <ClInclude Include="Util\DebugUI.h" />
+    <ClInclude Include="Util\DoubleTapDetector.h" />
     <ClInclude Include="Util\ImmediatePrint.h" />
     <ClInclude Include="Util\MonitorInfo.h" />
     <ClInclude Include="Util\Utilities.h" />

@@ -20,6 +20,7 @@
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/Pose.h"
 #include "Util/DebugTomlValue.h"
+#include "Util/DoubleTapDetector.h"
 #include "Util/ImmediatePrint.h"
 
 using namespace Race;
@@ -37,15 +38,12 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
 
     MachineDrawer m_drawer{};
 
-    Float3 m_cameraUp{0, 1, 0};
-
     MachineId m_machineId{PlayerMachineId};
 
     float m_previousAttackedByOtherMachineTime{};
 
-    float m_impulseTurnGracePeriod{};
-
-    MachinePhysicsProps::input_t m_previousInput{};
+    Util::DoubleTapDetector m_rightImpulseTurnDetector{};
+    Util::DoubleTapDetector m_leftImpulseTurnDetector{};
 
     void Init()
     {
@@ -107,6 +105,8 @@ private:
 
     void updatePhysics()
     {
+        const MachinePhysicsProps::input_t previousInput = machine().props.input;
+
         MachinePhysicsProps::input_t input;
 
         if (IsUsingGamepad())
@@ -135,30 +135,20 @@ private:
             input.rightHandling =
                 (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
 
-            input.driftTrigger =
-                (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
-
             input.pitch =
                 (KeyW.pressed() ? -1.0f : (KeyS.pressed() ? 1.0f : 0.0f));
+
+            input.driftTrigger =
+                (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
         }
 
-        // 二連入力処理
-        const bool driftInputReleased = input.driftTrigger == 0.0 && m_previousInput.driftTrigger != 0.0;
-        const bool wantsImpulseTurn =
-            driftInputReleased && Math::Sign(input.rightHandling) == Math::Sign(m_previousInput.driftTrigger);
-        m_impulseTurnGracePeriod = Max(0.0f, m_impulseTurnGracePeriod - InGameDeltaTime());
+        // インパルスターン入力処理 (ダブルタップ)
+        const bool leftImpulseTurn =
+            m_leftImpulseTurnDetector.update(input.rightHandling < -0.1f && input.driftTrigger < 0.0f);
+        const bool rightImpulseTurn =
+            m_rightImpulseTurnDetector.update(input.rightHandling > 0.1f && input.driftTrigger > 0.0f);
 
-        if (m_impulseTurnGracePeriod > 0.0f)
-        {
-            input.impulseTurnRequested = m_impulseTurnGracePeriod > 0.0f && wantsImpulseTurn;
-        }
-        else // m_impulseTurnGracePeriod == 0.0f
-        {
-            if (wantsImpulseTurn)
-            {
-                m_impulseTurnGracePeriod = 0.1f; // 猶予時間
-            }
-        }
+        input.impulseTurnRequested = leftImpulseTurn || rightImpulseTurn;
 
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)
@@ -167,7 +157,6 @@ private:
         }
 #endif
 
-        m_previousInput = machine().props.input;
         machine().props.input = input;
 
 #if defined(_DEBUG)
