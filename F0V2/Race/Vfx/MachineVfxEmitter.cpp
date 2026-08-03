@@ -27,7 +27,7 @@ namespace
         bool hyperTurnWasActive{};
         float hyperTurnEmitCountdown{};
         float hyperTurnParticleDirection{};
-        int hyperTurnEmitParticles{};
+        int hyperTurnParticlesRemaining{};
         float previousAttackedTime{};
         bool initialized{};
     };
@@ -321,6 +321,7 @@ namespace
 
         void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
         {
+            static constexpr int emitCount = 5;
             static constexpr float emitInterval = 0.05f;
 
             const bool hyperTurnIsActive = machine.state.m_hyperTurnTime > 0.0f;
@@ -330,7 +331,7 @@ namespace
             if (hyperTurnStarted)
             {
                 state.hyperTurnEmitCountdown = 0.0f;
-                state.hyperTurnEmitParticles = 0;
+                state.hyperTurnParticlesRemaining = emitCount;
 
                 state.hyperTurnParticleDirection = Math::Sign(machine.state.m_hyperTurn);
                 if (state.hyperTurnParticleDirection == 0.0f)
@@ -339,8 +340,7 @@ namespace
                 }
             }
 
-            static constexpr int emitCount = 5;
-            if (state.hyperTurnEmitParticles > emitCount)
+            if (state.hyperTurnParticlesRemaining <= 0)
             {
                 return;
             }
@@ -362,13 +362,13 @@ namespace
 
             m_particles.push_back(Particle{
                 .targetMachineId = machine.id(),
-                .particleIndex = state.hyperTurnEmitParticles,
+                .particleIndex = emitCount - state.hyperTurnParticlesRemaining,
                 .turnDirection = state.hyperTurnParticleDirection,
                 .lifetime = 0.3f,
             });
 
             state.hyperTurnEmitCountdown += emitInterval;
-            state.hyperTurnEmitParticles++;
+            --state.hyperTurnParticlesRemaining;
         }
 
         void update(const RaceVfxFrameContext& context) override
