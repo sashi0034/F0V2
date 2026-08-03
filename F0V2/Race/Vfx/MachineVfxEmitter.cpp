@@ -25,6 +25,9 @@ namespace
         float driftEmitCountdown{};
         float driftInitialRotation{};
         bool hyperTurnWasActive{};
+        float hyperTurnEmitCountdown{};
+        float hyperTurnParticleDirection{};
+        int hyperTurnEmitParticles{};
         float previousAttackedTime{};
         bool initialized{};
     };
@@ -293,15 +296,16 @@ namespace
         struct Particle
         {
             MachineId targetMachineId{};
+            int particleIndex{};
             float turnDirection{};
             float age{};
-            float lifetime{0.5f};
+            float lifetime{};
         };
 
         MultiTextureQuadVfxRenderer m_renderer{};
         Array<Particle> m_particles{};
 
-        static constexpr int ParticleCapacity = 128;
+        static constexpr int ParticleCapacity = 2048;
 
         void onRegistered() override
         {
@@ -317,25 +321,54 @@ namespace
 
         void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
         {
+            static constexpr float emitInterval = 0.05f;
+
             const bool hyperTurnIsActive = machine.state.m_hyperTurnTime > 0.0f;
             const bool hyperTurnStarted = hyperTurnIsActive && not state.hyperTurnWasActive;
             state.hyperTurnWasActive = hyperTurnIsActive;
 
-            if (not hyperTurnStarted || m_particles.size() >= ParticleCapacity)
+            if (hyperTurnStarted)
+            {
+                state.hyperTurnEmitCountdown = 0.0f;
+                state.hyperTurnEmitParticles = 0;
+
+                state.hyperTurnParticleDirection = Math::Sign(machine.state.m_hyperTurn);
+                if (state.hyperTurnParticleDirection == 0.0f)
+                {
+                    state.hyperTurnParticleDirection = Math::Sign(machine.props.input.rightHandling);
+                }
+            }
+
+            static constexpr int emitCount = 5;
+            if (state.hyperTurnEmitParticles > emitCount)
             {
                 return;
             }
 
-            float turnDirection = Math::Sign(machine.state.m_hyperTurn);
-            if (turnDirection == 0.0f)
+            if (not hyperTurnStarted)
             {
-                turnDirection = Math::Sign(machine.props.input.rightHandling);
+                state.hyperTurnEmitCountdown -= InGameDeltaTime();
+            }
+
+            if (state.hyperTurnEmitCountdown > 0.0f)
+            {
+                return;
+            }
+
+            if (m_particles.size() >= ParticleCapacity)
+            {
+                return;
             }
 
             m_particles.push_back(Particle{
                 .targetMachineId = machine.id(),
-                .turnDirection = turnDirection,
+                .particleIndex = state.hyperTurnEmitParticles,
+                .turnDirection = state.hyperTurnParticleDirection,
+                .lifetime = 0.3f,
             });
+
+            state.hyperTurnEmitCountdown += emitInterval;
+            state.hyperTurnEmitParticles++;
         }
 
         void update(const RaceVfxFrameContext& context) override
@@ -367,14 +400,20 @@ namespace
 
                 const Float3 position = machine.state.m_pose.position - machineForward * (MachineRadius * 1.5f * rate);
 
-                const float rotation = particle.turnDirection * Math::TwoPiF * rate;
-                const Quaternion spin{machineForward, rotation};
+                float rotation = particle.turnDirection * 3.0f * Math::PiF * rate;
+                if (particle.turnDirection < 0.0f)
+                {
+                    rotation += Math::PiF;
+                }
+
+                // rotation += -particle.particleIndex * 0.05f * Math::PiF * particle.turnDirection;
+                const Quaternion spin{machineForward * Math::Sign(particle.turnDirection), rotation};
                 const Quaternion quadRotation = Quaternion::FromAxes(
                     spin.rotate(machineRight),
                     spin.rotate(machineUp),
                     machineForward);
 
-                const float scale = std::lerp(1.0f, 3.0f, rate);
+                float scale = std::lerp(1.0f, 3.0f, rate);
                 const ColorF32 startColor{0.2f, 0.9f, 1.0f, 0.9f};
                 const ColorF32 endColor{0.05f, 0.25f, 1.0f, 0.0f};
 
