@@ -42,8 +42,8 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
 
     float m_previousAttackedByOtherMachineTime{};
 
-    Util::DoubleTapDetector m_rightImpulseTurnDetector{};
-    Util::DoubleTapDetector m_leftImpulseTurnDetector{};
+    Util::DoubleTapDetector m_rightHyperTurnDetector{};
+    Util::DoubleTapDetector m_leftHyperTurnDetector{};
 
     void Init()
     {
@@ -142,13 +142,13 @@ private:
                 (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
         }
 
-        // インパルスターン入力処理 (ダブルタップ)
-        const bool leftImpulseTurn =
-            m_leftImpulseTurnDetector.update(input.rightHandling < -0.1f && input.driftTrigger < 0.0f);
-        const bool rightImpulseTurn =
-            m_rightImpulseTurnDetector.update(input.rightHandling > 0.1f && input.driftTrigger > 0.0f);
+        // ハイパーターン入力処理 (ダブルタップ)
+        const bool leftHyperTurn =
+            m_leftHyperTurnDetector.update(input.rightHandling < -0.1f && input.driftTrigger < 0.0f);
+        const bool rightHyperTurn =
+            m_rightHyperTurnDetector.update(input.rightHandling > 0.1f && input.driftTrigger > 0.0f);
 
-        input.impulseTurnRequested = leftImpulseTurn || rightImpulseTurn;
+        input.hyperTurnRequested = leftHyperTurn || rightHyperTurn;
 
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)

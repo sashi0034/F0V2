@@ -24,7 +24,7 @@ namespace
         Float3 lastBoostEmitPosition{};
         float driftEmitCountdown{};
         float driftInitialRotation{};
-        bool impulseTurnWasActive{};
+        bool hyperTurnWasActive{};
         float previousAttackedTime{};
         bool initialized{};
     };
@@ -288,7 +288,7 @@ namespace
 
     // -----------------------------------------------
 
-    struct ImpulseTurnVfx : IRaceVfxSystem
+    struct HyperTurnVfx : IRaceVfxSystem
     {
         struct Particle
         {
@@ -317,16 +317,16 @@ namespace
 
         void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
         {
-            const bool impulseTurnIsActive = machine.state.m_impulseTurnTime > 0.0f;
-            const bool impulseTurnStarted = impulseTurnIsActive && not state.impulseTurnWasActive;
-            state.impulseTurnWasActive = impulseTurnIsActive;
+            const bool hyperTurnIsActive = machine.state.m_hyperTurnTime > 0.0f;
+            const bool hyperTurnStarted = hyperTurnIsActive && not state.hyperTurnWasActive;
+            state.hyperTurnWasActive = hyperTurnIsActive;
 
-            if (not impulseTurnStarted || m_particles.size() >= ParticleCapacity)
+            if (not hyperTurnStarted || m_particles.size() >= ParticleCapacity)
             {
                 return;
             }
 
-            float turnDirection = Math::Sign(machine.state.m_impulseTurn);
+            float turnDirection = Math::Sign(machine.state.m_hyperTurn);
             if (turnDirection == 0.0f)
             {
                 turnDirection = Math::Sign(machine.props.input.rightHandling);
@@ -496,20 +496,20 @@ struct MachineVfxEmitter::Impl : ActorBase
 
     std::shared_ptr<BoostVfx> m_boostVfx{};
     std::shared_ptr<DriftVfx> m_driftVfx{};
-    std::shared_ptr<ImpulseTurnVfx> m_impulseTurnVfx{};
+    std::shared_ptr<HyperTurnVfx> m_hyperTurnVfx{};
     std::shared_ptr<CollisionVfx> m_collisionVfx{};
 
     void Init()
     {
         m_boostVfx = std::make_shared<BoostVfx>();
         m_driftVfx = std::make_shared<DriftVfx>();
-        m_impulseTurnVfx = std::make_shared<ImpulseTurnVfx>();
+        m_hyperTurnVfx = std::make_shared<HyperTurnVfx>();
         m_collisionVfx = std::make_shared<CollisionVfx>();
 
         auto& vfxDrawer = GetRaceContext().vfxDrawer();
         vfxDrawer.registerVfxSystem(m_boostVfx);
         vfxDrawer.registerVfxSystem(m_driftVfx);
-        vfxDrawer.registerVfxSystem(m_impulseTurnVfx);
+        vfxDrawer.registerVfxSystem(m_hyperTurnVfx);
         vfxDrawer.registerVfxSystem(m_collisionVfx);
     }
 
@@ -532,7 +532,7 @@ private:
 
             m_boostVfx->emitIfNeeded(machine, state);
             m_driftVfx->emitIfNeeded(machine, state);
-            m_impulseTurnVfx->emitIfNeeded(machine, state);
+            m_hyperTurnVfx->emitIfNeeded(machine, state);
             m_collisionVfx->emitIfNeeded(machine, state);
         }
     }
@@ -546,7 +546,7 @@ private:
     {
         auto& vfxDrawer = GetRaceContext().vfxDrawer();
         vfxDrawer.unregisterVfxSystem(m_collisionVfx.get());
-        vfxDrawer.unregisterVfxSystem(m_impulseTurnVfx.get());
+        vfxDrawer.unregisterVfxSystem(m_hyperTurnVfx.get());
         vfxDrawer.unregisterVfxSystem(m_driftVfx.get());
         vfxDrawer.unregisterVfxSystem(m_boostVfx.get());
     }

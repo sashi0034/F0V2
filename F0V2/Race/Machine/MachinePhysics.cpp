@@ -350,39 +350,39 @@ namespace Race
             state.m_passiveBoost = Max<float>(0.0f, state.m_passiveBoost - InGameDeltaTime());
         }
 
-        // インパルスターン
-        const bool canTriggerImpulseTurn = state.m_impulseTurnTime == 0.0f && not state.m_stabilizingAfterImpulseTurn;
-        if (canTriggerImpulseTurn && deviceInput.impulseTurnRequested)
+        // ハイパーターン
+        const bool canTriggerHyperTurn = state.m_hyperTurnTime == 0.0f && not state.m_stabilizingAfterHyperTurn;
+        if (canTriggerHyperTurn && deviceInput.hyperTurnRequested)
         {
             // TODO: 調整
-            state.m_impulseTurnTime = 0.1f;
-            state.m_stabilizingAfterImpulseTurn = false;
+            state.m_hyperTurnTime = 0.1f;
+            state.m_stabilizingAfterHyperTurn = false;
 
             state.m_velocity = state.m_velocity * 0.95f;
         }
 
-        if (state.m_impulseTurnTime > 0.0f)
+        if (state.m_hyperTurnTime > 0.0f)
         {
             // 傾く
             const float impulseIntensity = Min(state.m_velocity.length(), 100.0f) / 100.0f;
-            state.m_impulseTurn += deviceInput.rightHandling * impulseIntensity * InGameDeltaTime();
+            state.m_hyperTurn += deviceInput.rightHandling * impulseIntensity * InGameDeltaTime();
 
-            state.m_impulseTurnTime = Max<float>(0.0f, state.m_impulseTurnTime - InGameDeltaTime());
-            if (state.m_impulseTurnTime == 0.0f)
+            state.m_hyperTurnTime = Max<float>(0.0f, state.m_hyperTurnTime - InGameDeltaTime());
+            if (state.m_hyperTurnTime == 0.0f)
             {
-                state.m_stabilizingAfterImpulseTurn = true;
+                state.m_stabilizingAfterHyperTurn = true;
             }
         }
 
-        if (state.m_stabilizingAfterImpulseTurn)
+        if (state.m_stabilizingAfterHyperTurn)
         {
             // 体制復帰
-            const auto s = Math::Sign(state.m_impulseTurn);
-            state.m_impulseTurn -= s * 10.0f * InGameDeltaTime();
-            if (s != Math::Sign(state.m_impulseTurn))
+            const auto s = Math::Sign(state.m_hyperTurn);
+            state.m_hyperTurn -= s * 10.0f * InGameDeltaTime();
+            if (s != Math::Sign(state.m_hyperTurn))
             {
-                state.m_impulseTurn = 0.0f;
-                state.m_stabilizingAfterImpulseTurn = false;
+                state.m_hyperTurn = 0.0f;
+                state.m_stabilizingAfterHyperTurn = false;
             }
         }
 
@@ -524,16 +524,16 @@ namespace Race
             state.m_forwardVector += state.rightVector() * (rightShift * steeringSensitivity);
             state.m_forwardVector = state.m_forwardVector.normalized();
 
-            if (state.m_impulseTurn != 0.0f)
+            if (state.m_hyperTurn != 0.0f)
             {
                 // 速度偏向
-                state.m_forwardVector += state.rightVector() * state.m_impulseTurn * 1.0f;
+                state.m_forwardVector += state.rightVector() * state.m_hyperTurn * 1.0f;
                 state.m_forwardVector = state.m_forwardVector.normalized();
 
                 // state.m_velocity =
                 //     Quaternion::FromUnitVectors(previousForward, state.m_forwardVector).rotate(state.m_velocity);
 
-                // const float t = Min(0.1f, Abs(state.m_impulseTurn));
+                // const float t = Min(0.1f, Abs(state.m_hyperTurn));
                 // state.m_velocity =
                 //     state.m_velocity.normalized().slerp(state.m_forwardVector, t) * state.m_velocity.length();
 
@@ -545,7 +545,7 @@ namespace Race
                     const Float3 upVelocity = upVector * upVector.dot(state.m_velocity);
                     Float3 v = state.m_velocity - upVelocity;
 
-                    const float t = Min(0.1f, Abs(state.m_impulseTurn));
+                    const float t = Min(0.1f, Abs(state.m_hyperTurn));
                     v = v.length() * v.normalized().safe_slerp(state.m_forwardVector, t, state.m_upVector);
 
                     state.m_velocity = upVelocity + v;
@@ -595,7 +595,7 @@ namespace Race
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
         const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
 
-        const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_impulseTurn) * 2.0f;
+        const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_hyperTurn) * 2.0f;
         const Quaternion rollRotation{slippedForwardVector, -rollAmount};
 
         const Quaternion targetRotation =

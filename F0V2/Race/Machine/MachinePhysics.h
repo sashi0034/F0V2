@@ -38,11 +38,11 @@ namespace Race
 
         float m_pitchRate{};
 
-        float m_impulseTurn{}; // neutral: 0.0f
+        float m_hyperTurn{}; // neutral: 0.0f
 
-        float m_impulseTurnTime{};
+        float m_hyperTurnTime{};
 
-        bool m_stabilizingAfterImpulseTurn{};
+        bool m_stabilizingAfterHyperTurn{};
 
         float m_manualBoost{};
 
@@ -106,7 +106,7 @@ namespace Race
 
             float driftTrigger{}; // [-1.0f, 1.0f]
 
-            bool impulseTurnRequested{};
+            bool hyperTurnRequested{};
 
             float cheatBoostFactor{1.0f};
         } input{};
