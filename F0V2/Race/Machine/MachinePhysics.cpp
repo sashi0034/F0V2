@@ -378,7 +378,7 @@ namespace Race
         {
             // 体制復帰
             const auto s = Math::Sign(state.m_impulseTurn);
-            state.m_impulseTurn -= s * 2.0f * InGameDeltaTime();
+            state.m_impulseTurn -= s * 5.0f * InGameDeltaTime();
             if (s != Math::Sign(state.m_impulseTurn))
             {
                 state.m_impulseTurn = 0.0f;
@@ -595,7 +595,7 @@ namespace Race
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
         const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
 
-        const float rollAmount = deviceInput.rightHandling * 0.5f + state.m_impulseTurn * 100.0f;
+        const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_impulseTurn) * 2.0f;
         const Quaternion rollRotation{slippedForwardVector, -rollAmount};
 
         const Quaternion targetRotation =
