@@ -268,7 +268,7 @@ namespace Race
             }
             else if (state.m_pitchRate > 0.0f)
             {
-                gravityFactor *= 1.0f - state.m_pitchRate * 0.5f;
+                gravityFactor *= 1.0f - state.m_pitchRate * 0.25f;
             }
         }
 
@@ -378,7 +378,7 @@ namespace Race
         {
             // 体制復帰
             const auto s = Math::Sign(state.m_impulseTurn);
-            state.m_impulseTurn -= s * 5.0f * InGameDeltaTime();
+            state.m_impulseTurn -= s * 10.0f * InGameDeltaTime();
             if (s != Math::Sign(state.m_impulseTurn))
             {
                 state.m_impulseTurn = 0.0f;
