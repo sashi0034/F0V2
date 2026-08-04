@@ -528,13 +528,6 @@ namespace Race
                 state.m_forwardVector += state.rightVector() * state.m_hyperTurn * 1.0f;
                 state.m_forwardVector = state.m_forwardVector.normalized();
 
-                // state.m_velocity =
-                //     Quaternion::FromUnitVectors(previousForward, state.m_forwardVector).rotate(state.m_velocity);
-
-                // const float t = Min(0.1f, Abs(state.m_hyperTurn));
-                // state.m_velocity =
-                //     state.m_velocity.normalized().slerp(state.m_forwardVector, t) * state.m_velocity.length();
-
                 const Float3 upVector =
                     (state.m_upVector - state.m_forwardVector * state.m_forwardVector.dot(state.m_upVector))
                     .normalized();
@@ -543,7 +536,7 @@ namespace Race
                     const Float3 upVelocity = upVector * upVector.dot(state.m_velocity);
                     Float3 v = state.m_velocity - upVelocity;
 
-                    const float t = Min(0.1f, Abs(state.m_hyperTurn));
+                    const float t = Min(0.1f, Abs(state.m_hyperTurn)); // TODO: dt 依存にする
                     v = v.length() * v.normalized().safe_slerp(state.m_forwardVector, t, state.m_upVector);
 
                     state.m_velocity = upVelocity + v;
