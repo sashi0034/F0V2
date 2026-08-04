@@ -76,6 +76,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     {
         m_courseFileInfo = GetCourseFileInfoByPath(g_sharedState->coursePath);
 
+        m_cameraController = m_children.birth(RaceCameraController());
+
         m_drawManager = m_children.birth(RaceDrawManager());
         m_drawManager.init();
 
@@ -120,8 +122,6 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     void update() override
     {
-        m_cameraController.update();
-
         m_children.updateEach();
 
         m_state.cb.lambert->lightDirection = m_state.camera.worldMatrix().forward();

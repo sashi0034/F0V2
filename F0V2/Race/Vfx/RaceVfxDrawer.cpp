@@ -126,7 +126,7 @@ private:
 
     float orderPriority() const override
     {
-        return -500.0f;
+        return -750;
     }
 
     void killed() override

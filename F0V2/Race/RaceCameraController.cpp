@@ -25,11 +25,12 @@ namespace
 #endif
 }
 
-struct RaceCameraController::Impl
+struct RaceCameraController::Impl : ActorBase
 {
     Float3 m_cameraUp{0, 1, 0};
 
-    void Update()
+private:
+    void update() override
     {
         debugUI();
 
@@ -78,7 +79,6 @@ struct RaceCameraController::Impl
         GetRaceContextContent().camera.set(eyePos, targetPos, m_cameraUp);
     }
 
-private:
     void computeEyeAndTarget(const MachinePhysicsUnit& machine, Float3& outEye, Float3& outTarget) const
     {
         const Float3 forwardVector = machine.state.m_forwardVector;
@@ -124,6 +124,15 @@ private:
         ImGui::End();
 #endif
     }
+
+    float orderPriority() const override
+    {
+        return -500.0f;
+    }
+
+    void killed() override
+    {
+    }
 };
 
 namespace Race
@@ -133,8 +142,8 @@ namespace Race
     {
     }
 
-    void RaceCameraController::update()
+    std::shared_ptr<ActorBase> RaceCameraController::asActor() const
     {
-        p_impl->Update();
+        return p_impl;
     }
 }
