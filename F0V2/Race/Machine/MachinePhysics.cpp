@@ -268,7 +268,7 @@ namespace Race
             }
             else if (state.m_pitchRate > 0.0f)
             {
-                gravityFactor *= 1.0f - state.m_pitchRate * 0.25f;
+                gravityFactor *= 1.0f - state.m_pitchRate * 0.5f;
             }
         }
 
@@ -440,10 +440,11 @@ namespace Race
             }
         }
 
-        const float viewPitch = 1.5f * state.m_pitchRate;
-        Float3 slippedForwardVector =
-            state.m_forwardVector + state.rightVector() * state.m_driftOffset + state.m_upVector * viewPitch;
+        Float3 slippedForwardVector = state.m_forwardVector + state.rightVector() * state.m_driftOffset;
+        state.m_visualForwardVector = slippedForwardVector + state.m_upVector * state.m_pitchRate;
+
         slippedForwardVector = slippedForwardVector.normalized();
+        state.m_visualForwardVector = state.m_visualForwardVector.normalized();
 
         // 移動処理
         {
@@ -594,25 +595,28 @@ namespace Race
         }
 #endif
 
-        const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
-        const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
-
-        const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_hyperTurn) * 2.0f;
-        const Quaternion rollRotation{slippedForwardVector, -rollAmount};
-
-        const Quaternion targetRotation =
-            Quaternion::FromAxes(
-                rollRotation.rotate(slippedRightVector),
-                rollRotation.rotate(slippedUpVector),
-                slippedForwardVector);
-
-        // 滑らかに回転
-        for (const auto dt : StandardStep_60Hz())
+        // ビューのクォータニオン作成
         {
-            state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 10.0f * dt);
+            const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_hyperTurn) * 2.0f;
+            const Quaternion rollRotation{state.m_visualForwardVector, -rollAmount};
+
+            const Float3 visualRightVector =
+                rollRotation.rotate(state.m_upVector.cross(state.m_visualForwardVector).normalized());
+            const Float3 visualUpVector =
+                rollRotation.rotate(state.m_visualForwardVector.cross(visualRightVector).normalized());
+
+            const Quaternion targetRotation =
+                Quaternion::FromAxes(visualRightVector, visualUpVector, state.m_visualForwardVector);
+
+            // 滑らかに回転
+            for (const auto dt : StandardStep_60Hz())
+            {
+                state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 10.0f * dt);
+            }
         }
 
-        state.m_visualForwardVector = slippedForwardVector; // TODO: state.m_pose.rotation から構築したい
+        const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
+        const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
 
         state.m_upVector = updateUpVector(state);
 
