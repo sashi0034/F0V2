@@ -623,15 +623,15 @@ namespace Race
             const Float3 upVelocity = slippedUpVector * slippedUpVector.dot(state.m_velocity);
 
             Float3 v = state.m_velocity - upVelocity;
-            const float previousSpeedSq = v.lengthSq();
+            const float forwardRightSq = v.lengthSq();
 
             const Float3& fv = slippedForwardVector;
             const Float3& rv = slippedRightVector;
             v = v - rv * rv.dot(v) * InGameDeltaTime() * 0.5f;
 
-            const float f_ = std::sqrt(previousSpeedSq - Math::Square(rv.dot(v)));
+            const float newForwardLength = std::sqrt(forwardRightSq - Math::Square(rv.dot(v)));
             constexpr float attenuation = 0.85f;
-            v = v + fv * (f_ - fv.dot(v)) * attenuation;
+            v = v + fv * (newForwardLength - fv.dot(v)) * attenuation;
 
             // ImmediatePrint_MiddleCenter("{:.02f}", v.length() - std::sqrt(previousSpeedSq));
 
