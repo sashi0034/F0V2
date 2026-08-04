@@ -380,7 +380,7 @@ namespace Race
         {
             // 体制復帰
             const auto s = Math::Sign(state.m_hyperTurn);
-            state.m_hyperTurn -= s * 10.0f * InGameDeltaTime();
+            state.m_hyperTurn -= s * 5.0f * InGameDeltaTime();
             if (s != Math::Sign(state.m_hyperTurn))
             {
                 state.m_hyperTurn = 0.0f;
