@@ -24,7 +24,7 @@ namespace
         {
             // 空中にいるときは滑らかに重力方向へ m_upVector を調整
             Float3 targetUpVector = -state.m_gravity;
-            upVector = upVector.rotatedTowards(targetUpVector, InGameDeltaTime() * 5.0f, state.rightVector());
+            upVector = upVector.rotatedTowards(targetUpVector, InGameDeltaTime() * 5.0f, state.m_upVector);
         }
         else
         {

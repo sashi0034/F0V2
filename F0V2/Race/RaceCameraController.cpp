@@ -63,9 +63,9 @@ private:
         // -----------------------------------------------
 
         m_cameraForward = m_cameraForward.rotatedTowards(
-            machine.state.m_forwardVector, 5.0f * InGameDeltaTime(), machine.state.rightVector());
+            machine.state.m_forwardVector, 5.0f * InGameDeltaTime(), machine.state.m_upVector);
         m_cameraUp = m_cameraUp.rotatedTowards(
-            machine.state.m_upVector, 5.0f * InGameDeltaTime(), machine.state.rightVector());
+            machine.state.m_upVector, 5.0f * InGameDeltaTime(), machine.state.m_forwardVector);
 
         // for (const float dt : StandardStep_60Hz())
         // {
