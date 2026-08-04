@@ -405,9 +405,9 @@ namespace Race
         if (driftTrigger != 0.0f)
         {
             constexpr float maxSlipOffset = 1.0f;
-            const float targetDriftOffset = maxSlipOffset * (driftTrigger * 0.55f + deviceInput.rightHandling * 0.45f);
+            const float targetDriftOffset = maxSlipOffset * (driftTrigger * 1.5f + deviceInput.rightHandling * 1.45f);
 
-            const float d = InGameDeltaTime() * 2.0f;
+            const float d = InGameDeltaTime() * 10.0f;
             if (Abs(targetDriftOffset - state.m_driftOffset) < d)
             {
                 state.m_driftOffset = targetDriftOffset;
