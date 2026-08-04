@@ -43,4 +43,6 @@ namespace TY
     bool IsUsingGamepad();
 
     inline constexpr GamepadInput MainGamepad{};
+
+    constexpr float TriggerButtonThreshold = 30.0f / 255.0f; // NOTE: 30 is defined in XInput.h
 }

@@ -109,6 +109,7 @@ private:
 
         MachinePhysicsProps::input_t input;
 
+        bool leftHyperTurn{}, rightHyperTurn{};
         if (IsUsingGamepad())
         {
             input.accelPressed = MainGamepad.a().pressed ||
@@ -120,11 +121,10 @@ private:
 
             input.pitch = MainGamepad.axisL().y;
 
-            const bool lt = MainGamepad.lt().pressed || MainGamepad.lb().pressed;
-            const bool rt = MainGamepad.rt().pressed || MainGamepad.rb().pressed;
+            input.driftTrigger = -MainGamepad.leftTrigger() + MainGamepad.rightTrigger();
 
-            input.driftTrigger =
-                lt ? -1.0f : (rt ? 1.0f : 0.0f);
+            leftHyperTurn = input.rightHandling < -0.1f && MainGamepad.lb().down;
+            rightHyperTurn = input.rightHandling > 0.1f && MainGamepad.rb().down;
         }
         else
         {
@@ -143,10 +143,10 @@ private:
         }
 
         // ハイパーターン入力処理 (ダブルタップ)
-        const bool leftHyperTurn =
-            m_leftHyperTurnDetector.update(input.rightHandling < -0.1f && input.driftTrigger < 0.0f);
-        const bool rightHyperTurn =
-            m_rightHyperTurnDetector.update(input.rightHandling > 0.1f && input.driftTrigger > 0.0f);
+        leftHyperTurn |=
+            m_leftHyperTurnDetector.update(input.rightHandling < -0.1f && input.driftTrigger < -TriggerButtonThreshold);
+        rightHyperTurn |=
+            m_rightHyperTurnDetector.update(input.rightHandling > 0.1f && input.driftTrigger > TriggerButtonThreshold);
 
         input.hyperTurnRequested = leftHyperTurn || rightHyperTurn;
 

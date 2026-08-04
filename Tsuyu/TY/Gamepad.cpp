@@ -10,9 +10,6 @@ namespace
 {
     GamepadMapping s_mapping{}; // TODO: 複数のゲームパッド対応
 
-    constexpr int GAMEPAD_TRIGGER_THRESHOLD = 30; // defined in XInput.h
-    constexpr float TriggerButtonThreshold = GAMEPAD_TRIGGER_THRESHOLD / 255.0f;
-
     float mappedTriggerValue(const GamepadInputState& state, bool previous = false)
     {
         const auto& axes = previous ? state.previousAxes : state.axes;
