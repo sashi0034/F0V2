@@ -312,7 +312,9 @@ namespace Race
                 const float comboBonus = state.m_boostComboCount * 0.1f; // TODO: 調整
                 state.m_manualBoost = 1.0f + comboBonus;
                 state.m_manualBoostCooldownTime = 2.0f + comboBonus;
-                state.m_boostComboCountdown = state.m_manualBoostCooldownTime + 0.5f;
+
+                const float comboGracePeriod = state.m_boostComboCount == 0 ? 1.0f : 0.5f;
+                state.m_boostComboCountdown = state.m_manualBoostCooldownTime + comboGracePeriod;
 
                 state.m_durability = PositiveF32(state.m_durability - props.boostCost);
 
