@@ -354,10 +354,10 @@ namespace Race
         }
 
         // ハイパーターン
-        const bool canTriggerHyperTurn = state.m_hyperTurnTime == 0.0f && not state.m_stabilizingAfterHyperTurn;
+        const bool canTriggerHyperTurn = state.m_hyperTurnTime == 0.0f; // && not state.m_stabilizingAfterHyperTurn;
         if (canTriggerHyperTurn && deviceInput.hyperTurnRequested)
         {
-            // TODO: 調整
+            state.m_hyperTurn = 0.0f;
             state.m_hyperTurnTime = 0.1f;
             state.m_stabilizingAfterHyperTurn = false;
 
@@ -367,7 +367,7 @@ namespace Race
         if (state.m_hyperTurnTime > 0.0f)
         {
             // 傾く
-            const float impulseIntensity = 1.0 + Min(state.m_velocity.length(), 100.0f) / 100.0f;
+            const float impulseIntensity = 0.5 + Min(state.m_velocity.length(), 100.0f) / 100.0f;
             state.m_hyperTurn += deviceInput.rightHandling * impulseIntensity * InGameDeltaTime();
 
             state.m_hyperTurnTime = Max<float>(0.0f, state.m_hyperTurnTime - InGameDeltaTime());
@@ -564,7 +564,9 @@ namespace Race
         }
 
         // -----------------------------------------------
-        // m_forwardVector
+        // m_upVector, m_forwardVector
+
+        state.m_upVector = updateUpVector(state);
 
         state.m_forwardVector =
             state.m_forwardVector - state.m_upVector * state.m_upVector.dot(state.m_forwardVector);
@@ -604,7 +606,7 @@ namespace Race
 
         // ビューのクォータニオン作成
         {
-            const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_hyperTurn) * 2.0f;
+            const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_hyperTurn) * 0.5f;
             const Quaternion rollRotation{state.m_visualForwardVector, -rollAmount};
 
             const Float3 visualRightVector =
@@ -624,8 +626,6 @@ namespace Race
 
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
         const Float3 slippedUpVector = slippedForwardVector.cross(slippedRightVector).normalized();
-
-        state.m_upVector = updateUpVector(state);
 
         ResolveMachineGroundContact(state);
 
