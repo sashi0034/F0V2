@@ -367,7 +367,7 @@ namespace Race
         if (state.m_hyperTurnTime > 0.0f)
         {
             // 傾く
-            const float impulseIntensity = Min(state.m_velocity.length(), 100.0f) / 100.0f;
+            const float impulseIntensity = 1.0 + Min(state.m_velocity.length(), 100.0f) / 100.0f;
             state.m_hyperTurn += deviceInput.rightHandling * impulseIntensity * InGameDeltaTime();
 
             state.m_hyperTurnTime = Max<float>(0.0f, state.m_hyperTurnTime - InGameDeltaTime());
@@ -420,11 +420,17 @@ namespace Race
         const float driftTrigger = deviceInput.driftTrigger; // state.isHovering() ? 0.0f : deviceInput.driftTrigger;
         if (driftTrigger != 0.0f)
         {
-            state.m_driftOffset += static_cast<float>(driftTrigger) * InGameDeltaTime();
             constexpr float maxSlipOffset = 1.0f;
-            if (Abs(state.m_driftOffset) > maxSlipOffset)
+            const float targetDriftOffset = maxSlipOffset * (driftTrigger * 0.55f + deviceInput.rightHandling * 0.45f);
+
+            const float d = InGameDeltaTime() * 2.0f;
+            if (Abs(targetDriftOffset - state.m_driftOffset) < d)
             {
-                state.m_driftOffset = maxSlipOffset * Math::Sign(state.m_driftOffset);
+                state.m_driftOffset = targetDriftOffset;
+            }
+            else
+            {
+                state.m_driftOffset += Math::Sign(targetDriftOffset - state.m_driftOffset) * d;
             }
 
             updateOutcome.driftInputAccepted = true;
