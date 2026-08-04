@@ -32,6 +32,7 @@ namespace
                 targetUpVector = state.rightVector();
             }
 
+            // TODO: この部分がカメラのカクツキを起こしている可能性があるので修正
             for (const auto dt : StandardStep_60Hz())
             {
                 upVector = upVector.slerp(targetUpVector, dt * 5.0f);
