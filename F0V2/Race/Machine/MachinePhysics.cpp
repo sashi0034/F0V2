@@ -19,17 +19,21 @@ namespace
 {
     Float3 updateUpVector(const MachinePhysicsState& state)
     {
+        Float3 upVector = state.m_upVector;
         if (state.isHovering())
         {
             // 空中にいるときは滑らかに重力方向へ m_upVector を調整
-            return -state.m_gravity;
+            Float3 targetUpVector = -state.m_gravity;
+            upVector = upVector.rotatedTowards(targetUpVector, InGameDeltaTime() * 5.0f, state.rightVector());
         }
         else
         {
             // 地面接触時はその地面の m_surfaceNormal を m_upVector に設定
             assert(not state.m_surfaceNormal.isZero());
-            return state.m_surfaceNormal;
+            upVector = state.m_surfaceNormal;
         }
+
+        return upVector;
     }
 
     // -----------------------------------------------
