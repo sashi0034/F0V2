@@ -31,6 +31,8 @@ namespace TY
         t.insert("axis_ly", axis_ly);
         t.insert("axis_rx", axis_rx);
         t.insert("axis_ry", axis_ry);
+        t.insert("axis_trigger", axis_trigger);
+        t.insert("axis_trigger_inverted", axis_trigger_inverted);
 
         // TODO: ディレクトリが存在しない場合の対処
         try
@@ -80,6 +82,8 @@ namespace TY
         m.axis_ly = t["axis_ly"].value_or(defaultMapping.axis_ly);
         m.axis_rx = t["axis_rx"].value_or(defaultMapping.axis_rx);
         m.axis_ry = t["axis_ry"].value_or(defaultMapping.axis_ry);
+        m.axis_trigger = t["axis_trigger"].value_or(defaultMapping.axis_trigger);
+        m.axis_trigger_inverted = t["axis_trigger_inverted"].value_or(defaultMapping.axis_trigger_inverted);
         return m;
     }
 }

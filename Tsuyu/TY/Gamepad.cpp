@@ -9,6 +9,45 @@ using namespace TY::detail;
 namespace
 {
     GamepadMapping s_mapping{}; // TODO: 複数のゲームパッド対応
+
+    constexpr int GAMEPAD_TRIGGER_THRESHOLD = 30; // defined in XInput.h
+    constexpr float TriggerButtonThreshold = GAMEPAD_TRIGGER_THRESHOLD / 255.0f;
+
+    float mappedTriggerValue(const GamepadInputState& state, bool previous = false)
+    {
+        const auto& axes = previous ? state.previousAxes : state.axes;
+        float value = axes[s_mapping.axis_trigger];
+        if (s_mapping.axis_trigger_inverted)
+        {
+            value = -value;
+        }
+
+        return value;
+    }
+
+    float mappedLeftTrigger(const GamepadInputState& state, bool previous = false)
+    {
+        return std::clamp(mappedTriggerValue(state, previous), 0.0f, 1.0f);
+    }
+
+    float mappedAxisRightTrigger(const GamepadInputState& state, bool previous = false)
+    {
+        return std::clamp(-mappedTriggerValue(state, previous), 0.0f, 1.0f);
+    }
+
+    const GamepadButtonState& triggerButtonState(bool left, const GamepadInputState& state)
+    {
+        static GamepadButtonState ltState{};
+        static GamepadButtonState rtState{};
+
+        GamepadButtonState& result = left ? ltState : rtState;
+        const float current = left ? mappedLeftTrigger(state) : mappedAxisRightTrigger(state);
+        const float previous = left ? mappedLeftTrigger(state, true) : mappedAxisRightTrigger(state, true);
+        result.pressed = current >= TriggerButtonThreshold;
+        result.down = result.pressed && previous < TriggerButtonThreshold;
+        result.up = not result.pressed && previous >= TriggerButtonThreshold;
+        return result;
+    }
 }
 
 namespace TY
@@ -75,11 +114,21 @@ namespace TY
 
     const GamepadButtonState& GamepadInput::lt() const
     {
+        if (s_mapping.axis_trigger >= 0)
+        {
+            return triggerButtonState(true, rawState());
+        }
+
         return rawState().buttons[s_mapping.lt];
     }
 
     const GamepadButtonState& GamepadInput::rt() const
     {
+        if (s_mapping.axis_trigger >= 0)
+        {
+            return triggerButtonState(false, rawState());
+        }
+
         return rawState().buttons[s_mapping.rt];
     }
 
@@ -101,6 +150,24 @@ namespace TY
     Float2 GamepadInput::axisR() const
     {
         return {rawState().axes[s_mapping.axis_rx], rawState().axes[s_mapping.axis_ry]};
+    }
+
+    float GamepadInput::leftTrigger() const
+    {
+        if (s_mapping.axis_trigger >= 0)
+        {
+            return mappedLeftTrigger(rawState());
+        }
+        return rawState().buttons[s_mapping.lt].pressed ? 1.0f : 0.0f;
+    }
+
+    float GamepadInput::rightTrigger() const
+    {
+        if (s_mapping.axis_trigger >= 0)
+        {
+            return mappedAxisRightTrigger(rawState());
+        }
+        return rawState().buttons[s_mapping.rt].pressed ? 1.0f : 0.0f;
     }
 
     Float2 GamepadInput::previousAxisL() const

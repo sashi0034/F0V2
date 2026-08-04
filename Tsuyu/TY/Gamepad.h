@@ -29,6 +29,9 @@ namespace TY
         Float2 axisL() const;
         Float2 axisR() const;
 
+        float leftTrigger() const;
+        float rightTrigger() const;
+
         Float2 previousAxisL() const;
         Float2 previousAxisR() const;
 
