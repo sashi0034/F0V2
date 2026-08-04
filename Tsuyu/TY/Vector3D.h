@@ -247,6 +247,25 @@ namespace TY
             return this->slerp(target, t);
         }
 
+        /// @remark `this`, `target`, and `fallbackAxis` must all be normalized.
+        /// @remark `maxAngleDelta` must be non-negative and is specified in radians.
+        [[nodiscard]] Vector3D rotatedTowards(
+            const Vector3D& target,
+            value_type maxAngleDelta,
+            const Vector3D& fallbackAxis) const
+        {
+            const value_type dot =
+                std::clamp(target.dot(*this), static_cast<value_type>(-1), static_cast<value_type>(1));
+            const value_type angle = std::acos(dot);
+
+            if (angle <= maxAngleDelta)
+            {
+                return target;
+            }
+
+            return this->safe_slerp(target, maxAngleDelta / angle, fallbackAxis);
+        }
+
         [[nodiscard]] value_type lengthSq() const
         {
             return this->dot(*this);

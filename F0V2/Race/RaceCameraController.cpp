@@ -27,6 +27,7 @@ namespace
 
 struct RaceCameraController::Impl : ActorBase
 {
+    Float3 m_cameraForward{0, 0, 1}; // TODO: 初期位置設定
     Float3 m_cameraUp{0, 1, 0};
 
 private:
@@ -61,10 +62,16 @@ private:
 
         // -----------------------------------------------
 
-        for (const float dt : StandardStep_60Hz())
-        {
-            m_cameraUp = m_cameraUp.slerp(machine.state.m_upVector, dt * 5.0f); // TODO: 2.0f などもを試して調整
-        }
+        m_cameraForward = m_cameraForward.rotatedTowards(
+            machine.state.m_forwardVector, 5.0f * InGameDeltaTime(), machine.state.rightVector());
+        m_cameraUp = m_cameraUp.rotatedTowards(
+            machine.state.m_upVector, 5.0f * InGameDeltaTime(), machine.state.rightVector());
+
+        // for (const float dt : StandardStep_60Hz())
+        // {
+        //     m_cameraForward = m_cameraForward.slerp(machine.state.m_forwardVector, dt * 10.0f);
+        //     m_cameraUp = m_cameraUp.slerp(machine.state.m_upVector, dt * 10.0f);
+        // }
 
         Float3 eyePos, targetPos;
         computeEyeAndTarget(machine, eyePos, targetPos);
@@ -81,17 +88,15 @@ private:
 
     void computeEyeAndTarget(const MachinePhysicsUnit& machine, Float3& outEye, Float3& outTarget) const
     {
-        const Float3 forwardVector = machine.state.m_forwardVector;
-
         const float targetUpLength = 5.0f + 0.5f * machine.state.m_pitchRate; // TODO; 改良
 
-        outTarget = machine.state.m_pose.position + machine.state.m_upVector * targetUpLength;
+        outTarget = machine.state.m_pose.position + m_cameraUp * targetUpLength;
 
         constexpr float cameraBackward = 10.0f;
         constexpr float cameraHeight = 5.0f;
 
         const Float3 optimalEyePos =
-            outTarget - forwardVector.normalized() * cameraBackward + m_cameraUp * cameraHeight;
+            outTarget - m_cameraForward * cameraBackward + m_cameraUp * cameraHeight;
 
         const auto ray = LineSegment3D{outTarget, optimalEyePos};
         const auto hit =

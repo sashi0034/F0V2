@@ -19,33 +19,17 @@ namespace
 {
     Float3 updateUpVector(const MachinePhysicsState& state)
     {
-        Float3 upVector = state.m_upVector;
         if (state.isHovering())
         {
             // 空中にいるときは滑らかに重力方向へ m_upVector を調整
-            Float3 targetUpVector = -state.m_gravity;
-
-            if (targetUpVector.dot(upVector) < -0.9f)
-            {
-                // upVector と targetUpVector が真反対のときに毎フレーム upVector を slerp すると、
-                // m_forwardVector までグルグル回転するのでズラす 
-                targetUpVector = state.rightVector();
-            }
-
-            // TODO: この部分がカメラのカクツキを起こしている可能性があるので修正
-            for (const auto dt : StandardStep_60Hz())
-            {
-                upVector = upVector.slerp(targetUpVector, dt * 5.0f);
-            }
+            return -state.m_gravity;
         }
         else
         {
             // 地面接触時はその地面の m_surfaceNormal を m_upVector に設定
             assert(not state.m_surfaceNormal.isZero());
-            upVector = state.m_surfaceNormal;
+            return state.m_surfaceNormal;
         }
-
-        return upVector;
     }
 
     // -----------------------------------------------
