@@ -6,11 +6,12 @@ namespace Race
     {
         Barrier,
         BoostPad_C,
+        // TODO: BoostPad_L,
+        // TODO: BoostPad_R,
         JumpPad_C,
         PitZone_L,
         PitZone_C,
         PitZone_R,
-        PitZone_LR,
         Max // end marker
     };
 

@@ -1,6 +1,6 @@
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'Barrier', 'PitZone_LR' ]
+gimmicks = [ 'Barrier', 'PitZone_L', 'PitZone_R' ]
 pos = [ -365.0, 0.0, 165.0 ]
 roll = 0
 style = 'Road'

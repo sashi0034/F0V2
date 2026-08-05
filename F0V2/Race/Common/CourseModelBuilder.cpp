@@ -1002,13 +1002,6 @@ namespace
                     buildPitZone_Road(model, segment, LCR::R, options);
                 }
                 break;
-            case CourseGimmickKind::PitZone_LR:
-                if (segment.style == CourseSegmentStyle::Road)
-                {
-                    buildPitZone_Road(model, segment, LCR::L, options);
-                    buildPitZone_Road(model, segment, LCR::R, options);
-                }
-                break;
             default:
                 assert(false && "buildGimmickModel(): gimmick kind is not supported.");
                 break;
