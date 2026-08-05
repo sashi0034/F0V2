@@ -513,8 +513,9 @@ namespace
                 // Jump 発生
                 state.m_touchingGimmicks |= GimmickFlag::JumpPad;
 
-                state.m_velocity = state.m_velocity - state.m_gravity * state.m_gravity.dot(state.m_velocity);
-                state.m_velocity = state.m_velocity - state.m_gravity * 50.0;
+                const Float3 jumpDir = hit.triangle.getNormal();
+                state.m_velocity = state.m_velocity - jumpDir * jumpDir.dot(state.m_velocity);
+                state.m_velocity = state.m_velocity + jumpDir * 50.0;
 
                 state.m_surfaceNormal = {};
                 state.m_surfaceToTriangle = {};
