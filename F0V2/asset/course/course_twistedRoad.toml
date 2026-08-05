@@ -114,7 +114,7 @@ width = 50
 centerOffset = 0
 gimmicks = [ 'JumpPad_C' ]
 pos = [ -330.0, 185.0, -315.0 ]
-roll = 30
+roll = 0
 style = 'Pipe'
 width = 50
 
@@ -122,7 +122,7 @@ width = 50
 centerOffset = 0
 gimmicks = [ 'BoostPad_C' ]
 pos = [ -330.0, 50.0, -105.0 ]
-roll = 0
+roll = -55
 style = 'Road'
 width = 50
 
@@ -130,7 +130,7 @@ width = 50
 centerOffset = 0
 gimmicks = [ 'Barrier', 'PitZone_L', 'PitZone_R' ]
 pos = [ -335.0, 30.0, -45.0 ]
-roll = 0
+roll = -55
 style = 'Road'
 width = 50
 
@@ -138,7 +138,7 @@ width = 50
 centerOffset = 0
 gimmicks = [ 'BoostPad_C' ]
 pos = [ -370.0, 40.0, 75.0 ]
-roll = 0
+roll = -55
 style = 'Road'
 width = 50
 
@@ -146,7 +146,7 @@ width = 50
 centerOffset = 0
 gimmicks = []
 pos = [ -425.0, 50.0, 250.0 ]
-roll = 0
+roll = -55
 style = 'Cylinder'
 width = 50
 
@@ -154,7 +154,7 @@ width = 50
 centerOffset = 0
 gimmicks = [ 'BoostPad_L' ]
 pos = [ -450.0, 115.0, 325.0 ]
-roll = 30
+roll = 0
 style = 'Cylinder'
 width = 50
 
