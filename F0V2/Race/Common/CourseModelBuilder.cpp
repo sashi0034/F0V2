@@ -752,7 +752,15 @@ namespace
         });
     }
 
-    void buildBoostPad_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
+    enum class LCR : uint8_t
+    {
+        L,
+        C,
+        R,
+    };
+
+    void buildBoostPad_Road(ModelData& model, const CourseSegment& segment, LCR lcr,
+                            const CourseModelBuilderOptions& options)
     {
         constexpr float padElevation = 0.5f;
         constexpr float padLength = 10.0f;
@@ -768,10 +776,29 @@ namespace
 
         const float padWidth = (s0.rightmost - s0.leftmost).length() / 3.0f;
 
-        const Float3 center = (s0.center + s1.center) * 0.5f + (s0.normal + s1.normal) * 0.5f * padElevation;
         const Float3 normal = (s0.normal + s1.normal).normalized();
         const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
         const Float3 toForward = normal.cross(toRight).normalized();
+
+        float laneOffset{};
+        switch (lcr)
+        {
+        case LCR::L:
+            laneOffset = padWidth;
+            break;
+        case LCR::C:
+            break;
+        case LCR::R:
+            laneOffset = -padWidth;
+            break;
+        default:
+            assert(false);
+            return;
+        }
+
+        const Float3 center = (s0.center + s1.center) * 0.5f
+            + (s0.normal + s1.normal) * 0.5f * padElevation
+            + toRight * laneOffset;
 
         const FaceVertex l0{
             center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
@@ -813,7 +840,8 @@ namespace
         });
     }
 
-    void buildJumpPad_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
+    void buildJumpPad_Road(ModelData& model, const CourseSegment& segment, LCR lcr,
+                           const CourseModelBuilderOptions& options)
     {
         constexpr float padElevation = 0.5f;
         constexpr float padLength = 10.0f;
@@ -829,10 +857,29 @@ namespace
 
         const float padWidth = (s0.rightmost - s0.leftmost).length() / 3.0f;
 
-        const Float3 center = (s0.center + s1.center) * 0.5f + (s0.normal + s1.normal) * 0.5f * padElevation;
         const Float3 normal = (s0.normal + s1.normal).normalized();
         const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
         const Float3 toForward = normal.cross(toRight).normalized();
+
+        float laneOffset{};
+        switch (lcr)
+        {
+        case LCR::L:
+            laneOffset = padWidth;
+            break;
+        case LCR::C:
+            break;
+        case LCR::R:
+            laneOffset = -padWidth;
+            break;
+        default:
+            assert(false);
+            return;
+        }
+
+        const Float3 center = (s0.center + s1.center) * 0.5f
+            + (s0.normal + s1.normal) * 0.5f * padElevation
+            + toRight * laneOffset;
 
         const FaceVertex l0{
             center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
@@ -874,21 +921,14 @@ namespace
         });
     }
 
-    enum class LCR : uint8_t
-    {
-        L,
-        C,
-        R,
-    };
-
     std::pair<Float3, Float3> separateStrip(const CourseStrip& s, LCR lcr)
     {
         switch (lcr)
         {
         case LCR::L:
             return {
-                s.leftmost,
-                Math::Lerp3D(s.leftmost, s.center, 2.0f / 3.0f)
+                Math::Lerp3D(s.center, s.rightmost, 1.0f / 3.0f),
+                s.rightmost
             };
         case LCR::C:
             return {
@@ -897,8 +937,8 @@ namespace
             };
         case LCR::R:
             return {
-                Math::Lerp3D(s.center, s.rightmost, 1.0f / 3.0f),
-                s.rightmost
+                s.leftmost,
+                Math::Lerp3D(s.leftmost, s.center, 2.0f / 3.0f)
             };
         default:
             assert(false);
@@ -972,16 +1012,40 @@ namespace
                     buildBarrier_Road(model, segment, options);
                 }
                 break;
+            case CourseGimmickKind::BoostPad_L:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildBoostPad_Road(model, segment, LCR::L, options);
+                }
+                break;
             case CourseGimmickKind::BoostPad_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildBoostPad_Road(model, segment, options);
+                    buildBoostPad_Road(model, segment, LCR::C, options);
+                }
+                break;
+            case CourseGimmickKind::BoostPad_R:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildBoostPad_Road(model, segment, LCR::R, options);
+                }
+                break;
+            case CourseGimmickKind::JumpPad_L:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildJumpPad_Road(model, segment, LCR::L, options);
                 }
                 break;
             case CourseGimmickKind::JumpPad_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildJumpPad_Road(model, segment, options);
+                    buildJumpPad_Road(model, segment, LCR::C, options);
+                }
+                break;
+            case CourseGimmickKind::JumpPad_R:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildJumpPad_Road(model, segment, LCR::R, options);
                 }
                 break;
             case CourseGimmickKind::PitZone_L:
