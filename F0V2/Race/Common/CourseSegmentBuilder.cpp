@@ -84,7 +84,7 @@ namespace Race
                 segment.side_leftWidth0 = p0_leftWidth;
                 segment.leftWidth1 = p1_leftWidth;
                 segment.leftWidth2 = p2_leftWidth;
-                segment.side_leftWidth3 = p3_rightWidth;
+                segment.side_leftWidth3 = p3_leftWidth;
 
                 segment.side_rightWidth0 = p0_rightWidth;
                 segment.rightWidth1 = p1_rightWidth;
