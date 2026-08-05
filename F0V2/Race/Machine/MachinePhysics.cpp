@@ -24,6 +24,14 @@ namespace
         {
             // 空中にいるときは滑らかに重力方向へ m_upVector を調整
             Float3 targetUpVector = -state.m_gravity;
+
+            if (targetUpVector.dot(upVector) < -0.9f)
+            {
+                // upVector と targetUpVector が真反対のときに毎フレーム upVector を回転させると、
+                // m_forwardVector まで回って逆走することがあるのでズラす 
+                targetUpVector = state.rightVector();
+            }
+
             upVector = upVector.rotatedTowards(targetUpVector, InGameDeltaTime() * 5.0f, state.m_upVector);
         }
         else
