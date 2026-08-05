@@ -96,7 +96,7 @@ private:
         float targetElevation = 5.0f;
         if (targetStrip.style == CourseSegmentStyle::Cylinder)
         {
-            targetElevation += CylinderBaseRadius;
+            targetElevation += CylinderRadius;
         }
 
         const Float3 toPosition =

@@ -96,7 +96,7 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = []
+gimmicks = [ 'BoostPad_R', 'JumpPad_L' ]
 pos = [ -70.0, 20.0, -455.0 ]
 roll = 0
 style = 'Pipe'
@@ -104,7 +104,7 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = []
+gimmicks = [ 'BoostPad_L', 'BoostPad_C', 'JumpPad_R' ]
 pos = [ -315.0, 235.0, -465.0 ]
 roll = 45
 style = 'Pipe'
@@ -112,7 +112,7 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = []
+gimmicks = [ 'JumpPad_C' ]
 pos = [ -330.0, 185.0, -315.0 ]
 roll = 30
 style = 'Pipe'
@@ -152,7 +152,7 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = []
+gimmicks = [ 'BoostPad_L' ]
 pos = [ -450.0, 115.0, 325.0 ]
 roll = 30
 style = 'Cylinder'
@@ -160,7 +160,7 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = []
+gimmicks = [ 'BoostPad_R' ]
 pos = [ -490.0, 240.0, 540.0 ]
 roll = 30
 style = 'Cylinder'

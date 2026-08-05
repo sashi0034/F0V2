@@ -64,7 +64,7 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'Barrier' ]
+gimmicks = [ 'BoostPad_C' ]
 pos = [ -140.0, 50.0, 860.0 ]
 roll = 0
 style = 'Cylinder'

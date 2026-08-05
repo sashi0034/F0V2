@@ -332,7 +332,7 @@ namespace
 
         // -----------------------------------------------
 
-        constexpr float r = 25.0f; // TODO
+        constexpr float r = PipeRadius;
 
         if (hasEntry)
         {
@@ -502,7 +502,7 @@ namespace
 
         // -----------------------------------------------
 
-        constexpr float baseRadius = CylinderBaseRadius;
+        constexpr float baseRadius = CylinderRadius;
 
         constexpr float outerEntryExitRadius = baseRadius * 3.0f;
 
@@ -759,89 +759,28 @@ namespace
         R,
     };
 
-    void buildBoostPad_Road(ModelData& model, const CourseSegment& segment, LCR lcr,
-                            const CourseModelBuilderOptions& options)
+    int getCircularFaceIndex(LCR lcr)
     {
-        constexpr float padElevation = 0.5f;
-        constexpr float padLength = 10.0f;
-
-        const int s0_index = segment.midwayStrips.size() / 2 - 1;
-        if (not InRange<int>(s0_index, 0, segment.midwayStrips.size() - 2))
-        {
-            return;
-        }
-
-        auto& s0 = segment.midwayStrips[s0_index];
-        auto& s1 = segment.midwayStrips[s0_index + 1];
-
-        const float padWidth = (s0.rightmost - s0.leftmost).length() / 3.0f;
-
-        const Float3 normal = (s0.normal + s1.normal).normalized();
-        const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
-        const Float3 toForward = toRight.cross(normal).normalized();
-
-        float laneOffset{};
         switch (lcr)
         {
         case LCR::L:
-            laneOffset = -padWidth;
-            break;
+            return 4;
         case LCR::C:
-            break;
+            return 0;
         case LCR::R:
-            laneOffset = padWidth;
-            break;
+            return 2;
         default:
             assert(false);
-            return;
+            return 0;
         }
-
-        const Float3 center = (s0.center + s1.center) * 0.5f
-            + (s0.normal + s1.normal) * 0.5f * padElevation
-            + toRight * laneOffset;
-
-        const FaceVertex l0{
-            center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex r0{
-            center + toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex l1{
-            center - toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex r1{
-            center + toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
-            normal
-        };
-
-        Array<ModelVertex> vertices(8);
-        Array<uint16_t> indices(12);
-        int v_offset{};
-        int i_offset{};
-
-        pushGimmickFaces(
-            vertices, indices, v_offset, i_offset,
-            l0, r0, l1, r1,
-            GimmickTriangleAttribute::kind_t::BoostPad,
-            options);
-
-        model.shapes.push_back(ModelShape{
-            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "boost_pad",
-            .parameters = {
-                .diffuse = Float3::One()
-            },
-            .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
-        });
     }
 
-    void buildJumpPad_Road(ModelData& model, const CourseSegment& segment, LCR lcr,
-                           const CourseModelBuilderOptions& options)
+    void buildPad_Road(
+        ModelData& model,
+        const CourseSegment& segment,
+        LCR lcr,
+        GimmickTriangleAttribute::kind_t gimmick,
+        const CourseModelBuilderOptions& options)
     {
         constexpr float padElevation = 0.5f;
         constexpr float padLength = 10.0f;
@@ -906,19 +845,151 @@ namespace
         pushGimmickFaces(
             vertices, indices, v_offset, i_offset,
             l0, r0, l1, r1,
-            GimmickTriangleAttribute::kind_t::JumpPad,
+            gimmick,
             options);
 
         model.shapes.push_back(ModelShape{
             std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
         });
-        model.materials.push_back({
-            .name = "jump_pad",
-            .parameters = {
-                .diffuse = Float3::One()
-            },
-            .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
+
+        if (gimmick == GimmickTriangleAttribute::kind_t::BoostPad)
+        {
+            model.materials.push_back({
+                .name = "boost_pad",
+                .parameters = {
+                    .diffuse = Float3::One()
+                },
+                .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
+            });
+        }
+        else
+        {
+            assert(gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
+            model.materials.push_back({
+                .name = "jump_pad",
+                .parameters = {
+                    .diffuse = Float3::One()
+                },
+                .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
+            });
+        }
+    }
+
+    void buildPad_Circular(
+        ModelData& model,
+        const CourseSegment& segment,
+        LCR lcr,
+        GimmickTriangleAttribute::kind_t gimmick,
+        const CourseModelBuilderOptions& options)
+    {
+        constexpr float padElevation = 0.5f;
+        constexpr float padLength = 10.0f;
+        static_assert(PipeSubdivision == CylinderSubdivision);
+
+        const int s0_index = segment.midwayStrips.size() / 2 - 1;
+        if (not InRange<int>(s0_index, 0, segment.midwayStrips.size() - 2))
+        {
+            return;
+        }
+
+        const auto& s0 = segment.midwayStrips[s0_index];
+        const auto& s1 = segment.midwayStrips[s0_index + 1];
+
+        const int faceIndex0 = getCircularFaceIndex(lcr);
+        const int faceIndex1 = (faceIndex0 + 1) % PipeSubdivision;
+        const float radius = segment.style == CourseSegmentStyle::Pipe
+                                 ? PipeRadius
+                                 : CylinderRadius;
+
+        const auto createFaceVertices = [&](const CourseStrip& strip)
+            -> std::pair<FaceVertex, FaceVertex>
+        {
+            const Float3& n0 = strip.pipe.ringVectors[faceIndex0];
+            const Float3& n1 = strip.pipe.ringVectors[faceIndex1];
+
+            if (segment.style == CourseSegmentStyle::Pipe)
+            {
+                return {
+                    FaceVertex{strip.center + n0 * radius, -n0},
+                    FaceVertex{strip.center + n1 * radius, -n1}
+                };
+            }
+            else // Cylinder
+            {
+                return {
+                    FaceVertex{strip.center + n1 * radius, n1},
+                    FaceVertex{strip.center + n0 * radius, n0}
+                };
+            }
+        };
+
+        const auto [surfaceL0, surfaceR0] = createFaceVertices(s0);
+        const auto [surfaceL1, surfaceR1] = createFaceVertices(s1);
+
+        const Float3 normal =
+            (surfaceL0.normal + surfaceR0.normal + surfaceL1.normal + surfaceR1.normal).normalized();
+        const Float3 toRight =
+            ((surfaceR0.pos - surfaceL0.pos) + (surfaceR1.pos - surfaceL1.pos)).normalized();
+        const Float3 toForward = toRight.cross(normal).normalized();
+        const float padWidth =
+            ((surfaceR0.pos - surfaceL0.pos).length() + (surfaceR1.pos - surfaceL1.pos).length()) * 0.5f;
+        const Float3 center =
+            (surfaceL0.pos + surfaceR0.pos + surfaceL1.pos + surfaceR1.pos) * 0.25f
+            + normal * padElevation;
+
+        const FaceVertex l0{
+            center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex r0{
+            center + toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex l1{
+            center - toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex r1{
+            center + toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
+            normal
+        };
+
+        Array<ModelVertex> vertices(8);
+        Array<uint16_t> indices(12);
+        int v_offset{};
+        int i_offset{};
+
+        pushGimmickFaces(
+            vertices, indices, v_offset, i_offset,
+            l0, r0, l1, r1,
+            gimmick,
+            options);
+
+        model.shapes.push_back(ModelShape{
+            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
         });
+
+        if (gimmick == GimmickTriangleAttribute::kind_t::BoostPad)
+        {
+            model.materials.push_back({
+                .name = "boost_pad",
+                .parameters = {
+                    .diffuse = Float3::One()
+                },
+                .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
+            });
+        }
+        else
+        {
+            assert(gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
+            model.materials.push_back({
+                .name = "jump_pad",
+                .parameters = {
+                    .diffuse = Float3::One()
+                },
+                .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
+            });
+        }
     }
 
     std::pair<Float3, Float3> separateStrip(const CourseStrip& s, LCR lcr)
@@ -1015,37 +1086,79 @@ namespace
             case CourseGimmickKind::BoostPad_L:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildBoostPad_Road(model, segment, LCR::L, options);
+                    buildPad_Road(
+                        model, segment, LCR::L, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::L, GimmickTriangleAttribute::kind_t::BoostPad, options);
                 }
                 break;
             case CourseGimmickKind::BoostPad_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildBoostPad_Road(model, segment, LCR::C, options);
+                    buildPad_Road(
+                        model, segment, LCR::C, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::C, GimmickTriangleAttribute::kind_t::BoostPad, options);
                 }
                 break;
             case CourseGimmickKind::BoostPad_R:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildBoostPad_Road(model, segment, LCR::R, options);
+                    buildPad_Road(
+                        model, segment, LCR::R, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::R, GimmickTriangleAttribute::kind_t::BoostPad, options);
                 }
                 break;
             case CourseGimmickKind::JumpPad_L:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildJumpPad_Road(model, segment, LCR::L, options);
+                    buildPad_Road(
+                        model, segment, LCR::L, GimmickTriangleAttribute::kind_t::JumpPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::L, GimmickTriangleAttribute::kind_t::JumpPad, options);
                 }
                 break;
             case CourseGimmickKind::JumpPad_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildJumpPad_Road(model, segment, LCR::C, options);
+                    buildPad_Road(
+                        model, segment, LCR::C, GimmickTriangleAttribute::kind_t::JumpPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::C, GimmickTriangleAttribute::kind_t::JumpPad, options);
                 }
                 break;
             case CourseGimmickKind::JumpPad_R:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildJumpPad_Road(model, segment, LCR::R, options);
+                    buildPad_Road(
+                        model, segment, LCR::R, GimmickTriangleAttribute::kind_t::JumpPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::R, GimmickTriangleAttribute::kind_t::JumpPad, options);
                 }
                 break;
             case CourseGimmickKind::PitZone_L:
