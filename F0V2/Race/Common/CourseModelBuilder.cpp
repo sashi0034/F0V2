@@ -56,10 +56,10 @@ namespace
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, uvRect.tr()};
+        vertices[v_offset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 2;
@@ -71,10 +71,10 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, uvRect.tr()};
+        vertices[v_offset] = ModelVertex{r1.pos, -r1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{l1.pos, -l1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{r0.pos, -r0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{l0.pos, -l0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 1;
@@ -89,27 +89,27 @@ namespace
         if (options.outCollider)
         {
             const std::array normals_00_10_01_11{
-                /* 00: */ l0.normal, /* 10: */ r0.normal, /* 01: */ l1.normal, /* 11: */ r1.normal
+                /* 00: */ r0.normal, /* 10: */ l0.normal, /* 01: */ r1.normal, /* 11: */ l1.normal
             };
 
-            // 01 +-----+ 11
+            // 11 +-----+ 01
             //    |\    |
             //    | \   |
             //    |  C  |
             //    | D \ |
             //    |    \|
-            // 00 +-----+ 10
+            // 10 +-----+ 00
 
-            const Float3& p00 = l0.pos;
-            const Float3& p10 = r0.pos;
-            const Float3& p01 = l1.pos;
-            const Float3& p11 = r1.pos;
+            const Float3& p00 = r0.pos;
+            const Float3& p10 = l0.pos;
+            const Float3& p01 = r1.pos;
+            const Float3& p11 = l1.pos;
 
             const Float3 C = (p10 + p01) * 0.5f;
             const Float3 D = (p00 + p10 + p01 + p11) * 0.25f;
             const Float3 CD = D - C;
 
-            const Float3 N = l0.normal + r0.normal + l1.normal + r1.normal;
+            const Float3 N = r0.normal + l0.normal + r1.normal + l1.normal;
 
             // 双曲面が二つの三角形の上側に張るようにする
             if (CD.dot(N) >= 0)
@@ -170,10 +170,10 @@ namespace
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, uvRect.tr()};
+        vertices[v_offset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 2;
@@ -185,10 +185,10 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, uvRect.tr()};
+        vertices[v_offset] = ModelVertex{r1.pos, -r1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{l1.pos, -l1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{r0.pos, -r0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{l0.pos, -l0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 1;
@@ -203,14 +203,14 @@ namespace
         if (options.outCollider)
         {
             options.outCollider->gimmickTris.push_back(IndexedTriangle{
-                l1.pos, l0.pos, r1.pos, options.outCollider->gimmickAttrs.size()
+                r1.pos, r0.pos, l1.pos, options.outCollider->gimmickAttrs.size()
             });
             options.outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
                 gimmick
             });
 
             options.outCollider->gimmickTris.push_back(IndexedTriangle{
-                r1.pos, l0.pos, r0.pos, options.outCollider->gimmickAttrs.size()
+                l1.pos, r0.pos, l0.pos, options.outCollider->gimmickAttrs.size()
             });
             options.outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
                 gimmick
@@ -531,8 +531,8 @@ namespace
                 cap_r0.normal = s0.normal;
 
                 {
-                    const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
-                    const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
+                    const float angle0 = Math::HalfPiF + t0 * Math::Pi_v<float>;
+                    const float angle1 = Math::HalfPiF + t1 * Math::Pi_v<float>;
                     const Float3 v0 = Quaternion(axis, angle0).rotate(n).normalized();
                     const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
 
@@ -604,19 +604,19 @@ namespace
             // 円周上の面作成
             for (int i0 = 0; i0 < subdivision; ++i0)
             {
-                const int i1 = (i0 - 1 + subdivision) % subdivision;
+                const int i1 = (i0 + 1) % subdivision;
 
                 FaceVertex l0, r0, l1, r1;
 
-                l0.pos = s0.center + n0s[i0] * radius0;
-                r0.pos = s0.center + n0s[i1] * radius0;
-                l1.pos = s1.center + n1s[i0] * radius1;
-                r1.pos = s1.center + n1s[i1] * radius1;
+                r0.pos = s0.center + n0s[i0] * radius0;
+                l0.pos = s0.center + n0s[i1] * radius0;
+                r1.pos = s1.center + n1s[i0] * radius1;
+                l1.pos = s1.center + n1s[i1] * radius1;
 
-                l0.normal = n0s[i0];
-                r0.normal = n0s[i1];
-                l1.normal = n1s[i0];
-                r1.normal = n1s[i1];
+                r0.normal = n0s[i0];
+                l0.normal = n0s[i1];
+                r1.normal = n1s[i0];
+                l1.normal = n1s[i1];
 
                 pushGroundFaces(
                     vertices, indices, v_offset, i_offset,
@@ -645,8 +645,8 @@ namespace
                 FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
 
                 {
-                    const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
-                    const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
+                    const float angle0 = Math::HalfPiF + t0 * Math::Pi_v<float>;
+                    const float angle1 = Math::HalfPiF + t1 * Math::Pi_v<float>;
                     const Float3 v0 = Quaternion(axis, angle0).rotate(n).normalized();
                     const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
 
@@ -778,18 +778,18 @@ namespace
 
         const Float3 normal = (s0.normal + s1.normal).normalized();
         const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
-        const Float3 toForward = normal.cross(toRight).normalized();
+        const Float3 toForward = toRight.cross(normal).normalized();
 
         float laneOffset{};
         switch (lcr)
         {
         case LCR::L:
-            laneOffset = padWidth;
+            laneOffset = -padWidth;
             break;
         case LCR::C:
             break;
         case LCR::R:
-            laneOffset = -padWidth;
+            laneOffset = padWidth;
             break;
         default:
             assert(false);
@@ -859,18 +859,18 @@ namespace
 
         const Float3 normal = (s0.normal + s1.normal).normalized();
         const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
-        const Float3 toForward = normal.cross(toRight).normalized();
+        const Float3 toForward = toRight.cross(normal).normalized();
 
         float laneOffset{};
         switch (lcr)
         {
         case LCR::L:
-            laneOffset = padWidth;
+            laneOffset = -padWidth;
             break;
         case LCR::C:
             break;
         case LCR::R:
-            laneOffset = -padWidth;
+            laneOffset = padWidth;
             break;
         default:
             assert(false);
@@ -927,8 +927,8 @@ namespace
         {
         case LCR::L:
             return {
-                Math::Lerp3D(s.center, s.rightmost, 1.0f / 3.0f),
-                s.rightmost
+                s.leftmost,
+                Math::Lerp3D(s.leftmost, s.center, 2.0f / 3.0f)
             };
         case LCR::C:
             return {
@@ -937,8 +937,8 @@ namespace
             };
         case LCR::R:
             return {
-                s.leftmost,
-                Math::Lerp3D(s.leftmost, s.center, 2.0f / 3.0f)
+                Math::Lerp3D(s.center, s.rightmost, 1.0f / 3.0f),
+                s.rightmost
             };
         default:
             assert(false);

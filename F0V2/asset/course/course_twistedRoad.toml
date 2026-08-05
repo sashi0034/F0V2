@@ -7,7 +7,7 @@ style = 'Road'
 width = 50
 
 [[nodes]]
-centerOffset = 5
+centerOffset = -5
 gimmicks = [ 'Barrier' ]
 pos = [ -10.0, -20.0, 20.0 ]
 roll = -15
@@ -15,7 +15,7 @@ style = 'Road'
 width = 50
 
 [[nodes]]
-centerOffset = 5
+centerOffset = -5
 gimmicks = [ 'Barrier', 'BoostPad_C' ]
 pos = [ 55.0, 20.0, 100.0 ]
 roll = -75
