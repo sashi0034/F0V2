@@ -265,7 +265,7 @@ namespace Race
             }
             else if (state.m_pitchRate > 0.0f)
             {
-                gravityFactor *= 1.0f - state.m_pitchRate * 0.5f;
+                gravityFactor *= 1.0f - state.m_pitchRate * 0.25f;
             }
         }
 

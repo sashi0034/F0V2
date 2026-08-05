@@ -120,6 +120,10 @@ private:
             input.rightHandling = MainGamepad.axisL().x;
 
             input.pitch = MainGamepad.axisL().y;
+            if (Abs(input.pitch) < 0.1f) // dead zone
+            {
+                input.pitch = 0.0f;
+            }
 
             input.driftTrigger = -MainGamepad.leftTrigger() + MainGamepad.rightTrigger();
 
