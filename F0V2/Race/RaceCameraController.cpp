@@ -64,14 +64,14 @@ private:
 
         m_cameraForward = m_cameraForward.rotatedTowards(
             machine.state.m_forwardVector, 5.0f * InGameDeltaTime(), machine.state.m_upVector);
-        m_cameraUp = m_cameraUp.rotatedTowards(
-            machine.state.m_upVector, 5.0f * InGameDeltaTime(), machine.state.m_forwardVector);
+        // m_cameraUp = m_cameraUp.rotatedTowards(
+        //     machine.state.m_upVector, 5.0f * InGameDeltaTime(), machine.state.m_forwardVector);
 
-        // for (const float dt : StandardStep_60Hz())
-        // {
-        //     m_cameraForward = m_cameraForward.slerp(machine.state.m_forwardVector, dt * 10.0f);
-        //     m_cameraUp = m_cameraUp.slerp(machine.state.m_upVector, dt * 10.0f);
-        // }
+        for (const float dt : StandardStep_60Hz())
+        {
+            // m_cameraForward = m_cameraForward.slerp(machine.state.m_forwardVector, dt * 10.0f);
+            m_cameraUp = m_cameraUp.slerp(machine.state.m_upVector, dt * 10.0f);
+        }
 
         Float3 eyePos, targetPos;
         computeEyeAndTarget(machine, eyePos, targetPos);
