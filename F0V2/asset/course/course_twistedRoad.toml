@@ -175,7 +175,7 @@ style = 'Cylinder'
 width = 50
 
 [[nodes]]
-centerOffset = 0
+centerOffset = 5
 gimmicks = [ 'BoostPad_L' ]
 pos = [ -200.0, 315.0, 505.0 ]
 roll = -55
