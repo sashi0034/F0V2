@@ -17,7 +17,7 @@ width = 50
 [[nodes]]
 centerOffset = -5
 gimmicks = [ 'Barrier', 'BoostPad_C' ]
-pos = [ 55.0, 20.0, 100.0 ]
+pos = [ 55.0, 15.0, 100.0 ]
 roll = -75
 style = 'Road'
 width = 65
@@ -96,8 +96,8 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'BoostPad_R', 'JumpPad_L' ]
-pos = [ -70.0, 20.0, -455.0 ]
+gimmicks = [ 'BoostPad_C', 'BoostPad_R', 'JumpPad_L' ]
+pos = [ -30.0, 0.0, -490.0 ]
 roll = 0
 style = 'Pipe'
 width = 50
@@ -105,23 +105,23 @@ width = 50
 [[nodes]]
 centerOffset = 0
 gimmicks = [ 'BoostPad_L', 'BoostPad_C', 'JumpPad_R' ]
-pos = [ -315.0, 235.0, -465.0 ]
-roll = 45
+pos = [ -355.0, 10.0, -710.0 ]
+roll = -15
 style = 'Pipe'
 width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'JumpPad_C' ]
-pos = [ -330.0, 185.0, -315.0 ]
-roll = 0
+gimmicks = []
+pos = [ -460.0, -10.0, -465.0 ]
+roll = -15
 style = 'Pipe'
 width = 50
 
 [[nodes]]
 centerOffset = 0
 gimmicks = [ 'BoostPad_C' ]
-pos = [ -330.0, 50.0, -105.0 ]
+pos = [ -520.0, 5.0, -225.0 ]
 roll = -55
 style = 'Road'
 width = 50
@@ -129,7 +129,7 @@ width = 50
 [[nodes]]
 centerOffset = 0
 gimmicks = [ 'Barrier', 'PitZone_L', 'PitZone_R' ]
-pos = [ -335.0, 30.0, -45.0 ]
+pos = [ -510.0, -10.0, -85.0 ]
 roll = -55
 style = 'Road'
 width = 50
@@ -137,8 +137,8 @@ width = 50
 [[nodes]]
 centerOffset = 0
 gimmicks = [ 'BoostPad_C' ]
-pos = [ -370.0, 40.0, 75.0 ]
-roll = -55
+pos = [ -420.0, 40.0, 150.0 ]
+roll = -15
 style = 'Road'
 width = 50
 
@@ -146,9 +146,9 @@ width = 50
 centerOffset = 0
 gimmicks = []
 pos = [ -425.0, 50.0, 250.0 ]
-roll = -55
+roll = 0
 style = 'Cylinder'
-width = 50
+width = 80
 
 [[nodes]]
 centerOffset = 0
@@ -156,12 +156,12 @@ gimmicks = [ 'BoostPad_L' ]
 pos = [ -450.0, 115.0, 325.0 ]
 roll = 0
 style = 'Cylinder'
-width = 50
+width = 60
 
 [[nodes]]
 centerOffset = 0
 gimmicks = [ 'BoostPad_R' ]
-pos = [ -490.0, 240.0, 540.0 ]
+pos = [ -430.0, 240.0, 425.0 ]
 roll = 30
 style = 'Cylinder'
 width = 50
@@ -169,15 +169,15 @@ width = 50
 [[nodes]]
 centerOffset = 0
 gimmicks = []
-pos = [ -385.0, 340.0, 555.0 ]
+pos = [ -370.0, 305.0, 465.0 ]
 roll = 0
 style = 'Cylinder'
 width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'BoostPad_C' ]
-pos = [ -215.0, 315.0, 475.0 ]
+gimmicks = [ 'BoostPad_L' ]
+pos = [ -200.0, 315.0, 505.0 ]
 roll = -55
 style = 'Road'
 width = 50
@@ -185,7 +185,7 @@ width = 50
 [[nodes]]
 centerOffset = 0
 gimmicks = []
-pos = [ -85.0, 215.0, 455.0 ]
+pos = [ -80.0, 210.0, 480.0 ]
 roll = -30
 style = 'Gap'
 width = 65
@@ -225,7 +225,7 @@ width = 65
 [[nodes]]
 centerOffset = 0
 gimmicks = [ 'Barrier' ]
-pos = [ 15.0, 65.0, 435.0 ]
+pos = [ 5.0, 65.0, 435.0 ]
 roll = 45
 style = 'Road'
 width = 100
@@ -241,7 +241,7 @@ width = 75
 [[nodes]]
 centerOffset = 0
 gimmicks = [ 'Barrier' ]
-pos = [ 270.0, 35.0, 480.0 ]
+pos = [ 230.0, 35.0, 465.0 ]
 roll = -15
 style = 'Road'
 width = 60
@@ -249,7 +249,7 @@ width = 60
 [[nodes]]
 centerOffset = 0
 gimmicks = []
-pos = [ 290.0, 40.0, 390.0 ]
+pos = [ 250.0, 40.0, 380.0 ]
 roll = -15
 style = 'Road'
 width = 60
@@ -265,7 +265,7 @@ width = 75
 [[nodes]]
 centerOffset = 0
 gimmicks = []
-pos = [ -85.0, -10.0, 210.0 ]
+pos = [ -105.0, -5.0, 240.0 ]
 roll = -30
 style = 'Cylinder'
 width = 75
