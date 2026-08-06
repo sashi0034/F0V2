@@ -311,10 +311,10 @@ namespace
         constexpr int halfSubdivision0 = subdivision / 2;
         constexpr int halfSubdivision1 = halfSubdivision0 + 1;
 
-        const int hasEntry = segment.midwayStrips.size() >= PipeEntryExitStrips &&
+        const int hasEntry = segment.midwayStrips.size() > PipeEntryExitStrips &&
             segment.midwayStrips[0].style != CourseSegmentStyle::Pipe;
 
-        const bool hasExit = segment.midwayStrips.size() >= PipeEntryExitStrips &&
+        const bool hasExit = segment.midwayStrips.size() > PipeEntryExitStrips &&
             segment.midwayStrips[segment.midwayStrips.size() - 1].style != CourseSegmentStyle::Pipe;
 
         const int pipeStrips = segment.midwayStrips.size() - (hasEntry + hasExit) * PipeEntryExitStrips;
@@ -480,10 +480,10 @@ namespace
         constexpr int subdivision = CylinderSubdivision;
         constexpr int entryExitSubdivision = CylinderSubdivision * 2;
 
-        const int hasEntry = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
+        const int hasEntry = segment.midwayStrips.size() > CylinderEntryExitStrips &&
             segment.midwayStrips[0].style != CourseSegmentStyle::Cylinder;
 
-        const bool hasExit = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
+        const bool hasExit = segment.midwayStrips.size() > CylinderEntryExitStrips &&
             segment.midwayStrips[segment.midwayStrips.size() - 1].style != CourseSegmentStyle::Cylinder;
 
         constexpr int innerEntryExitStrips = CylinderEntryExitStrips / 2;
