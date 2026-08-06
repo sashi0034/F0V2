@@ -218,7 +218,7 @@ private:
         await.waitForTrue([&]()
         {
             const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
-            return player.state.m_lapProgress.lapIndex == 3;
+            return player.state.m_markedLapProgress.lapIndex == 3; // m_lapProgress のほうが面白いかも?
         });
 
 #if defined(_DEBUG)
@@ -340,7 +340,6 @@ private:
 
         Audio::StopAllSounds();
         Audio::StopMusic();
-
     }
 };
 

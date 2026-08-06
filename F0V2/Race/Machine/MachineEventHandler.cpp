@@ -111,6 +111,7 @@ private:
         state.m_upVector = targetStrip.normal;
         state.m_velocity = {};
         state.m_durability = PositiveF32{state.m_durability - 1000.0f};
+        state.m_lapProgress = state.m_markedLapProgress;
 
         await.waitForExpired(
             StartEasing<EaseInOutBack>(m_children, rate, 1.0f, 3.0s)
