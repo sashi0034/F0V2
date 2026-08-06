@@ -414,10 +414,13 @@ namespace Race
 
         // ドリフト操作
         const float driftTrigger = deviceInput.driftTrigger; // state.isHovering() ? 0.0f : deviceInput.driftTrigger;
+        constexpr float maxDriftOffset = 2.5f;
         if (driftTrigger != 0.0f)
         {
-            constexpr float maxSlipOffset = 1.0f;
-            const float targetDriftOffset = maxSlipOffset * (driftTrigger * 1.5f + deviceInput.rightHandling * 1.45f);
+            constexpr float boundary = 0.05f;
+            constexpr float handlingRange = (maxDriftOffset) * 0.5f - boundary * 0.5f;
+            constexpr float driftPivot = maxDriftOffset * 0.5f + boundary * 0.5f;
+            const float targetDriftOffset = driftTrigger * driftPivot + deviceInput.rightHandling * handlingRange;
 
             const float d = InGameDeltaTime() * 10.0f;
             if (Abs(targetDriftOffset - state.m_driftOffset) < d)
@@ -435,7 +438,7 @@ namespace Race
         if (Math::Sign(driftTrigger) != Math::Sign(state.m_driftOffset))
         {
             // ドリフト量を減らす
-            const float delta = 10.0f * InGameDeltaTime(); // > 0
+            const float delta = 15.0f * InGameDeltaTime(); // > 0
             state.m_driftOffset -= delta * Math::Sign(state.m_driftOffset);
             if (Abs(state.m_driftOffset) < delta)
             {
@@ -504,19 +507,8 @@ namespace Race
             float rightShift;
             if (state.m_driftOffset != 0.0f)
             {
-                float r = rightHandling * std::sqrtf(Abs(state.m_driftOffset)) * Math::Sign(state.m_driftOffset);
-                constexpr float boundaryR = 0.5f;
-                if (r < 0.0f)
-                {
-                    // r = boundaryR - boundaryR * (1.0f - 1.0f / (1.0f + r * r));
-                    r = boundaryR / (1.0f - r);
-                }
-                else
-                {
-                    constexpr float driftFactor = 0.5f; // TODO: マシンごとのパラメータにする
-                    r = boundaryR + driftFactor * r;
-                }
-
+                float r = Abs(state.m_driftOffset / maxDriftOffset);
+                r = Math::Lerp(0.2f, 1.0f, r);
                 r *= Math::Sign(state.m_driftOffset);
 
                 rightShift = r;
