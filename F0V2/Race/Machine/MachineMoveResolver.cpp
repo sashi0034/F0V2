@@ -515,7 +515,7 @@ namespace
 
                 const Float3 jumpDir = hit.triangle.getNormal();
                 state.m_velocity = state.m_velocity - jumpDir * jumpDir.dot(state.m_velocity);
-                state.m_velocity = state.m_velocity + jumpDir * 50.0;
+                state.m_velocity = state.m_velocity + jumpDir * 100.0;
 
                 state.m_surfaceNormal = {};
                 state.m_surfaceToTriangle = {};
