@@ -29,7 +29,11 @@ namespace
             {
                 // upVector と targetUpVector が真反対のときに毎フレーム upVector を回転させると、
                 // m_forwardVector まで回って逆走することがあるのでズラす 
-                targetUpVector = state.rightVector();
+                const auto directionToNext =
+                    GetRaceContext().stageManager().courseSegments()[state.m_lapProgress.segmentIndex]
+                    .midwayStrips[state.m_lapProgress.stripIndex].toNext.normalized();
+                const Float3 rv = state.rightVector();
+                targetUpVector = directionToNext.dot(rv) > 0.0f ? -rv : rv;
             }
 
             upVector = upVector.rotatedTowards(targetUpVector, InGameDeltaTime() * 5.0f, state.m_upVector);
