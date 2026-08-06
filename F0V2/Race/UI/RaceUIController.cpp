@@ -68,7 +68,7 @@ private:
         const auto& player = GetRaceContext().machineManager().machineList()[PlayerMachineId];
 
         // スピードメーター
-        DrawLabelText(ToUtf32(std::format("{:.0f} km/h", player.state.m_velocity.length() * 10.0f)),
+        DrawLabelText(ToUtf32(std::format("{:.0f} km/h", player.state.m_velocity.length() * VelocityDisplayFactor)),
                       28.0f,
                       Screen::SizeF().movedBy(-32.0f, -20.0f),
 

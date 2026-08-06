@@ -176,15 +176,19 @@ namespace
         const float currentVelocity = state.m_velocity.length();
         const float targetVelocity = props.peakVelocity;
 
-        float dv = targetVelocity - currentVelocity;
-        dv = Max(dv, 0.1f);
+        const float dv = Max(targetVelocity - currentVelocity, 0.0f);
+        if (dv <= 0.0f)
+        {
+            return;
+        }
 
-        float rate = props.accelFactor;
+        const float response =
+            props.accelFactor * props.input.cheatBoostFactor;
 
-        rate = Max(rate, Min(1.0f / rate, currentVelocity / (rate * targetVelocity)));
+        const float blend =
+            1.0f - std::exp(-response * InGameDeltaTime());
 
-        const float cheat = props.input.cheatBoostFactor;
-        state.m_velocity += state.m_forwardVector * dv * rate * cheat * InGameDeltaTime();
+        state.m_velocity += state.m_forwardVector * dv * blend;
     }
 
     bool isBoostUnlocked(const MachinePhysicsState& state)
@@ -340,7 +344,7 @@ namespace Race
         if (state.m_manualBoost > 0.0f)
         {
             // const float comboBonus = 1.0f + state.m_boostComboCount * 0.1f;
-            const float speed = 150.0f * Min(1.0f, state.m_manualBoost);
+            const float speed = 100.0f * Min(1.0f, state.m_manualBoost);
             state.m_velocity += state.m_forwardVector * speed * InGameDeltaTime();
 
             state.m_manualBoost = Max<float>(0.0f, state.m_manualBoost - InGameDeltaTime());

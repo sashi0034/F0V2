@@ -209,7 +209,7 @@ namespace Race
             ImmediatePrint_TopRight("accelPressed: {}", input.accelPressed);
             ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);
             ImmediatePrint_TopRight("driftTrigger: {:+.02f}", input.driftTrigger);
-            ImmediatePrint_TopRight("velocity: {:.01f} km/h", machineState.m_velocity.length() * 10.0f);
+            ImmediatePrint_TopRight("velocity: {:.01f} km/h", machineState.m_velocity.length() * VelocityDisplayFactor);
 
             {
                 const Float3 n = machineState.m_upVector;

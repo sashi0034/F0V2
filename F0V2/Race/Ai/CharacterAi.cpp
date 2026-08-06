@@ -132,9 +132,9 @@ private:
     {
         machine().props.machineId = MachineId();
 
-        machine().props.peakVelocity = 100.0f;
+        machine().props.peakVelocity = 200.0f;
 
-        machine().props.accelFactor = 1.0f;
+        machine().props.accelFactor = 0.5f;
     }
 
     void debugUI()
