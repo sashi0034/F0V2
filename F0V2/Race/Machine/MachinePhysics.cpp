@@ -344,7 +344,7 @@ namespace Race
         if (state.m_manualBoost > 0.0f)
         {
             // const float comboBonus = 1.0f + state.m_boostComboCount * 0.1f;
-            const float speed = 100.0f * Min(1.0f, state.m_manualBoost);
+            const float speed = 150.0f * Min(1.0f, state.m_manualBoost);
             state.m_velocity += state.m_forwardVector * speed * InGameDeltaTime();
 
             state.m_manualBoost = Max<float>(0.0f, state.m_manualBoost - InGameDeltaTime());
