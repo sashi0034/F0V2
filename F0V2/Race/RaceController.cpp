@@ -108,7 +108,7 @@ private:
             runCompleteProcess(3.0f);
         }
 
-        if (not m_raceControlState.m_raceFinished)
+        if (g_sharedState->isRaceStarted && not m_raceControlState.m_raceFinished)
         {
             int currentLap = player.state.m_markedLapProgress.lapIndex;
             if (InRange<int>(currentLap, 0, m_raceControlState.m_measuredLapTimes.size() - 1))
