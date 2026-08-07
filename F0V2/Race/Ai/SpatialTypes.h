@@ -13,6 +13,8 @@ namespace Race
         CourseStrip targetStrip{};
         Float3 forward{}; // normalized
         Float3 right{}; // normalized
+        Float3 leftBoundaryWithMargin{};
+        Float3 rightBoundaryWithMargin{};
         float curveHeuristic{}; // [0.0, 1.0] // TODO: Remove this
 
         struct GimmickData
@@ -24,7 +26,8 @@ namespace Race
         };
 
         Array<GimmickData> containingGimmicks{};
-        int nextGimmickWaypointIndex{-1}; // containingGimmicks が存在する次の Waypoint
+        int nextBoostPadWaypointIndex{-1}; // BoostPad が存在する次の Waypoint
+        int nextPitZoneWaypointIndex{-1}; // PitZone が存在する次の Waypoint
 
         [[nodiscard]]
         Float3 normal() const;

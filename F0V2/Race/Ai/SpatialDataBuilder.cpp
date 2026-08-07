@@ -6,6 +6,48 @@
 
 namespace
 {
+    using namespace Race;
+
+    constexpr float RoadBoundaryMargin = 5.0f;
+
+    bool containsGimmick(
+        const SpatialWaypoint& waypoint,
+        GimmickTriangleAttribute::kind_t kind)
+    {
+        return std::ranges::any_of(
+            waypoint.containingGimmicks,
+            [kind](const SpatialWaypoint::GimmickData& gimmick)
+            {
+                return gimmick.kind.kind == kind;
+            });
+    }
+
+    void setupNextGimmickWaypointIndices(
+        SpatialData& state,
+        GimmickTriangleAttribute::kind_t kind,
+        int SpatialWaypoint::* nextWaypointIndexMember /* pointer to member */)
+    {
+        int nextGimmickWaypointIndex = -1;
+        for (int i = 0; i < state.waypoints.size(); ++i)
+        {
+            if (containsGimmick(state.waypoints[i], kind))
+            {
+                nextGimmickWaypointIndex = i;
+                break;
+            }
+        }
+
+        for (int i = static_cast<int>(state.waypoints.size()) - 1; i >= 0; --i)
+        {
+            auto& waypoint = state.waypoints[i];
+            waypoint.*nextWaypointIndexMember = nextGimmickWaypointIndex;
+
+            if (containsGimmick(waypoint, kind))
+            {
+                nextGimmickWaypointIndex = i;
+            }
+        }
+    }
 }
 
 namespace Race
@@ -31,6 +73,13 @@ namespace Race
                 waypoint.targetStrip = strip;
                 waypoint.forward = strip.toNext.normalized();
                 waypoint.right = (strip.rightmost - strip.leftmost).normalized();
+                if (strip.style == CourseSegmentStyle::Road)
+                {
+                    assert((strip.rightmost - strip.leftmost).length() > RoadBoundaryMargin * 2.0f);
+                    waypoint.leftBoundaryWithMargin = strip.leftmost + waypoint.right * RoadBoundaryMargin;
+                    waypoint.rightBoundaryWithMargin = strip.rightmost - waypoint.right * RoadBoundaryMargin;
+                }
+
                 state.waypoints.push_back(waypoint);
             }
         }
@@ -40,6 +89,11 @@ namespace Race
         {
             for (const auto& placement : gimmickPlacements[segmentIndex])
             {
+                if (placement.kind.kind == GimmickTriangleAttribute::kind_t::Barrier)
+                {
+                    continue;
+                }
+
                 auto& waypoint = state.waypoints[
                     state.segmentOffsetTable[segmentIndex] + placement.stripIndex];
                 waypoint.containingGimmicks.push_back(SpatialWaypoint::GimmickData{
@@ -51,26 +105,14 @@ namespace Race
             }
         }
 
-        int nextGimmickWaypointIndex = -1;
-        for (int i = 0; i < state.waypoints.size(); ++i)
-        {
-            if (not state.waypoints[i].containingGimmicks.empty())
-            {
-                nextGimmickWaypointIndex = i;
-                break;
-            }
-        }
-
-        for (int i = static_cast<int>(state.waypoints.size()) - 1; i >= 0; --i)
-        {
-            auto& waypoint = state.waypoints[i];
-            waypoint.nextGimmickWaypointIndex = nextGimmickWaypointIndex;
-
-            if (not waypoint.containingGimmicks.empty())
-            {
-                nextGimmickWaypointIndex = i;
-            }
-        }
+        setupNextGimmickWaypointIndices(
+            state,
+            GimmickTriangleAttribute::kind_t::BoostPad,
+            &SpatialWaypoint::nextBoostPadWaypointIndex);
+        setupNextGimmickWaypointIndices(
+            state,
+            GimmickTriangleAttribute::kind_t::PitZone,
+            &SpatialWaypoint::nextPitZoneWaypointIndex);
 
         // -----------------------------------------------
         // curveFactor
