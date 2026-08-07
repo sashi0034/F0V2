@@ -165,6 +165,11 @@ namespace Race
                 const float rightSign = cross.dot(wayNormal) < 0.0f ? 1.0f : -1.0f;
                 input.rightHandling = rightSign; // * Max(turningIntensity, 0.5f);
                 input.driftTrigger = rightSign * (turningDemand > 0.1 ? 1.0f : 0.0f);
+
+                if (turningDemand > 0.5f)
+                {
+                    input.hyperTurnRequested = true;
+                }
             }
         }
 
@@ -187,6 +192,7 @@ namespace Race
         {
             ImmediatePrint_TopRight("[CharacterAI#{}]", state.m_aiId);
             ImmediatePrint_TopRight("targetWaypoint: {}", targetWaypoint.indexInList);
+            ImmediatePrint_TopRight("turningDemand: {:+.02f}", turningDemand);
             ImmediatePrint_TopRight("accelPressed: {}", input.accelPressed);
             ImmediatePrint_TopRight("rightHandling: {:+.02f}", input.rightHandling);
             ImmediatePrint_TopRight("driftTrigger: {:+.02f}", input.driftTrigger);
