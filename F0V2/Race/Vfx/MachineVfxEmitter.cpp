@@ -18,6 +18,8 @@ using namespace Race;
 
 namespace
 {
+    constexpr float EnemyVfxEmitDistance = 200.0f;
+
     struct StatePerMachine
     {
         float boostIntensity{};
@@ -31,6 +33,17 @@ namespace
         float previousAttackedTime{};
         bool initialized{};
     };
+
+    void syncStateWithoutEmission(const MachinePhysicsUnit& machine, StatePerMachine& state)
+    {
+        state.boostIntensity = 0.0f;
+        state.lastBoostEmitPosition = machine.state.m_pose.position;
+        state.driftEmitCountdown = 0.0f;
+        state.hyperTurnWasActive = machine.state.m_hyperTurnTime > 0.0f;
+        state.hyperTurnEmitCountdown = 0.0f;
+        state.hyperTurnParticlesRemaining = 0;
+        state.previousAttackedTime = machine.state.m_lastAttackedByOtherMachineTime;
+    }
 
     // -----------------------------------------------
 
@@ -556,6 +569,12 @@ private:
     void update() override
     {
         const auto& machines = GetRaceContext().machineManager().machineList();
+        if (machines.empty())
+        {
+            return;
+        }
+
+        const Float3 playerPosition = machines[PlayerMachineId].state.m_pose.position;
         for (int i = 0; i < machines.size(); ++i)
         {
             const auto& machine = machines[i];
@@ -567,6 +586,18 @@ private:
 
                 state.lastBoostEmitPosition = machine.state.m_pose.position;
                 state.previousAttackedTime = machine.state.m_lastAttackedByOtherMachineTime;
+            }
+
+            const bool isDistantEnemy =
+                machine.id() != PlayerMachineId &&
+                (machine.state.m_pose.position - playerPosition).lengthSq() >
+                Math::Square(EnemyVfxEmitDistance);
+            if (isDistantEnemy)
+            {
+                // 遠くの敵は VFX を出さない
+                // FIXME?
+                syncStateWithoutEmission(machine, state);
+                continue;
             }
 
             m_boostVfx->emitIfNeeded(machine, state);
