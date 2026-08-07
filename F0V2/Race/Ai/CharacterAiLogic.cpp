@@ -56,6 +56,11 @@ namespace
             waypointDistance = spatialData.waypoints.size();
         }
 
+        if (not gimmicks.empty())
+        {
+            gimmicks = {gimmicks[0]}; // FIXME: 実験中
+        }
+
         for (const auto* gimmick : gimmicks)
         {
             const Float3 toGimmick = gimmick->center - currentPosition;
