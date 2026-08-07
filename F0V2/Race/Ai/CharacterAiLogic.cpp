@@ -133,26 +133,7 @@ namespace Race
         }
 
         // accelPressed
-        {
-            // if (machineState.isHovering())
-            // {
-            //     Float3 V = machineState.m_velocity;
-            //     // V = V - upVector * upVector.dot(V);
-            //     V = V.normalized();
-            //     input.accelPressed = true; // V.dot(wayVector) > 0.5f; // TODO
-            // }
-            // else if (curveHeuristic == 1.0f ||
-            //     machineState.m_velocity.lengthSq() < Math::Square(100.0f * (1.0f - curveHeuristic)))
-            // {
-            //     input.accelPressed = true;
-            // }
-            // else
-            // {
-            //     input.accelPressed = false;
-            // }
-
-            input.accelPressed = true;
-        }
+        input.accelPressed = true;
 
 #if defined(_DEBUG) && 0
         ImmediatePrint("curveHeuristic: {:.02f}", targetWaypoint.curveHeuristic);

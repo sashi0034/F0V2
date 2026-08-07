@@ -9,6 +9,7 @@
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
 #include "TY_Extension/GameObjectBase.h"
+#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -119,6 +120,14 @@ namespace
         }
 
         r = Math::Clamp(r, -1.0f, 1.0f); // [-1.0f, 1.0f]
+
+#if defined(_DEBUG)
+        if (const float r_ = GetDebugTomlValue("rubber_banding_rate", -2.0f);
+            InRange(r_, -1.0f, 1.0f))
+        {
+            r = r_;
+        }
+#endif
 
         float boostFactor;
         if (r < 0.0f)
