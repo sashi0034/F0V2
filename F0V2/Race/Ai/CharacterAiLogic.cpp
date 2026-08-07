@@ -166,15 +166,22 @@ namespace Race
                 input.rightHandling = rightSign; // * Max(turningIntensity, 0.5f);
                 input.driftTrigger = rightSign * (turningDemand > 0.1 ? 1.0f : 0.0f);
 
-                if (turningDemand > 0.5f)
+                if (turningDemand > 0.75f)
                 {
                     input.hyperTurnRequested = true;
                 }
             }
         }
 
+        // pitch
+        if (machineState.isHovering())
+        {
+            input.pitch = turningDemand < 0.5f ? -1.0f : 1.0f;
+        }
+
+        // cheatBoostFactor
         const float targeCheatBoost = state.m_inputCommand.targeCheatBoost;
-        if (turningDemand > 0.5f && // 急カーブ
+        if (turningDemand > 0.75f && // 急カーブ
             not machineState.isHovering() && // 接地中
             targeCheatBoost > 1.0f)
         {
