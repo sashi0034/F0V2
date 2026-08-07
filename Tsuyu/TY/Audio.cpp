@@ -214,6 +214,11 @@ struct SoundAudio::Impl : ISoundAudio
         return s_audioState.global.isValidVoiceHandle(m_data->uniqueHandle);
     }
 
+    void SetUniqueVolume(float volume)
+    {
+        s_audioState.global.setVolume(m_data->uniqueHandle, volume);
+    }
+
     void StopUnique(float fadeOutDuration)
     {
         if (m_data->uniqueHandle && s_audioState.global.isValidVoiceHandle(m_data->uniqueHandle))
@@ -392,6 +397,14 @@ namespace TY
     bool SoundAudio::isPlayingUnique() const
     {
         return p_impl ? p_impl->IsPlayingUnique() : false;
+    }
+
+    void SoundAudio::setUniqueVolume(float volume)
+    {
+        if (p_impl)
+        {
+            p_impl->SetUniqueVolume(volume);
+        }
     }
 
     void SoundAudio::stopUnique(float fadeOutDuration) const

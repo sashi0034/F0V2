@@ -35,6 +35,8 @@ namespace TY
 
         bool isPlayingUnique() const;
 
+        void setUniqueVolume(float volume);
+
         void stopUnique(float fadeOutDuration = 0.5f) const;
 
         void playOneShot(float volume = 1.0f) const;

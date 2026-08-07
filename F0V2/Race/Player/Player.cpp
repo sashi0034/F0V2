@@ -176,7 +176,7 @@ private:
             const auto updateOutcome = UpdateMachinePhysicsState(machine().state, machine().props);
             GetRaceContext().machineManager().eventHandler().handleIfNeeded(machine().id());
 
-            playSoundIfNeeded(updateOutcome);
+            playSoundIfNeeded(input, updateOutcome);
         }
 
 #if defined(_DEBUG)
@@ -187,7 +187,7 @@ private:
 #endif
     }
 
-    void playSoundIfNeeded(const MachinePhysicsUpdateOutcome updateOutcome)
+    void playSoundIfNeeded(const MachinePhysicsProps::input_t& input, const MachinePhysicsUpdateOutcome updateOutcome)
     {
         const auto& machineState = machine().state;
 
@@ -199,7 +199,7 @@ private:
             if (not Asset_sound::Accel().isPlayingUnique())
             {
                 Asset_sound::Accel().setLoopEnabled(true);
-                Asset_sound::Accel().playUnique(2.0f); // TODO: 音量
+                Asset_sound::Accel().playUnique(2.5f); // TODO: 音量
             }
         }
         else
@@ -212,8 +212,11 @@ private:
             if (not Asset_sound::Drift().isPlayingUnique())
             {
                 Asset_sound::Drift().setLoopEnabled(true);
-                Asset_sound::Drift().playUnique(0.5f);
+                Asset_sound::Drift().playUnique();
             }
+
+            const float volume = 0.5f + Abs(input.driftTrigger * 0.5f + input.rightHandling * 0.5f) * 0.5f;
+            Asset_sound::Drift().setUniqueVolume(volume);
         }
         else
         {
