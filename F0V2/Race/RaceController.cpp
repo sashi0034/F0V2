@@ -158,7 +158,7 @@ private:
     void debugUI()
     {
 #if defined(_DEBUG)
-        ImGui::Begin("Race Flow Controller");
+        ImGui::Begin("Race Controller");
 
         if (ImGui::Button("End"))
         {
