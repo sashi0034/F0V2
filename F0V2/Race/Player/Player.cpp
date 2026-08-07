@@ -42,8 +42,8 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
 
     float m_previousAttackedByOtherMachineTime{};
 
-    Util::DoubleTapDetector m_rightHyperTurnDetector{};
-    Util::DoubleTapDetector m_leftHyperTurnDetector{};
+    Util::DoubleTapDetector m_leftKeyDoubleTap{};
+    Util::DoubleTapDetector m_rightKeyDoubleTap{};
 
     void Init()
     {
@@ -105,11 +105,12 @@ private:
 
     void updatePhysics()
     {
-        const MachinePhysicsProps::input_t previousInput = machine().props.input;
+        const bool leftKeyDoubleTapped = m_leftKeyDoubleTap.update(KeyLeft.pressed());
+        const bool rightKeyDoubleTapped = m_rightKeyDoubleTap.update(KeyRight.pressed());
 
         MachinePhysicsProps::input_t input;
 
-        bool leftHyperTurn{}, rightHyperTurn{};
+        bool leftHyperInput{}, rightHyperInput{};
         if (IsUsingGamepad())
         {
             input.accelPressed = MainGamepad.a().pressed ||
@@ -127,12 +128,12 @@ private:
 
             input.driftTrigger = -MainGamepad.leftTrigger() + MainGamepad.rightTrigger();
 
-            leftHyperTurn = input.rightHandling < -0.1f && MainGamepad.lb().down;
-            rightHyperTurn = input.rightHandling > 0.1f && MainGamepad.rb().down;
+            leftHyperInput = MainGamepad.lb().down;
+            rightHyperInput = MainGamepad.rb().down;
         }
         else
         {
-            input.accelPressed = KeyLShift.pressed();
+            input.accelPressed = KeyW.pressed();
 
             input.boostRequested = KeySpace.down();
 
@@ -140,19 +141,21 @@ private:
                 (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
 
             input.pitch =
-                (KeyW.pressed() ? -1.0f : (KeyS.pressed() ? 1.0f : 0.0f));
+                (KeyUp.pressed() ? -1.0f : (KeyDown.pressed() ? 1.0f : 0.0f));
 
             input.driftTrigger =
                 (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
+
+            leftHyperInput = leftKeyDoubleTapped;
+            rightHyperInput = rightKeyDoubleTapped;
+
+            // ダブルアップの次はシングルタップでハイパーターンを出来るようにする
+            if (leftKeyDoubleTapped) m_leftKeyDoubleTap.setRemainingTime(m_leftKeyDoubleTap.getInterval());
+            if (rightKeyDoubleTapped) m_rightKeyDoubleTap.setRemainingTime(m_rightKeyDoubleTap.getInterval());
         }
 
-        // ハイパーターン入力処理 (ダブルタップ)
-        leftHyperTurn |=
-            m_leftHyperTurnDetector.update(input.rightHandling < -0.1f && input.driftTrigger < -TriggerButtonThreshold);
-        rightHyperTurn |=
-            m_rightHyperTurnDetector.update(input.rightHandling > 0.1f && input.driftTrigger > TriggerButtonThreshold);
-
-        input.hyperTurnRequested = leftHyperTurn || rightHyperTurn;
+        input.hyperTurnRequested =
+            (input.rightHandling < -0.1f && leftHyperInput) || (input.rightHandling > 0.1f && rightHyperInput);
 
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)

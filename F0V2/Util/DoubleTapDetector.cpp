@@ -8,11 +8,6 @@ namespace Util
     {
     }
 
-    void DoubleTapDetector::setInterval(float interval)
-    {
-        m_interval = interval;
-    }
-
     bool DoubleTapDetector::update(bool pressed, float deltaTime)
     {
         m_remainingTime = std::max(0.0f, m_remainingTime - deltaTime);

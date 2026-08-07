@@ -8,7 +8,25 @@ namespace Util
     public:
         explicit DoubleTapDetector(float interval = 0.25f);
 
-        void setInterval(float interval);
+        void setInterval(float interval)
+        {
+            m_interval = interval;
+        }
+
+        float getInterval() const
+        {
+            return m_interval;
+        }
+
+        void setRemainingTime(float remainingTime)
+        {
+            m_remainingTime = remainingTime;
+        }
+
+        float getRemainingTime() const
+        {
+            return m_remainingTime;
+        }
 
         template <class Input>
         bool update(const Input& input, float deltaTime = System::DeltaTime())

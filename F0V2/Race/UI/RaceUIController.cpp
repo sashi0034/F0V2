@@ -316,17 +316,20 @@ private:
                 : U"?";
         if (IsUsingGamepad())
         {
-            messages.push_back(U"[ 左スティック ]: 横移動");
+            messages.push_back(U"[ 左スティック ]: 移動");
             messages.push_back(U"[ A ]: アクセル");
             messages.push_back(U"[ B ]: " + boostMessage);
-            messages.push_back(U"[ L ]: 左ドリフト | [ R ]: 右ドリフト");
+            messages.push_back(U"[ LT | RT ]: ドリフト");
+            messages.push_back(U"[ LB | RB ]: ハイパーターン");
         }
         else
         {
-            messages.push_back(U"[ A ], [ D ]: 横移動");
-            messages.push_back(U"[ Shift ]: アクセル");
+            messages.push_back(U"[ A | D ]: 横移動");
+            messages.push_back(U"[ W ]: アクセル");
             messages.push_back(U"[ Space ]: " + boostMessage);
-            messages.push_back(U"[ 左矢印 ]: 左ドリフト | [ 右矢印 ]: 右ドリフト");
+            messages.push_back(U"[ \U000F004D | \U000F0054 ]: ドリフト");
+            messages.push_back(U"[ \U000F004D \U000F004D | \U000F0054 \U000F0054 ]: ハイパーターン");
+            messages.push_back(U"[ \U000F005D | \U000F0045 ]: ピッチ (空中)");
         }
 
         for (int i = 0; i < messages.size(); ++i)
