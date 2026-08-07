@@ -35,6 +35,22 @@ namespace Race
             }
         }
 
+        const auto& gimmickPlacements = GetRaceContext().stageManager().gimmickPlacements();
+        for (int segmentIndex = 0; segmentIndex < gimmickPlacements.size(); ++segmentIndex)
+        {
+            for (const auto& placement : gimmickPlacements[segmentIndex])
+            {
+                auto& waypoint = state.waypoints[
+                    state.segmentOffsetTable[segmentIndex] + placement.stripIndex];
+                waypoint.gimmicks.push_back(SpatialWaypoint::GimmickData{
+                    .kind = placement.kind,
+                    .left = placement.left,
+                    .right = placement.right,
+                    .center = (placement.left + placement.right) * 0.5f,
+                });
+            }
+        }
+
         // -----------------------------------------------
         // curveFactor
 

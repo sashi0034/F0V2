@@ -13,7 +13,17 @@ namespace Race
         CourseStrip targetStrip{};
         Float3 forward{}; // normalized
         Float3 right{}; // normalized
-        float curveHeuristic{}; // [0.0, 1.0]
+        float curveHeuristic{}; // [0.0, 1.0] // TODO: Remove this
+
+        struct GimmickData
+        {
+            GimmickTriangleAttribute kind{};
+            Float3 left{};
+            Float3 right{};
+            Float3 center{};
+        };
+
+        Array<GimmickData> gimmicks{};
 
         [[nodiscard]]
         Float3 normal() const;

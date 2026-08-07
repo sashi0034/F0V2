@@ -162,6 +162,7 @@ namespace
         Array<uint16_t>& indices,
         int& v_offset,
         int& i_offset,
+        int stripIndex,
         const FaceVertex& l0,
         const FaceVertex& r0,
         const FaceVertex& l1,
@@ -214,6 +215,16 @@ namespace
             });
             options.outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
                 gimmick
+            });
+        }
+
+        if (options.outGimmickPlacements)
+        {
+            options.outGimmickPlacements->push_back(GimmickPlacement{
+                .kind = GimmickTriangleAttribute{gimmick},
+                .stripIndex = stripIndex,
+                .left = (l0.pos + l1.pos) * 0.5f,
+                .right = (r0.pos + r1.pos) * 0.5f,
             });
         }
     }
@@ -731,12 +742,12 @@ namespace
 
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
-                l0b, l1b, l0t, l1t,
+                m, l0b, l1b, l0t, l1t,
                 GimmickTriangleAttribute::kind_t::Barrier,
                 options);
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
-                r1b, r0b, r1t, r0t,
+                m, r1b, r0b, r1t, r0t,
                 GimmickTriangleAttribute::kind_t::Barrier,
                 options);
         }
@@ -844,7 +855,7 @@ namespace
 
         pushGimmickFaces(
             vertices, indices, v_offset, i_offset,
-            l0, r0, l1, r1,
+            s0_index, l0, r0, l1, r1,
             gimmick,
             options);
 
@@ -961,7 +972,7 @@ namespace
 
         pushGimmickFaces(
             vertices, indices, v_offset, i_offset,
-            l0, r0, l1, r1,
+            s0_index, l0, r0, l1, r1,
             gimmick,
             options);
 
@@ -1051,7 +1062,7 @@ namespace
 
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
-                l0, r0, l1, r1,
+                m, l0, r0, l1, r1,
                 GimmickTriangleAttribute::kind_t::PitZone,
                 options,
                 RectF{0.0f, texY, 1.0f, texH});
