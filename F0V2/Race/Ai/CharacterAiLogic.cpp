@@ -140,7 +140,7 @@ namespace Race
 #endif
 
         // rightHandling, driftTrigger 
-        float turningIntensity;
+        float turningDemand;
         {
             Float3 F = machineState.m_forwardVector;
             F = F - wayNormal * wayNormal.dot(F);
@@ -153,23 +153,23 @@ namespace Race
             const float dotF = targetDirection.dot(F);
             const float dotV = targetDirection.dot(V);
             const bool useF = dotF < dotV;
-            turningIntensity = 1.0f - Max(0.0f, useF ? dotF : dotV);
+            turningDemand = 1.0f - Max(0.0f, useF ? dotF : dotV);
 
-#if defined(_DEBUG) && 0
-            ImmediatePrint("turningIntensity: {:.02f}", turningIntensity);
+#if defined(_DEBUG)
+            ImmediatePrint("turningIntensity: {:.02f}", turningDemand);
 #endif
 
-            if (turningIntensity > 0.01f)
+            if (turningDemand > 0.01f)
             {
                 const Float3 cross = targetDirection.cross(useF ? F : V);
                 const float rightSign = cross.dot(wayNormal) < 0.0f ? 1.0f : -1.0f;
                 input.rightHandling = rightSign; // * Max(turningIntensity, 0.5f);
-                input.driftTrigger = rightSign * (turningIntensity > 0.1 ? 1.0f : 0.0f);
+                input.driftTrigger = rightSign * (turningDemand > 0.1 ? 1.0f : 0.0f);
             }
         }
 
         const float targeCheatBoost = state.m_inputCommand.targeCheatBoost;
-        if (turningIntensity > 0.25f && // 急カーブ
+        if (turningDemand > 0.5f && // 急カーブ
             not machineState.isHovering() && // 接地中
             targeCheatBoost > 1.0f)
         {
