@@ -42,12 +42,33 @@ namespace Race
             {
                 auto& waypoint = state.waypoints[
                     state.segmentOffsetTable[segmentIndex] + placement.stripIndex];
-                waypoint.gimmicks.push_back(SpatialWaypoint::GimmickData{
+                waypoint.containingGimmicks.push_back(SpatialWaypoint::GimmickData{
                     .kind = placement.kind,
                     .left = placement.left,
                     .right = placement.right,
                     .center = (placement.left + placement.right) * 0.5f,
                 });
+            }
+        }
+
+        int nextGimmickWaypointIndex = -1;
+        for (int i = 0; i < state.waypoints.size(); ++i)
+        {
+            if (not state.waypoints[i].containingGimmicks.empty())
+            {
+                nextGimmickWaypointIndex = i;
+                break;
+            }
+        }
+
+        for (int i = static_cast<int>(state.waypoints.size()) - 1; i >= 0; --i)
+        {
+            auto& waypoint = state.waypoints[i];
+            waypoint.nextGimmickWaypointIndex = nextGimmickWaypointIndex;
+
+            if (not waypoint.containingGimmicks.empty())
+            {
+                nextGimmickWaypointIndex = i;
             }
         }
 

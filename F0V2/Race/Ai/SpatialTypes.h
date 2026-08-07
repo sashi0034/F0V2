@@ -23,7 +23,8 @@ namespace Race
             Float3 center{};
         };
 
-        Array<GimmickData> gimmicks{};
+        Array<GimmickData> containingGimmicks{};
+        int nextGimmickWaypointIndex{-1}; // containingGimmicks が存在する次の Waypoint
 
         [[nodiscard]]
         Float3 normal() const;
