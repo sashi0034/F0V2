@@ -136,7 +136,7 @@ namespace
         }
         else // if (r >= 0.0f)
         {
-            boostFactor = 1.0f + r * 4.0f;
+            boostFactor = 1.0f; // + r * 4.0f;
         }
 
         return boostFactor;

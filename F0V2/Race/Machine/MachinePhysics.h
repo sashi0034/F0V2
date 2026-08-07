@@ -108,7 +108,7 @@ namespace Race
 
             bool hyperTurnRequested{};
 
-            float cheatBoostFactor{1.0f};
+            float cheatBoostFactor{1.0f}; // TODO: AI が予想以上に強くなったから廃止してもいいかも
         } input{};
 
         PositiveF32 maxDurability{5000.0f};
