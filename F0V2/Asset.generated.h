@@ -173,6 +173,7 @@ namespace Asset_sound
     static const inline SoundAudioPathWrapper FinalRap{"asset/sound/FinalRap.mp3"};
     static const inline SoundAudioPathWrapper Finish{"asset/sound/Finish.mp3"};
     static const inline SoundAudioPathWrapper GotBoostPower{"asset/sound/GotBoostPower.mp3"};
+    static const inline SoundAudioPathWrapper HyperTurn{"asset/sound/HyperTurn.mp3"};
     static const inline SoundAudioPathWrapper JumpPad{"asset/sound/JumpPad.mp3"};
     static const inline SoundAudioPathWrapper RecoverPad{"asset/sound/RecoverPad.mp3"};
 }

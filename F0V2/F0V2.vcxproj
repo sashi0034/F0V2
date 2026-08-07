@@ -185,7 +185,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\script\bundle_build.py" />
     <Content Include="asset\shader\fsr1\ffx_a.h" />
     <Content Include="asset\shader\fsr1\ffx_fsr1.h" />
-    <Content Include="asset\shader\billboard_vfx.hlsl" />
     <Content Include="asset\shader\quad_vfx.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_easu_cs.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_rcas_cs.hlsl" />
@@ -285,7 +284,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Testbed\Testbed_Ocean.cpp" />
     <ClCompile Include="Testbed\Testbed_ShadowMap.cpp" />
     <ClCompile Include="Testbed\Testbed_ImmediateDrawer.cpp" />
-    <Content Include="asset\sound\block_crash.mp3" />
     <Content Include="Editor\Editor_template.cpp.txt" />
     <Content Include="Editor\Editor_template.h.txt" />
     <Content Include="RaceSetup\RaceSetup_template.cpp.txt" />
@@ -447,6 +445,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
   <ItemGroup>
     <Folder Include="asset\image\particle-pack\" />
     <Folder Include="asset\shadertoy\" />
+    <Folder Include="asset\sound\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

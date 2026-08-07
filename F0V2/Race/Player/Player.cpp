@@ -231,6 +231,11 @@ private:
             Asset_sound::Boost().playOneShot();
         }
 
+        if (updateOutcome.hyperTurnAccepted)
+        {
+            Asset_sound::HyperTurn().playOneShot();
+        }
+
         // -----------------------------------------------
         // ギミック接触の効果音
 

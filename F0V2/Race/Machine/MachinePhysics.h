@@ -127,6 +127,7 @@ namespace Race
         bool accelInputAccepted{};
         bool driftInputAccepted{};
         bool boostInputAccepted{};
+        bool hyperTurnAccepted{};
     };
 
     MachinePhysicsUpdateOutcome UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);

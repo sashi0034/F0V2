@@ -366,6 +366,8 @@ namespace Race
             state.m_stabilizingAfterHyperTurn = false;
 
             state.m_velocity = state.m_velocity * 0.95f;
+
+            updateOutcome.hyperTurnAccepted = true;
         }
 
         if (state.m_hyperTurnTime > 0.0f)
