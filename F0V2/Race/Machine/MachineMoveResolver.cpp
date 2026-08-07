@@ -589,7 +589,9 @@ namespace
         if (canBoostAttack(state, otherMachineState))
         {
             // ブーストアタック成立
-            otherMachineState.m_velocity += state.m_upVector * 50.0f;
+            otherMachineState.m_velocity += otherMachineState.m_upVector * 50.0f;
+            otherMachineState.m_surfaceNormal = {};
+            otherMachineState.m_surfaceToTriangle = {};
 
             // 攻撃ダメージ処理
             if (InGameElapsedTime() - otherMachineState.m_lastAttackedByOtherMachineTime >= 0.1f)
@@ -611,11 +613,15 @@ namespace
             constexpr float m2 = m1;
             constexpr float e = 1.0f; // 反発係数
 
-            state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
-
-            if (not canBoostAttack(otherMachineState, state))
+            // すでに離れようとしている場合は速度を反発させない
+            if (n.dot(v1 - v2) < 0.0f)
             {
-                otherMachineState.m_velocity = v2 - n * n.dot(v2 - v1) * (1 + e) * m1 / (m1 + m2);
+                state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
+
+                if (not canBoostAttack(otherMachineState, state))
+                {
+                    otherMachineState.m_velocity = v2 - n * n.dot(v2 - v1) * (1 + e) * m1 / (m1 + m2);
+                }
             }
         }
 
@@ -647,14 +653,27 @@ namespace
     {
         MachinePushback pushback{};
 
-        const Float3 normal =
-            (hit.closestPair.first - hit.closestPair.second).normalized();
+        const auto& otherMachine = GetRaceContext().machineManager().fetchMachine(hit.otherMachineId);
+
+        Float3 normal = hit.closestPair.first - hit.closestPair.second;
+        if (normal.isZero())
+        {
+            // 正面衝突の場合のフォールバック
+            normal = -(state.m_velocity - otherMachine.state.m_velocity).normalized();
+            if (normal.isZero())
+            {
+                normal = (state.m_pose.position - otherMachine.state.m_pose.position).normalized();
+            }
+        }
+        else
+        {
+            normal = normal.normalized();
+        }
 
         pushback.newPos = hit.closestPair.first;
 
         pushback.hit.otherMachineId = hit.otherMachineId;
 
-        const auto& otherMachine = GetRaceContext().machineManager().fetchMachine(hit.otherMachineId);
         const float pushbackLength =
             (state.m_radius + otherMachine.state.m_radius) - std::sqrtf(hit.distSqOnLineSegment);
         pushback.hit.pushbackVector = normal * (pushbackLength + EPS_CONTACT);
