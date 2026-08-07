@@ -631,7 +631,9 @@ namespace Race
             const Float3& rv = slippedRightVector;
             v = v - rv * rv.dot(v) * InGameDeltaTime() * 0.5f;
 
-            const float newForwardLength = std::sqrt(forwardRightSq - Math::Square(rv.dot(v)));
+            float newForwardLength =
+                Math::Sign(fv.dot(v)) * std::sqrt(forwardRightSq - Math::Square(rv.dot(v)));
+
             constexpr float attenuation = 0.85f;
             v = v + fv * (newForwardLength - fv.dot(v)) * attenuation;
 
