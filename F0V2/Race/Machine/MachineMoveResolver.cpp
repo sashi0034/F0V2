@@ -616,9 +616,17 @@ namespace
             // すでに離れようとしている場合は速度を反発させない
             if (n.dot(v1 - v2) < 0.0f)
             {
-                state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
+                const bool isSelfBoosting =
+                    state.m_manualBoost > 0.0f || state.m_passiveBoost > 0.0f;
+                if (not isSelfBoosting)
+                {
+                    state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
+                }
 
-                if (not canBoostAttack(otherMachineState, state))
+                const bool isOtherBoosting
+                    = otherMachineState.m_manualBoost == 0.0f && otherMachineState.m_passiveBoost == 0.0f;
+                // if (not canBoostAttack(otherMachineState, state))
+                if (not isOtherBoosting)
                 {
                     otherMachineState.m_velocity = v2 - n * n.dot(v2 - v1) * (1 + e) * m1 / (m1 + m2);
                 }
