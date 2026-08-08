@@ -561,13 +561,14 @@ namespace
             return false;
         }
 
-        if (from.m_manualBoost > 0.0f)
+        // m_manualBoost だと納得いかない場面が多かったから m_manualBoostCooldownTime を使ってみる
+        if (from.m_manualBoostCooldownTime > 0.0f)
         {
-            return to.m_manualBoost == 0.0f;
+            return to.m_manualBoostCooldownTime == 0.0f;
         }
-        else if (from.m_passiveBoost > 0.0f)
+        else if (from.m_passiveBoost > 0.5f) // passiveBoost は出だしだけ 
         {
-            return to.m_manualBoost == 0.0f && to.m_passiveBoost == 0.0f;
+            return to.m_manualBoostCooldownTime == 0.0f && to.m_passiveBoost == 0.0f;
         }
 
         return false;
@@ -614,17 +615,20 @@ namespace
             constexpr float e = 1.0f; // 反発係数
 
             // すでに離れようとしている場合は速度を反発させない
+            // FIXME: 納得いかないところに吹っ飛ぶ時がある
             if (n.dot(v1 - v2) < 0.0f)
             {
+                // 非ブースト時のみ速度を変化させてみる (ブースト中の爽快感を損ねないため)
+
                 const bool isSelfBoosting =
-                    state.m_manualBoost > 0.0f || state.m_passiveBoost > 0.0f;
+                    state.m_manualBoostCooldownTime > 0.0f || state.m_passiveBoost > 0.0f;
                 if (not isSelfBoosting)
                 {
                     state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
                 }
 
                 const bool isOtherBoosting
-                    = otherMachineState.m_manualBoost == 0.0f && otherMachineState.m_passiveBoost == 0.0f;
+                    = otherMachineState.m_manualBoostCooldownTime == 0.0f && otherMachineState.m_passiveBoost == 0.0f;
                 // if (not canBoostAttack(otherMachineState, state))
                 if (not isOtherBoosting)
                 {
