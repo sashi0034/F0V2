@@ -54,8 +54,16 @@ namespace
             drawButtonMessage(rects, 4, 3, m_mapping.y, "Y");
             drawButtonMessage(rects, 5, 4, m_mapping.lb, "LB");
             drawButtonMessage(rects, 6, 5, m_mapping.rb, "RB");
-            drawButtonMessage(rects, 7, 6, m_mapping.lt, "LT");
-            drawButtonMessage(rects, 8, 7, m_mapping.rt, "RT");
+            if (m_mapping.axis_trigger == -1)
+            {
+                drawButtonMessage(rects, 7, 6, m_mapping.lt, "LT");
+                drawButtonMessage(rects, 8, 7, m_mapping.rt, "RT");
+            }
+            else
+            {
+                drawButtonMessage(rects, 7, 6, m_mapping.axis_trigger, "Axis: LT");
+                drawButtonMessage(rects, 8, 7, m_mapping.axis_trigger, "Axis: RT");
+            }
             drawButtonMessage(rects, 9, 8, m_mapping.menu, "Menu");
             drawButtonMessage(rects, 10, 9, m_mapping.view, "View");
             drawButtonMessage(rects, 11, 10, m_mapping.axis_lx, "Axis: Left Stick X");
@@ -82,6 +90,7 @@ namespace
                 m_nextIndex--;
             }
 
+            bool buttonCaptured = false;
             if (const auto downButtons = gamepad.rawState().getDownButtonIndexes();
                 not downButtons.empty())
             {
@@ -108,8 +117,15 @@ namespace
                     break;
                 case 6:
                     m_mapping.lt = downButtons[0];
+                    m_mapping.axis_trigger = -1;
+                    m_mapping.axis_trigger_inverted = false;
                     break;
                 case 7:
+                    if (m_mapping.axis_trigger >= 0)
+                    {
+                        through = true;
+                        break;
+                    }
                     m_mapping.rt = downButtons[0];
                     break;
                 case 8:
@@ -126,14 +142,34 @@ namespace
                 if (not through)
                 {
                     m_nextIndex++;
+                    buttonCaptured = true;
                 }
             }
 
             if (const auto activeAxis = gamepad.rawState().getActiveAxisIndexes();
+                not buttonCaptured &&
                 not activeAxis.empty())
             {
                 switch (m_nextIndex)
                 {
+                case 6:
+                    m_mapping.lt = -1;
+                    m_mapping.rt = -1;
+                    m_mapping.axis_trigger = activeAxis[0];
+                    m_mapping.axis_trigger_inverted = gamepad.rawState().axes[activeAxis[0]] < 0.0f;
+                    m_nextIndex++;
+                    break;
+                case 7: {
+                    const int axisIndex = activeAxis[0];
+                    float axisValue = gamepad.rawState().axes[axisIndex];
+                    if (m_mapping.axis_trigger_inverted)
+                    {
+                        axisValue = -axisValue;
+                    }
+                    if (m_mapping.axis_trigger != axisIndex || axisValue >= 0.0f) break;
+                    m_nextIndex++;
+                    break;
+                }
                 case 10:
                     m_mapping.axis_lx = activeAxis[0];
                     m_nextIndex++;

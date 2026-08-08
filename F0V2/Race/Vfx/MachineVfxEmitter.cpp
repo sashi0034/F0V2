@@ -1,0 +1,641 @@
+#include "pch.h"
+#include "MachineVfxEmitter.h"
+
+#include "Asset.generated.h"
+#include "BillboardVfxRenderer.h"
+#include "IRaceVfxSystem.h"
+#include "MultiTextureQuadVfxRenderer.h"
+#include "RaceVfxDrawer.h"
+#include "SimpleParticleVfxRenderer.h"
+#include "Race/IRaceContext.h"
+#include "Race/Machine/MachineConstants.h"
+#include "Race/Machine/MachinePhysicsUnit.h"
+#include "TY/Array.h"
+#include "TY/GameTime.h"
+#include "TY/Periodic.h"
+
+using namespace Race;
+
+namespace
+{
+    constexpr float EnemyVfxEmitDistance = 200.0f;
+
+    struct StatePerMachine
+    {
+        float boostIntensity{};
+        Float3 lastBoostEmitPosition{};
+        float driftEmitCountdown{};
+        float driftInitialRotation{};
+        bool hyperTurnWasActive{};
+        float hyperTurnEmitCountdown{};
+        float hyperTurnParticleDirection{};
+        int hyperTurnParticlesRemaining{};
+        float previousAttackedTime{};
+        bool initialized{};
+    };
+
+    void syncStateWithoutEmission(const MachinePhysicsUnit& machine, StatePerMachine& state)
+    {
+        state.boostIntensity = 0.0f;
+        state.lastBoostEmitPosition = machine.state.m_pose.position;
+        state.driftEmitCountdown = 0.0f;
+        state.hyperTurnWasActive = machine.state.m_hyperTurnTime > 0.0f;
+        state.hyperTurnEmitCountdown = 0.0f;
+        state.hyperTurnParticlesRemaining = 0;
+        state.previousAttackedTime = machine.state.m_lastAttackedByOtherMachineTime;
+    }
+
+    // -----------------------------------------------
+
+    struct BoostVfx : IRaceVfxSystem
+    {
+        struct Particle
+        {
+            Float3 worldPosition{};
+            ColorF32 color{};
+            float scale{};
+        };
+
+        SimpleParticleVfxRenderer m_renderer{};
+        Array<Particle> m_particles{};
+
+        static constexpr int ParticleCapacity = 4096;
+
+        void onRegistered() override
+        {
+            m_renderer.init(Asset_image::particle, ParticleCapacity);
+        }
+
+        void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
+        {
+            const bool isBoosting =
+                machine.state.m_manualBoost > 0.0f || machine.state.m_passiveBoost > 0.0f;
+
+            if (not isBoosting && state.boostIntensity <= 0.0f)
+            {
+                return;
+            }
+
+            if (isBoosting)
+            {
+                if (state.boostIntensity == 0.0f)
+                {
+                    state.lastBoostEmitPosition = machine.state.m_pose.position;
+                }
+
+                state.boostIntensity = 1.0f;
+            }
+            else
+            {
+                state.boostIntensity = Max(0.0f, state.boostIntensity - InGameDeltaTime());
+                if (state.boostIntensity <= 0.0f)
+                {
+                    return;
+                }
+            }
+
+            const Float3 emitPosition = machine.state.m_pose.position;
+            const float emitThreshold = 1.0f - 0.1f * Periodic::Sine0_1(0.1s, InGameElapsedTime());
+            const float distanceSinceLastEmit = (emitPosition - state.lastBoostEmitPosition).length();
+
+            if (distanceSinceLastEmit < emitThreshold)
+            {
+                return;
+            }
+
+            const int emitCount = static_cast<int>(distanceSinceLastEmit / emitThreshold);
+            const Float3 emitDirection = (emitPosition - state.lastBoostEmitPosition).normalized();
+            const Float3 emitRight = machine.state.rightVector();
+
+            for (int j = 0; j < emitCount; ++j)
+            {
+                if (m_particles.size() >= ParticleCapacity)
+                {
+                    break;
+                }
+
+                const Float3 particlePosition =
+                    state.lastBoostEmitPosition + emitDirection * emitThreshold * (j + 1) +
+                    emitRight * (0.5f * Periodic::Sine1_1(0.15s, InGameElapsedTime()));
+
+                m_particles.push_back(Particle{
+                    .worldPosition = particlePosition,
+                    .color = machine.props.themeColor.withAlpha(1.0f),
+                    .scale = 1.0f + state.boostIntensity,
+                });
+            }
+
+            state.lastBoostEmitPosition = emitPosition;
+        }
+
+        void update(const RaceVfxFrameContext& context) override
+        {
+            Array<SimpleParticleRenderElement> renderElements{};
+            renderElements.reserve(m_particles.size());
+
+            for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
+            {
+                auto& particle = m_particles[i];
+                particle.color.a -= context.deltaTime;
+                particle.scale = Max(0.0f, particle.scale - 5.0f * context.deltaTime);
+                if (particle.color.a <= 0.0f)
+                {
+                    m_particles.remove_at(i);
+                    continue;
+                }
+
+                renderElements.push_back(SimpleParticleRenderElement{
+                    .worldPosition = particle.worldPosition,
+                    .color = particle.color,
+                    .scale = particle.scale,
+                });
+            }
+
+            m_renderer.upload(renderElements, context.cameraUp, context.cameraRight);
+        }
+
+        void drawTransparent() const override
+        {
+            m_renderer.draw();
+        }
+
+        void onUnregistered() override
+        {
+            m_particles.clear();
+            m_renderer.finalize();
+        }
+    };
+
+    // -----------------------------------------------
+
+    struct DriftVfx : IRaceVfxSystem
+    {
+        struct Particle
+        {
+            MachineId targetMachineId{};
+            float initialRotation{};
+            float age{};
+            float lifetime{1.0f};
+        };
+
+        MultiTextureQuadVfxRenderer m_renderer{};
+        Array<Particle> m_particles{};
+
+        static constexpr int ParticleCapacity = 2048;
+
+        void onRegistered() override
+        {
+            m_renderer.init(
+                {
+                    Asset_image::twirl_01,
+                    Asset_image::twirl_02,
+                    Asset_image::twirl_03,
+                },
+                ParticleCapacity,
+                GraphicsBlendOptions::Additive());
+        }
+
+        void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
+        {
+            state.driftInitialRotation = std::fmod(
+                state.driftInitialRotation + 10.0f * InGameDeltaTime(),
+                Math::TwoPiF);
+            state.driftEmitCountdown = Max(0.0f, state.driftEmitCountdown - InGameDeltaTime());
+
+            constexpr float driftThreshold = 0.05f;
+            const bool shouldEmit =
+                // machine.props.machineId == 0 || // DEBUG
+                not machine.state.isHovering() &&
+                Abs(machine.state.m_driftOffset) >= driftThreshold;
+
+            if (not shouldEmit)
+            {
+                state.driftEmitCountdown = 0.0f;
+                return;
+            }
+
+            if (state.driftEmitCountdown > 0.0f)
+            {
+                return;
+            }
+
+            constexpr float driftEmitInterval = 0.1f;
+            state.driftEmitCountdown = driftEmitInterval;
+
+            if (m_particles.size() >= ParticleCapacity)
+            {
+                return;
+            }
+
+            m_particles.push_back(Particle{
+                .targetMachineId = machine.id(),
+                .initialRotation = state.driftInitialRotation,
+            });
+        }
+
+        void update(const RaceVfxFrameContext& context) override
+        {
+            Array<QuadVfxElement> renderElements{};
+            renderElements.reserve(m_particles.size());
+            const auto& machines = GetRaceContext().machineManager().machineList();
+            const int textureCount = m_renderer.textureCount();
+            assert(textureCount > 0);
+
+            for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
+            {
+                auto& particle = m_particles[i];
+                particle.age += context.deltaTime;
+                if (
+                    particle.age >= particle.lifetime ||
+                    particle.targetMachineId < 0 ||
+                    particle.targetMachineId >= machines.size())
+                {
+                    m_particles.remove_at(i);
+                    continue;
+                }
+
+                const auto& machine = machines[particle.targetMachineId];
+                const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
+                const Float3 machineForward = machine.state.m_forwardVector;
+                const Float3 machineUp = machine.state.m_upVector;
+                const Float3 machineRight = machine.state.rightVector();
+                const Float3 quadUp = machineUp.cross(machineRight);
+
+                constexpr float totalRotation = 5.0f;
+                const float rotation = particle.initialRotation + totalRotation * rate;
+                const Quaternion spin{machineUp, rotation};
+                const Quaternion quadRotation = Quaternion::FromAxes(
+                    spin.rotate(machineRight),
+                    spin.rotate(quadUp),
+                    machineUp);
+
+                const float scaleRate = Min(1.0f, Abs(machine.state.m_driftOffset));
+
+                const ColorF32 startColor{1.0f, 0.75f, 0.2f, 1.0f};
+                const ColorF32 endColor{1.0f, 0.3f, 0.05f, 0.0f};
+
+                const int textureIndex = Min(
+                    static_cast<int>(rate * textureCount),
+                    textureCount - 1);
+                renderElements.push_back(QuadVfxElement{
+                    .worldPosition =
+                    machine.state.m_pose.position - machineUp * (MachineRadius * 0.25f) - machineForward,
+                    .rotation = quadRotation,
+                    .size = Float2::One() * MachineRadius * 1.5f * scaleRate,
+                    .color = startColor.lerp(endColor, rate),
+                    .textureIndex_ = textureIndex,
+                });
+            }
+
+            m_renderer.upload(renderElements);
+        }
+
+        void drawTransparent() const override
+        {
+            m_renderer.draw();
+        }
+
+        void onUnregistered() override
+        {
+            m_particles.clear();
+            m_renderer.finalize();
+        }
+    };
+
+    // -----------------------------------------------
+
+    struct HyperTurnVfx : IRaceVfxSystem
+    {
+        struct Particle
+        {
+            MachineId targetMachineId{};
+            int particleIndex{};
+            float turnDirection{};
+            float age{};
+            float lifetime{};
+        };
+
+        MultiTextureQuadVfxRenderer m_renderer{};
+        Array<Particle> m_particles{};
+
+        static constexpr int ParticleCapacity = 2048;
+
+        void onRegistered() override
+        {
+            m_renderer.init(
+                {
+                    Asset_image::twirl_01,
+                    Asset_image::twirl_02,
+                    Asset_image::twirl_03,
+                },
+                ParticleCapacity,
+                GraphicsBlendOptions::Additive());
+        }
+
+        void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
+        {
+            static constexpr int emitCount = 5;
+            static constexpr float emitInterval = 0.05f;
+
+            const bool hyperTurnIsActive = machine.state.m_hyperTurnTime > 0.0f;
+            const bool hyperTurnStarted = hyperTurnIsActive && not state.hyperTurnWasActive;
+            state.hyperTurnWasActive = hyperTurnIsActive;
+
+            if (hyperTurnStarted)
+            {
+                state.hyperTurnEmitCountdown = 0.0f;
+                state.hyperTurnParticlesRemaining = emitCount;
+
+                state.hyperTurnParticleDirection = Math::Sign(machine.state.m_hyperTurn);
+                if (state.hyperTurnParticleDirection == 0.0f)
+                {
+                    state.hyperTurnParticleDirection = Math::Sign(machine.props.input.rightHandling);
+                }
+            }
+
+            if (state.hyperTurnParticlesRemaining <= 0)
+            {
+                return;
+            }
+
+            if (not hyperTurnStarted)
+            {
+                state.hyperTurnEmitCountdown -= InGameDeltaTime();
+            }
+
+            if (state.hyperTurnEmitCountdown > 0.0f)
+            {
+                return;
+            }
+
+            if (m_particles.size() >= ParticleCapacity)
+            {
+                return;
+            }
+
+            m_particles.push_back(Particle{
+                .targetMachineId = machine.id(),
+                .particleIndex = emitCount - state.hyperTurnParticlesRemaining,
+                .turnDirection = state.hyperTurnParticleDirection,
+                .lifetime = 0.3f,
+            });
+
+            state.hyperTurnEmitCountdown += emitInterval;
+            --state.hyperTurnParticlesRemaining;
+        }
+
+        void update(const RaceVfxFrameContext& context) override
+        {
+            Array<QuadVfxElement> renderElements{};
+            renderElements.reserve(m_particles.size());
+            const auto& machines = GetRaceContext().machineManager().machineList();
+            const int textureCount = m_renderer.textureCount();
+            assert(textureCount > 0);
+
+            for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
+            {
+                auto& particle = m_particles[i];
+                particle.age += context.deltaTime;
+                if (
+                    particle.age >= particle.lifetime ||
+                    particle.targetMachineId < 0 ||
+                    particle.targetMachineId >= machines.size())
+                {
+                    m_particles.remove_at(i);
+                    continue;
+                }
+
+                const auto& machine = machines[particle.targetMachineId];
+                const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
+                const Float3 machineForward = machine.state.m_forwardVector;
+                const Float3 machineUp = machine.state.m_upVector;
+                const Float3 machineRight = machine.state.rightVector();
+
+                const Float3 position = machine.state.m_pose.position - machineForward * (MachineRadius * 1.5f * rate);
+
+                float rotation = particle.turnDirection * 3.0f * Math::PiF * rate;
+                if (particle.turnDirection < 0.0f)
+                {
+                    rotation += Math::PiF;
+                }
+
+                // rotation += -particle.particleIndex * 0.05f * Math::PiF * particle.turnDirection;
+                const Quaternion spin{machineForward * Math::Sign(particle.turnDirection), rotation};
+                const Quaternion quadRotation = Quaternion::FromAxes(
+                    spin.rotate(machineRight),
+                    spin.rotate(machineUp),
+                    machineForward);
+
+                float scale = std::lerp(1.0f, 3.0f, rate);
+                const ColorF32 startColor{0.2f, 0.9f, 1.0f, 0.9f};
+                const ColorF32 endColor{0.05f, 0.25f, 1.0f, 0.0f};
+
+                const int textureIndex = Min(
+                    static_cast<int>(rate * textureCount),
+                    textureCount - 1);
+                renderElements.push_back(QuadVfxElement{
+                    .worldPosition = position,
+                    .rotation = quadRotation,
+                    .size = Float2::One() * MachineRadius * scale,
+                    .color = startColor.lerp(endColor, rate),
+                    .textureIndex_ = textureIndex,
+                });
+            }
+
+            m_renderer.upload(renderElements);
+        }
+
+        void drawTransparent() const override
+        {
+            m_renderer.draw();
+        }
+
+        void onUnregistered() override
+        {
+            m_particles.clear();
+            m_renderer.finalize();
+        }
+    };
+
+    // -----------------------------------------------
+
+    struct CollisionVfx : IRaceVfxSystem
+    {
+        struct Particle
+        {
+            Float3 worldPosition{};
+            float age{};
+            float lifetime{0.3f};
+            ColorF32 startColor{};
+            ColorF32 endColor{};
+        };
+
+        BillboardVfxRenderer m_renderer{};
+        Array<Particle> m_particles{};
+
+        static constexpr int ParticleCapacity = 512;
+
+        void onRegistered() override
+        {
+            m_renderer.init(Asset_image::flame_01, ParticleCapacity, GraphicsBlendOptions::Additive());
+        }
+
+        void emitIfNeeded(const MachinePhysicsUnit& machine, StatePerMachine& state)
+        {
+            const GimmickFlagBits newTouchingGimmicks =
+                machine.state.m_touchingGimmicks & (~machine.state.m_previousTouchingGimmicks);
+            const bool hitBarrier = newTouchingGimmicks & GimmickFlag::Barrier;
+            const bool attackedByMachine =
+                state.previousAttackedTime != machine.state.m_lastAttackedByOtherMachineTime;
+
+            state.previousAttackedTime = machine.state.m_lastAttackedByOtherMachineTime;
+
+            if ((not hitBarrier && not attackedByMachine) || m_particles.size() >= ParticleCapacity)
+            {
+                return;
+            }
+
+            m_particles.push_back(Particle{
+                .worldPosition = machine.state.m_pose.position,
+                .startColor = machine.props.themeColor,
+                .endColor = machine.props.themeColor.withAlpha(0.0f),
+            });
+        }
+
+        void update(const RaceVfxFrameContext& context) override
+        {
+            Array<BillboardVfxElement> renderElements{};
+            renderElements.reserve(m_particles.size());
+
+            for (int i = static_cast<int>(m_particles.size()) - 1; i >= 0; --i)
+            {
+                auto& particle = m_particles[i];
+                particle.age += context.deltaTime;
+                if (particle.age >= particle.lifetime)
+                {
+                    m_particles.remove_at(i);
+                    continue;
+                }
+
+                const float rate = Math::Clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
+                const float scale = std::lerp(1.0f, 4.0f, rate);
+                renderElements.push_back(BillboardVfxElement{
+                    .worldPosition = particle.worldPosition,
+                    .size = Float2{scale, scale},
+                    .color = particle.startColor.lerp(particle.endColor, rate),
+                });
+            }
+
+            m_renderer.upload(renderElements, context.cameraUp, context.cameraRight);
+        }
+
+        void drawTransparent() const override
+        {
+            m_renderer.draw();
+        }
+
+        void onUnregistered() override
+        {
+            m_particles.clear();
+            m_renderer.finalize();
+        }
+    };
+}
+
+struct MachineVfxEmitter::Impl : ActorBase
+{
+    Array<StatePerMachine> m_machineStates{MaxMachineCount};
+
+    std::shared_ptr<BoostVfx> m_boostVfx{};
+    std::shared_ptr<DriftVfx> m_driftVfx{};
+    std::shared_ptr<HyperTurnVfx> m_hyperTurnVfx{};
+    std::shared_ptr<CollisionVfx> m_collisionVfx{};
+
+    void Init()
+    {
+        m_boostVfx = std::make_shared<BoostVfx>();
+        m_driftVfx = std::make_shared<DriftVfx>();
+        m_hyperTurnVfx = std::make_shared<HyperTurnVfx>();
+        m_collisionVfx = std::make_shared<CollisionVfx>();
+
+        auto& vfxDrawer = GetRaceContext().vfxDrawer();
+        vfxDrawer.registerVfxSystem(m_boostVfx);
+        vfxDrawer.registerVfxSystem(m_driftVfx);
+        vfxDrawer.registerVfxSystem(m_hyperTurnVfx);
+        vfxDrawer.registerVfxSystem(m_collisionVfx);
+    }
+
+private:
+    void update() override
+    {
+        const auto& machines = GetRaceContext().machineManager().machineList();
+        if (machines.empty())
+        {
+            return;
+        }
+
+        const Float3 playerPosition = machines[PlayerMachineId].state.m_pose.position;
+        for (int i = 0; i < machines.size(); ++i)
+        {
+            const auto& machine = machines[i];
+            auto& state = m_machineStates[i];
+
+            if (not state.initialized)
+            {
+                state.initialized = true;
+
+                state.lastBoostEmitPosition = machine.state.m_pose.position;
+                state.previousAttackedTime = machine.state.m_lastAttackedByOtherMachineTime;
+            }
+
+            const bool isDistantEnemy =
+                machine.id() != PlayerMachineId &&
+                (machine.state.m_pose.position - playerPosition).lengthSq() >
+                Math::Square(EnemyVfxEmitDistance);
+            if (isDistantEnemy)
+            {
+                // 遠くの敵は VFX を出さない
+                // FIXME?
+                syncStateWithoutEmission(machine, state);
+                continue;
+            }
+
+            m_boostVfx->emitIfNeeded(machine, state);
+            m_driftVfx->emitIfNeeded(machine, state);
+            m_hyperTurnVfx->emitIfNeeded(machine, state);
+            m_collisionVfx->emitIfNeeded(machine, state);
+        }
+    }
+
+    float orderPriority() const override
+    {
+        return -100.0f;
+    }
+
+    void killed() override
+    {
+        auto& vfxDrawer = GetRaceContext().vfxDrawer();
+        vfxDrawer.unregisterVfxSystem(m_collisionVfx.get());
+        vfxDrawer.unregisterVfxSystem(m_hyperTurnVfx.get());
+        vfxDrawer.unregisterVfxSystem(m_driftVfx.get());
+        vfxDrawer.unregisterVfxSystem(m_boostVfx.get());
+    }
+};
+
+namespace Race
+{
+    MachineVfxEmitter::MachineVfxEmitter() :
+        p_impl(std::make_shared<Impl>())
+    {
+    }
+
+    void MachineVfxEmitter::init()
+    {
+        p_impl->Init();
+    }
+
+    std::shared_ptr<ActorBase> MachineVfxEmitter::asActor() const
+    {
+        return p_impl;
+    }
+}

@@ -10,7 +10,7 @@
 #include "RaceSharedState.h"
 #include "TY/ComputeDispatcher.h"
 #include "TY/ConstantBufferWrapper.h"
-#include "TY/GenericModelBuffer.h"
+#include "TY/GenericModelBufferTemplates.h"
 #include "TY/GenericModelDrawer.h"
 #include "TY/RenderTarget.h"
 #include "TY/RenderTargetTexture.h"
@@ -23,43 +23,6 @@ namespace
     struct CheapAA_b10
     {
         Float2 g_outputResolution;
-    };
-
-    // TODO: 使わない
-    struct CheapAABuffer : IGenericModelBuffer
-    {
-        GenericModelShapeBufferElement m_shape{};
-
-        CheapAABuffer()
-        {
-            m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder(6);
-        }
-
-        int shapeCount() const override
-        {
-            return 1; // Assuming a single shape
-        }
-
-        GenericModelShapeBufferElement shapeAt(int index) const override
-        {
-            return m_shape;
-        }
-
-        int materialCount() const override
-        {
-            return 1; // Assuming a single material for the shape
-        }
-
-        ConstantBufferArrayImpl materialCbv() const override
-        {
-            return {Empty};
-        }
-
-        Array<Array<ShaderResourceType>> materialSrv() const override
-        {
-            return {};
-        }
     };
 
     struct EasuCB
@@ -174,7 +137,7 @@ struct RaceDrawUpscaler::Impl
     {
         m_aaDrawer =
             GenericModelDrawerParams{}
-            .setModel(std::make_unique<CheapAABuffer>())
+            .setModel(std::make_unique<SingleShapeModelBuffer>(6))
             .setVertexInput({})
             .setShader(Asset_shader::cheap_aa)
             .setOptions(GraphicsOptions{})

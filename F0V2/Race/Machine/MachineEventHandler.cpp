@@ -96,19 +96,22 @@ private:
         float targetElevation = 5.0f;
         if (targetStrip.style == CourseSegmentStyle::Cylinder)
         {
-            targetElevation += CylinderBaseRadius;
+            targetElevation += CylinderRadius;
         }
 
         const Float3 toPosition =
             (targetStrip.leftmost + targetStrip.rightmost) * 0.5f + targetStrip.normal * targetElevation;
 
-        const Quaternion toRotation =
-            Quaternion::FromUnitVectors(Float3{0, 0, 1}, targetStrip.toNext.normalized());
+        const Float3 targetForward = targetStrip.toNext.normalized();
+        const Float3 targetRight = targetStrip.normal.cross(targetForward).normalized();
+        const Float3 targetUp = targetForward.cross(targetRight).normalized();
+        const Quaternion toRotation = Quaternion::FromAxes(targetRight, targetUp, targetForward);
 
-        state.m_forwardVector = targetStrip.toNext.normalized();
+        state.m_forwardVector = targetForward;
         state.m_upVector = targetStrip.normal;
         state.m_velocity = {};
         state.m_durability = PositiveF32{state.m_durability - 1000.0f};
+        state.m_lapProgress = state.m_markedLapProgress;
 
         await.waitForExpired(
             StartEasing<EaseInOutBack>(m_children, rate, 1.0f, 3.0s)

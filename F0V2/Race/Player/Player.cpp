@@ -20,6 +20,7 @@
 #include "TY_Extension/GameObjectBase.h"
 #include "TY_Extension/Pose.h"
 #include "Util/DebugTomlValue.h"
+#include "Util/DoubleTapDetector.h"
 #include "Util/ImmediatePrint.h"
 
 using namespace Race;
@@ -37,11 +38,12 @@ struct Player::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, IRaceD
 
     MachineDrawer m_drawer{};
 
-    Float3 m_cameraUp{0, 1, 0};
-
     MachineId m_machineId{PlayerMachineId};
 
     float m_previousAttackedByOtherMachineTime{};
+
+    Util::DoubleTapDetector m_leftKeyDoubleTap{};
+    Util::DoubleTapDetector m_rightKeyDoubleTap{};
 
     void Init()
     {
@@ -63,37 +65,11 @@ private:
         return GetRaceContext().machineManager().fetchMachine(PlayerMachineId);
     }
 
-    void computeEyeAndTarget(Float3& outEye, Float3& outTarget) const
-    {
-        const Float3 forwardVector = machine().state.m_forwardVector;
-
-        outTarget = machine().state.m_pose.position + machine().state.m_upVector * 5.0f;
-
-        constexpr float cameraBackward = 10.0f;
-        constexpr float cameraHeight = 5.0f;
-
-        const Float3 optimalEyePos =
-            outTarget - forwardVector.normalized() * cameraBackward + m_cameraUp * cameraHeight;
-
-        const auto ray = LineSegment3D{outTarget, optimalEyePos};
-        const auto hit =
-            GetRaceContext().stageManager().stageStaticCollider().rayCastGround(ray);
-        if (hit.has_value())
-        {
-            // 地面にカメラが遮られているなら、その面に垂線の足をおろしてカメラ位置とする
-            const Float3 H = hit->triangle.asPlane().projection(optimalEyePos);
-            outEye = H;
-            return;
-        }
-
-        outEye = optimalEyePos;
-    }
-
     void update() override
     {
-        m_drawer.update();
-
         updatePhysics();
+
+        m_drawer.update();
 
         debugUI();
     }
@@ -122,15 +98,19 @@ private:
     {
         machine().props.machineId = 0;
 
-        machine().props.peakVelocity = 100.0f;
+        machine().props.peakVelocity = 200.0f;
 
-        machine().props.accelFactor = 1.0f;
+        machine().props.accelFactor = 0.5f;
     }
 
     void updatePhysics()
     {
+        const bool leftKeyDoubleTapped = m_leftKeyDoubleTap.update(KeyLeft.pressed());
+        const bool rightKeyDoubleTapped = m_rightKeyDoubleTap.update(KeyRight.pressed());
+
         MachinePhysicsProps::input_t input;
 
+        bool leftHyperInput{}, rightHyperInput{};
         if (IsUsingGamepad())
         {
             input.accelPressed = MainGamepad.a().pressed ||
@@ -140,24 +120,42 @@ private:
 
             input.rightHandling = MainGamepad.axisL().x;
 
-            const bool lt = MainGamepad.lt().pressed || MainGamepad.lb().pressed;
-            const bool rt = MainGamepad.rt().pressed || MainGamepad.rb().pressed;
+            input.pitch = MainGamepad.axisL().y;
+            if (Abs(input.pitch) < 0.1f) // dead zone
+            {
+                input.pitch = 0.0f;
+            }
 
-            input.driftTrigger =
-                lt ? -1.0f : (rt ? 1.0f : 0.0f);
+            input.driftTrigger = -MainGamepad.leftTrigger() + MainGamepad.rightTrigger();
+
+            leftHyperInput = MainGamepad.lb().down;
+            rightHyperInput = MainGamepad.rb().down;
         }
         else
         {
-            input.accelPressed = KeyLShift.pressed();
+            input.accelPressed = KeyW.pressed();
 
             input.boostRequested = KeySpace.down();
 
             input.rightHandling =
                 (KeyA.pressed() ? -1.0f : 0.0f) + (KeyD.pressed() ? 1.0f : 0.0f);
 
+            input.pitch =
+                (KeyUp.pressed() ? -1.0f : (KeyDown.pressed() ? 1.0f : 0.0f));
+
             input.driftTrigger =
                 (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
+
+            leftHyperInput = leftKeyDoubleTapped;
+            rightHyperInput = rightKeyDoubleTapped;
+
+            // ダブルアップの次はシングルタップでハイパーターンを出来るようにする
+            if (leftKeyDoubleTapped) m_leftKeyDoubleTap.setRemainingTime(m_leftKeyDoubleTap.getInterval());
+            if (rightKeyDoubleTapped) m_rightKeyDoubleTap.setRemainingTime(m_rightKeyDoubleTap.getInterval());
         }
+
+        input.hyperTurnRequested =
+            (input.rightHandling < -0.1f && leftHyperInput) || (input.rightHandling > 0.1f && rightHyperInput);
 
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)
@@ -181,7 +179,7 @@ private:
             const auto updateOutcome = UpdateMachinePhysicsState(machine().state, machine().props);
             GetRaceContext().machineManager().eventHandler().handleIfNeeded(machine().id());
 
-            playSoundIfNeeded(updateOutcome);
+            playSoundIfNeeded(input, updateOutcome);
         }
 
 #if defined(_DEBUG)
@@ -192,7 +190,7 @@ private:
 #endif
     }
 
-    void playSoundIfNeeded(const MachinePhysicsUpdateOutcome updateOutcome)
+    void playSoundIfNeeded(const MachinePhysicsProps::input_t& input, const MachinePhysicsUpdateOutcome updateOutcome)
     {
         const auto& machineState = machine().state;
 
@@ -204,7 +202,7 @@ private:
             if (not Asset_sound::Accel().isPlayingUnique())
             {
                 Asset_sound::Accel().setLoopEnabled(true);
-                Asset_sound::Accel().playUnique(2.0f); // TODO: 音量
+                Asset_sound::Accel().playUnique(2.5f); // TODO: 音量
             }
         }
         else
@@ -217,8 +215,11 @@ private:
             if (not Asset_sound::Drift().isPlayingUnique())
             {
                 Asset_sound::Drift().setLoopEnabled(true);
-                Asset_sound::Drift().playUnique(0.5f);
+                Asset_sound::Drift().playUnique();
             }
+
+            const float volume = 0.5f + Abs(input.driftTrigger * 0.5f + input.rightHandling * 0.5f) * 0.5f;
+            Asset_sound::Drift().setUniqueVolume(volume);
         }
         else
         {
@@ -228,6 +229,11 @@ private:
         if (updateOutcome.boostInputAccepted)
         {
             Asset_sound::Boost().playOneShot();
+        }
+
+        if (updateOutcome.hyperTurnAccepted)
+        {
+            Asset_sound::HyperTurn().playOneShot();
         }
 
         // -----------------------------------------------

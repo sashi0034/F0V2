@@ -27,6 +27,9 @@ namespace TY::detail
         Size GetSize();
 
         [[nodiscard]]
+        Point GetPosition();
+
+        [[nodiscard]]
         int TitleBarHeight();
 
         [[nodiscard]]
@@ -36,6 +39,8 @@ namespace TY::detail
         bool IsActive();
 
         void Resize(Size size);
+
+        void SetPosition(Point position);
 
         void SetTitle(const std::wstring& title);
     }

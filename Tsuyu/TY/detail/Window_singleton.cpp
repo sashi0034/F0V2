@@ -46,6 +46,7 @@ struct WindowImpl
     HWND m_handle{};
 
     Point m_windowSize{};
+    Point m_windowPosition{};
     int m_titleBarHeight{};
     float m_wheelDelta{};
 
@@ -97,6 +98,8 @@ struct WindowImpl
             m_windowClass.hInstance, // hInstance, 
             nullptr // lpParam
         );
+
+        RefreshPosition(m_handle);
 
         m_initialized = true;
     }
@@ -160,6 +163,21 @@ struct WindowImpl
             rect.bottom - rect.top,
             SWP_NOMOVE | SWP_NOZORDER
         );
+    }
+
+    void SetPosition(const Point& position)
+    {
+        SetWindowPos(
+            m_handle,
+            nullptr,
+            position.x,
+            position.y,
+            0,
+            0,
+            SWP_NOSIZE | SWP_NOZORDER
+        );
+
+        RefreshPosition(m_handle);
     }
 
     void SetBorderlessFullscreen(bool enable)
@@ -242,6 +260,20 @@ struct WindowImpl
         m_titleBarHeight = clientTopLeft.y - windowRect.top;
     }
 
+    void RefreshPosition(HWND hwnd)
+    {
+        if (not hwnd || IsIconic(hwnd) || IsZoomed(hwnd) || m_fullscreen)
+        {
+            return;
+        }
+
+        RECT windowRect{};
+        if (GetWindowRect(hwnd, &windowRect))
+        {
+            m_windowPosition = {windowRect.left, windowRect.top};
+        }
+    }
+
     void Shutdown()
     {
         UnregisterClass(m_windowClass.lpszClassName, m_windowClass.hInstance);
@@ -263,6 +295,10 @@ namespace
         case WM_SIZE: {
             s_engineWindow.m_windowSize = {LOWORD(lParam), HIWORD(lParam)};
             s_engineWindow.RefreshTitleBar();
+            break;
+        }
+        case WM_MOVE: {
+            s_engineWindow.RefreshPosition(hwnd);
             break;
         }
         case WM_MOUSEWHEEL: {
@@ -336,6 +372,11 @@ namespace TY::detail
         return s_engineWindow.m_windowSize;
     }
 
+    Point Window_singleton::GetPosition()
+    {
+        return s_engineWindow.m_windowPosition;
+    }
+
     int Window_singleton::TitleBarHeight()
     {
         return s_engineWindow.m_titleBarHeight;
@@ -354,6 +395,11 @@ namespace TY::detail
     void Window_singleton::Resize(Size size)
     {
         s_engineWindow.Resize(size);
+    }
+
+    void Window_singleton::SetPosition(Point position)
+    {
+        s_engineWindow.SetPosition(position);
     }
 
     void Window_singleton::SetTitle(const std::wstring& title)

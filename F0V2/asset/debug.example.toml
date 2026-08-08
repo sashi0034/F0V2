@@ -22,3 +22,6 @@ boost_unlocked = false
 skip_321go = false
 
 disable_finish = false
+
+# [-1.0, 1.0] (Out-of-range values are ignored.)
+rubber_banding_rate = -2

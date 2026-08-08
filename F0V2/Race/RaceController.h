@@ -3,10 +3,10 @@
 
 namespace Race
 {
-    class RaceFlowController : public ActorHandle
+    class RaceController : public ActorHandle
     {
     public:
-        RaceFlowController();
+        RaceController();
 
         void init();
 

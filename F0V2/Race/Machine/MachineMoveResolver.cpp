@@ -78,8 +78,8 @@ namespace
             const Float3& otherForward = other.state.m_visualForwardVector;
             const float otherRadius = other.state.m_radius;
             const LineSegment3D otherLine{
-                otherPosition - otherForward * other.state.m_height * 0.5f,
-                otherPosition + otherForward * other.state.m_height * 0.5f,
+                otherPosition - otherForward * other.state.m_cylinderLength * 0.5f,
+                otherPosition + otherForward * other.state.m_cylinderLength * 0.5f,
             };
 
             std::pair<Float3, Float3> closestPair{};
@@ -513,8 +513,9 @@ namespace
                 // Jump 発生
                 state.m_touchingGimmicks |= GimmickFlag::JumpPad;
 
-                state.m_velocity = state.m_velocity - state.m_gravity * state.m_gravity.dot(state.m_velocity);
-                state.m_velocity = state.m_velocity - state.m_gravity * 50.0;
+                const Float3 jumpDir = hit.triangle.getNormal();
+                state.m_velocity = state.m_velocity - jumpDir * jumpDir.dot(state.m_velocity);
+                state.m_velocity = state.m_velocity + jumpDir * 100.0;
 
                 state.m_surfaceNormal = {};
                 state.m_surfaceToTriangle = {};
@@ -560,13 +561,14 @@ namespace
             return false;
         }
 
-        if (from.m_manualBoost > 0.0f)
+        // m_manualBoost だと納得いかない場面が多かったから m_manualBoostCooldownTime を使ってみる
+        if (from.m_manualBoostCooldownTime > 0.0f)
         {
-            return to.m_manualBoost == 0.0f;
+            return to.m_manualBoostCooldownTime == 0.0f;
         }
-        else if (from.m_passiveBoost > 0.0f)
+        else if (from.m_passiveBoost > 0.5f) // passiveBoost は出だしだけ 
         {
-            return to.m_manualBoost == 0.0f && to.m_passiveBoost == 0.0f;
+            return to.m_manualBoostCooldownTime == 0.0f && to.m_passiveBoost == 0.0f;
         }
 
         return false;
@@ -588,7 +590,9 @@ namespace
         if (canBoostAttack(state, otherMachineState))
         {
             // ブーストアタック成立
-            otherMachineState.m_velocity += state.m_upVector * 50.0f;
+            otherMachineState.m_velocity += otherMachineState.m_upVector * 50.0f;
+            otherMachineState.m_surfaceNormal = {};
+            otherMachineState.m_surfaceToTriangle = {};
 
             // 攻撃ダメージ処理
             if (InGameElapsedTime() - otherMachineState.m_lastAttackedByOtherMachineTime >= 0.1f)
@@ -610,11 +614,26 @@ namespace
             constexpr float m2 = m1;
             constexpr float e = 1.0f; // 反発係数
 
-            state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
-
-            if (not canBoostAttack(otherMachineState, state))
+            // すでに離れようとしている場合は速度を反発させない
+            // FIXME: 納得いかないところに吹っ飛ぶ時がある
+            if (n.dot(v1 - v2) < 0.0f)
             {
-                otherMachineState.m_velocity = v2 - n * n.dot(v2 - v1) * (1 + e) * m1 / (m1 + m2);
+                // 非ブースト時のみ速度を変化させてみる (ブースト中の爽快感を損ねないため)
+
+                const bool isSelfBoosting =
+                    state.m_manualBoostCooldownTime > 0.0f || state.m_passiveBoost > 0.0f;
+                if (not isSelfBoosting)
+                {
+                    state.m_velocity = v1 - n * n.dot(v1 - v2) * (1 + e) * m2 / (m1 + m2);
+                }
+
+                const bool isOtherBoosting
+                    = otherMachineState.m_manualBoostCooldownTime == 0.0f && otherMachineState.m_passiveBoost == 0.0f;
+                // if (not canBoostAttack(otherMachineState, state))
+                if (not isOtherBoosting)
+                {
+                    otherMachineState.m_velocity = v2 - n * n.dot(v2 - v1) * (1 + e) * m1 / (m1 + m2);
+                }
             }
         }
 
@@ -646,14 +665,27 @@ namespace
     {
         MachinePushback pushback{};
 
-        const Float3 normal =
-            (hit.closestPair.first - hit.closestPair.second).normalized();
+        const auto& otherMachine = GetRaceContext().machineManager().fetchMachine(hit.otherMachineId);
+
+        Float3 normal = hit.closestPair.first - hit.closestPair.second;
+        if (normal.isZero())
+        {
+            // 正面衝突の場合のフォールバック
+            normal = -(state.m_velocity - otherMachine.state.m_velocity).normalized();
+            if (normal.isZero())
+            {
+                normal = (state.m_pose.position - otherMachine.state.m_pose.position).normalized();
+            }
+        }
+        else
+        {
+            normal = normal.normalized();
+        }
 
         pushback.newPos = hit.closestPair.first;
 
         pushback.hit.otherMachineId = hit.otherMachineId;
 
-        const auto& otherMachine = GetRaceContext().machineManager().fetchMachine(hit.otherMachineId);
         const float pushbackLength =
             (state.m_radius + otherMachine.state.m_radius) - std::sqrtf(hit.distSqOnLineSegment);
         pushback.hit.pushbackVector = normal * (pushbackLength + EPS_CONTACT);
@@ -703,7 +735,7 @@ namespace
     {
         constexpr int maxNest = 3;
 
-        if (moveVector.lengthSq() < 1e-6f)
+        if (not state.isHovering() && moveVector.lengthSq() < 1e-6f)
         {
             return;
         }

@@ -5,12 +5,14 @@
 #include "RaceCameraController.h"
 #include "RaceContextContent.h"
 #include "RaceDrawManager.h"
-#include "RaceFlowController.h"
-#include "Ai/CharacterAi.h"
-#include "Ai/MetaAi.h"
-#include "Ai/SpatialAi.h"
+#include "RaceController.h"
+#include "AI/CharacterAI.h"
+#include "AI/MetaAI.h"
+#include "AI/SpatialAI.h"
 #include "Common/CourseFileInfo.h"
 #include "Common/RaceSharedState.h"
+#include "Vfx/MachineVfxEmitter.h"
+#include "Vfx/RaceVfxDrawer.h"
 #include "Player/Player.h"
 #include "Stage/StageManager.h"
 #include "TY/ActorContainer.h"
@@ -34,7 +36,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     RaceDrawManager m_drawManager{};
 
-    RaceFlowController m_flowController{};
+    RaceVfxDrawer m_vfxDrawer{};
+
+    RaceController m_raceController{};
 
     StageManager m_stageManager{};
 
@@ -44,11 +48,13 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     Player m_player{};
 
-    SpatialAi m_spatialAi{};
+    SpatialAI m_spatialAI{};
 
-    Array<CharacterAi> m_characterAiList{};
+    Array<CharacterAI> m_characterAIList{};
 
-    MetaAi m_metaAi{};
+    MetaAI m_metaAI{};
+
+    MachineVfxEmitter m_machineVfxEmitter{};
 
     Impl(bool context)
     {
@@ -70,11 +76,16 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     {
         m_courseFileInfo = GetCourseFileInfoByPath(g_sharedState->coursePath);
 
+        m_cameraController = m_children.birth(RaceCameraController());
+
         m_drawManager = m_children.birth(RaceDrawManager());
         m_drawManager.init();
 
-        m_flowController = m_children.birth(RaceFlowController());
-        m_flowController.init();
+        m_vfxDrawer = m_children.birth(RaceVfxDrawer());
+        m_vfxDrawer.init();
+
+        m_raceController = m_children.birth(RaceController());
+        m_raceController.init();
 
         m_stageManager = m_children.birth(StageManager());
         m_stageManager.init();
@@ -85,8 +96,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_player = m_children.birth(Player());
         m_player.init();
 
-        m_spatialAi = m_children.birth(SpatialAi());
-        m_spatialAi.init();
+        m_spatialAI = m_children.birth(SpatialAI());
+        m_spatialAI.init();
 
         int aiCount = 98;
 #if defined(_DEBUG)
@@ -98,18 +109,19 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         for (int i = 0; i < aiCount; ++i)
         {
-            m_characterAiList.push_back(m_children.birth(CharacterAi()));
-            m_characterAiList.back().init(i);
+            m_characterAIList.push_back(m_children.birth(CharacterAI()));
+            m_characterAIList.back().init(i);
         }
 
-        m_metaAi = m_children.birth(MetaAi());
-        m_metaAi.init();
+        m_metaAI = m_children.birth(MetaAI());
+        m_metaAI.init();
+
+        m_machineVfxEmitter = m_children.birth(MachineVfxEmitter());
+        m_machineVfxEmitter.init();
     }
 
     void update() override
     {
-        m_cameraController.update();
-
         m_children.updateEach();
 
         m_state.cb.lambert->lightDirection = m_state.camera.worldMatrix().forward();
@@ -147,6 +159,16 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         m_drawManager.unregisterDrawer(drawer);
     }
 
+    RaceVfxDrawer& vfxDrawer() override
+    {
+        return m_vfxDrawer;
+    }
+
+    const RaceVfxDrawer& vfxDrawer() const override
+    {
+        return m_vfxDrawer;
+    }
+
     StageManager& stageManager() override
     {
         return m_stageManager;
@@ -167,34 +189,34 @@ struct RaceScene::Impl : ActorBase, IRaceContext
         return m_machineManager;
     }
 
-    SpatialAi& spatialAi() override
+    SpatialAI& spatialAI() override
     {
-        return m_spatialAi;
+        return m_spatialAI;
     }
 
-    const SpatialAi& spatialAi() const override
+    const SpatialAI& spatialAI() const override
     {
-        return m_spatialAi;
+        return m_spatialAI;
     }
 
-    Array<CharacterAi>& characterAiList() override
+    Array<CharacterAI>& characterAIList() override
     {
-        return m_characterAiList;
+        return m_characterAIList;
     }
 
-    const Array<CharacterAi>& characterAiList() const override
+    const Array<CharacterAI>& characterAIList() const override
     {
-        return m_characterAiList;
+        return m_characterAIList;
     }
 
-    // MetaAi& metaAi() override
+    // MetaAI& metaAI() override
     // {
-    //     return m_metaAi;
+    //     return m_metaAI;
     // }
     //
-    // const MetaAi& metaAi() const override
+    // const MetaAI& metaAI() const override
     // {
-    //     return m_metaAi;
+    //     return m_metaAI;
     // }
 };
 

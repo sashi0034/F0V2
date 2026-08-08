@@ -3,10 +3,10 @@
 
 namespace Race
 {
-    class Ai_template : public GameObjectHandle
+    class AI_template : public GameObjectHandle
     {
     public:
-        Ai_template();
+        AI_template();
 
         void init() override;
 

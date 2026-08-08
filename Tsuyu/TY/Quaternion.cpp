@@ -107,11 +107,11 @@ namespace TY
     {
         using namespace DirectX;
 
-        // 回転行列を構築（列ベクトルとして配置）
+        // 回転行列を構築（行ベクトルとして配置）
         XMMATRIX m = XMMatrixSet(
-            axisX.x, axisY.x, axisZ.x, 0.0f,
-            axisX.y, axisY.y, axisZ.y, 0.0f,
-            axisX.z, axisY.z, axisZ.z, 0.0f,
+            axisX.x, axisX.y, axisX.z, 0.0f,
+            axisY.x, axisY.y, axisY.z, 0.0f,
+            axisZ.x, axisZ.y, axisZ.z, 0.0f,
             0.0f, 0.0f, 0.0f, 1.0f
         );
 

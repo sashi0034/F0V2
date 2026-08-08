@@ -2,7 +2,7 @@
 
 namespace Race
 {
-    struct CharacterAiInputCommand
+    struct CharacterAIInputCommand
     {
         float targeCheatBoost{1.0f};
     };

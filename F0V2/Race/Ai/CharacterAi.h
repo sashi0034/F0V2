@@ -1,20 +1,20 @@
 ﻿#pragma once
-#include "CharacterAiInputCommand.h"
+#include "CharacterAIInputCommand.h"
 #include "Race/Machine/MachinePhysicsUnit.h"
 #include "TY_Extension/GameObjectHandle.h"
 
 namespace Race
 {
-    class CharacterAi : public ActorHandle
+    class CharacterAI : public ActorHandle
     {
     public:
-        CharacterAi();
+        CharacterAI();
 
         void init(int aiId);
 
         MachineId machineId() const;
 
-        void setInputCommand(const CharacterAiInputCommand& command);
+        void setInputCommand(const CharacterAIInputCommand& command);
 
         std::shared_ptr<ActorBase> asActor() const override;
 

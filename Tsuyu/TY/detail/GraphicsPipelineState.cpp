@@ -81,6 +81,70 @@ namespace
             return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
         }
     }
+
+    D3D12_BLEND getBlendMode(BlendMode mode)
+    {
+        switch (mode)
+        {
+        case BlendMode::Zero:
+            return D3D12_BLEND_ZERO;
+        case BlendMode::One:
+            return D3D12_BLEND_ONE;
+        case BlendMode::SrcColor:
+            return D3D12_BLEND_SRC_COLOR;
+        case BlendMode::InvSrcColor:
+            return D3D12_BLEND_INV_SRC_COLOR;
+        case BlendMode::SrcAlpha:
+            return D3D12_BLEND_SRC_ALPHA;
+        case BlendMode::InvSrcAlpha:
+            return D3D12_BLEND_INV_SRC_ALPHA;
+        case BlendMode::DestAlpha:
+            return D3D12_BLEND_DEST_ALPHA;
+        case BlendMode::InvDestAlpha:
+            return D3D12_BLEND_INV_DEST_ALPHA;
+        case BlendMode::DestColor:
+            return D3D12_BLEND_DEST_COLOR;
+        case BlendMode::InvDestColor:
+            return D3D12_BLEND_INV_DEST_COLOR;
+        case BlendMode::SrcAlphaSaturated:
+            return D3D12_BLEND_SRC_ALPHA_SAT;
+        case BlendMode::BlendFactor:
+            return D3D12_BLEND_BLEND_FACTOR;
+        case BlendMode::InvBlendFactor:
+            return D3D12_BLEND_INV_BLEND_FACTOR;
+        case BlendMode::Src1Color:
+            return D3D12_BLEND_SRC1_COLOR;
+        case BlendMode::InvSrc1Color:
+            return D3D12_BLEND_INV_SRC1_COLOR;
+        case BlendMode::Src1Alpha:
+            return D3D12_BLEND_SRC1_ALPHA;
+        case BlendMode::InvSrc1Alpha:
+            return D3D12_BLEND_INV_SRC1_ALPHA;
+        default:
+            assert(false);
+            return D3D12_BLEND_ZERO;
+        }
+    }
+
+    D3D12_BLEND_OP getBlendOperation(BlendOperation operation)
+    {
+        switch (operation)
+        {
+        case BlendOperation::Add:
+            return D3D12_BLEND_OP_ADD;
+        case BlendOperation::Subtract:
+            return D3D12_BLEND_OP_SUBTRACT;
+        case BlendOperation::RevSubtract:
+            return D3D12_BLEND_OP_REV_SUBTRACT;
+        case BlendOperation::Min:
+            return D3D12_BLEND_OP_MIN;
+        case BlendOperation::Max:
+            return D3D12_BLEND_OP_MAX;
+        default:
+            assert(false);
+            return D3D12_BLEND_OP_ADD;
+        }
+    }
 }
 
 struct GraphicsPipelineState::Impl : IEngineHotReloadable
@@ -178,12 +242,12 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         else
         {
             renderTargetBlendDesc.BlendEnable = true;
-            renderTargetBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
-            renderTargetBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-            renderTargetBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
-            renderTargetBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
-            renderTargetBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
-            renderTargetBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+            renderTargetBlendDesc.SrcBlend = getBlendMode(params.options.blend.srcBlend);
+            renderTargetBlendDesc.DestBlend = getBlendMode(params.options.blend.destBlend);
+            renderTargetBlendDesc.BlendOp = getBlendOperation(params.options.blend.blendOp);
+            renderTargetBlendDesc.SrcBlendAlpha = getBlendMode(params.options.blend.srcBlendAlpha);
+            renderTargetBlendDesc.DestBlendAlpha = getBlendMode(params.options.blend.destBlendAlpha);
+            renderTargetBlendDesc.BlendOpAlpha = getBlendOperation(params.options.blend.blendOpAlpha);
             renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
         }
 

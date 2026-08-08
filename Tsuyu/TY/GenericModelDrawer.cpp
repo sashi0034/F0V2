@@ -136,7 +136,7 @@ struct GenericModelDrawer::Impl
         }
 
         // 形状ごとに描画
-        for (size_t shapeId = 0; shapeId < m_modelBuffer->materialCount(); ++shapeId)
+        for (int shapeId = 0; shapeId < m_modelBuffer->shapeCount(); ++shapeId)
         {
             const auto& shape = m_modelBuffer->shapeAt(shapeId);
             m_descriptorHeap.commandSetGraphicsTable(2, shape.materialIndex);

@@ -364,6 +364,8 @@ FodyWeavers.xsd
 
 # -----------------------------------------------
 
+AGENTS.override.md
+
 external/freetype/objs/*
 
 Ray99

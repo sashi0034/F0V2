@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "CourseSegmentBuilder.h"
 
 #include "CourseConstants.h"
@@ -84,7 +84,7 @@ namespace Race
                 segment.side_leftWidth0 = p0_leftWidth;
                 segment.leftWidth1 = p1_leftWidth;
                 segment.leftWidth2 = p2_leftWidth;
-                segment.side_leftWidth3 = p3_rightWidth;
+                segment.side_leftWidth3 = p3_leftWidth;
 
                 segment.side_rightWidth0 = p0_rightWidth;
                 segment.rightWidth1 = p1_rightWidth;
@@ -158,7 +158,7 @@ namespace Race
                     strip.normal = q.rotate(strip.normal).normalized();
                 }
 
-                const auto right = strip.toNext.cross(strip.normal).normalized();
+                const auto right = strip.normal.cross(strip.toNext).normalized();
                 strip.leftmost = strip.center - right * midwayLeftWidths[m];
                 strip.rightmost = strip.center + right * midwayRightWidths[m];
                 strip.width = midwayLeftWidths[m] + midwayRightWidths[m];
@@ -169,7 +169,7 @@ namespace Race
                     {
                         // 円周上の方向ベクトルを計算
                         const float angle =
-                            Math::HalfPiF - (0.5 + static_cast<float>(t) / PipeSubdivision) * Math::TwoPi_v<float>;
+                            -Math::HalfPiF + (0.5 + static_cast<float>(t) / PipeSubdivision) * Math::TwoPi_v<float>;
                         const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
                         strip.pipe.ringVectors[t] = dir;
                     }
@@ -180,7 +180,7 @@ namespace Race
                     {
                         // 円周上の方向ベクトルを計算
                         const float angle =
-                            Math::HalfPiF - (0.5 + static_cast<float>(t) / CylinderSubdivision) * Math::TwoPi_v<float>;
+                            -Math::HalfPiF + (0.5 + static_cast<float>(t) / CylinderSubdivision) * Math::TwoPi_v<float>;
                         const Float3 dir = Quaternion(strip.toNext.normalized(), angle).rotate(strip.normal);
                         strip.pipe.ringVectors[t] = dir;
                     }

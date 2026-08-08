@@ -56,10 +56,10 @@ namespace
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, uvRect.tr()};
+        vertices[v_offset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 2;
@@ -71,10 +71,10 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, uvRect.tr()};
+        vertices[v_offset] = ModelVertex{r1.pos, -r1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{l1.pos, -l1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{r0.pos, -r0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{l0.pos, -l0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 1;
@@ -89,27 +89,27 @@ namespace
         if (options.outCollider)
         {
             const std::array normals_00_10_01_11{
-                /* 00: */ l0.normal, /* 10: */ r0.normal, /* 01: */ l1.normal, /* 11: */ r1.normal
+                /* 00: */ r0.normal, /* 10: */ l0.normal, /* 01: */ r1.normal, /* 11: */ l1.normal
             };
 
-            // 01 +-----+ 11
+            // 11 +-----+ 01
             //    |\    |
             //    | \   |
             //    |  C  |
             //    | D \ |
             //    |    \|
-            // 00 +-----+ 10
+            // 10 +-----+ 00
 
-            const Float3& p00 = l0.pos;
-            const Float3& p10 = r0.pos;
-            const Float3& p01 = l1.pos;
-            const Float3& p11 = r1.pos;
+            const Float3& p00 = r0.pos;
+            const Float3& p10 = l0.pos;
+            const Float3& p01 = r1.pos;
+            const Float3& p11 = l1.pos;
 
             const Float3 C = (p10 + p01) * 0.5f;
             const Float3 D = (p00 + p10 + p01 + p11) * 0.25f;
             const Float3 CD = D - C;
 
-            const Float3 N = l0.normal + r0.normal + l1.normal + r1.normal;
+            const Float3 N = r0.normal + l0.normal + r1.normal + l1.normal;
 
             // 双曲面が二つの三角形の上側に張るようにする
             if (CD.dot(N) >= 0)
@@ -162,6 +162,7 @@ namespace
         Array<uint16_t>& indices,
         int& v_offset,
         int& i_offset,
+        int stripIndex,
         const FaceVertex& l0,
         const FaceVertex& r0,
         const FaceVertex& l1,
@@ -170,10 +171,10 @@ namespace
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{l1.pos, l1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, r1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, l0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, r0.normal, uvRect.tr()};
+        vertices[v_offset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 2;
@@ -185,10 +186,10 @@ namespace
         v_offset += 4;
         i_offset += 6;
 
-        vertices[v_offset] = ModelVertex{l1.pos, -l1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{r1.pos, -r1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{l0.pos, -l0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{r0.pos, -r0.normal, uvRect.tr()};
+        vertices[v_offset] = ModelVertex{r1.pos, -r1.normal, uvRect.bl()};
+        vertices[v_offset + 1] = ModelVertex{l1.pos, -l1.normal, uvRect.br()};
+        vertices[v_offset + 2] = ModelVertex{r0.pos, -r0.normal, uvRect.tl()};
+        vertices[v_offset + 3] = ModelVertex{l0.pos, -l0.normal, uvRect.tr()};
 
         indices[i_offset] = v_offset;
         indices[i_offset + 1] = v_offset + 1;
@@ -203,17 +204,27 @@ namespace
         if (options.outCollider)
         {
             options.outCollider->gimmickTris.push_back(IndexedTriangle{
-                l1.pos, l0.pos, r1.pos, options.outCollider->gimmickAttrs.size()
+                r1.pos, r0.pos, l1.pos, options.outCollider->gimmickAttrs.size()
             });
             options.outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
                 gimmick
             });
 
             options.outCollider->gimmickTris.push_back(IndexedTriangle{
-                r1.pos, l0.pos, r0.pos, options.outCollider->gimmickAttrs.size()
+                l1.pos, r0.pos, l0.pos, options.outCollider->gimmickAttrs.size()
             });
             options.outCollider->gimmickAttrs.push_back(GimmickTriangleAttribute{
                 gimmick
+            });
+        }
+
+        if (options.outGimmickPlacements)
+        {
+            options.outGimmickPlacements->push_back(GimmickPlacement{
+                .kind = GimmickTriangleAttribute{gimmick},
+                .stripIndex = stripIndex,
+                .left = (l0.pos + l1.pos) * 0.5f,
+                .right = (r0.pos + r1.pos) * 0.5f,
             });
         }
     }
@@ -311,10 +322,10 @@ namespace
         constexpr int halfSubdivision0 = subdivision / 2;
         constexpr int halfSubdivision1 = halfSubdivision0 + 1;
 
-        const int hasEntry = segment.midwayStrips.size() >= PipeEntryExitStrips &&
+        const int hasEntry = segment.midwayStrips.size() > PipeEntryExitStrips &&
             segment.midwayStrips[0].style != CourseSegmentStyle::Pipe;
 
-        const bool hasExit = segment.midwayStrips.size() >= PipeEntryExitStrips &&
+        const bool hasExit = segment.midwayStrips.size() > PipeEntryExitStrips &&
             segment.midwayStrips[segment.midwayStrips.size() - 1].style != CourseSegmentStyle::Pipe;
 
         const int pipeStrips = segment.midwayStrips.size() - (hasEntry + hasExit) * PipeEntryExitStrips;
@@ -332,7 +343,7 @@ namespace
 
         // -----------------------------------------------
 
-        constexpr float r = 25.0f; // TODO
+        constexpr float r = PipeRadius;
 
         if (hasEntry)
         {
@@ -480,10 +491,10 @@ namespace
         constexpr int subdivision = CylinderSubdivision;
         constexpr int entryExitSubdivision = CylinderSubdivision * 2;
 
-        const int hasEntry = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
+        const int hasEntry = segment.midwayStrips.size() > CylinderEntryExitStrips &&
             segment.midwayStrips[0].style != CourseSegmentStyle::Cylinder;
 
-        const bool hasExit = segment.midwayStrips.size() >= CylinderEntryExitStrips &&
+        const bool hasExit = segment.midwayStrips.size() > CylinderEntryExitStrips &&
             segment.midwayStrips[segment.midwayStrips.size() - 1].style != CourseSegmentStyle::Cylinder;
 
         constexpr int innerEntryExitStrips = CylinderEntryExitStrips / 2;
@@ -502,7 +513,7 @@ namespace
 
         // -----------------------------------------------
 
-        constexpr float baseRadius = CylinderBaseRadius;
+        constexpr float baseRadius = CylinderRadius;
 
         constexpr float outerEntryExitRadius = baseRadius * 3.0f;
 
@@ -531,8 +542,8 @@ namespace
                 cap_r0.normal = s0.normal;
 
                 {
-                    const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
-                    const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
+                    const float angle0 = Math::HalfPiF + t0 * Math::Pi_v<float>;
+                    const float angle1 = Math::HalfPiF + t1 * Math::Pi_v<float>;
                     const Float3 v0 = Quaternion(axis, angle0).rotate(n).normalized();
                     const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
 
@@ -604,19 +615,19 @@ namespace
             // 円周上の面作成
             for (int i0 = 0; i0 < subdivision; ++i0)
             {
-                const int i1 = (i0 - 1 + subdivision) % subdivision;
+                const int i1 = (i0 + 1) % subdivision;
 
                 FaceVertex l0, r0, l1, r1;
 
-                l0.pos = s0.center + n0s[i0] * radius0;
-                r0.pos = s0.center + n0s[i1] * radius0;
-                l1.pos = s1.center + n1s[i0] * radius1;
-                r1.pos = s1.center + n1s[i1] * radius1;
+                r0.pos = s0.center + n0s[i0] * radius0;
+                l0.pos = s0.center + n0s[i1] * radius0;
+                r1.pos = s1.center + n1s[i0] * radius1;
+                l1.pos = s1.center + n1s[i1] * radius1;
 
-                l0.normal = n0s[i0];
-                r0.normal = n0s[i1];
-                l1.normal = n1s[i0];
-                r1.normal = n1s[i1];
+                r0.normal = n0s[i0];
+                l0.normal = n0s[i1];
+                r1.normal = n1s[i0];
+                l1.normal = n1s[i1];
 
                 pushGroundFaces(
                     vertices, indices, v_offset, i_offset,
@@ -645,8 +656,8 @@ namespace
                 FaceVertex cap_l0, cap_r0, cap_l1, cap_r1;
 
                 {
-                    const float angle0 = -Math::HalfPiF - t0 * Math::Pi_v<float>;
-                    const float angle1 = -Math::HalfPiF - t1 * Math::Pi_v<float>;
+                    const float angle0 = Math::HalfPiF + t0 * Math::Pi_v<float>;
+                    const float angle1 = Math::HalfPiF + t1 * Math::Pi_v<float>;
                     const Float3 v0 = Quaternion(axis, angle0).rotate(n).normalized();
                     const Float3 v1 = Quaternion(axis, angle1).rotate(n).normalized();
 
@@ -731,12 +742,12 @@ namespace
 
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
-                l0b, l1b, l0t, l1t,
+                m, l0b, l1b, l0t, l1t,
                 GimmickTriangleAttribute::kind_t::Barrier,
                 options);
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
-                r1b, r0b, r1t, r0t,
+                m, r1b, r0b, r1t, r0t,
                 GimmickTriangleAttribute::kind_t::Barrier,
                 options);
         }
@@ -752,134 +763,245 @@ namespace
         });
     }
 
-    void buildBoostPad_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
-    {
-        constexpr float padElevation = 0.5f;
-        constexpr float padLength = 10.0f;
-
-        const int s0_index = segment.midwayStrips.size() / 2 - 1;
-        if (not InRange<int>(s0_index, 0, segment.midwayStrips.size() - 2))
-        {
-            return;
-        }
-
-        auto& s0 = segment.midwayStrips[s0_index];
-        auto& s1 = segment.midwayStrips[s0_index + 1];
-
-        const float padWidth = (s0.rightmost - s0.leftmost).length() / 3.0f;
-
-        const Float3 center = (s0.center + s1.center) * 0.5f + (s0.normal + s1.normal) * 0.5f * padElevation;
-        const Float3 normal = (s0.normal + s1.normal).normalized();
-        const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
-        const Float3 toForward = normal.cross(toRight).normalized();
-
-        const FaceVertex l0{
-            center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex r0{
-            center + toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex l1{
-            center - toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex r1{
-            center + toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
-            normal
-        };
-
-        Array<ModelVertex> vertices(8);
-        Array<uint16_t> indices(12);
-        int v_offset{};
-        int i_offset{};
-
-        pushGimmickFaces(
-            vertices, indices, v_offset, i_offset,
-            l0, r0, l1, r1,
-            GimmickTriangleAttribute::kind_t::BoostPad,
-            options);
-
-        model.shapes.push_back(ModelShape{
-            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "boost_pad",
-            .parameters = {
-                .diffuse = Float3::One()
-            },
-            .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
-        });
-    }
-
-    void buildJumpPad_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
-    {
-        constexpr float padElevation = 0.5f;
-        constexpr float padLength = 10.0f;
-
-        const int s0_index = segment.midwayStrips.size() / 2 - 1;
-        if (not InRange<int>(s0_index, 0, segment.midwayStrips.size() - 2))
-        {
-            return;
-        }
-
-        auto& s0 = segment.midwayStrips[s0_index];
-        auto& s1 = segment.midwayStrips[s0_index + 1];
-
-        const float padWidth = (s0.rightmost - s0.leftmost).length() / 3.0f;
-
-        const Float3 center = (s0.center + s1.center) * 0.5f + (s0.normal + s1.normal) * 0.5f * padElevation;
-        const Float3 normal = (s0.normal + s1.normal).normalized();
-        const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
-        const Float3 toForward = normal.cross(toRight).normalized();
-
-        const FaceVertex l0{
-            center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex r0{
-            center + toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex l1{
-            center - toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
-            normal
-        };
-        const FaceVertex r1{
-            center + toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
-            normal
-        };
-
-        Array<ModelVertex> vertices(8);
-        Array<uint16_t> indices(12);
-        int v_offset{};
-        int i_offset{};
-
-        pushGimmickFaces(
-            vertices, indices, v_offset, i_offset,
-            l0, r0, l1, r1,
-            GimmickTriangleAttribute::kind_t::JumpPad,
-            options);
-
-        model.shapes.push_back(ModelShape{
-            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "jump_pad",
-            .parameters = {
-                .diffuse = Float3::One()
-            },
-            .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
-        });
-    }
-
     enum class LCR : uint8_t
     {
         L,
         C,
         R,
     };
+
+    int getCircularFaceIndex(LCR lcr)
+    {
+        switch (lcr)
+        {
+        case LCR::L:
+            return 4;
+        case LCR::C:
+            return 0;
+        case LCR::R:
+            return 2;
+        default:
+            assert(false);
+            return 0;
+        }
+    }
+
+    void buildPad_Road(
+        ModelData& model,
+        const CourseSegment& segment,
+        LCR lcr,
+        GimmickTriangleAttribute::kind_t gimmick,
+        const CourseModelBuilderOptions& options)
+    {
+        constexpr float padElevation = 0.5f;
+        constexpr float padLength = 10.0f;
+
+        const int s0_index = segment.midwayStrips.size() / 2 - 1;
+        if (not InRange<int>(s0_index, 0, segment.midwayStrips.size() - 2))
+        {
+            return;
+        }
+
+        auto& s0 = segment.midwayStrips[s0_index];
+        auto& s1 = segment.midwayStrips[s0_index + 1];
+
+        const float padWidth = (s0.rightmost - s0.leftmost).length() / 3.0f;
+
+        const Float3 normal = (s0.normal + s1.normal).normalized();
+        const Float3 toRight = ((s0.rightmost - s0.leftmost) + (s1.rightmost - s1.leftmost)).normalized();
+        const Float3 toForward = toRight.cross(normal).normalized();
+
+        float laneOffset{};
+        switch (lcr)
+        {
+        case LCR::L:
+            laneOffset = -padWidth;
+            break;
+        case LCR::C:
+            break;
+        case LCR::R:
+            laneOffset = padWidth;
+            break;
+        default:
+            assert(false);
+            return;
+        }
+
+        const Float3 center = (s0.center + s1.center) * 0.5f
+            + (s0.normal + s1.normal) * 0.5f * padElevation
+            + toRight * laneOffset;
+
+        const FaceVertex l0{
+            center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex r0{
+            center + toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex l1{
+            center - toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex r1{
+            center + toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
+            normal
+        };
+
+        Array<ModelVertex> vertices(8);
+        Array<uint16_t> indices(12);
+        int v_offset{};
+        int i_offset{};
+
+        pushGimmickFaces(
+            vertices, indices, v_offset, i_offset,
+            s0_index, l0, r0, l1, r1,
+            gimmick,
+            options);
+
+        model.shapes.push_back(ModelShape{
+            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+        });
+
+        if (gimmick == GimmickTriangleAttribute::kind_t::BoostPad)
+        {
+            model.materials.push_back({
+                .name = "boost_pad",
+                .parameters = {
+                    .diffuse = Float3::One()
+                },
+                .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
+            });
+        }
+        else
+        {
+            assert(gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
+            model.materials.push_back({
+                .name = "jump_pad",
+                .parameters = {
+                    .diffuse = Float3::One()
+                },
+                .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
+            });
+        }
+    }
+
+    void buildPad_Circular(
+        ModelData& model,
+        const CourseSegment& segment,
+        LCR lcr,
+        GimmickTriangleAttribute::kind_t gimmick,
+        const CourseModelBuilderOptions& options)
+    {
+        constexpr float padElevation = 0.5f;
+        constexpr float padLength = 10.0f;
+        static_assert(PipeSubdivision == CylinderSubdivision);
+
+        const int s0_index = segment.midwayStrips.size() / 2 - 1;
+        if (not InRange<int>(s0_index, 0, segment.midwayStrips.size() - 2))
+        {
+            return;
+        }
+
+        const auto& s0 = segment.midwayStrips[s0_index];
+        const auto& s1 = segment.midwayStrips[s0_index + 1];
+
+        const int faceIndex0 = getCircularFaceIndex(lcr);
+        const int faceIndex1 = (faceIndex0 + 1) % PipeSubdivision;
+        const float radius = segment.style == CourseSegmentStyle::Pipe
+                                 ? PipeRadius
+                                 : CylinderRadius;
+
+        const auto createFaceVertices = [&](const CourseStrip& strip)
+            -> std::pair<FaceVertex, FaceVertex>
+        {
+            const Float3& n0 = strip.pipe.ringVectors[faceIndex0];
+            const Float3& n1 = strip.pipe.ringVectors[faceIndex1];
+
+            if (segment.style == CourseSegmentStyle::Pipe)
+            {
+                return {
+                    FaceVertex{strip.center + n0 * radius, -n0},
+                    FaceVertex{strip.center + n1 * radius, -n1}
+                };
+            }
+            else // Cylinder
+            {
+                return {
+                    FaceVertex{strip.center + n1 * radius, n1},
+                    FaceVertex{strip.center + n0 * radius, n0}
+                };
+            }
+        };
+
+        const auto [surfaceL0, surfaceR0] = createFaceVertices(s0);
+        const auto [surfaceL1, surfaceR1] = createFaceVertices(s1);
+
+        const Float3 normal =
+            (surfaceL0.normal + surfaceR0.normal + surfaceL1.normal + surfaceR1.normal).normalized();
+        const Float3 toRight =
+            ((surfaceR0.pos - surfaceL0.pos) + (surfaceR1.pos - surfaceL1.pos)).normalized();
+        const Float3 toForward = toRight.cross(normal).normalized();
+        const float padWidth =
+            ((surfaceR0.pos - surfaceL0.pos).length() + (surfaceR1.pos - surfaceL1.pos).length()) * 0.5f;
+        const Float3 center =
+            (surfaceL0.pos + surfaceR0.pos + surfaceL1.pos + surfaceR1.pos) * 0.25f
+            + normal * padElevation;
+
+        const FaceVertex l0{
+            center - toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex r0{
+            center + toRight * (padWidth * 0.5f) - toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex l1{
+            center - toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
+            normal
+        };
+        const FaceVertex r1{
+            center + toRight * (padWidth * 0.5f) + toForward * (padLength * 0.5f),
+            normal
+        };
+
+        Array<ModelVertex> vertices(8);
+        Array<uint16_t> indices(12);
+        int v_offset{};
+        int i_offset{};
+
+        pushGimmickFaces(
+            vertices, indices, v_offset, i_offset,
+            s0_index, l0, r0, l1, r1,
+            gimmick,
+            options);
+
+        model.shapes.push_back(ModelShape{
+            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+        });
+
+        if (gimmick == GimmickTriangleAttribute::kind_t::BoostPad)
+        {
+            model.materials.push_back({
+                .name = "boost_pad",
+                .parameters = {
+                    .diffuse = Float3::One()
+                },
+                .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
+            });
+        }
+        else
+        {
+            assert(gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
+            model.materials.push_back({
+                .name = "jump_pad",
+                .parameters = {
+                    .diffuse = Float3::One()
+                },
+                .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
+            });
+        }
+    }
 
     std::pair<Float3, Float3> separateStrip(const CourseStrip& s, LCR lcr)
     {
@@ -940,7 +1062,7 @@ namespace
 
             pushGimmickFaces(
                 vertices, indices, v_offset, i_offset,
-                l0, r0, l1, r1,
+                m, l0, r0, l1, r1,
                 GimmickTriangleAttribute::kind_t::PitZone,
                 options,
                 RectF{0.0f, texY, 1.0f, texH});
@@ -972,16 +1094,82 @@ namespace
                     buildBarrier_Road(model, segment, options);
                 }
                 break;
+            case CourseGimmickKind::BoostPad_L:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildPad_Road(
+                        model, segment, LCR::L, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::L, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                break;
             case CourseGimmickKind::BoostPad_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildBoostPad_Road(model, segment, options);
+                    buildPad_Road(
+                        model, segment, LCR::C, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::C, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                break;
+            case CourseGimmickKind::BoostPad_R:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildPad_Road(
+                        model, segment, LCR::R, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::R, GimmickTriangleAttribute::kind_t::BoostPad, options);
+                }
+                break;
+            case CourseGimmickKind::JumpPad_L:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildPad_Road(
+                        model, segment, LCR::L, GimmickTriangleAttribute::kind_t::JumpPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::L, GimmickTriangleAttribute::kind_t::JumpPad, options);
                 }
                 break;
             case CourseGimmickKind::JumpPad_C:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildJumpPad_Road(model, segment, options);
+                    buildPad_Road(
+                        model, segment, LCR::C, GimmickTriangleAttribute::kind_t::JumpPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::C, GimmickTriangleAttribute::kind_t::JumpPad, options);
+                }
+                break;
+            case CourseGimmickKind::JumpPad_R:
+                if (segment.style == CourseSegmentStyle::Road)
+                {
+                    buildPad_Road(
+                        model, segment, LCR::R, GimmickTriangleAttribute::kind_t::JumpPad, options);
+                }
+                else if (segment.style == CourseSegmentStyle::Pipe ||
+                    segment.style == CourseSegmentStyle::Cylinder)
+                {
+                    buildPad_Circular(
+                        model, segment, LCR::R, GimmickTriangleAttribute::kind_t::JumpPad, options);
                 }
                 break;
             case CourseGimmickKind::PitZone_L:
@@ -999,13 +1187,6 @@ namespace
             case CourseGimmickKind::PitZone_R:
                 if (segment.style == CourseSegmentStyle::Road)
                 {
-                    buildPitZone_Road(model, segment, LCR::R, options);
-                }
-                break;
-            case CourseGimmickKind::PitZone_LR:
-                if (segment.style == CourseSegmentStyle::Road)
-                {
-                    buildPitZone_Road(model, segment, LCR::L, options);
                     buildPitZone_Road(model, segment, LCR::R, options);
                 }
                 break;

@@ -8,5 +8,7 @@ namespace Race
 
     constexpr float MachineRadius = 1.0f;
 
-    constexpr float MachineHeight = 2.0f;
+    constexpr float MachineCylinderLength = 2.0f;
+
+    constexpr float VelocityDisplayFactor = 3.6f;
 }

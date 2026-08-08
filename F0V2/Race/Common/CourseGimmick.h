@@ -5,12 +5,15 @@ namespace Race
     enum class CourseGimmickKind : uint8_t
     {
         Barrier,
+        BoostPad_L,
         BoostPad_C,
+        BoostPad_R,
+        JumpPad_L,
         JumpPad_C,
+        JumpPad_R,
         PitZone_L,
         PitZone_C,
         PitZone_R,
-        PitZone_LR,
         Max // end marker
     };
 

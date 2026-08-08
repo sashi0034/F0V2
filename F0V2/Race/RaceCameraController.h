@@ -1,13 +1,15 @@
 ﻿#pragma once
 
+#include "TY/ActorHandle.h"
+
 namespace Race
 {
-    class RaceCameraController
+    class RaceCameraController : public ActorHandle
     {
     public:
         RaceCameraController();
 
-        void update();
+        std::shared_ptr<ActorBase> asActor() const override;
 
     private:
         struct Impl;

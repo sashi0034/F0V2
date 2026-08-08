@@ -164,6 +164,17 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <ClCompile Include="Race\Vfx\BillboardVfxRenderer.cpp" />
+    <ClCompile Include="Race\Vfx\MachineVfxEmitter.cpp" />
+    <ClCompile Include="Race\Vfx\MultiTextureBillboardVfxRenderer.cpp" />
+    <ClCompile Include="Race\Vfx\MultiTextureQuadVfxRenderer.cpp" />
+    <ClCompile Include="Race\Vfx\QuadVfxRenderer.cpp" />
+    <ClCompile Include="Race\Vfx\RaceVfxDrawer.cpp" />
+    <ClCompile Include="Race\Vfx\SimpleParticleVfxRenderer.cpp" />
+    <ClCompile Include="Race\UI\RaceUIController.cpp" />
+    <ClCompile Include="Util\DoubleTapDetector.cpp" />
+    <ClCompile Include="Util\MonitorInfo.cpp" />
+    <ClCompile Include="Util\WindowsPlacementAddon.cpp" />
     <Content Include="asset\.gitignore" />
     <Content Include="asset\debug.example.toml" />
     <Content Include="asset\debug.toml" />
@@ -174,6 +185,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\script\bundle_build.py" />
     <Content Include="asset\shader\fsr1\ffx_a.h" />
     <Content Include="asset\shader\fsr1\ffx_fsr1.h" />
+    <Content Include="asset\shader\quad_vfx.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_easu_cs.hlsl" />
     <Content Include="asset\shader\fsr1\fsr1_rcas_cs.hlsl" />
     <Content Include="asset\shader\gimmick_boost_pad.hlsl" />
@@ -198,11 +210,10 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="GM\GamepadConfigModal.cpp" />
     <ClCompile Include="RaceSetup\RaceSetupBackgroundDrawer.cpp" />
     <ClCompile Include="RaceSetup\RaceSetupScene.cpp" />
-    <ClCompile Include="Race\Ai\MetaAi.cpp" />
+    <ClCompile Include="Race\AI\MetaAI.cpp" />
     <ClCompile Include="Race\Common\CourseFileInfo.cpp" />
     <ClCompile Include="Race\Common\RaceDeferredShadingDrawer.cpp" />
     <ClCompile Include="Race\Common\RaceDrawUpscaler.cpp" />
-    <ClCompile Include="Race\Machine\MachineEffectDrawer.cpp" />
     <ClCompile Include="Race\RaceDrawQualityController.cpp" />
     <ClCompile Include="Race\Stage\GimmickTextureDrawer.cpp" />
     <ClCompile Include="Race\UI\UI_DurabilityBar.cpp" />
@@ -210,7 +221,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Machine\MachineDrawer.cpp" />
     <ClCompile Include="Race\Machine\MachineEventHandler.cpp" />
     <ClCompile Include="Race\RaceDrawManager.cpp" />
-    <ClCompile Include="Race\RaceFlowController.cpp" />
+    <ClCompile Include="Race\RaceController.cpp" />
     <ClCompile Include="Testbed\Testbed_WaveTest.cpp" />
     <ClCompile Include="Testbed\Testbed_Shadertoy.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
@@ -218,11 +229,11 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Editor\EditorPlayground.cpp" />
     <ClCompile Include="GameFlowchart.cpp" />
     <ClCompile Include="GM\DebugService.cpp" />
-    <ClCompile Include="Race\Ai\CharacterAi.cpp" />
-    <ClCompile Include="Race\Ai\CharacterAiLogic.cpp" />
-    <ClCompile Include="Race\Ai\SpatialAi.cpp" />
-    <ClCompile Include="Race\Ai\SpatialDataBuilder.cpp" />
-    <ClCompile Include="Race\Ai\SpatialTypes.cpp" />
+    <ClCompile Include="Race\AI\CharacterAI.cpp" />
+    <ClCompile Include="Race\AI\CharacterAILogic.cpp" />
+    <ClCompile Include="Race\AI\SpatialAI.cpp" />
+    <ClCompile Include="Race\AI\SpatialDataBuilder.cpp" />
+    <ClCompile Include="Race\AI\SpatialTypes.cpp" />
     <ClCompile Include="Race\Common\CourseModelBuilder.cpp" />
     <ClCompile Include="Race\Common\CourseConstants.cpp" />
     <ClCompile Include="Race\Common\CourseData.cpp" />
@@ -273,14 +284,13 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Testbed\Testbed_Ocean.cpp" />
     <ClCompile Include="Testbed\Testbed_ShadowMap.cpp" />
     <ClCompile Include="Testbed\Testbed_ImmediateDrawer.cpp" />
-    <Content Include="asset\sound\block_crash.mp3" />
     <Content Include="Editor\Editor_template.cpp.txt" />
     <Content Include="Editor\Editor_template.h.txt" />
     <Content Include="RaceSetup\RaceSetup_template.cpp.txt" />
     <Content Include="RaceSetup\RaceSetup_template.h.txt" />
     <Content Include="Race\.gitignore" />
-    <Content Include="Race\Ai\Ai_template.cpp.txt" />
-    <Content Include="Race\Ai\Ai_template.h.txt" />
+    <Content Include="Race\AI\AI_template.cpp.txt" />
+    <Content Include="Race\AI\AI_template.h.txt" />
     <Content Include="Race\UI\UI_template.cpp.txt" />
     <Content Include="Race\UI\UI_template.h.txt" />
     <Content Include="Race\Player\Player_template.cpp.txt" />
@@ -332,16 +342,25 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="GM\GamepadConfigModal.h" />
     <ClInclude Include="RaceSetup\RaceSetupBackgroundDrawer.h" />
     <ClInclude Include="RaceSetup\RaceSetupScene.h" />
-    <ClInclude Include="Race\Ai\CharacterAiInputCommand.h" />
-    <ClInclude Include="Race\Ai\MetaAi.h" />
-    <ClInclude Include="Race\Common\AiRank.h" />
+    <ClInclude Include="Race\AI\CharacterAIInputCommand.h" />
+    <ClInclude Include="Race\AI\MetaAI.h" />
+    <ClInclude Include="Race\Common\AIRank.h" />
     <ClInclude Include="Race\Common\CourseFileInfo.h" />
     <ClInclude Include="Race\Common\CourseGimmick.h" />
     <ClInclude Include="Race\Common\RaceDeferredShadingDrawer.h" />
     <ClInclude Include="Race\Common\RaceDrawUpscaler.h" />
-    <ClInclude Include="Race\Machine\MachineEffectDrawer.h" />
+    <ClInclude Include="Race\Vfx\BillboardVfxRenderer.h" />
+    <ClInclude Include="Race\Vfx\IRaceVfxSystem.h" />
+    <ClInclude Include="Race\Vfx\MachineVfxEmitter.h" />
+    <ClInclude Include="Race\Vfx\MultiTextureBillboardVfxRenderer.h" />
+    <ClInclude Include="Race\Vfx\MultiTextureQuadVfxRenderer.h" />
+    <ClInclude Include="Race\Vfx\QuadVfxRenderer.h" />
+    <ClInclude Include="Race\Vfx\RaceVfxDrawer.h" />
+    <ClInclude Include="Race\Vfx\SimpleParticleVfxRenderer.h" />
+    <ClInclude Include="Race\RaceControlState.h" />
     <ClInclude Include="Race\RaceDrawQualityController.h" />
     <ClInclude Include="Race\Stage\GimmickTextureDrawer.h" />
+    <ClInclude Include="Race\UI\RaceUIController.h" />
     <ClInclude Include="Race\UI\UI_DurabilityBar.h" />
     <ClInclude Include="Race\UI\UI_LabelText.h" />
     <ClInclude Include="Race\IRaceDrawer.h" />
@@ -349,7 +368,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Machine\MachineDrawer.h" />
     <ClInclude Include="Race\Machine\MachineEventHandler.h" />
     <ClInclude Include="Race\RaceDrawManager.h" />
-    <ClInclude Include="Race\RaceFlowController.h" />
+    <ClInclude Include="Race\RaceController.h" />
     <ClInclude Include="Testbed\Testbed_WaveTest.h" />
     <ClInclude Include="Testbed\Testbed_Shadertoy.h" />
     <ClInclude Include="Editor\EditorScene.h" />
@@ -358,11 +377,11 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Editor\EditorPlayground.h" />
     <ClInclude Include="GameFlowchart.h" />
     <ClInclude Include="GM\DebugService.h" />
-    <ClInclude Include="Race\Ai\CharacterAi.h" />
-    <ClInclude Include="Race\Ai\CharacterAiLogic.h" />
-    <ClInclude Include="Race\Ai\SpatialAi.h" />
-    <ClInclude Include="Race\Ai\SpatialDataBuilder.h" />
-    <ClInclude Include="Race\Ai\SpatialTypes.h" />
+    <ClInclude Include="Race\AI\CharacterAI.h" />
+    <ClInclude Include="Race\AI\CharacterAILogic.h" />
+    <ClInclude Include="Race\AI\SpatialAI.h" />
+    <ClInclude Include="Race\AI\SpatialDataBuilder.h" />
+    <ClInclude Include="Race\AI\SpatialTypes.h" />
     <ClInclude Include="Race\Common\CourseModelBuilder.h" />
     <ClInclude Include="Race\Common\CourseConstants.h" />
     <ClInclude Include="Race\Common\CourseData.h" />
@@ -409,8 +428,11 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Util\CatmullRom.h" />
     <ClInclude Include="Util\DebugTomlValue.h" />
     <ClInclude Include="Util\DebugUI.h" />
+    <ClInclude Include="Util\DoubleTapDetector.h" />
     <ClInclude Include="Util\ImmediatePrint.h" />
+    <ClInclude Include="Util\MonitorInfo.h" />
     <ClInclude Include="Util\Utilities.h" />
+    <ClInclude Include="Util\WindowsPlacementAddon.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\DirectXTex\DirectXTex\DirectXTex_Desktop_2022.vcxproj">
@@ -421,7 +443,9 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="asset\image\particle-pack\" />
     <Folder Include="asset\shadertoy\" />
+    <Folder Include="asset\sound\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

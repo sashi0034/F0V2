@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "RaceSetupBackgroundDrawer.h"
-#include "Race/Common/AiRank.h"
+#include "Race/Common/AIRank.h"
 #include "Race/Common/CourseData.h"
 #include "Race/Common/CourseFileInfo.h"
 #include "Race/Common/CourseSegmentBuilder.h"
@@ -163,7 +163,7 @@ private:
             U"強い",
             U"最強",
         };
-        static_assert(aiDisplayItems.size() == static_cast<int>(Race::AiRank::Max));
+        static_assert(aiDisplayItems.size() == static_cast<int>(Race::AIRank::Max));
 
         drawItemRow(lineRegions[0],
                     U"\U000F169E",
@@ -239,7 +239,7 @@ private:
         if (m_rowIndex == 0)
         {
             s_selectedItem.aiRank =
-                Modulo(s_selectedItem.aiRank + dir.x, static_cast<int>(Race::AiRank::Max));
+                Modulo(s_selectedItem.aiRank + dir.x, static_cast<int>(Race::AIRank::Max));
             if (confirmTriggered.value())
             {
                 m_rowIndex++;
@@ -260,7 +260,7 @@ private:
             if (m_confirmed)
             {
                 // NOTE: コースの読み込みは呼び出し側で行う
-                Race::g_sharedState->aiRank = static_cast<Race::AiRank>(s_selectedItem.aiRank);
+                Race::g_sharedState->aiRank = static_cast<Race::AIRank>(s_selectedItem.aiRank);
 
                 Asset_sound::ButtonOK().playOneShot();
                 return;

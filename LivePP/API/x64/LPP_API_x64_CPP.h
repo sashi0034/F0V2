@@ -2,22 +2,46 @@
 
 #pragma once
 
-#include "LPP_API_Helpers.h"
+#ifdef __cplusplus
+#	define LPP_EXTERN_C					extern "C"
+#else
+#	include <stddef.h>					// required for wchar_t
+#	define LPP_EXTERN_C					extern
+#endif
 
 // users of the API should not be required to include <Windows.h>
 #ifndef _INC_WINDOWS
 	// <Windows.h> was not included, so we provide our own typedefs and function prototypes for the required APIs
 
+	// Clang does not like several of the typedefs, temporarily disable this warning
+#	if defined(__clang__)
+#		if __has_warning("-Wreserved-identifier")
+#			pragma clang diagnostic push
+#			pragma clang diagnostic ignored "-Wreserved-identifier"
+#		endif
+#		if __has_warning("-Wstrict-prototypes")
+#			pragma clang diagnostic push
+#			pragma clang diagnostic ignored "-Wstrict-prototypes"
+#		endif
+#	endif
+
 	// opaque types
 	struct HINSTANCE__;
-	typedef HINSTANCE__* HINSTANCE;
+	typedef struct HINSTANCE__* HINSTANCE;
 	typedef HINSTANCE HMODULE;
-	struct IMAGE_DOS_HEADER;
+
+	struct _IMAGE_DOS_HEADER;
+	typedef struct _IMAGE_DOS_HEADER IMAGE_DOS_HEADER;
 
 	// standard types
 	typedef int BOOL;
 	typedef unsigned long DWORD;
+
+#if defined(_WIN64)
 	typedef long long INT_PTR;
+#else
+	typedef int INT_PTR;
+#endif
 
 	// char string types
 	typedef char CHAR;
@@ -41,7 +65,20 @@
 
 	// required .lib for the Win32 APIs
 #	pragma comment(lib, "Kernel32.lib")
+
+	// Restore Clang warnings
+#	if defined(__clang__)
+#		if __has_warning("-Wreserved-identifier")
+#			pragma clang diagnostic pop
+#		endif
+#		if __has_warning("-Wstrict-prototypes")
+#			pragma clang diagnostic pop
+#		endif
+#	endif
+
 #endif
+
+#include "LPP_API_Helpers.h"
 
 
 // ------------------------------------------------------------------------------------------------
@@ -121,7 +158,7 @@ LPP_API const char* LppPlatformGetCurrentModulePathANSI(void)
 {
 #define LPP_MAX_PATH 260
 	static char path[LPP_MAX_PATH] = LPP_DEFAULT_INIT('\0');
-	GetModuleFileNameA(LPP_REINTERPRET_CAST(HMODULE)(&__ImageBase), path, LPP_MAX_PATH);
+	GetModuleFileNameA(LPP_REINTERPRET_CAST(HMODULE)(LPP_STATIC_CAST(void*)(&__ImageBase)), path, LPP_MAX_PATH);
 #undef LPP_MAX_PATH
 
 	return path;
@@ -131,7 +168,7 @@ LPP_API const wchar_t* LppPlatformGetCurrentModulePath(void)
 {
 #define LPP_MAX_PATH 260
 	static wchar_t path[LPP_MAX_PATH] = LPP_DEFAULT_INIT(L'\0');
-	GetModuleFileNameW(LPP_REINTERPRET_CAST(HMODULE)(&__ImageBase), path, LPP_MAX_PATH);
+	GetModuleFileNameW(LPP_REINTERPRET_CAST(HMODULE)(LPP_STATIC_CAST(void*)(&__ImageBase)), path, LPP_MAX_PATH);
 #undef LPP_MAX_PATH
 
 	return path;

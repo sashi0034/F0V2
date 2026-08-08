@@ -29,6 +29,9 @@ namespace TY
         Float2 axisL() const;
         Float2 axisR() const;
 
+        float leftTrigger() const;
+        float rightTrigger() const;
+
         Float2 previousAxisL() const;
         Float2 previousAxisR() const;
 
@@ -40,4 +43,6 @@ namespace TY
     bool IsUsingGamepad();
 
     inline constexpr GamepadInput MainGamepad{};
+
+    constexpr float TriggerButtonThreshold = 30.0f / 255.0f; // NOTE: 30 is defined in XInput.h
 }

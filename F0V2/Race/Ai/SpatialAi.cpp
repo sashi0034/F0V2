@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "SpatialAi.h"
+#include "SpatialAI.h"
 
 #include "SpatialDataBuilder.h"
 #include "TY/ActorContainer.h"
@@ -11,7 +11,7 @@ namespace
 {
 }
 
-struct SpatialAi::Impl : GameObjectBase
+struct SpatialAI::Impl : GameObjectBase
 {
     ActorContainer m_children{};
 
@@ -51,29 +51,29 @@ private:
 
     std::u32string name() const override
     {
-        return U"SpatialAi";
+        return U"SpatialAI";
     }
 };
 
 namespace Race
 {
-    SpatialAi::SpatialAi() :
+    SpatialAI::SpatialAI() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void SpatialAi::init()
+    void SpatialAI::init()
     {
         p_impl->Init();
         GameObjectHandle::init();
     }
 
-    const SpatialData& SpatialAi::data() const
+    const SpatialData& SpatialAI::data() const
     {
         return p_impl->m_data;
     }
 
-    std::shared_ptr<GameObjectBase> SpatialAi::asGameObject() const
+    std::shared_ptr<GameObjectBase> SpatialAI::asGameObject() const
     {
         return p_impl;
     }

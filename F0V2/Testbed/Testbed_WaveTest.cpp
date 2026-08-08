@@ -4,6 +4,7 @@
 #include "imgui/imgui.h"
 
 #include "TY/ConstantBufferWrapper.h"
+#include "TY/GenericModelBufferTemplates.h"
 #include "TY/InlineComponent.h"
 #include "TY/KeyboardInput.h"
 
@@ -35,42 +36,6 @@ namespace
     };
 
     InlineComponent<Resource_Testbed_WaveTest> s_rsc{};
-
-    struct SpriteModelBuffer : IGenericModelBuffer
-    {
-        GenericModelShapeBufferElement m_shape{};
-
-        SpriteModelBuffer()
-        {
-            m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder(6);
-        }
-
-        int shapeCount() const override
-        {
-            return 1; // Assuming a single shape
-        }
-
-        GenericModelShapeBufferElement shapeAt(int index) const override
-        {
-            return m_shape;
-        }
-
-        int materialCount() const override
-        {
-            return 1; // Assuming a single material for the shape
-        }
-
-        ConstantBufferArrayImpl materialCbv() const override
-        {
-            return {Empty};
-        }
-
-        Array<Array<ShaderResourceType>> materialSrv() const override
-        {
-            return {};
-        }
-    };
 }
 
 struct Testbed_WaveTest_impl
@@ -83,7 +48,7 @@ struct Testbed_WaveTest_impl
     {
         m_spriteDrawer =
             GenericModelDrawerParams{}
-            .setModel(std::make_unique<SpriteModelBuffer>())
+            .setModel(std::make_unique<SingleShapeModelBuffer>(6))
             .setVertexInput({})
             .setShader(s_rsc->shader.wave_test)
             .setOptions(GraphicsOptions{})

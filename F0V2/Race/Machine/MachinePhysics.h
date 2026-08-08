@@ -14,7 +14,7 @@ namespace Race
 
         float m_radius = MachineRadius;
 
-        float m_height = MachineHeight;
+        float m_cylinderLength = MachineCylinderLength;
 
         Pose m_pose{};
 
@@ -34,9 +34,23 @@ namespace Race
 
         float m_driftOffset{};
 
+        float m_rawPitchRate{};
+
+        float m_pitchRate{};
+
+        float m_hyperTurn{}; // neutral: 0.0f
+
+        float m_hyperTurnTime{};
+
+        bool m_stabilizingAfterHyperTurn{};
+
         float m_manualBoost{};
 
         float m_manualBoostCooldownTime{};
+
+        float m_boostComboCountdown{};
+
+        int m_boostComboCount{};
 
         float m_passiveBoost{};
 
@@ -88,12 +102,18 @@ namespace Race
 
             float rightHandling{}; // [-1.0f, 1.0f]
 
+            float pitch{}; // [-1.0f, 1.0f]: negative = pitch up, positive = pitch down
+
             float driftTrigger{}; // [-1.0f, 1.0f]
 
-            float cheatBoostFactor{1.0f};
+            bool hyperTurnRequested{};
+
+            float cheatBoostFactor{1.0f}; // TODO: AI が予想以上に強くなったから廃止してもいいかも
         } input{};
 
         PositiveF32 maxDurability{5000.0f};
+
+        PositiveF32 boostCost{800.0f};
 
         float peakVelocity{};
 
@@ -107,6 +127,7 @@ namespace Race
         bool accelInputAccepted{};
         bool driftInputAccepted{};
         bool boostInputAccepted{};
+        bool hyperTurnAccepted{};
     };
 
     MachinePhysicsUpdateOutcome UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);

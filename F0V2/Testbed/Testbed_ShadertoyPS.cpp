@@ -5,6 +5,7 @@
 
 #include "TY/ConstantBufferWrapper.h"
 #include "TY/Gamepad.h"
+#include "TY/GenericModelBufferTemplates.h"
 #include "TY/InlineComponent.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
@@ -21,42 +22,6 @@ namespace
     {
         Float2 g_screenResolution{};
         Float2 g_mousePosition{};
-    };
-
-    struct ToyModelBuffer : IGenericModelBuffer
-    {
-        GenericModelShapeBufferElement m_shape{};
-
-        ToyModelBuffer()
-        {
-            m_shape.materialIndex = 0;
-            m_shape.indexBuffer = IndexBuffer::Placeholder(6);
-        }
-
-        int shapeCount() const override
-        {
-            return 1; // Assuming a single shape
-        }
-
-        GenericModelShapeBufferElement shapeAt(int index) const override
-        {
-            return m_shape;
-        }
-
-        int materialCount() const override
-        {
-            return 1; // Assuming a single material for the shape
-        }
-
-        ConstantBufferCore materialCbv() const override
-        {
-            return ConstantBufferCore{1};
-        }
-
-        Array<Array<ShaderResourceType>> materialSrv() const override
-        {
-            return {};
-        }
     };
 
     struct Resource_Shadertoy : IInlineComponent
@@ -93,7 +58,7 @@ struct Testbed_ShadertoyPS_impl
 
         m_toyDrawer =
             GenericModelDrawerParams{}
-            .setModel(std::make_unique<ToyModelBuffer>())
+            .setModel(std::make_unique<SingleShapeModelBuffer>(6, ConstantBufferImpl{1}))
             .setVertexInput({})
             .setShader(s_rsc->shader.shadertoy)
             .setOptions(GraphicsOptions{})

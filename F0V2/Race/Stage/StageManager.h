@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "StageStaticCollider.h"
 #include "Race/Common/CourseData.h"
+#include "Race/Common/CourseModelBuilder.h"
 #include "Race/Common/CourseTriangleAttribute.h"
 #include "Race/Machine/LapProgress.h"
 #include "TY/TriangleBvh.h"
@@ -22,6 +23,8 @@ namespace Race
 
         Array<CourseSegment>& courseSegments();
         const Array<CourseSegment>& courseSegments() const;
+
+        const Array<Array<GimmickPlacement>>& gimmickPlacements() const;
 
         struct start_position
         {

@@ -186,6 +186,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
     Array<ModelDrawer> m_courseDrawers{};
 
+    Array<Array<GimmickPlacement>> m_gimmickPlacements{};
+
     float m_courseLength{};
 
     int m_triangleCount{};
@@ -218,6 +220,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         m_courseLength = 0.0f;
         m_triangleCount = 0;
         Array<CoursePolygoneCollider> colliders{};
+        m_gimmickPlacements.clear();
+        m_gimmickPlacements.resize(g_sharedState->courseSegments.size());
         for (int i = 0; i < g_sharedState->courseSegments.size(); ++i)
         {
             const auto& segment = g_sharedState->courseSegments[i];
@@ -227,7 +231,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
                 segment,
                 {
                     .createStartingLine = i == 0,
-                    .outCollider = &colliders.back()
+                    .outCollider = &colliders.back(),
+                    .outGimmickPlacements = &m_gimmickPlacements[i],
                 }
             );
 
@@ -471,6 +476,11 @@ namespace Race
     const Array<CourseSegment>& StageManager::courseSegments() const
     {
         return g_sharedState->courseSegments;
+    }
+
+    const Array<Array<GimmickPlacement>>& StageManager::gimmickPlacements() const
+    {
+        return p_impl->m_gimmickPlacements;
     }
 
     StageManager::start_position StageManager::getStartPosition(int machineId) const

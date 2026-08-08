@@ -5,10 +5,10 @@
 
 namespace Race
 {
-    class SpatialAi : public GameObjectHandle
+    class SpatialAI : public GameObjectHandle
     {
     public:
-        SpatialAi();
+        SpatialAI();
 
         void init() override;
 

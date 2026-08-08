@@ -1,14 +1,15 @@
 #include "pch.h"
-#include "MetaAi.h"
+#include "MetaAI.h"
 
 #include "Asset.generated.h"
-#include "CharacterAi.h"
+#include "CharacterAI.h"
 #include "Race/IRaceContext.h"
-#include "Race/Common/AiRank.h"
+#include "Race/Common/AIRank.h"
 #include "Race/Common/RaceSharedState.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
 #include "TY_Extension/GameObjectBase.h"
+#include "Util/DebugTomlValue.h"
 
 using namespace Race;
 
@@ -60,19 +61,19 @@ namespace
 
     // -----------------------------------------------
 
-    std::pair<float, float> getRubberBandingBiasRange(AiRank rank)
+    std::pair<float, float> getRubberBandingBiasRange(AIRank rank)
     {
         switch (rank)
         {
-        case AiRank::Weak:
+        case AIRank::Weak:
             return {-175.0f, -50.0f};
-        case AiRank::Normal:
+        case AIRank::Normal:
             return {-100.0f, 25.0f};
-        case AiRank::Strong:
+        case AIRank::Strong:
             return {-50.0f, 75.0f};
-        case AiRank::Expert:
+        case AIRank::Expert:
             return {10.0f, 150.0f};
-        case AiRank::Max:
+        case AIRank::Max:
             break;
         }
 
@@ -120,6 +121,14 @@ namespace
 
         r = Math::Clamp(r, -1.0f, 1.0f); // [-1.0f, 1.0f]
 
+#if defined(_DEBUG)
+        if (const float r_ = GetDebugTomlValue("rubber_banding_rate", -2.0f);
+            InRange(r_, -1.0f, 1.0f))
+        {
+            r = r_;
+        }
+#endif
+
         float boostFactor;
         if (r < 0.0f)
         {
@@ -127,13 +136,13 @@ namespace
         }
         else // if (r >= 0.0f)
         {
-            boostFactor = 1.0f + r * 4.0f;
+            boostFactor = 1.0f; // + r * 4.0f;
         }
 
         return boostFactor;
     }
 
-    struct CachePerCharacterAi
+    struct CachePerCharacterAI
     {
         float rubberBandingBias{};
     };
@@ -148,34 +157,34 @@ namespace
 #endif
 }
 
-struct MetaAi::Impl : GameObjectBase
+struct MetaAI::Impl : GameObjectBase
 {
     ActorContainer m_children{};
 
-    Array<CachePerCharacterAi> m_characterAiCaches{};
+    Array<CachePerCharacterAI> m_characterAICaches{};
 
     void Init()
     {
-        const int characterAiCount = GetRaceContext().characterAiList().size();
-        m_characterAiCaches.resize(characterAiCount);
+        const int characterAICount = GetRaceContext().characterAIList().size();
+        m_characterAICaches.resize(characterAICount);
 
-        rebuildRubberBandingBias(characterAiCount);
+        rebuildRubberBandingBias(characterAICount);
     }
 
 private:
     void update() override
     {
-        auto& characterAiList = GetRaceContext().characterAiList();
-        assert(characterAiList.size() == m_characterAiCaches.size());
+        auto& characterAIList = GetRaceContext().characterAIList();
+        assert(characterAIList.size() == m_characterAICaches.size());
 
-        for (int i = 0; i < characterAiList.size(); i++)
+        for (int i = 0; i < characterAIList.size(); i++)
         {
-            const auto& aiMachine = GetRaceContext().machineManager().machineList()[characterAiList[i].machineId()];
+            const auto& aiMachine = GetRaceContext().machineManager().machineList()[characterAIList[i].machineId()];
 
-            CharacterAiInputCommand command{};
-            command.targeCheatBoost = evaluateRubberBandingBoost(aiMachine, m_characterAiCaches[i].rubberBandingBias);
+            CharacterAIInputCommand command{};
+            command.targeCheatBoost = evaluateRubberBandingBoost(aiMachine, m_characterAICaches[i].rubberBandingBias);
 
-            characterAiList[i].setInputCommand(command);
+            characterAIList[i].setInputCommand(command);
         }
 
         debugUI();
@@ -188,7 +197,7 @@ private:
 
         if (ImGui::Button("Rebuild Rubber Banding Offset"))
         {
-            rebuildRubberBandingBias(GetRaceContext().characterAiList().size());
+            rebuildRubberBandingBias(GetRaceContext().characterAIList().size());
         }
 
         ImGui::Checkbox("Debug Rubber Banding", &s_debugRubberBanding.enabled);
@@ -209,9 +218,9 @@ private:
 #endif
     }
 
-    void rebuildRubberBandingBias(int characterAiCount)
+    void rebuildRubberBandingBias(int characterAICount)
     {
-        if (characterAiCount <= 1)
+        if (characterAICount <= 1)
         {
             return;
         }
@@ -227,26 +236,26 @@ private:
 #endif
 
         // 線形補間版
-        for (int i = 0; i < characterAiCount; ++i)
+        for (int i = 0; i < characterAICount; ++i)
         {
-            const float f = static_cast<float>(i) / static_cast<float>(characterAiCount - 1);
-            m_characterAiCaches[i].rubberBandingBias = Math::Lerp(minBias, maxBias, f);
+            const float f = static_cast<float>(i) / static_cast<float>(characterAICount - 1);
+            m_characterAICaches[i].rubberBandingBias = Math::Lerp(minBias, maxBias, f);
         }
 
         // ガウス分布版
 #if 0
         const auto gaussianRange = makeGaussianRange(
-            characterAiCount,
+            characterAICount,
             minBias,
             maxBias);
-        for (int i = 0; i < characterAiCount; ++i)
+        for (int i = 0; i < characterAICount; ++i)
         {
-            m_characterAiCaches[i].rubberBandingBias = gaussianRange[i];
+            m_characterAICaches[i].rubberBandingBias = gaussianRange[i];
 
 #if defined(_DEBUG) && 0
         if (i == 0) std::cout << "----------------------------------------------- rubberBandingOffset\n";
 
-        std::cout << m_characterAiCaches[i].rubberBandingBias << std::endl;
+        std::cout << m_characterAICaches[i].rubberBandingBias << std::endl;
 #endif
         }
 #endif
@@ -259,24 +268,24 @@ private:
 
     std::u32string name() const override
     {
-        return U"MetaAi";
+        return U"MetaAI";
     }
 };
 
 namespace Race
 {
-    MetaAi::MetaAi() :
+    MetaAI::MetaAI() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void MetaAi::init()
+    void MetaAI::init()
     {
         p_impl->Init();
         GameObjectHandle::init();
     }
 
-    std::shared_ptr<GameObjectBase> MetaAi::asGameObject() const
+    std::shared_ptr<GameObjectBase> MetaAI::asGameObject() const
     {
         return p_impl;
     }

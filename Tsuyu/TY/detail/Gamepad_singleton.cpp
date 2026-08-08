@@ -113,6 +113,7 @@ struct GamepadImpl
         if (m_deviceChanged)
         {
             m_deviceChanged = false;
+            releaseGamepad();
             reacquireIfNeeded();
         }
 
@@ -125,18 +126,13 @@ struct GamepadImpl
         if (FAILED(m_gamepad->Poll()))
         {
             m_gamepad->Unacquire();
-            m_gamepad->Acquire();
 
-            // Acquire も失敗してる可能性があり、その場合はデバイスが死んでる
-            if (FAILED(m_gamepad->Poll()))
+            // NOTE: ウィンドウのフォーカスを失っているとき Acquire が失敗する
+            if (FAILED(m_gamepad->Acquire()) || FAILED(m_gamepad->Poll()))
             {
-                // 再接続のために破棄して nullptr にする
-                m_gamepad->Unacquire();
-                m_gamepad->Release();
-                m_gamepad = nullptr;
+                clearInputState();
+                return;
             }
-
-            return;
         }
 
         if (m_usingGamepad && not KeyboardMouse::GetAllInputs().empty())
@@ -180,14 +176,13 @@ struct GamepadImpl
         }
         else
         {
-            m_usingGamepad = false;
+            clearInputState();
         }
     }
 
     void Shutdown()
     {
-        if (m_gamepad) m_gamepad->Unacquire();
-        if (m_gamepad) m_gamepad->Release();
+        releaseGamepad();
         if (m_di) m_di->Release();
     }
 
@@ -197,9 +192,27 @@ struct GamepadImpl
     }
 
 private:
-    void reacquireIfNeeded() const
+    void clearInputState()
+    {
+        m_inputState = {};
+        m_usingGamepad = false;
+    }
+
+    void releaseGamepad()
     {
         if (m_gamepad)
+        {
+            m_gamepad->Unacquire();
+            m_gamepad->Release();
+            m_gamepad = nullptr;
+        }
+
+        clearInputState();
+    }
+
+    void reacquireIfNeeded()
+    {
+        if (not m_di || m_gamepad)
         {
             return;
         }
@@ -218,12 +231,14 @@ private:
 
         if (FAILED(m_gamepad->SetDataFormat(&c_dfDIJoystick)))
         {
+            releaseGamepad();
             return;
         }
 
         const auto hwnd = Window_singleton::Handle();
         if (FAILED(m_gamepad->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE)))
         {
+            releaseGamepad();
             return;
         }
 

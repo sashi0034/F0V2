@@ -1,6 +1,6 @@
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'Barrier', 'PitZone_LR' ]
+gimmicks = [ 'Barrier', 'PitZone_L', 'PitZone_R' ]
 pos = [ -365.0, 0.0, 165.0 ]
 roll = 0
 style = 'Road'
@@ -24,7 +24,7 @@ width = 100
 
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'Barrier', 'PitZone_R' ]
+gimmicks = [ 'Barrier', 'PitZone_L' ]
 pos = [ 160.0, 25.0, -195.0 ]
 roll = 45
 style = 'Road'
@@ -40,7 +40,7 @@ width = 100
 
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'Barrier', 'BoostPad_C', 'PitZone_L' ]
+gimmicks = [ 'Barrier', 'BoostPad_C', 'PitZone_R' ]
 pos = [ 515.0, -40.0, 465.0 ]
 roll = 75
 style = 'Road'
@@ -64,7 +64,7 @@ width = 50
 
 [[nodes]]
 centerOffset = 0
-gimmicks = [ 'Barrier' ]
+gimmicks = [ 'BoostPad_C' ]
 pos = [ -140.0, 50.0, 860.0 ]
 roll = 0
 style = 'Cylinder'

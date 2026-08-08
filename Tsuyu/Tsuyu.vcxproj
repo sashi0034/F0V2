@@ -177,6 +177,7 @@
     <ClInclude Include="TY\DiskTexture.h" />
     <ClInclude Include="TY\EaseActor.h" />
     <ClInclude Include="TY\Easing.h" />
+    <ClInclude Include="TY\GenericModelBufferTemplates.h" />
     <ClInclude Include="TY\GpuMetrics.h" />
     <ClInclude Include="TY\IndexedTriangle.h" />
     <ClInclude Include="TY\InputUtils.h" />

@@ -11,11 +11,13 @@ namespace Race
 
     class StageManager;
 
-    class SpatialAi;
+    class RaceVfxDrawer;
 
-    class CharacterAi;
+    class SpatialAI;
 
-    class MetaAi;
+    class CharacterAI;
+
+    class MetaAI;
 
     class IRaceContext
     {
@@ -30,20 +32,23 @@ namespace Race
         virtual void registerDrawer(const std::shared_ptr<IRaceDrawer>& drawer) = 0;
         virtual void unregisterDrawer(const IRaceDrawer* drawer) = 0;
 
+        virtual RaceVfxDrawer& vfxDrawer() = 0;
+        virtual const RaceVfxDrawer& vfxDrawer() const = 0;
+
         virtual StageManager& stageManager() = 0;
         virtual const StageManager& stageManager() const = 0;
 
         virtual MachineManager& machineManager() = 0;
         virtual const MachineManager& machineManager() const = 0;
 
-        virtual SpatialAi& spatialAi() = 0;
-        virtual const SpatialAi& spatialAi() const = 0;
+        virtual SpatialAI& spatialAI() = 0;
+        virtual const SpatialAI& spatialAI() const = 0;
 
-        virtual Array<CharacterAi>& characterAiList() = 0;
-        virtual const Array<CharacterAi>& characterAiList() const = 0;
+        virtual Array<CharacterAI>& characterAIList() = 0;
+        virtual const Array<CharacterAI>& characterAIList() const = 0;
 
-        // virtual MetaAi& metaAi() = 0;
-        // virtual const MetaAi& metaAi() const = 0;
+        // virtual MetaAI& metaAI() = 0;
+        // virtual const MetaAI& metaAI() const = 0;
     };
 
     IRaceContext& GetRaceContext();
