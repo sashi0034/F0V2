@@ -99,31 +99,31 @@ namespace TY::detail
             if (const auto& bindingSlot = descriptorTable[tableIndex].bindingSlot)
             {
                 // 明示的なレジスタ開始番号が指定されている場合、オフセットを変更
-                if (bindingSlot->cbvStart >= cbvOffset)
+                if (descriptorTable[tableIndex].cbvCount > 0 && bindingSlot->cbvStart >= cbvOffset)
                 {
                     cbvOffset = bindingSlot->cbvStart;
                 }
-                else
+                else if (descriptorTable[tableIndex].cbvCount > 0)
                 {
                     LogError(std::format(
                         "RootSignature: cbvOffset is greater than explicit cbvStart in table {}.", tableIndex));
                 }
 
-                if (bindingSlot->srvStart >= srvOffset)
+                if (descriptorTable[tableIndex].srvCount > 0 && bindingSlot->srvStart >= srvOffset)
                 {
                     srvOffset = bindingSlot->srvStart;
                 }
-                else
+                else if (descriptorTable[tableIndex].srvCount > 0)
                 {
                     LogError(std::format(
                         "RootSignature: srvOffset is greater than explicit srvStart in table {}.", tableIndex));
                 }
 
-                if (bindingSlot->uavStart >= uavOffset)
+                if (descriptorTable[tableIndex].uavCount > 0 && bindingSlot->uavStart >= uavOffset)
                 {
                     uavOffset = bindingSlot->uavStart;
                 }
-                else
+                else if (descriptorTable[tableIndex].uavCount > 0)
                 {
                     LogError(std::format(
                         "RootSignature: uavOffset is greater than explicit uavStart in table {}.", tableIndex));
@@ -177,6 +177,31 @@ namespace TY::detail
             rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
             rootParameters.push_back(rootParameter);
+        }
+
+        // 動的 CBV 設定
+        const auto& dynamicDescriptor = params.dynamicDescriptor;
+        if (dynamicDescriptor.cbvCount > 0)
+        {
+            int dynamicCbvOffset = cbvOffset;
+            if (dynamicDescriptor.bindingSlot.cbvStart >= cbvOffset)
+            {
+                dynamicCbvOffset = dynamicDescriptor.bindingSlot.cbvStart;
+            }
+            else if (dynamicDescriptor.bindingSlot.cbvStart >= 0)
+            {
+                LogError("RootSignature: cbvOffset is greater than explicit dynamic cbvStart.");
+            }
+
+            for (uint32_t i = 0; i < dynamicDescriptor.cbvCount; ++i)
+            {
+                D3D12_ROOT_PARAMETER rootParameter{};
+                rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+                rootParameter.Descriptor.ShaderRegister = dynamicCbvOffset + i;
+                rootParameter.Descriptor.RegisterSpace = 0;
+                rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+                rootParameters.push_back(rootParameter);
+            }
         }
 
         rootSignatureDesc.NumParameters = rootParameters.size();

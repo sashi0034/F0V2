@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "GenericModelDrawer.h"
 
+#include "DynamicBinding.h"
 #include "detail/DescriptorHeap.h"
 #include "detail/RenderContext_singleton.h"
 #include "detail/GraphicsPipelineState.h"
@@ -33,6 +34,10 @@ struct GenericModelDrawer::Impl
     int m_tableIndexofCbv10AndLater{-1};
 
     int m_tableIndexofSrv10AndLater{-1};
+
+    int m_dynamicCbvRootParameterStart{-1};
+
+    int m_dynamicCbvCount{};
 
     Impl(const GenericModelDrawerParams& params)
         : m_modelBuffer(params.model)
@@ -85,13 +90,32 @@ struct GenericModelDrawer::Impl
             descriptorHeap.materialCounts.push_back(1);
             descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, {params.srv10AndLater}, {}});
         }
+        if (params.dynamicCbvCount < 0)
+        {
+            LogError("GenericModelDrawer: dynamicCbvCount must be non-negative.");
+            assert(false);
+            return;
+        }
+
+        m_dynamicCbvCount = params.dynamicCbvCount;
+        m_dynamicCbvRootParameterStart = static_cast<int>(descriptorHeap.table.size());
+
+        const auto dynamicDescriptor = DynamicDescriptorTableElement{
+            .cbvCount = static_cast<uint32_t>(m_dynamicCbvCount),
+            .bindingSlot = BindingSlot{
+                10 + static_cast<int>(params.cbv10AndLater.size()),
+                -1,
+                -1,
+            },
+        };
 
         m_pso = GraphicsPipelineState{
             GraphicsPipelineStateParams{
                 .shader = params.shader,
                 .vertexInput = params.vertexInput,
                 .options = params.options,
-                .descriptorTable = descriptorHeap.table
+                .descriptorTable = descriptorHeap.table,
+                .dynamicDescriptor = dynamicDescriptor,
             }
         };
 
@@ -109,11 +133,28 @@ struct GenericModelDrawer::Impl
         m_cb1.upload(b);
     }
 
+    RootParameterIndex GetDynamicCbvParameterIndex(int index) const
+    {
+        if (index < 0 || index >= m_dynamicCbvCount)
+        {
+            LogError(std::format(
+                "GenericModelDrawer::getDynamicCbvParameterIndex: index {} is out of range [0, {}).",
+                index,
+                m_dynamicCbvCount));
+            assert(false);
+            return RootParameterIndex{-1};
+        }
+
+        return RootParameterIndex{m_dynamicCbvRootParameterStart + index};
+    }
+
     void Draw() const
     {
         RenderContext_singleton::RefreshSceneStateIfNeeded();
 
         m_pso.commandSet();
+
+        DynamicBinding::FlushAsGraphics();
 
         // カメラ行列設定
         m_descriptorHeap.commandSet();
@@ -181,6 +222,19 @@ namespace TY
         return *this;
     }
 
+    GenericModelDrawerParams& GenericModelDrawerParams::setDynamicCbvCount(int count)
+    {
+        if (count < 0)
+        {
+            LogError("GenericModelDrawerParams::setDynamicCbvCount: count must be non-negative.");
+            assert(false);
+            count = 0;
+        }
+
+        dynamicCbvCount = count;
+        return *this;
+    }
+
     GenericModelDrawer::GenericModelDrawer(const GenericModelDrawerParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
@@ -194,6 +248,18 @@ namespace TY
     {
         if (p_impl) p_impl->UploadWorldMatrix(worldMatrix);
         return *this;
+    }
+
+    RootParameterIndex GenericModelDrawer::getDynamicCbvParameterIndex(int index) const
+    {
+        if (not p_impl)
+        {
+            LogError("GenericModelDrawer::getDynamicCbvParameterIndex: Drawer is empty.");
+            assert(false);
+            return RootParameterIndex{-1};
+        }
+
+        return p_impl->GetDynamicCbvParameterIndex(index);
     }
 
     void GenericModelDrawer::draw() const

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
+#include "DynamicDescriptorTable.h"
 #include "TY/GraphicsOptions.h"
 
 namespace TY::detail
@@ -8,6 +9,7 @@ namespace TY::detail
     {
         Array<GraphicsSamplerOptions> samplers;
         Array<DescriptorTableElement> descriptorTable;
+        DynamicDescriptorTableElement dynamicDescriptor{};
     };
 
     class RootSignature

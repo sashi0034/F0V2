@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "GenericModelBuffer.h"
+#include "RootParameterIndex.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Mat4x4.h"
 #include "TY/Shader.h"
@@ -21,6 +22,8 @@ namespace TY
 
         Array<ShaderResourceType> srv10AndLater{};
 
+        int dynamicCbvCount{};
+
         GenericModelDrawerParams& setModel(const std::shared_ptr<IGenericModelBuffer>& model_);
 
         GenericModelDrawerParams& setVertexInput(const Array<VertexInputElement>& vertexInput_);
@@ -32,6 +35,8 @@ namespace TY
         GenericModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferArrayImpl>& cbv);
 
         GenericModelDrawerParams& setSrv10AndLater(const Array<ShaderResourceType>& srv);
+
+        GenericModelDrawerParams& setDynamicCbvCount(int count);
     };
 
     class GenericModelDrawer
@@ -42,6 +47,9 @@ namespace TY
         GenericModelDrawer(const GenericModelDrawerParams& params);
 
         const GenericModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
+
+        [[nodiscard]]
+        RootParameterIndex getDynamicCbvParameterIndex(int index) const;
 
         void draw() const;
 

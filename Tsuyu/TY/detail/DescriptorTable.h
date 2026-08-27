@@ -1,19 +1,11 @@
 #pragma once
 #include <optional>
 
+#include "BindingSlot.h"
 #include "TY/Array.h"
 
 namespace TY::detail
 {
-    struct BindingSlot
-    {
-        int cbvStart;
-        int srvStart;
-        int uavStart;
-
-        bool operator==(const BindingSlot& other) const = default;
-    };
-
     struct DescriptorTableElement
     {
         uint32_t cbvCount{};
