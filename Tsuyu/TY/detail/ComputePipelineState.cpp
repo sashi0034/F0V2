@@ -88,8 +88,7 @@ private:
     {
         m_rootSignature = RootSignature(RootSignatureParams{
             .samplers = params.samplers,
-            .descriptorTable = params.descriptorTable,
-            .explicitRegisterStarts = params.explicitRegisterStarts
+            .descriptorTable = params.descriptorTable
         });
 
         D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};

@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "CommandListManager.h"
 #include "DescriptorTable.h"
-#include "ShaderRegisterStart.h"
 #include "TY/Array.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"
@@ -17,8 +16,6 @@ namespace TY::detail
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
         Array<DescriptorTableElement> descriptorTable;
-
-        Array<ShaderRegisterStart> explicitRegisterStarts{};
     };
 
     class ComputePipelineState

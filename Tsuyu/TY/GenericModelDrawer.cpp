@@ -64,16 +64,14 @@ struct GenericModelDrawer::Impl
             },
         };
 
-        Array<ShaderRegisterStart> explicitRegisterStarts{
-            ShaderRegisterStart{static_cast<int>(descriptorHeap.table.size()), 10}
-        };
+        constexpr std::optional<BindingSlot> extensionBindingSlot{BindingSlot{10, 10, 10}};
 
         // 拡張 CBV 設定
         if (params.cbv10AndLater.size() > 0)
         {
             m_tableIndexofCbv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-            descriptorHeap.table.push_back({params.cbv10AndLater.size(), 0, 0});
+            descriptorHeap.table.push_back({params.cbv10AndLater.size(), 0, 0, extensionBindingSlot});
             descriptorHeap.materialCounts.push_back(1);
             descriptorHeap.descriptors.push_back(CbvSrvUavSet{params.cbv10AndLater, {}, {}});
         }
@@ -83,7 +81,7 @@ struct GenericModelDrawer::Impl
         {
             m_tableIndexofSrv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-            descriptorHeap.table.push_back({0, params.srv10AndLater.size(), 0});
+            descriptorHeap.table.push_back({0, params.srv10AndLater.size(), 0, extensionBindingSlot});
             descriptorHeap.materialCounts.push_back(1);
             descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, {params.srv10AndLater}, {}});
         }
@@ -93,8 +91,7 @@ struct GenericModelDrawer::Impl
                 .shader = params.shader,
                 .vertexInput = params.vertexInput,
                 .options = params.options,
-                .descriptorTable = descriptorHeap.table,
-                .explicitRegisterStarts = std::move(explicitRegisterStarts)
+                .descriptorTable = descriptorHeap.table
             }
         };
 

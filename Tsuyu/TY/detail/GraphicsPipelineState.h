@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "DescriptorTable.h"
-#include "ShaderRegisterStart.h"
 #include "TY/Array.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"
@@ -17,8 +16,6 @@ namespace TY::detail
         GraphicsOptions options;
 
         DescriptorTable descriptorTable{};
-
-        Array<ShaderRegisterStart> explicitRegisterStarts{};
 
         bool equalsTo(const GraphicsPipelineStateParams& other) const;
     };

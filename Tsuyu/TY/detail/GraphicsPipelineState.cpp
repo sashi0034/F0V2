@@ -301,8 +301,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
         m_rootSignature = RootSignature(RootSignatureParams{
             .samplers = params.options.samplers,
-            .descriptorTable = params.descriptorTable,
-            .explicitRegisterStarts = params.explicitRegisterStarts
+            .descriptorTable = params.descriptorTable
         });
 
         pipelineDesc.pRootSignature = m_rootSignature.getPointer();
@@ -445,7 +444,6 @@ namespace TY
         if (shader.vs.unique_id() != other.shader.vs.unique_id()) return false;
         if (options != other.options) return false;
         if (descriptorTable != other.descriptorTable) return false;
-        if (explicitRegisterStarts != other.explicitRegisterStarts) return false;
         return true;
     }
 

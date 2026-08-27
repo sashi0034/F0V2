@@ -1,18 +1,35 @@
 #pragma once
+#include <optional>
+
 #include "TY/Array.h"
 
 namespace TY::detail
 {
+    struct BindingSlot
+    {
+        int cbvStart;
+        int srvStart;
+        int uavStart;
+
+        bool operator==(const BindingSlot& other) const = default;
+    };
+
     struct DescriptorTableElement
     {
         uint32_t cbvCount{};
         uint32_t srvCount{};
         uint32_t uavCount{};
+        std::optional<BindingSlot> bindingSlot{};
 
-        constexpr DescriptorTableElement(size_t cbvCount, size_t srvCount, size_t uavCount) :
+        constexpr DescriptorTableElement(
+            size_t cbvCount,
+            size_t srvCount,
+            size_t uavCount,
+            std::optional<BindingSlot> bindingSlot = std::nullopt) :
             cbvCount(cbvCount),
             srvCount(srvCount),
-            uavCount(uavCount)
+            uavCount(uavCount),
+            bindingSlot(bindingSlot)
         {
         }
 

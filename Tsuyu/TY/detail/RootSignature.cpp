@@ -88,7 +88,6 @@ namespace TY::detail
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 
         // ディスクリプタテーブルの設定
-        std::span explicitRegisterStarts = params.explicitRegisterStarts;
         std::vector<D3D12_ROOT_PARAMETER> rootParameters{};
         std::vector<std::vector<D3D12_DESCRIPTOR_RANGE>> descriptorRanges{};
         int cbvOffset{};
@@ -97,12 +96,12 @@ namespace TY::detail
         descriptorRanges.resize(descriptorTable.size());
         for (int tableIndex = 0; tableIndex < descriptorTable.size(); ++tableIndex)
         {
-            if (not explicitRegisterStarts.empty() && tableIndex == explicitRegisterStarts[0].descriptorTableIndex)
+            if (const auto& bindingSlot = descriptorTable[tableIndex].bindingSlot)
             {
                 // 明示的なレジスタ開始番号が指定されている場合、オフセットを変更
-                if (explicitRegisterStarts[0].cbvStart >= cbvOffset)
+                if (bindingSlot->cbvStart >= cbvOffset)
                 {
-                    cbvOffset = explicitRegisterStarts[0].cbvStart;
+                    cbvOffset = bindingSlot->cbvStart;
                 }
                 else
                 {
@@ -110,9 +109,9 @@ namespace TY::detail
                         "RootSignature: cbvOffset is greater than explicit cbvStart in table {}.", tableIndex));
                 }
 
-                if (explicitRegisterStarts[0].srvStart >= srvOffset)
+                if (bindingSlot->srvStart >= srvOffset)
                 {
-                    srvOffset = explicitRegisterStarts[0].srvStart;
+                    srvOffset = bindingSlot->srvStart;
                 }
                 else
                 {
@@ -120,17 +119,15 @@ namespace TY::detail
                         "RootSignature: srvOffset is greater than explicit srvStart in table {}.", tableIndex));
                 }
 
-                if (explicitRegisterStarts[0].uavStart >= uavOffset)
+                if (bindingSlot->uavStart >= uavOffset)
                 {
-                    uavOffset = explicitRegisterStarts[0].uavStart;
+                    uavOffset = bindingSlot->uavStart;
                 }
                 else
                 {
                     LogError(std::format(
                         "RootSignature: uavOffset is greater than explicit uavStart in table {}.", tableIndex));
                 }
-
-                explicitRegisterStarts = explicitRegisterStarts.subspan(1);
             }
 
             // CBV 設定

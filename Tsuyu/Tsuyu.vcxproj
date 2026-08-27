@@ -196,7 +196,6 @@
     <ClInclude Include="TY\detail\ComponentManager_singleton.h" />
     <ClInclude Include="TY\detail\FreeTypeContext.h" />
     <ClInclude Include="TY\detail\RenderEventComponent.h" />
-    <ClInclude Include="TY\detail\ShaderRegisterStart.h" />
     <ClInclude Include="TY\detail\PipelineType.h" />
     <ClInclude Include="TY\detail\ImmediateDrawer_Common.h" />
     <ClInclude Include="TY\detail\ImmediateDrawer_Component.h" />
@@ -210,7 +209,6 @@
     <ClInclude Include="TY\GenericModelBuffer.h" />
     <ClInclude Include="TY\GenericModelDrawer.h" />
     <ClInclude Include="TY\GlyphInfo.h" />
-    <ClInclude Include="TY\Gpgpu.h" />
     <ClInclude Include="TY\GpgpuBuffer.h" />
     <ClInclude Include="TY\Graphics2D.h" />
     <ClInclude Include="TY\GraphicsOptions.h" />
@@ -377,7 +375,6 @@
     <ClCompile Include="TY\GameTime.cpp" />
     <ClCompile Include="TY\GenericModelDrawer.cpp" />
     <ClCompile Include="TY\GlyphInfo.cpp" />
-    <ClCompile Include="TY\Gpgpu.cpp" />
     <ClCompile Include="TY\Graphics2D.cpp" />
     <ClCompile Include="TY\GraphicsOptions.cpp" />
     <ClCompile Include="TY\Grid.cpp" />
