@@ -35,7 +35,7 @@ namespace
     // }
 }
 
-struct BitmapFont::Impl : RenderEvent::Lister
+struct BitmapFont::Impl : RenderEvent::Listener
 {
     int m_fontSize{};
 

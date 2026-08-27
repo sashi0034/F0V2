@@ -64,7 +64,7 @@ namespace
     }
 }
 
-struct ImmediateDrawer::Impl : RenderEvent::Lister
+struct ImmediateDrawer::Impl : RenderEvent::Listener
 {
     ImmediateBuilder2D::BufferCreator m_bufferCreator2D{};
     ImmediateBuilder3D::BufferCreator m_bufferCreator3D{};

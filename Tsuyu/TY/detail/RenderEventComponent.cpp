@@ -12,7 +12,7 @@ namespace
 {
     struct RenderEventImpl
     {
-        Array<std::shared_ptr<RenderEvent::Lister>> m_subscribableList{};
+        Array<std::shared_ptr<RenderEvent::Listener>> m_subscribableList{};
     } s_renderEvent{};
 
     struct RenderEventComponent : IComponent
@@ -54,7 +54,7 @@ namespace
 
 namespace TY::detail
 {
-    void RenderEvent::AddLister(const std::shared_ptr<Lister>& subscribable)
+    void RenderEvent::AddLister(const std::shared_ptr<Listener>& subscribable)
     {
         if (subscribable)
         {

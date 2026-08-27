@@ -190,7 +190,7 @@ namespace
     InlineComponent<SdfFontCache> s_sdfFontCache{};
 }
 
-struct SdfFont::Impl : RenderEvent::Lister
+struct SdfFont::Impl : RenderEvent::Listener
 {
     int m_fontSize{};
 
