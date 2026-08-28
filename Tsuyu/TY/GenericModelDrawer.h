@@ -49,7 +49,7 @@ namespace TY
         const GenericModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
 
         [[nodiscard]]
-        RootParameterIndex getDynamicCbvParameterIndex(int index) const;
+        RootParameterIndex mapDynamicCbvIndex(int index) const;
 
         void draw() const;
 

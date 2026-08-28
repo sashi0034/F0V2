@@ -174,7 +174,7 @@ namespace
             m_pendingBindings.clear();
         }
 
-        void setConstantBuffer(RootParameterIndex rootParameterIndex, const void* data, size_t size)
+        void setCbv(RootParameterIndex rootParameterIndex, const void* data, size_t size)
         {
             const size_t timestamp = RenderContext_singleton::GetFlushTimestamp();
             auto& frameResource = m_frameResources[timestamp % RenderContext_singleton::FrameBufferCount];
@@ -190,7 +190,7 @@ namespace
             m_pendingBindings[rootParameterIndex.value] = allocation->gpuAddress;
         }
 
-        void commandSetGraphicsConstantBuffers()
+        void commandSetGraphicsCbv()
         {
             const auto commandList = RenderContext_singleton::TargetCommandList();
             for (const auto& [rootParameterIndex, gpuAddress] : m_pendingBindings)
@@ -216,11 +216,11 @@ namespace
 
 namespace TY::DynamicBinding
 {
-    void SetDynamicConstantBuffer(RootParameterIndex rootParameterIndex, const void* data, size_t size)
+    void SetDynamicCbv(RootParameterIndex rootParameterIndex, const void* data, size_t size)
     {
         if (rootParameterIndex.value < 0 || not data || size == 0)
         {
-            LogError("DynamicBinding::SetDynamicConstantBuffer: Invalid argument.");
+            LogError("DynamicBinding::SetDynamicCbv: Invalid argument.");
             assert(false);
             return;
         }
@@ -228,19 +228,19 @@ namespace TY::DynamicBinding
         const auto component = DynamicBindingComponent::instance();
         if (not component)
         {
-            LogError("DynamicBinding::SetDynamicConstantBuffer: DynamicBindingComponent is not initialized.");
+            LogError("DynamicBinding::SetDynamicCbv: DynamicBindingComponent is not initialized.");
             assert(false);
             return;
         }
 
-        component->setConstantBuffer(rootParameterIndex, data, size);
+        component->setCbv(rootParameterIndex, data, size);
     }
 
     void FlushAsGraphics()
     {
         if (const auto component = DynamicBindingComponent::instance())
         {
-            component->commandSetGraphicsConstantBuffers();
+            component->commandSetGraphicsCbv();
         }
     }
 }

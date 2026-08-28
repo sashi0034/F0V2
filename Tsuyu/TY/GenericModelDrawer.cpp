@@ -250,7 +250,7 @@ namespace TY
         return *this;
     }
 
-    RootParameterIndex GenericModelDrawer::getDynamicCbvParameterIndex(int index) const
+    RootParameterIndex GenericModelDrawer::mapDynamicCbvIndex(int index) const
     {
         if (not p_impl)
         {
