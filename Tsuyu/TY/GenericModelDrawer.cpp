@@ -160,9 +160,9 @@ struct GenericModelDrawer::Impl
         m_pso.commandSet();
 
         // カメラ行列設定
-        DynamicBinding::SetDynamicCbvByAddress(
+        DynamicBinding::SetDynamicCbv(
             RootParameterIndex{m_sceneStateRootParameterIndex},
-            RenderContext_singleton::GetSceneStateDynamicCbvAddress());
+            RenderContext_singleton::GetSceneStateDynamicCbv());
 
         const ModelState_b1 modelState{.worldMatrix = m_worldMatrix};
         DynamicBinding::SetDynamicCbv(RootParameterIndex{m_modelStateRootParameterIndex}, modelState);

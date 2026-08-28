@@ -61,7 +61,7 @@ namespace TY::detail
 
         void RefreshSceneStateIfNeeded();
 
-        DynamicBinding::GpuAddress GetSceneStateDynamicCbvAddress();
+        DynamicCbvHandle GetSceneStateDynamicCbv();
 
         [[nodiscard]]
         ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();

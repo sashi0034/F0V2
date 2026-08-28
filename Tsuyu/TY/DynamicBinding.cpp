@@ -208,6 +208,11 @@ namespace
 
         static DynamicBindingComponent* instance()
         {
+            if (not s_instance)
+            {
+                LogError("DynamicBindingComponent: Instance is not initialized.");
+            }
+
             return s_instance;
         }
 
@@ -221,54 +226,28 @@ namespace
 
 namespace TY::DynamicBinding
 {
-    GpuAddress UploadDynamicCbv(const void* data, size_t size)
+    DynamicCbvHandle UploadDynamicCbv(const void* data, size_t size)
     {
-        if (not data || size == 0)
-        {
-            LogError("DynamicBinding::UploadDynamicCbv: Invalid argument.");
-            assert(false);
-            return 0;
-        }
-
         const auto component = DynamicBindingComponent::instance();
-        if (not component)
-        {
-            LogError("DynamicBinding::UploadDynamicCbv: DynamicBindingComponent is not initialized.");
-            assert(false);
-            return 0;
-        }
-
-        return component->uploadCbv(data, size);
+        assert(component);
+        return DynamicCbvHandle(component->uploadCbv(data, size));
     }
 
-    GpuAddress SetDynamicCbv(RootParameterIndex rootParameterIndex, const void* data, size_t size)
+    void SetDynamicCbv(RootParameterIndex rootParameterIndex, const void* data, size_t size)
     {
-        if (rootParameterIndex.value < 0 || not data || size == 0)
-        {
-            LogError("DynamicBinding::SetDynamicCbv: Invalid argument.");
-            assert(false);
-            return 0;
-        }
-
         const auto component = DynamicBindingComponent::instance();
-        if (not component)
-        {
-            LogError("DynamicBinding::SetDynamicCbv: DynamicBindingComponent is not initialized.");
-            assert(false);
-            return 0;
-        }
+        assert(component);
 
         const auto address = component->uploadCbv(data, size);
         if (address != 0)
         {
             component->setCbvByAddress(rootParameterIndex, address);
         }
-        return address;
     }
 
-    void SetDynamicCbvByAddress(RootParameterIndex rootParameterIndex, GpuAddress address)
+    void SetDynamicCbv(RootParameterIndex rootParameterIndex, DynamicCbvHandle cbv)
     {
-        if (rootParameterIndex.value < 0 || address == 0)
+        if (rootParameterIndex.value < 0 || cbv.address == 0)
         {
             LogError("DynamicBinding::SetDynamicCbvByAddress: Invalid argument.");
             assert(false);
@@ -283,7 +262,7 @@ namespace TY::DynamicBinding
             return;
         }
 
-        component->setCbvByAddress(rootParameterIndex, address);
+        component->setCbvByAddress(rootParameterIndex, cbv.address);
     }
 
     void FlushAsGraphics()

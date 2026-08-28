@@ -126,7 +126,7 @@ struct RenderContextImpl
 
     size_t m_sceneState3DRevision{};
 
-    DynamicBinding::GpuAddress m_dynamicSceneState3DAddress{};
+    DynamicCbvHandle m_dynamicSceneState3DHandle{};
 
     size_t m_dynamicSceneState3DTimestamp{std::numeric_limits<size_t>::max()};
 
@@ -335,27 +335,27 @@ struct RenderContextImpl
         }
     }
 
-    DynamicBinding::GpuAddress GetSceneStateDynamicCbvAddress()
+    DynamicCbvHandle GetSceneStateDynamicCbv()
     {
         RefreshSceneStateIfNeeded();
 
         const size_t timestamp = m_flushTimestamp;
-        if (m_dynamicSceneState3DAddress == 0 ||
+        if (m_dynamicSceneState3DHandle.address == 0 ||
             m_dynamicSceneState3DTimestamp != timestamp ||
             m_dynamicSceneState3DRevision != m_sceneState3DRevision)
         {
-            const auto address = DynamicBinding::UploadDynamicCbv(m_sceneState3DValue);
-            if (address == 0)
+            const auto cbv = DynamicBinding::UploadDynamicCbv(m_sceneState3DValue);
+            if (cbv.address == 0)
             {
-                return 0;
+                return DynamicCbvHandle{0};
             }
 
-            m_dynamicSceneState3DAddress = address;
+            m_dynamicSceneState3DHandle = cbv;
             m_dynamicSceneState3DTimestamp = timestamp;
             m_dynamicSceneState3DRevision = m_sceneState3DRevision;
         }
 
-        return m_dynamicSceneState3DAddress;
+        return m_dynamicSceneState3DHandle;
     }
 
     void OnShutdown()
@@ -640,9 +640,9 @@ namespace TY::detail
         s_renderContext.RefreshSceneStateIfNeeded();
     }
 
-    DynamicBinding::GpuAddress RenderContext_singleton::GetSceneStateDynamicCbvAddress()
+    DynamicCbvHandle RenderContext_singleton::GetSceneStateDynamicCbv()
     {
-        return s_renderContext.GetSceneStateDynamicCbvAddress();
+        return s_renderContext.GetSceneStateDynamicCbv();
     }
 
     ConstantBuffer<SceneState3D_b0> RenderContext_singleton::GetSceneState3D_CB0()
