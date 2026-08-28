@@ -11,6 +11,7 @@
 #include "GpuMemoryUsage.h"
 #include "SceneState3D_singleton.h"
 #include "TY/ConstantBuffer.h"
+#include "TY/DynamicBinding.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
 #include "TY/ProcessUtils.h"
@@ -120,6 +121,16 @@ struct RenderContextImpl
     std::optional<bool> m_wantsFullscreen{};
 
     ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
+
+    SceneState3D_b0 m_sceneState3DValue{};
+
+    size_t m_sceneState3DRevision{};
+
+    DynamicBinding::GpuAddress m_dynamicSceneState3DAddress{};
+
+    size_t m_dynamicSceneState3DTimestamp{std::numeric_limits<size_t>::max()};
+
+    size_t m_dynamicSceneState3DRevision{std::numeric_limits<size_t>::max()};
 
     std::array<Array<RenderResource>, RenderContext_singleton::FrameBufferCount> m_disposedRenderResources{};
 
@@ -315,13 +326,36 @@ struct RenderContextImpl
     {
         if (SceneState3D_singleton::ShouldRefresh())
         {
-            SceneState3D_b0 b{};
-            b.projectionMatrix = SceneState3D_singleton::GetProjectionMatrix();
-            b.viewMatrix = SceneState3D_singleton::GetViewMatrix();
-            m_sceneState3D.upload(b);
+            m_sceneState3DValue.projectionMatrix = SceneState3D_singleton::GetProjectionMatrix();
+            m_sceneState3DValue.viewMatrix = SceneState3D_singleton::GetViewMatrix();
+            m_sceneState3D.upload(m_sceneState3DValue);
+            ++m_sceneState3DRevision;
 
             SceneState3D_singleton::OnRefreshed();
         }
+    }
+
+    DynamicBinding::GpuAddress GetSceneStateDynamicCbvAddress()
+    {
+        RefreshSceneStateIfNeeded();
+
+        const size_t timestamp = m_flushTimestamp;
+        if (m_dynamicSceneState3DAddress == 0 ||
+            m_dynamicSceneState3DTimestamp != timestamp ||
+            m_dynamicSceneState3DRevision != m_sceneState3DRevision)
+        {
+            const auto address = DynamicBinding::UploadDynamicCbv(m_sceneState3DValue);
+            if (address == 0)
+            {
+                return 0;
+            }
+
+            m_dynamicSceneState3DAddress = address;
+            m_dynamicSceneState3DTimestamp = timestamp;
+            m_dynamicSceneState3DRevision = m_sceneState3DRevision;
+        }
+
+        return m_dynamicSceneState3DAddress;
     }
 
     void OnShutdown()
@@ -604,6 +638,11 @@ namespace TY::detail
     void RenderContext_singleton::RefreshSceneStateIfNeeded()
     {
         s_renderContext.RefreshSceneStateIfNeeded();
+    }
+
+    DynamicBinding::GpuAddress RenderContext_singleton::GetSceneStateDynamicCbvAddress()
+    {
+        return s_renderContext.GetSceneStateDynamicCbvAddress();
     }
 
     ConstantBuffer<SceneState3D_b0> RenderContext_singleton::GetSceneState3D_CB0()

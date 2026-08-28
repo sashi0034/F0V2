@@ -179,18 +179,18 @@ namespace TY::detail
             rootParameters.push_back(rootParameter);
         }
 
-        // 動的 CBV 設定
-        const auto& dynamicDescriptor = params.dynamicDescriptor;
-        if (dynamicDescriptor.cbvCount > 0)
+        // Dynamic CBV 設定
+        for (const auto& dynamicDescriptor : params.dynamicDescriptors)
         {
+            if (dynamicDescriptor.cbvCount == 0)
+            {
+                continue;
+            }
+
             int dynamicCbvOffset = cbvOffset;
-            if (dynamicDescriptor.bindingSlot.cbvStart >= cbvOffset)
+            if (dynamicDescriptor.bindingSlot.cbvStart >= 0)
             {
                 dynamicCbvOffset = dynamicDescriptor.bindingSlot.cbvStart;
-            }
-            else if (dynamicDescriptor.bindingSlot.cbvStart >= 0)
-            {
-                LogError("RootSignature: cbvOffset is greater than explicit dynamic cbvStart.");
             }
 
             for (uint32_t i = 0; i < dynamicDescriptor.cbvCount; ++i)
@@ -202,6 +202,8 @@ namespace TY::detail
                 rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
                 rootParameters.push_back(rootParameter);
             }
+
+            cbvOffset = std::max(cbvOffset, dynamicCbvOffset + static_cast<int>(dynamicDescriptor.cbvCount));
         }
 
         rootSignatureDesc.NumParameters = rootParameters.size();

@@ -1,8 +1,6 @@
 ﻿#pragma once
-#include "CommandListManager.h"
-#include "PipelineType.h"
 #include "TY/ConstantBuffer.h"
-#include "TY/ConstantBufferArray.h"
+#include "TY/DynamicBinding.h"
 #include "TY/IGpuMemoryUsage.h"
 #include "TY/Mat3x2.h"
 #include "TY/Mat4x4.h"
@@ -62,6 +60,8 @@ namespace TY::detail
         Mat3x2 FrameBufferToWindow();
 
         void RefreshSceneStateIfNeeded();
+
+        DynamicBinding::GpuAddress GetSceneStateDynamicCbvAddress();
 
         [[nodiscard]]
         ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();

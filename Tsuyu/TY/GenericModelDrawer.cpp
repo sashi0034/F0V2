@@ -29,13 +29,17 @@ struct GenericModelDrawer::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
-    ConstantBuffer<ModelState_b1> m_cb1{};
+    Mat4x4 m_worldMatrix{Mat4x4::Identity()};
 
     int m_tableIndexofCbv10AndLater{-1};
 
     int m_tableIndexofSrv10AndLater{-1};
 
-    int m_dynamicCbvRootParameterStart{-1};
+    int m_sceneStateRootParameterIndex{-1}; // TODO: m_dynamicCbvStartIndex から逆算
+
+    int m_modelStateRootParameterIndex{-1};
+
+    int m_dynamicCbvStartIndex{-1};
 
     int m_dynamicCbvCount{};
 
@@ -53,19 +57,13 @@ struct GenericModelDrawer::Impl
 
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
-                {1, 0, 0}, // [0]
-                {1, 0, 0}, // [1]
-                {1, srvCountPerMaterial, 0}, // [2]
+                {1, srvCountPerMaterial, 0, BindingSlot{2, 0, 0}}, // [0]
             },
             .materialCounts = {
-                1, // [0]
-                1, // [1]
-                m_modelBuffer->materialCount(), // [2]
+                m_modelBuffer->materialCount(), // [0]
             },
             .descriptors = {
-                CbvSrvUavSet{{RenderContext_singleton::GetSceneState3D_CB0()}, {}, {}}, // [0]
-                CbvSrvUavSet{{m_cb1}, {}, {}}, // [1]
-                CbvSrvUavSet{{m_modelBuffer->materialCbv()}, std::move(materialSrv), {}}, // [2],
+                CbvSrvUavSet{{m_modelBuffer->materialCbv()}, std::move(materialSrv), {}}, // [0],
             },
         };
 
@@ -98,16 +96,27 @@ struct GenericModelDrawer::Impl
         }
 
         m_dynamicCbvCount = params.dynamicCbvCount;
-        m_dynamicCbvRootParameterStart = static_cast<int>(descriptorHeap.table.size());
+        m_sceneStateRootParameterIndex = static_cast<int>(descriptorHeap.table.size());
+        m_modelStateRootParameterIndex = m_sceneStateRootParameterIndex + 1;
+        m_dynamicCbvStartIndex = m_sceneStateRootParameterIndex + 2;
 
-        const auto dynamicDescriptor = DynamicDescriptorTableElement{
-            .cbvCount = static_cast<uint32_t>(m_dynamicCbvCount),
-            .bindingSlot = BindingSlot{
-                10 + static_cast<int>(params.cbv10AndLater.size()),
-                -1,
-                -1,
+        auto dynamicDescriptors = Array<DynamicDescriptorTableElement>{
+            DynamicDescriptorTableElement{
+                .cbvCount = 2,
+                .bindingSlot = BindingSlot{0, -1, -1},
             },
         };
+        if (m_dynamicCbvCount > 0)
+        {
+            dynamicDescriptors.push_back(DynamicDescriptorTableElement{
+                .cbvCount = static_cast<uint32_t>(m_dynamicCbvCount),
+                .bindingSlot = BindingSlot{
+                    10 + static_cast<int>(params.cbv10AndLater.size()),
+                    -1,
+                    -1,
+                },
+            });
+        }
 
         m_pso = GraphicsPipelineState{
             GraphicsPipelineStateParams{
@@ -115,7 +124,7 @@ struct GenericModelDrawer::Impl
                 .vertexInput = params.vertexInput,
                 .options = params.options,
                 .descriptorTable = descriptorHeap.table,
-                .dynamicDescriptor = dynamicDescriptor,
+                .dynamicDescriptors = dynamicDescriptors,
             }
         };
 
@@ -126,11 +135,9 @@ struct GenericModelDrawer::Impl
         m_valid = true;
     }
 
-    void UploadWorldMatrix(const Mat4x4& worldMatrix) const
+    void UploadWorldMatrix(const Mat4x4& worldMatrix)
     {
-        ModelState_b1 b{};
-        b.worldMatrix = worldMatrix;
-        m_cb1.upload(b);
+        m_worldMatrix = worldMatrix;
     }
 
     RootParameterIndex GetDynamicCbvParameterIndex(int index) const
@@ -145,21 +152,24 @@ struct GenericModelDrawer::Impl
             return RootParameterIndex{-1};
         }
 
-        return RootParameterIndex{m_dynamicCbvRootParameterStart + index};
+        return RootParameterIndex{m_dynamicCbvStartIndex + index};
     }
 
     void Draw() const
     {
-        RenderContext_singleton::RefreshSceneStateIfNeeded();
-
         m_pso.commandSet();
+
+        // カメラ行列設定
+        DynamicBinding::SetDynamicCbvByAddress(
+            RootParameterIndex{m_sceneStateRootParameterIndex},
+            RenderContext_singleton::GetSceneStateDynamicCbvAddress());
+
+        const ModelState_b1 modelState{.worldMatrix = m_worldMatrix};
+        DynamicBinding::SetDynamicCbv(RootParameterIndex{m_modelStateRootParameterIndex}, modelState);
 
         DynamicBinding::FlushAsGraphics();
 
-        // カメラ行列設定
         m_descriptorHeap.commandSet();
-        m_descriptorHeap.commandSetGraphicsTable(0);
-        m_descriptorHeap.commandSetGraphicsTable(1);
 
         // 拡張 CBV セット
         if (m_tableIndexofCbv10AndLater >= 0)
@@ -177,7 +187,7 @@ struct GenericModelDrawer::Impl
         for (int shapeId = 0; shapeId < m_modelBuffer->shapeCount(); ++shapeId)
         {
             const auto& shape = m_modelBuffer->shapeAt(shapeId);
-            m_descriptorHeap.commandSetGraphicsTable(2, shape.materialIndex);
+            m_descriptorHeap.commandSetGraphicsTable(0, shape.materialIndex);
 
             Graphics3D::DrawTriangles(shape.vertexBuffer, shape.indexBuffer);
         }

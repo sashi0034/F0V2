@@ -9,7 +9,7 @@ namespace TY::detail
     {
         Array<GraphicsSamplerOptions> samplers;
         Array<DescriptorTableElement> descriptorTable;
-        DynamicDescriptorTableElement dynamicDescriptor{};
+        Array<DynamicDescriptorTableElement> dynamicDescriptors{};
     };
 
     class RootSignature

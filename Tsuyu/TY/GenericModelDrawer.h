@@ -46,6 +46,7 @@ namespace TY
 
         GenericModelDrawer(const GenericModelDrawerParams& params);
 
+        // TODO: Rename
         const GenericModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
 
         [[nodiscard]]

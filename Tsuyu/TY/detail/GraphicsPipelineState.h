@@ -18,7 +18,7 @@ namespace TY::detail
 
         DescriptorTable descriptorTable{};
 
-        DynamicDescriptorTableElement dynamicDescriptor{};
+        Array<DynamicDescriptorTableElement> dynamicDescriptors{};
 
         bool equalsTo(const GraphicsPipelineStateParams& other) const;
     };
