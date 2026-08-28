@@ -292,7 +292,7 @@ namespace Race
             const bool useF = dotF < dotV;
             turningDemand = 1.0f - Max(0.0f, useF ? dotF : dotV);
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && 0
             ImmediatePrint("turningIntensity: {:.02f}", turningDemand);
 #endif
 
