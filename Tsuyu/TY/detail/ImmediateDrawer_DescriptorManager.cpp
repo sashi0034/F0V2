@@ -15,7 +15,7 @@ namespace TY::ImmediateDrawer_detail
         heap.keyResource = key;
 
         const DescriptorTable descriptorTable = {
-            DescriptorTableElement{
+            DescriptorEntry{
                 .srvCount = 1,
             },
         };

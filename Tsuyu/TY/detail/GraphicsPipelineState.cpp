@@ -302,7 +302,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         m_rootSignature = RootSignature(RootSignatureParams{
             .samplers = params.options.samplers,
             .descriptorTable = params.descriptorTable,
-            .dynamicDescriptors = params.dynamicDescriptors,
+            .dynamicDescriptorTable = params.dynamicDescriptorTable,
         });
 
         pipelineDesc.pRootSignature = m_rootSignature.getPointer();
@@ -340,7 +340,7 @@ namespace
             hash = combineHash(hash, static_cast<size_t>(descriptor.uavCount));
         }
 
-        for (const auto& dynamicDescriptor : params.dynamicDescriptors)
+        for (const auto& dynamicDescriptor : params.dynamicDescriptorTable)
         {
             hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.cbvSlot + 1));
             hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.cbvCount));
@@ -459,7 +459,7 @@ namespace TY
         if (shader.vs.unique_id() != other.shader.vs.unique_id()) return false;
         if (options != other.options) return false;
         if (descriptorTable != other.descriptorTable) return false;
-        if (dynamicDescriptors != other.dynamicDescriptors) return false;
+        if (dynamicDescriptorTable != other.dynamicDescriptorTable) return false;
         return true;
     }
 

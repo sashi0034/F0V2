@@ -1,7 +1,7 @@
 #pragma once
 namespace TY::detail
 {
-    struct DynamicDescriptorTableElement
+    struct DynamicDescriptorEntry
     {
         static constexpr int AutoSlot = -1;
 
@@ -14,6 +14,6 @@ namespace TY::detail
         int uavSlot{AutoSlot};
         int uavCount{};
 
-        bool operator==(const DynamicDescriptorTableElement& other) const = default;
+        bool operator==(const DynamicDescriptorEntry& other) const = default;
     };
 }

@@ -8,8 +8,8 @@ namespace TY::detail
     struct RootSignatureParams
     {
         Array<GraphicsSamplerOptions> samplers;
-        Array<DescriptorTableElement> descriptorTable;
-        Array<DynamicDescriptorTableElement> dynamicDescriptors{};
+        Array<DescriptorEntry> descriptorTable;
+        Array<DynamicDescriptorEntry> dynamicDescriptorTable{};
     };
 
     class RootSignature

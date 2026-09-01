@@ -27,8 +27,8 @@ namespace
                            .setTopology(GraphicsPrimitiveTopology::TriangleList),
                 // .setRasterizer(GraphicsRasterizerOptions().setFill(GraphicsFillMode::Wireframe)),
                 .descriptorTable = descriptorTable,
-                .dynamicDescriptors = {
-                    DynamicDescriptorTableElement{
+                .dynamicDescriptorTable = {
+                    DynamicDescriptorEntry{
                         .cbvSlot = 0,
                         .cbvCount = 2,
                     },
@@ -49,8 +49,8 @@ namespace
                            })
                            .setTopology(GraphicsPrimitiveTopology::LineList),
                 .descriptorTable = descriptorTable,
-                .dynamicDescriptors = {
-                    DynamicDescriptorTableElement{
+                .dynamicDescriptorTable = {
+                    DynamicDescriptorEntry{
                         .cbvSlot = 0,
                         .cbvCount = 2,
                     },

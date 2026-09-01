@@ -100,7 +100,7 @@ namespace TY::detail
 
             // 明示的なレジスタ開始番号が指定されている場合、オフセットを変更
             if (descriptorTableElement.cbvCount > 0 &&
-                descriptorTableElement.cbvSlot != DescriptorTableElement::AutoSlot)
+                descriptorTableElement.cbvSlot != DescriptorEntry::AutoSlot)
             {
                 if (descriptorTableElement.cbvSlot >= cbvOffset)
                 {
@@ -114,7 +114,7 @@ namespace TY::detail
             }
 
             if (descriptorTableElement.srvCount > 0 &&
-                descriptorTableElement.srvSlot != DescriptorTableElement::AutoSlot)
+                descriptorTableElement.srvSlot != DescriptorEntry::AutoSlot)
             {
                 if (descriptorTableElement.srvSlot >= srvOffset)
                 {
@@ -128,7 +128,7 @@ namespace TY::detail
             }
 
             if (descriptorTableElement.uavCount > 0 &&
-                descriptorTableElement.uavSlot != DescriptorTableElement::AutoSlot)
+                descriptorTableElement.uavSlot != DescriptorEntry::AutoSlot)
             {
                 if (descriptorTableElement.uavSlot >= uavOffset)
                 {
@@ -191,7 +191,7 @@ namespace TY::detail
         }
 
         // Dynamic CBV 設定
-        for (const auto& dynamicDescriptor : params.dynamicDescriptors)
+        for (const auto& dynamicDescriptor : params.dynamicDescriptorTable)
         {
             if (dynamicDescriptor.cbvCount == 0)
             {
@@ -199,7 +199,7 @@ namespace TY::detail
             }
 
             int dynamicCbvOffset = cbvOffset;
-            if (dynamicDescriptor.cbvSlot != DynamicDescriptorTableElement::AutoSlot)
+            if (dynamicDescriptor.cbvSlot != DynamicDescriptorEntry::AutoSlot)
             {
                 dynamicCbvOffset = dynamicDescriptor.cbvSlot;
             }

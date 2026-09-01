@@ -3,7 +3,7 @@
 
 namespace TY::detail
 {
-    struct DescriptorTableElement
+    struct DescriptorEntry
     {
         static constexpr int AutoSlot = -1;
 
@@ -16,8 +16,8 @@ namespace TY::detail
         int uavSlot{AutoSlot};
         int uavCount{};
 
-        bool operator==(const DescriptorTableElement& other) const = default;
+        bool operator==(const DescriptorEntry& other) const = default;
     };
 
-    using DescriptorTable = Array<DescriptorTableElement>;
+    using DescriptorTable = Array<DescriptorEntry>;
 }

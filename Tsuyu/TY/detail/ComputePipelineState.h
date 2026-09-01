@@ -8,7 +8,7 @@
 
 namespace TY::detail
 {
-    struct DescriptorTableElement;
+    struct DescriptorEntry;
 
     struct ComputePipelineStateParams
     {
@@ -16,9 +16,9 @@ namespace TY::detail
 
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
-        Array<DescriptorTableElement> descriptorTable;
+        Array<DescriptorEntry> descriptorTable;
 
-        Array<DynamicDescriptorTableElement> dynamicDescriptors{};
+        Array<DynamicDescriptorEntry> dynamicDescriptorTable{};
     };
 
     class ComputePipelineState

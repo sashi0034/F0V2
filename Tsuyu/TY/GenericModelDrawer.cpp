@@ -57,7 +57,7 @@ struct GenericModelDrawer::Impl
 
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
-                DescriptorTableElement{
+                DescriptorEntry{
                     .cbvSlot = 2,
                     .cbvCount = 1,
                     .srvSlot = 0,
@@ -77,7 +77,7 @@ struct GenericModelDrawer::Impl
         {
             m_tableIndexofCbv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-            descriptorHeap.table.push_back(DescriptorTableElement{
+            descriptorHeap.table.push_back(DescriptorEntry{
                 .cbvSlot = 10,
                 .cbvCount = static_cast<int>(params.cbv10AndLater.size()),
             });
@@ -90,7 +90,7 @@ struct GenericModelDrawer::Impl
         {
             m_tableIndexofSrv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-            descriptorHeap.table.push_back(DescriptorTableElement{
+            descriptorHeap.table.push_back(DescriptorEntry{
                 .srvSlot = 10,
                 .srvCount = static_cast<int>(params.srv10AndLater.size()),
             });
@@ -109,15 +109,15 @@ struct GenericModelDrawer::Impl
         m_modelStateRootParameterIndex = m_sceneStateRootParameterIndex + 1;
         m_dynamicCbvStartIndex = m_sceneStateRootParameterIndex + 2;
 
-        auto dynamicDescriptors = Array<DynamicDescriptorTableElement>{
-            DynamicDescriptorTableElement{
+        auto dynamicDescriptorTable = Array<DynamicDescriptorEntry>{
+            DynamicDescriptorEntry{
                 .cbvSlot = 0,
                 .cbvCount = 2,
             },
         };
         if (m_dynamicCbvCount > 0)
         {
-            dynamicDescriptors.push_back(DynamicDescriptorTableElement{
+            dynamicDescriptorTable.push_back(DynamicDescriptorEntry{
                 .cbvSlot = 10 + static_cast<int>(params.cbv10AndLater.size()),
                 .cbvCount = m_dynamicCbvCount,
             });
@@ -129,7 +129,7 @@ struct GenericModelDrawer::Impl
                 .vertexInput = params.vertexInput,
                 .options = params.options,
                 .descriptorTable = descriptorHeap.table,
-                .dynamicDescriptors = dynamicDescriptors,
+                .dynamicDescriptorTable = dynamicDescriptorTable,
             }
         };
 

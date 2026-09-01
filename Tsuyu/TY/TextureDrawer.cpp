@@ -72,7 +72,7 @@ namespace
     }
 
     const DescriptorTable descriptorTable = {
-        DescriptorTableElement{
+        DescriptorEntry{
             .srvCount = 1,
         },
     };
@@ -91,8 +91,8 @@ namespace
                 },
                 .options = graphicsOptions,
                 .descriptorTable = descriptorTable,
-                .dynamicDescriptors = {
-                    DynamicDescriptorTableElement{
+                .dynamicDescriptorTable = {
+                    DynamicDescriptorEntry{
                         .cbvSlot = 0,
                         .cbvCount = 1,
                     },

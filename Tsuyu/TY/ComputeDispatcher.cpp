@@ -41,7 +41,7 @@ struct ComputeDispatcher::Impl
 
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
-                DescriptorTableElement{
+                DescriptorEntry{
                     .cbvCount = static_cast<int>(params.cbv.size()),
                     .srvCount = static_cast<int>(params.srv.size()),
                     .uavCount = static_cast<int>(params.uav.size()),
@@ -55,10 +55,10 @@ struct ComputeDispatcher::Impl
 
         m_dynamicCbvStartIndex = static_cast<int>(descriptorHeap.table.size());
 
-        Array<DynamicDescriptorTableElement> dynamicDescriptors{};
+        Array<DynamicDescriptorEntry> dynamicDescriptorTable{};
         if (m_dynamicCbvCount > 0)
         {
-            dynamicDescriptors.push_back(DynamicDescriptorTableElement{
+            dynamicDescriptorTable.push_back(DynamicDescriptorEntry{
                 .cbvSlot = static_cast<int>(params.cbv.size()),
                 .cbvCount = m_dynamicCbvCount,
             });
@@ -69,7 +69,7 @@ struct ComputeDispatcher::Impl
                 .computeShader = params.cs,
                 .samplers = params.samplers,
                 .descriptorTable = descriptorHeap.table,
-                .dynamicDescriptors = dynamicDescriptors,
+                .dynamicDescriptorTable = dynamicDescriptorTable,
             }
         };
 

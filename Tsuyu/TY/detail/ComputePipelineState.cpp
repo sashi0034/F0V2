@@ -89,7 +89,7 @@ private:
         m_rootSignature = RootSignature(RootSignatureParams{
             .samplers = params.samplers,
             .descriptorTable = params.descriptorTable,
-            .dynamicDescriptors = params.dynamicDescriptors,
+            .dynamicDescriptorTable = params.dynamicDescriptorTable,
         });
 
         D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
