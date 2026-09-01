@@ -87,8 +87,8 @@ namespace TY::ImmediateDrawer_detail
 
         if (m_current.descriptor != descriptor)
         {
-            getNext().descriptor = descriptor;
-            getNext().psoParams.descriptorTable = descriptorTable;
+            fetchNext().descriptor = descriptor;
+            fetchNext().psoParams.descriptorTable = descriptorTable;
         }
     }
 
@@ -96,7 +96,7 @@ namespace TY::ImmediateDrawer_detail
     {
         if (m_current.psoParams.shader.ps.unique_id() != ps.unique_id())
         {
-            getNext().psoParams.shader.ps = ps;
+            fetchNext().psoParams.shader.ps = ps;
         }
     }
 
@@ -104,8 +104,8 @@ namespace TY::ImmediateDrawer_detail
     {
         if (m_current.is3D)
         {
-            getNext().psoParams = getDefaultPsoParams(false, m_current.psoParams.descriptorTable);
-            getNext().is3D = false;
+            fetchNext().psoParams = getDefaultPsoParams(false, m_current.psoParams.descriptorTable);
+            fetchNext().is3D = false;
             // TODO: 2D から設定引き継ぎ?
         }
     }
@@ -114,8 +114,8 @@ namespace TY::ImmediateDrawer_detail
     {
         if (not m_current.is3D)
         {
-            getNext().psoParams = getDefaultPsoParams(true, m_current.psoParams.descriptorTable);
-            getNext().is3D = true;
+            fetchNext().psoParams = getDefaultPsoParams(true, m_current.psoParams.descriptorTable);
+            fetchNext().is3D = true;
             // TODO: 3D から設定引き継ぎ?
         }
     }
@@ -133,7 +133,7 @@ namespace TY::ImmediateDrawer_detail
         return std::nullopt;
     }
 
-    ID_StateManager::state_type& ID_StateManager::getNext()
+    ID_StateManager::state_type& ID_StateManager::fetchNext()
     {
         if (m_next.has_value())
         {
