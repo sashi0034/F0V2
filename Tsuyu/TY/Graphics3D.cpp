@@ -13,7 +13,7 @@ using namespace TY::detail;
 
 namespace
 {
-    void drawInternal(
+    void drawStaticInternal(
         const VertexBufferImpl& vertexBuffer,
         const IndexBuffer& indexBuffer,
         int indexCount,
@@ -34,6 +34,38 @@ namespace
             commandList->IASetPrimitiveTopology(topology);
             commandList->DrawInstanced(indexCount, 1, 0, 0);
         }
+    }
+
+    void drawDynamicInternal(
+        const DynamicVertexBufferHandle& vertexBuffer,
+        const DynamicIndexBufferHandle& indexBuffer,
+        D3D12_PRIMITIVE_TOPOLOGY topology)
+    {
+        if (vertexBuffer.address == 0 || vertexBuffer.sizeInBytes == 0 || vertexBuffer.strideInBytes == 0 ||
+            (vertexBuffer.sizeInBytes % vertexBuffer.strideInBytes) != 0 ||
+            indexBuffer.address == 0 || indexBuffer.sizeInBytes == 0 ||
+            (indexBuffer.sizeInBytes % sizeof(uint16_t)) != 0)
+        {
+            return;
+        }
+
+        const D3D12_VERTEX_BUFFER_VIEW vertexBufferView{
+            .BufferLocation = vertexBuffer.address,
+            .SizeInBytes = vertexBuffer.sizeInBytes,
+            .StrideInBytes = vertexBuffer.strideInBytes,
+        };
+        const D3D12_INDEX_BUFFER_VIEW indexBufferView{
+            .BufferLocation = indexBuffer.address,
+            .SizeInBytes = indexBuffer.sizeInBytes,
+            .Format = DXGI_FORMAT_R16_UINT,
+        };
+
+        const auto commandList = RenderContext_singleton::TargetCommandList();
+        commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+        commandList->IASetIndexBuffer(&indexBufferView);
+        commandList->IASetPrimitiveTopology(topology);
+        commandList->DrawIndexedInstanced(
+            static_cast<UINT>(indexBuffer.sizeInBytes / sizeof(uint16_t)), 1, 0, 0, 0);
     }
 }
 
@@ -73,21 +105,33 @@ namespace TY
 
     void Graphics3D::DrawTriangles(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer)
     {
-        DrawTriangles(vertexBuffer, indexBuffer, indexBuffer.count());
+        drawStaticInternal(vertexBuffer, indexBuffer, indexBuffer.count(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     void Graphics3D::DrawTriangles(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
     {
-        drawInternal(vertexBuffer, indexBuffer, indexCount, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        drawStaticInternal(vertexBuffer, indexBuffer, indexCount, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    }
+
+    void Graphics3D::DrawTriangles(
+        const DynamicVertexBufferHandle& vertexBuffer, const DynamicIndexBufferHandle& indexBuffer)
+    {
+        drawDynamicInternal(vertexBuffer, indexBuffer, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     void Graphics3D::DrawLines(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer)
     {
-        DrawLines(vertexBuffer, indexBuffer, indexBuffer.count());
+        drawStaticInternal(vertexBuffer, indexBuffer, indexBuffer.count(), D3D_PRIMITIVE_TOPOLOGY_LINELIST);
     }
 
     void Graphics3D::DrawLines(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount)
     {
-        drawInternal(vertexBuffer, indexBuffer, indexCount, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+        drawStaticInternal(vertexBuffer, indexBuffer, indexCount, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+    }
+
+    void Graphics3D::DrawLines(
+        const DynamicVertexBufferHandle& vertexBuffer, const DynamicIndexBufferHandle& indexBuffer)
+    {
+        drawDynamicInternal(vertexBuffer, indexBuffer, D3D_PRIMITIVE_TOPOLOGY_LINELIST);
     }
 }

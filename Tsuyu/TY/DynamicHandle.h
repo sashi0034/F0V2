@@ -1,12 +1,18 @@
 #pragma once
+#include <cstdint>
 
 namespace TY
 {
     struct DynamicVertexBufferHandle
     {
         uint64_t address{};
+        uint32_t sizeInBytes{};
+        uint32_t strideInBytes{};
 
-        explicit DynamicVertexBufferHandle(uint64_t address = 0) : address(address)
+        DynamicVertexBufferHandle() = default;
+
+        explicit DynamicVertexBufferHandle(uint64_t address, uint32_t sizeInBytes, uint32_t strideInBytes)
+            : address(address), sizeInBytes(sizeInBytes), strideInBytes(strideInBytes)
         {
         }
     };
@@ -14,8 +20,12 @@ namespace TY
     struct DynamicIndexBufferHandle
     {
         uint64_t address{};
+        uint32_t sizeInBytes{};
 
-        explicit DynamicIndexBufferHandle(uint64_t address = 0) : address(address)
+        DynamicIndexBufferHandle() = default;
+
+        explicit DynamicIndexBufferHandle(uint64_t address, uint32_t sizeInBytes)
+            : address(address), sizeInBytes(sizeInBytes)
         {
         }
     };

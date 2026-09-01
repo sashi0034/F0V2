@@ -2,12 +2,11 @@
 #include "ImmediateDrawer.h"
 
 #include "ArrayPool.h"
+#include "DynamicBinding.h"
 #include "Graphics3D.h"
-#include "IndexBuffer.h"
 #include "InlineComponent.h"
 #include "ImmediateBuilder2D.h"
 #include "ImmediateBuilder3D.h"
-#include "VertexBuffer.h"
 #include "detail/ComponentManager_singleton.h"
 #include "detail/RenderContext_singleton.h"
 #include "detail/GraphicsPipelineState.h"
@@ -26,24 +25,9 @@ namespace
     {
         GraphicsPipelineState pso{};
         ID_DescriptorManager::element_cursor descriptor{};
-        IndexBuffer indexBuffer{Empty};
-        VertexBuffer<ImmediateBuilder2D::Vertex2D> vertexBuffer2D{Empty};
-        VertexBuffer<ImmediateBuilder3D::Vertex3D> vertexBuffer3D{Empty};
-        size_t indexCount{0};
+        DynamicVertexBufferHandle vertexBuffer{};
+        DynamicIndexBufferHandle indexBuffer{};
         bool is3D{};
-
-        template <bool is3D>
-        auto& getVertexBuffer()
-        {
-            if constexpr (is3D)
-            {
-                return vertexBuffer3D;
-            }
-            else
-            {
-                return vertexBuffer2D;
-            }
-        }
     };
 
     PixelShader takeFontPS(const FontObject& font)
@@ -225,11 +209,11 @@ struct ImmediateDrawer::Impl : RenderEvent::Listener
 
             if (buffer.is3D)
             {
-                Graphics3D::DrawLines(buffer.vertexBuffer3D, buffer.indexBuffer, buffer.indexCount);
+                Graphics3D::DrawLines(buffer.vertexBuffer, buffer.indexBuffer);
             }
             else // 2D
             {
-                Graphics3D::DrawTriangles(buffer.vertexBuffer2D, buffer.indexBuffer, buffer.indexCount);
+                Graphics3D::DrawTriangles(buffer.vertexBuffer, buffer.indexBuffer);
             }
         }
     }
@@ -283,27 +267,12 @@ private:
         m_bufferUnitList.logical_back().descriptor = state.descriptor;
         assert(state.descriptor.isValid());
 
-        auto& indexBuffer = m_bufferUnitList.logical_back().indexBuffer;
-        auto& vertexBuffer = m_bufferUnitList.logical_back().getVertexBuffer<is3D>();
-
-        // インデックスと頂点バッファのサイズを確認し、必要に応じて再確保
-        if (indexBuffer.count() < buffer.indices.size())
-        {
-            // ここでは、あえて size() ではなく capacity() の値を用いる
-            indexBuffer =
-                IndexBuffer(Min<int>(buffer.indices.capacity(), UINT16_MAX));
-        }
-
-        if (vertexBuffer.count() < buffer.vertices.size())
-        {
-            vertexBuffer =
-                VertexBuffer<VertexType>(Min<int>(buffer.vertices.capacity(), UINT16_MAX));
-        }
-
-        // インデックスと頂点バッファにデータをアップロード
-        indexBuffer.upload(buffer.indices);
-        vertexBuffer.upload(buffer.vertices);
-        m_bufferUnitList.logical_back().indexCount = buffer.indices.size();
+        // インデックスバッファと頂点バッファにデータをアップロード
+        using index_type = typename ShapeBufferCreator<VertexType>::index_type;
+        m_bufferUnitList.logical_back().vertexBuffer = DynamicBinding::UploadDynamicVertexBuffer(
+            std::span<const VertexType>{buffer.vertices.data(), buffer.vertices.size()});
+        m_bufferUnitList.logical_back().indexBuffer = DynamicBinding::UploadDynamicIndexBuffer(
+            std::span<const index_type>{buffer.indices.data(), buffer.indices.size()});
         m_bufferUnitList.logical_back().is3D = is3D;
     }
 };

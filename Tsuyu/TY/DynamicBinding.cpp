@@ -239,18 +239,55 @@ namespace
 
 namespace TY::DynamicBinding
 {
-    DynamicVertexBufferHandle UploadDynamicVertexBuffer(const void* data, size_t size)
+    DynamicVertexBufferHandle UploadDynamicVertexBuffer(
+        const void* data, size_t sizeInBytes, size_t strideInBytes)
     {
+        constexpr size_t MaxViewSize = std::numeric_limits<uint32_t>::max();
+        if (not data || sizeInBytes == 0 || strideInBytes == 0 ||
+            sizeInBytes % strideInBytes != 0 || sizeInBytes > MaxViewSize || strideInBytes > MaxViewSize)
+        {
+            return {};
+        }
+
         const auto component = DynamicBindingComponent::instance();
         assert(component);
-        return DynamicVertexBufferHandle(component ? component->upload(data, size, VertexBufferAlignment) : 0);
+        if (not component)
+        {
+            return {};
+        }
+
+        const auto address = component->upload(data, sizeInBytes, VertexBufferAlignment);
+        if (address == 0)
+        {
+            return {};
+        }
+
+        return DynamicVertexBufferHandle(
+            address, static_cast<uint32_t>(sizeInBytes), static_cast<uint32_t>(strideInBytes));
     }
 
-    DynamicIndexBufferHandle UploadDynamicIndexBuffer(const void* data, size_t size)
+    DynamicIndexBufferHandle UploadDynamicIndexBuffer(const void* data, size_t sizeInBytes)
     {
+        constexpr size_t MaxViewSize = std::numeric_limits<uint32_t>::max();
+        if (not data || sizeInBytes == 0 || sizeInBytes % sizeof(uint16_t) != 0 || sizeInBytes > MaxViewSize)
+        {
+            return {};
+        }
+
         const auto component = DynamicBindingComponent::instance();
         assert(component);
-        return DynamicIndexBufferHandle(component ? component->upload(data, size, IndexBufferAlignment) : 0);
+        if (not component)
+        {
+            return {};
+        }
+
+        const auto address = component->upload(data, sizeInBytes, IndexBufferAlignment);
+        if (address == 0)
+        {
+            return {};
+        }
+
+        return DynamicIndexBufferHandle(address, static_cast<uint32_t>(sizeInBytes));
     }
 
     DynamicCbvHandle UploadDynamicCbv(const void* data, size_t size)

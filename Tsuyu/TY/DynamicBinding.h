@@ -12,19 +12,20 @@ namespace TY
 {
     namespace DynamicBinding
     {
-        DynamicVertexBufferHandle UploadDynamicVertexBuffer(const void* data, size_t size);
+        DynamicVertexBufferHandle UploadDynamicVertexBuffer(
+            const void* data, size_t sizeInBytes, size_t strideInBytes);
 
         template <typename T, size_t Extent>
             requires std::is_trivially_copyable_v<std::remove_cv_t<T>>
         DynamicVertexBufferHandle UploadDynamicVertexBuffer(std::span<T, Extent> data)
         {
-            return UploadDynamicVertexBuffer(data.data(), data.size() * sizeof(T));
+            return UploadDynamicVertexBuffer(data.data(), data.size() * sizeof(T), sizeof(T));
         }
 
-        DynamicIndexBufferHandle UploadDynamicIndexBuffer(const void* data, size_t size);
+        DynamicIndexBufferHandle UploadDynamicIndexBuffer(const void* data, size_t sizeInBytes);
 
         template <typename T, size_t Extent>
-            requires std::is_trivially_copyable_v<std::remove_cv_t<T>>
+            requires std::is_same_v<std::remove_cv_t<T>, uint16_t>
         DynamicIndexBufferHandle UploadDynamicIndexBuffer(std::span<T, Extent> data)
         {
             return UploadDynamicIndexBuffer(data.data(), data.size() * sizeof(T));
