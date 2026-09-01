@@ -53,11 +53,16 @@ struct GenericModelDrawer::Impl
         }
 
         auto materialSrv = m_modelBuffer->materialSrv();
-        const uint32_t srvCountPerMaterial = materialSrv.empty() ? 0 : materialSrv[0].size();
+        const int srvCountPerMaterial = materialSrv.empty() ? 0 : static_cast<int>(materialSrv[0].size());
 
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
-                {1, srvCountPerMaterial, 0, BindingSlot{2, 0, 0}}, // [0]
+                DescriptorTableElement{
+                    .cbvSlot = 2,
+                    .cbvCount = 1,
+                    .srvSlot = 0,
+                    .srvCount = srvCountPerMaterial,
+                }, // [0]
             },
             .materialCounts = {
                 m_modelBuffer->materialCount(), // [0]
@@ -67,14 +72,15 @@ struct GenericModelDrawer::Impl
             },
         };
 
-        constexpr std::optional<BindingSlot> extensionBindingSlot{BindingSlot{10, 10, 10}};
-
         // 拡張 CBV 設定
         if (params.cbv10AndLater.size() > 0)
         {
             m_tableIndexofCbv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-            descriptorHeap.table.push_back({params.cbv10AndLater.size(), 0, 0, extensionBindingSlot});
+            descriptorHeap.table.push_back(DescriptorTableElement{
+                .cbvSlot = 10,
+                .cbvCount = static_cast<int>(params.cbv10AndLater.size()),
+            });
             descriptorHeap.materialCounts.push_back(1);
             descriptorHeap.descriptors.push_back(CbvSrvUavSet{params.cbv10AndLater, {}, {}});
         }
@@ -84,7 +90,10 @@ struct GenericModelDrawer::Impl
         {
             m_tableIndexofSrv10AndLater = static_cast<int>(descriptorHeap.table.size());
 
-            descriptorHeap.table.push_back({0, params.srv10AndLater.size(), 0, extensionBindingSlot});
+            descriptorHeap.table.push_back(DescriptorTableElement{
+                .srvSlot = 10,
+                .srvCount = static_cast<int>(params.srv10AndLater.size()),
+            });
             descriptorHeap.materialCounts.push_back(1);
             descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, {params.srv10AndLater}, {}});
         }
@@ -102,19 +111,15 @@ struct GenericModelDrawer::Impl
 
         auto dynamicDescriptors = Array<DynamicDescriptorTableElement>{
             DynamicDescriptorTableElement{
+                .cbvSlot = 0,
                 .cbvCount = 2,
-                .bindingSlot = BindingSlot{0, -1, -1},
             },
         };
         if (m_dynamicCbvCount > 0)
         {
             dynamicDescriptors.push_back(DynamicDescriptorTableElement{
-                .cbvCount = static_cast<uint32_t>(m_dynamicCbvCount),
-                .bindingSlot = BindingSlot{
-                    10 + static_cast<int>(params.cbv10AndLater.size()),
-                    -1,
-                    -1,
-                },
+                .cbvSlot = 10 + static_cast<int>(params.cbv10AndLater.size()),
+                .cbvCount = m_dynamicCbvCount,
             });
         }
 

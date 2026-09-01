@@ -330,16 +330,24 @@ namespace
     size_t hashParams(const GraphicsPipelineStateParams& params)
     {
         size_t hash = params.descriptorTable.size();
-        for (auto& d : params.descriptorTable)
+        for (const auto& descriptor : params.descriptorTable)
         {
-            const size_t h = d.cbvCount << 16 | d.srvCount << 8 | d.uavCount;
-            hash = combineHash(hash, h);
+            hash = combineHash(hash, static_cast<size_t>(descriptor.cbvSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.cbvCount));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.srvSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.srvCount));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.uavSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.uavCount));
         }
 
         for (const auto& dynamicDescriptor : params.dynamicDescriptors)
         {
-            hash = combineHash(hash, dynamicDescriptor.cbvCount);
-            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.bindingSlot.cbvStart + 1));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.cbvSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.cbvCount));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.srvSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.srvCount));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.uavSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.uavCount));
         }
 
         hash = combineHash(hash, params.shader.vs.unique_id());

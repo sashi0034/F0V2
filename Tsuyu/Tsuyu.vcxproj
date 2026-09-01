@@ -172,7 +172,6 @@
     <ClInclude Include="TY\ComputeDispatcher.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
     <ClInclude Include="TY\DepthStencilHandle.h" />
-    <ClInclude Include="TY\detail\BindingSlot.h" />
     <ClInclude Include="TY\detail\DynamicDescriptorTable.h" />
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
     <ClInclude Include="TY\detail\SceneState3D_singleton.h" />

@@ -71,7 +71,12 @@ namespace
         return Array<uint16_t>{0, 1, 2, 2, 1, 3};
     }
 
-    const DescriptorTable descriptorTable = {{1, 1, 0}};
+    const DescriptorTable descriptorTable = {
+        DescriptorTableElement{
+            .cbvCount = 1,
+            .srvCount = 1,
+        },
+    };
 
     GraphicsPipelineState makePipelineState(const TextureDrawerParams& options)
     {

@@ -29,8 +29,8 @@ namespace
                 .descriptorTable = descriptorTable,
                 .dynamicDescriptors = {
                     DynamicDescriptorTableElement{
+                        .cbvSlot = 0,
                         .cbvCount = 2,
-                        .bindingSlot = BindingSlot{0, -1, -1},
                     },
                 },
             };
@@ -51,8 +51,8 @@ namespace
                 .descriptorTable = descriptorTable,
                 .dynamicDescriptors = {
                     DynamicDescriptorTableElement{
+                        .cbvSlot = 0,
                         .cbvCount = 2,
-                        .bindingSlot = BindingSlot{0, -1, -1},
                     },
                 },
             };

@@ -26,7 +26,11 @@ struct ComputeDispatcher::Impl
 
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
-                {params.cbv.size(), params.srv.size(), params.uav.size()}
+                DescriptorTableElement{
+                    .cbvCount = static_cast<int>(params.cbv.size()),
+                    .srvCount = static_cast<int>(params.srv.size()),
+                    .uavCount = static_cast<int>(params.uav.size()),
+                }
             },
             .materialCounts = {1},
             .descriptors = {
