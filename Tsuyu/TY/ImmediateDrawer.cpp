@@ -7,6 +7,7 @@
 #include "InlineComponent.h"
 #include "ImmediateBuilder2D.h"
 #include "ImmediateBuilder3D.h"
+#include "Mat3x2.h"
 #include "detail/ComponentManager_singleton.h"
 #include "detail/RenderContext_singleton.h"
 #include "detail/GraphicsPipelineState.h"
@@ -92,8 +93,6 @@ struct ImmediateDrawer::Impl : RenderEvent::Listener
 
         // -----------------------------------------------
 
-        const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
-        m_descriptorManager.RequestTransform(transformMatrix);
         m_descriptorManager.CommitCurrentHeap();
 
         // -----------------------------------------------
@@ -167,8 +166,6 @@ struct ImmediateDrawer::Impl : RenderEvent::Listener
 
     void Push(const Immediate3D::shape_type& shape)
     {
-        const auto transformMatrix = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
-        m_descriptorManager.RequestTransform(transformMatrix);
         m_descriptorManager.CommitCurrentHeap();
 
         m_stateManager.request3D();
@@ -195,15 +192,27 @@ struct ImmediateDrawer::Impl : RenderEvent::Listener
 
     void Draw()
     {
-        RenderContext_singleton::RefreshSceneStateIfNeeded();
-
         flushCurrentBuffer(m_stateManager.Current());
+
+        const auto sceneStateCbv = RenderContext_singleton::GetSceneStateDynamicCbv();
+
+        const auto transform = Mat3x2::Screen(RenderTarget::Current().size()); // TODO: キャッシュ
+        const auto immediateDrawerCbv = DynamicBinding::UploadDynamicCbv(ImmediateDrawer_b1{
+            .g_transform = {
+                {transform._11, transform._12, transform._31, transform._32},
+                {transform._21, transform._22, 0.0f, 1.0f},
+            },
+        });
 
         for (; m_drawUnitIndex < m_bufferUnitList.logical_size(); ++m_drawUnitIndex)
         {
             const auto& buffer = m_bufferUnitList[m_drawUnitIndex];
 
             buffer.pso.commandSet();
+
+            DynamicBinding::SetDynamicCbv(RootParameterIndex{1}, sceneStateCbv);
+            DynamicBinding::SetDynamicCbv(RootParameterIndex{2}, immediateDrawerCbv);
+            DynamicBinding::FlushAsGraphics();
 
             m_descriptorManager.CommandSet(buffer.descriptor);
 

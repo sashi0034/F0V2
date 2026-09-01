@@ -1,7 +1,5 @@
 ﻿#pragma once
 #include "ImmediateDrawer_Common.h"
-#include "TY/ConstantBufferWrapper.h"
-#include "TY/Mat3x2.h"
 
 namespace TY::ImmediateDrawer_detail
 {
@@ -22,11 +20,9 @@ namespace TY::ImmediateDrawer_detail
             DescriptorHeap descriptorHeap{};
             DescriptorTable table{};
 
-            ConstantBufferWrapper<ImmediateDrawer_b1> cbv1{};
-
             int timeToLive{0};
 
-            /// @brief テクスチャといったリソースはそれぞれ別々のヒープごとを割り当てる。このような特殊リソースはこのクラスにまとめる
+            /// @brief テクスチャといった一意性が求められるリソースはそれぞれ別々のヒープごとに割り当てる。このようなものはこのクラスにまとめる
             struct key_type
             {
                 TextureHandle srv0{};
@@ -68,8 +64,6 @@ namespace TY::ImmediateDrawer_detail
         };
 
         ID_DescriptorManager();
-
-        void RequestTransform(const Mat3x2& transform);
 
         void RequestSrv0(const TextureHandle& srv);
 

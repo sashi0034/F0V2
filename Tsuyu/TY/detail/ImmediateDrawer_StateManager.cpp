@@ -26,7 +26,13 @@ namespace
                            })
                            .setTopology(GraphicsPrimitiveTopology::TriangleList),
                 // .setRasterizer(GraphicsRasterizerOptions().setFill(GraphicsFillMode::Wireframe)),
-                .descriptorTable = descriptorTable
+                .descriptorTable = descriptorTable,
+                .dynamicDescriptors = {
+                    DynamicDescriptorTableElement{
+                        .cbvCount = 2,
+                        .bindingSlot = BindingSlot{0, -1, -1},
+                    },
+                },
             };
         }
         else
@@ -42,7 +48,13 @@ namespace
                                GraphicsSamplerOptions().setFilter(GraphicsFilterMode::Linear)
                            })
                            .setTopology(GraphicsPrimitiveTopology::LineList),
-                .descriptorTable = descriptorTable
+                .descriptorTable = descriptorTable,
+                .dynamicDescriptors = {
+                    DynamicDescriptorTableElement{
+                        .cbvCount = 2,
+                        .bindingSlot = BindingSlot{0, -1, -1},
+                    },
+                },
             };
         }
     }

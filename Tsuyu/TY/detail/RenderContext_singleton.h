@@ -63,6 +63,7 @@ namespace TY::detail
 
         DynamicCbvHandle GetSceneStateDynamicCbv();
 
+        // TODO: Remove
         [[nodiscard]]
         ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
 

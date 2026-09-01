@@ -1,8 +1,6 @@
 ﻿#include "pch.h"
 #include "ImmediateDrawer_DescriptorManager.h"
 
-#include "RenderContext_singleton.h"
-
 namespace
 {
     constexpr int maxTimeToLive = 90;
@@ -14,19 +12,15 @@ namespace TY::ImmediateDrawer_detail
     {
         heap_type heap{};
 
-        auto&& cbv0 = RenderContext_singleton::GetSceneState3D_CB0();
-
-        heap.cbv1 = ConstantBufferWrapper<ImmediateDrawer_b1>();
-
         heap.keyResource = key;
 
-        const DescriptorTable descriptorTable = {{2, 1, 0}};
+        const DescriptorTable descriptorTable = {{0, 1, 0}};
 
         heap.descriptorHeap = DescriptorHeap({
             .table = descriptorTable,
             .materialCounts = {1},
             .descriptors = {
-                CbvSrvUavSet{{cbv0, heap.cbv1}, {{heap.keyResource.srv0}}, {}},
+                CbvSrvUavSet{{}, {{heap.keyResource.srv0}}, {}},
             }
         });
 
@@ -38,28 +32,6 @@ namespace TY::ImmediateDrawer_detail
     ID_DescriptorManager::ID_DescriptorManager()
     {
         reset();
-    }
-
-    void ID_DescriptorManager::RequestTransform(const Mat3x2& transform)
-    {
-        const auto& current_cbv1 = currentHeap().cbv1.value();
-        const bool hasChanged =
-            current_cbv1.g_transform[0].x != transform._11 ||
-            current_cbv1.g_transform[0].y != transform._12 ||
-            current_cbv1.g_transform[1].x != transform._21 ||
-            current_cbv1.g_transform[1].y != transform._22 ||
-            current_cbv1.g_transform[0].z != transform._31 ||
-            current_cbv1.g_transform[0].w != transform._32;
-
-        if (hasChanged)
-        {
-            currentHeap().cbv1.uploadValue({
-                .g_transform = {
-                    {transform._11, transform._12, transform._31, transform._32},
-                    {transform._21, transform._22, 0.0f, 1.0f}
-                }
-            });
-        }
     }
 
     void ID_DescriptorManager::RequestSrv0(const TextureHandle& srv)
