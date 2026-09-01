@@ -250,24 +250,25 @@ private:
     {
         for (const auto& buffer : m_bufferCreator2D.buffers())
         {
-            flushCurrentBuffer_internal<ImmediateBuilder2D::Vertex2D, false>(state, buffer);
+            flushCurrentBuffer_internal<ImmediateBuilder2D::Vertex2D>(state, buffer, false);
         }
 
         m_bufferCreator2D.clear();
 
         for (const auto& buffer : m_bufferCreator3D.buffers())
         {
-            flushCurrentBuffer_internal<ImmediateBuilder3D::Vertex3D, true>(state, buffer);
+            flushCurrentBuffer_internal<ImmediateBuilder3D::Vertex3D>(state, buffer, true);
         }
 
         m_bufferCreator3D.clear();
     }
 
     // using VertexType = ShapeBuilder2D::Vertex2D; // for IDE
-    template <typename VertexType, bool is3D>
+    template <typename VertexType>
     void flushCurrentBuffer_internal(
         const ID_StateManager::state_type& state,
-        const ShapeBufferCreator<VertexType>::buffer_type& buffer)
+        const ShapeBufferCreator<VertexType>::buffer_type& buffer,
+        bool is3D)
     {
         m_bufferUnitList.add_logical_size(1);
 
