@@ -4,13 +4,13 @@
 #include <d3d12.h>
 
 #include "Graphics3D.h"
+#include "DynamicBinding.h"
 #include "IndexBuffer.h"
 #include "Mat3x2.h"
 #include "Rect.h"
 #include "RenderTarget.h"
 #include "VertexBuffer.h"
 #include "detail/DescriptorHeap.h"
-#include "detail/RenderContext_singleton.h"
 #include "detail/EngineStateContext.h"
 #include "detail/GraphicsPipelineState.h"
 #include "detail/SceneState3D_singleton.h"
@@ -73,7 +73,6 @@ namespace
 
     const DescriptorTable descriptorTable = {
         DescriptorTableElement{
-            .cbvCount = 1,
             .srvCount = 1,
         },
     };
@@ -92,6 +91,12 @@ namespace
                 },
                 .options = graphicsOptions,
                 .descriptorTable = descriptorTable,
+                .dynamicDescriptors = {
+                    DynamicDescriptorTableElement{
+                        .cbvSlot = 0,
+                        .cbvCount = 1,
+                    },
+                },
             }
         };
     }
@@ -114,9 +119,7 @@ struct TextureDrawer::Impl
     VertexBuffer<TextureVertex> m_vertexBuffer{m_textureVertexData.Get()};
     IndexBuffer m_indexBuffer{makeIndexBuffer()};
 
-    ComPtr<ID3D12Resource> m_constantBuffer{};
-
-    ConstantBuffer<SceneState_b0> m_cb0{Empty};
+    SceneState_b0 m_sceneState{};
 
     DescriptorHeap m_descriptorHeap{};
 
@@ -125,18 +128,19 @@ struct TextureDrawer::Impl
     {
         m_srv = TextureHandle{options.texture};
 
-        m_cb0 = ConstantBuffer<SceneState_b0>{};
-
         m_descriptorHeap = DescriptorHeap({
             .table = descriptorTable,
             .materialCounts = {1},
-            .descriptors = {CbvSrvUavSet{{m_cb0}, {{m_srv}}}}
+            .descriptors = {CbvSrvUavSet{{}, {{m_srv}}}}
         });
     }
 
     void DrawInternal() const
     {
         m_pso.commandSet();
+
+        DynamicBinding::SetDynamicCbv(RootParameterIndex{1}, m_sceneState);
+        DynamicBinding::FlushAsGraphics();
 
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetGraphicsTable(0);
@@ -146,13 +150,9 @@ struct TextureDrawer::Impl
 
     void Draw3D()
     {
-        RenderContext_singleton::RefreshSceneStateIfNeeded();
-
-        SceneState_b0 sceneState{};
-        sceneState.worldMat = SceneState3D_singleton::GetWorldMatrix().mat;
-        sceneState.viewMat = SceneState3D_singleton::GetViewMatrix().mat;
-        sceneState.projectionMat = SceneState3D_singleton::GetProjectionMatrix().mat;
-        m_cb0.upload(sceneState);
+        m_sceneState.worldMat = SceneState3D_singleton::GetWorldMatrix().mat;
+        m_sceneState.viewMat = SceneState3D_singleton::GetViewMatrix().mat;
+        m_sceneState.projectionMat = SceneState3D_singleton::GetProjectionMatrix().mat;
 
         m_textureVertexData.Reset();
         m_vertexBuffer.upload(m_textureVertexData.Get());

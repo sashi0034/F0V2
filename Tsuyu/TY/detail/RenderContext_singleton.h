@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "TY/ConstantBuffer.h"
 #include "TY/DynamicBinding.h"
 #include "TY/IGpuMemoryUsage.h"
 #include "TY/Mat3x2.h"
@@ -59,13 +58,7 @@ namespace TY::detail
         [[nodiscard]]
         Mat3x2 FrameBufferToWindow();
 
-        void RefreshSceneStateIfNeeded();
-
         DynamicCbvHandle GetSceneStateDynamicCbv();
-
-        // TODO: Remove
-        [[nodiscard]]
-        ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
 
         void SafeDisposeRenderResource(const RenderResource& renderResource);
 

@@ -10,7 +10,6 @@
 #include "Window_singleton.h"
 #include "GpuMemoryUsage.h"
 #include "SceneState3D_singleton.h"
-#include "TY/ConstantBuffer.h"
 #include "TY/DynamicBinding.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
@@ -119,8 +118,6 @@ struct RenderContextImpl
     // bool m_wasFullscreen{};
 
     std::optional<bool> m_wantsFullscreen{};
-
-    ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
 
     SceneState3D_b0 m_sceneState3DValue{};
 
@@ -246,9 +243,6 @@ struct RenderContextImpl
         // バックバッファ作成
         setupBackBuffers();
 
-        // 共通コンスタントバッファの初期化
-        m_sceneState3D = ConstantBuffer<SceneState3D_b0>{};
-
         m_valid = true;
     }
 
@@ -328,7 +322,6 @@ struct RenderContextImpl
         {
             m_sceneState3DValue.projectionMatrix = SceneState3D_singleton::GetProjectionMatrix();
             m_sceneState3DValue.viewMatrix = SceneState3D_singleton::GetViewMatrix();
-            m_sceneState3D.upload(m_sceneState3DValue);
             ++m_sceneState3DRevision;
 
             SceneState3D_singleton::OnRefreshed();
@@ -635,19 +628,9 @@ namespace TY::detail
         return s_renderContext.m_frameBufferToWindow;
     }
 
-    void RenderContext_singleton::RefreshSceneStateIfNeeded()
-    {
-        s_renderContext.RefreshSceneStateIfNeeded();
-    }
-
     DynamicCbvHandle RenderContext_singleton::GetSceneStateDynamicCbv()
     {
         return s_renderContext.GetSceneStateDynamicCbv();
-    }
-
-    ConstantBuffer<SceneState3D_b0> RenderContext_singleton::GetSceneState3D_CB0()
-    {
-        return s_renderContext.m_sceneState3D;
     }
 
     void RenderContext_singleton::SafeDisposeRenderResource(const RenderResource& renderResource)
