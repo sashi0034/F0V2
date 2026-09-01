@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "CommandListManager.h"
-#include "DescriptorTable.h"
+#include "DescriptorEntry.h"
 #include "PipelineType.h"
 #include "TY/CbvSrvUav.h"
 #include "TY/ConstantBufferArray.h"

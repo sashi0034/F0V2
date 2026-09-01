@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "CommandListManager.h"
-#include "DescriptorTable.h"
-#include "DynamicDescriptorTable.h"
+#include "DescriptorEntry.h"
+#include "DynamicDescriptorEntry.h"
 #include "TY/Array.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"

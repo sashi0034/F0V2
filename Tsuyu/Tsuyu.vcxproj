@@ -172,7 +172,7 @@
     <ClInclude Include="TY\ComputeDispatcher.h" />
     <ClInclude Include="TY\ConstantBuffer.h" />
     <ClInclude Include="TY\DepthStencilHandle.h" />
-    <ClInclude Include="TY\detail\DynamicDescriptorTable.h" />
+    <ClInclude Include="TY\detail\DynamicDescriptorEntry.h" />
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
     <ClInclude Include="TY\detail\SceneState3D_singleton.h" />
     <ClInclude Include="TY\DiskTexture.h" />
@@ -253,7 +253,7 @@
     <ClInclude Include="TY\SimpleCamera3D.h" />
     <ClInclude Include="TY\detail\CommandListManager.h" />
     <ClInclude Include="TY\detail\DescriptorHeap.h" />
-    <ClInclude Include="TY\detail\DescriptorTable.h" />
+    <ClInclude Include="TY\detail\DescriptorEntry.h" />
     <ClInclude Include="TY\detail\EngineCore.h" />
     <ClInclude Include="TY\detail\EngineEntryPoint.h" />
     <ClInclude Include="TY\detail\EngineHotReloader.h" />

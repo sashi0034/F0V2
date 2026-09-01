@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "DescriptorTable.h"
-#include "DynamicDescriptorTable.h"
+#include "DescriptorEntry.h"
+#include "DynamicDescriptorEntry.h"
 #include "TY/GraphicsOptions.h"
 
 namespace TY::detail
