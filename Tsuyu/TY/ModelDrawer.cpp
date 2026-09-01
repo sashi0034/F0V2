@@ -3,6 +3,7 @@
 
 #include "Array.h"
 #include "ConstantBufferArray.h"
+#include "Logger.h"
 #include "Mat4x4.h"
 #include "ModelLoader.h"
 #include "detail/DescriptorHeap.h"
@@ -57,6 +58,19 @@ namespace TY
         return *this;
     }
 
+    ModelDrawerParams& ModelDrawerParams::setDynamicCbvCount(int count)
+    {
+        if (count < 0)
+        {
+            LogError("ModelDrawerParams::setDynamicCbvCount: count must be non-negative.");
+            assert(false);
+            count = 0;
+        }
+
+        dynamicCbvCount = count;
+        return *this;
+    }
+
     ModelDrawer::ModelDrawer(const ModelDrawerParams& params)
     {
         m_impl = GenericModelDrawer{
@@ -70,7 +84,8 @@ namespace TY
                 .shader = params.shader,
                 .options = params.options,
                 .cbv10AndLater = params.cbv10AndLater,
-                .srv10AndLater = params.srv10AndLater
+                .srv10AndLater = params.srv10AndLater,
+                .dynamicCbvCount = params.dynamicCbvCount,
             }
         };
     }
@@ -79,6 +94,11 @@ namespace TY
     {
         (void)m_impl.uploadWorldMatrix(worldMatrix);
         return *this;
+    }
+
+    RootParameterIndex ModelDrawer::mapDynamicCbvIndex(int index) const
+    {
+        return m_impl.mapDynamicCbvIndex(index);
     }
 
     void ModelDrawer::draw() const

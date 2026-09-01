@@ -2,8 +2,7 @@
 #include "BillboardVfxRenderer.h"
 
 #include "Asset.generated.h"
-#include "TY/ConstantBufferArray.h"
-#include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicBinding.h"
 #include "TY/GenericModelBufferTemplates.h"
 #include "TY/GenericModelDrawer.h"
 #include "TY/StructuredBufferWrapper.h"
@@ -39,7 +38,7 @@ struct BillboardVfxRenderer::Impl
     IndexBuffer m_indexBuffer{Empty};
     GenericModelDrawer m_drawer{};
     StructuredBufferT<GpuParticleElement> m_particleBuffer{};
-    ConstantBufferWrapper<BillboardParticle_b10> m_particleCB{};
+    BillboardParticle_b10 m_particleCB{};
 
     Impl(const ImagePathWrapper& image, int capacity, GraphicsBlendOptions blendOptions) :
         m_capacity(capacity),
@@ -63,7 +62,7 @@ struct BillboardVfxRenderer::Impl
                     .setTestEnabled(true)
                     .setWriteMask(false)))
             .setShader(Asset_shader::billboard_effect)
-            .setCbv10AndLater({m_particleCB})
+            .setDynamicCbvCount(1)
             .setSrv10AndLater({image.fetchResource(), m_particleBuffer})
         };
     }
@@ -90,10 +89,10 @@ struct BillboardVfxRenderer::Impl
             });
         }
 
-        m_particleCB.uploadValue(BillboardParticle_b10{
+        m_particleCB = BillboardParticle_b10{
             .cameraUp = cameraUp,
             .cameraRight = cameraRight,
-        });
+        };
 
         if (not gpuElements.empty())
         {
@@ -138,6 +137,7 @@ namespace Race
     {
         if (p_impl)
         {
+            DynamicBinding::SetDynamicCbv(p_impl->m_drawer.mapDynamicCbvIndex(0), p_impl->m_particleCB);
             p_impl->m_drawer.draw();
         }
     }

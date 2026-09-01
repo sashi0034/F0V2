@@ -219,6 +219,17 @@ namespace
             m_pendingBindings.clear();
         }
 
+        void commandSetComputeCbv()
+        {
+            const auto commandList = RenderContext_singleton::TargetCommandList();
+            for (const auto& [rootParameterIndex, gpuAddress] : m_pendingBindings)
+            {
+                commandList->SetComputeRootConstantBufferView(rootParameterIndex, gpuAddress);
+            }
+
+            m_pendingBindings.clear();
+        }
+
         static DynamicBindingComponent* instance()
         {
             if (not s_instance)
@@ -334,6 +345,14 @@ namespace TY::DynamicBinding
         if (const auto component = DynamicBindingComponent::instance())
         {
             component->commandSetGraphicsCbv();
+        }
+    }
+
+    void FlushAsCompute()
+    {
+        if (const auto component = DynamicBindingComponent::instance())
+        {
+            component->commandSetComputeCbv();
         }
     }
 }

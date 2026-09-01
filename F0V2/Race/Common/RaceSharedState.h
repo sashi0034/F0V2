@@ -3,7 +3,7 @@
 #include "CourseData.h"
 #include "CB/ShadowCaster.h"
 #include "TY/Array.h"
-#include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicHandle.h"
 #include "TY/InlineComponent.h"
 #include "TY/RenderTarget.h"
 
@@ -32,7 +32,8 @@ namespace Race
 
         struct
         {
-            ConstantBufferWrapper<CB::ShadowCaster_b10> shadowCaster{};
+            CB::ShadowCaster_b10 shadowCaster{};
+            DynamicCbvHandle shadowCasterCbv{};
         } cb{};
 
         RenderTarget shadowMap{};

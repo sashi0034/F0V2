@@ -12,7 +12,6 @@
 #include "Race/Common/CourseModelBuilder.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
-#include "TY/ConstantBufferWrapper.h"
 #include "TY/DynamicTexture.h"
 #include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"

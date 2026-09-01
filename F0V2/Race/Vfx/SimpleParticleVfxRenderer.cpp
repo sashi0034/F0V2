@@ -2,8 +2,7 @@
 #include "SimpleParticleVfxRenderer.h"
 
 #include "Asset.generated.h"
-#include "TY/ConstantBufferArray.h"
-#include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicBinding.h"
 #include "TY/GenericModelBufferTemplates.h"
 #include "TY/GenericModelDrawer.h"
 #include "TY/StructuredBufferWrapper.h"
@@ -38,7 +37,7 @@ struct SimpleParticleVfxRenderer::Impl
     IndexBuffer m_indexBuffer{Empty};
     GenericModelDrawer m_drawer{};
     StructuredBufferT<GpuParticleElement> m_particleBuffer{};
-    ConstantBufferWrapper<SimpleParticle_b10> m_particleCB{};
+    SimpleParticle_b10 m_particleCB{};
 
     Impl(const ImagePathWrapper& image, int capacity) :
         m_capacity(capacity),
@@ -62,7 +61,7 @@ struct SimpleParticleVfxRenderer::Impl
                     .setTestEnabled(true)
                     .setWriteMask(false)))
             .setShader(Asset_shader::simple_particle)
-            .setCbv10AndLater({m_particleCB})
+            .setDynamicCbvCount(1)
             .setSrv10AndLater({image.fetchResource(), m_particleBuffer})
         };
     }
@@ -89,10 +88,10 @@ struct SimpleParticleVfxRenderer::Impl
             });
         }
 
-        m_particleCB.uploadValue(SimpleParticle_b10{
+        m_particleCB = SimpleParticle_b10{
             .cameraUp = cameraUp,
             .cameraRight = cameraRight,
-        });
+        };
 
         if (not gpuElements.empty())
         {
@@ -132,6 +131,7 @@ namespace Race
     {
         if (p_impl)
         {
+            DynamicBinding::SetDynamicCbv(p_impl->m_drawer.mapDynamicCbvIndex(0), p_impl->m_particleCB);
             p_impl->m_drawer.draw();
         }
     }

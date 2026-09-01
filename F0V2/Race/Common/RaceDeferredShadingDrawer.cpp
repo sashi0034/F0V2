@@ -6,6 +6,7 @@
 #include "RaceSharedState.h"
 #include "GM/DebugService.h"
 #include "TY/ComputeDispatcher.h"
+#include "TY/DynamicBinding.h"
 #include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
 #include "TY/Mat4x4.h"
@@ -29,9 +30,7 @@ namespace
     class SceneryDrawer
     {
     public:
-        void Init(
-            const UnorderedRenderTargetTexture& outputTexture,
-            const ConstantBufferWrapper<Scenery_b10>& cb)
+        void Init(const UnorderedRenderTargetTexture& outputTexture)
         {
             ComputeShaderPathWrapper cs = GetCourseFileInfoByPath(g_sharedState->coursePath).sceneryPath;
             if (cs.isEmpty())
@@ -51,7 +50,7 @@ namespace
                     .setComparison(GraphicsComparisonFunction::Greater)
                     .setMaxAnisotropy(1)
                 })
-                .setCbv({cb})
+                .setDynamicCbvCount(1)
                 .setSrv({
                     g_sharedState->gbuffer.albedo,
                     g_sharedState->gbuffer.normal,
@@ -62,11 +61,12 @@ namespace
                 .setUav({outputTexture});
         }
 
-        void Draw(float renderScale)
+        void Draw(float renderScale, const Scenery_b10& cb)
         {
             const Size rtvSize = g_sharedState->gbufferTarget.size() * renderScale;
             constexpr int threadsPerGroup = 32;
             const int threadGroup = (rtvSize.x * rtvSize.y / 2) / threadsPerGroup;
+            DynamicBinding::SetDynamicCbv(m_dispatcher.mapDynamicCbvIndex(0), cb);
             m_dispatcher.dispatch(threadGroup);
         }
 
@@ -78,9 +78,7 @@ namespace
     class SimpleDeferredDrawer
     {
     public:
-        void Init(
-            const UnorderedRenderTargetTexture& outputTexture,
-            const ConstantBufferWrapper<Scenery_b10>& cb)
+        void Init(const UnorderedRenderTargetTexture& outputTexture)
         {
             // TODO: 使ってないリソースの整理
             m_dispatcher =
@@ -95,7 +93,7 @@ namespace
                     .setComparison(GraphicsComparisonFunction::Greater)
                     .setMaxAnisotropy(1)
                 })
-                .setCbv({cb})
+                .setDynamicCbvCount(1)
                 .setSrv({
                     g_sharedState->gbuffer.albedo,
                     g_sharedState->gbuffer.normal,
@@ -105,9 +103,10 @@ namespace
                 .setUav({outputTexture});
         }
 
-        void Draw(float renderScale)
+        void Draw(float renderScale, const Scenery_b10& cb)
         {
             const Size rtvSize = g_sharedState->gbufferTarget.size() * renderScale;
+            DynamicBinding::SetDynamicCbv(m_dispatcher.mapDynamicCbvIndex(0), cb);
             m_dispatcher.dispatch(rtvSize.x / 4, rtvSize.y / 8);
         }
 
@@ -121,7 +120,7 @@ struct RaceDeferredShadingDrawer::Impl
 {
     UnorderedRenderTargetTexture m_outputTexture{};
 
-    ConstantBufferWrapper<Scenery_b10> m_cb{};
+    Scenery_b10 m_cb{};
 
     SceneryDrawer m_sceneryDrawer{};
 
@@ -136,31 +135,30 @@ struct RaceDeferredShadingDrawer::Impl
             .setSize(g_sharedState->gbufferTarget.size())
             .setClearColor(ColorF32{0.0f, 0.0f});
 
-        m_sceneryDrawer.Init(m_outputTexture, m_cb);
+        m_sceneryDrawer.Init(m_outputTexture);
 
 #if defined(_DEBUG)
-        m_debugDrawer.Init(m_outputTexture, m_cb);
+        m_debugDrawer.Init(m_outputTexture);
 #endif
     }
 
     void Draw(float renderScale)
     {
-        m_cb->g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
-        m_cb->g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
-        m_cb->g_worldToShadowProjection = g_sharedState->cb.shadowCaster->g_worldToShadowProjection;
-        m_cb->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
-        m_cb->g_time = InGameElapsedTime();
-        m_cb.upload();
+        m_cb.g_projectionMatrixInv = Graphics3D::ProjectionMatrix().inverse();
+        m_cb.g_viewMatrixInv = Graphics3D::ViewMatrix().inverse();
+        m_cb.g_worldToShadowProjection = g_sharedState->cb.shadowCaster.g_worldToShadowProjection;
+        m_cb.g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
+        m_cb.g_time = InGameElapsedTime();
 
 #if defined(_DEBUG)
         if (not g_debugService.drawScenery)
         {
-            m_debugDrawer.Draw(renderScale);
+            m_debugDrawer.Draw(renderScale, m_cb);
         }
         else
 #endif
         {
-            m_sceneryDrawer.Draw(renderScale);
+            m_sceneryDrawer.Draw(renderScale, m_cb);
         }
     }
 };

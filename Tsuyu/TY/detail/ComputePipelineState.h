@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "CommandListManager.h"
 #include "DescriptorTable.h"
+#include "DynamicDescriptorTable.h"
 #include "TY/Array.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"
@@ -16,6 +17,8 @@ namespace TY::detail
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
         Array<DescriptorTableElement> descriptorTable;
+
+        Array<DynamicDescriptorTableElement> dynamicDescriptors{};
     };
 
     class ComputePipelineState

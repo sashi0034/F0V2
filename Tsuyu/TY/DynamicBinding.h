@@ -50,5 +50,7 @@ namespace TY
         void SetDynamicCbv(RootParameterIndex rootParameterIndex, DynamicCbvHandle cbv);
 
         void FlushAsGraphics();
+
+        void FlushAsCompute();
     }
 }

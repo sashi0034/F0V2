@@ -21,6 +21,8 @@ namespace TY
 
         Array<ShaderResourceType> srv10AndLater{};
 
+        int dynamicCbvCount{};
+
         ModelDrawerParams& loadModel(const std::string& filename);
 
         ModelDrawerParams& setModel(const ModelBuffer& model_);
@@ -34,6 +36,8 @@ namespace TY
         ModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferArrayImpl>& cbv);
 
         ModelDrawerParams& setSrv10AndLater(const Array<ShaderResourceType>& srv);
+
+        ModelDrawerParams& setDynamicCbvCount(int count);
     };
 
     class ModelDrawer
@@ -44,6 +48,9 @@ namespace TY
         ModelDrawer(const ModelDrawerParams& params);
 
         const ModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
+
+        [[nodiscard]]
+        RootParameterIndex mapDynamicCbvIndex(int index) const;
 
         void draw() const;
 

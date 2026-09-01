@@ -9,7 +9,7 @@
 #include "Asset.generated.h"
 #include "RaceSharedState.h"
 #include "TY/ComputeDispatcher.h"
-#include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicBinding.h"
 #include "TY/GenericModelBufferTemplates.h"
 #include "TY/GenericModelDrawer.h"
 #include "TY/RenderTarget.h"
@@ -58,7 +58,7 @@ namespace
             m_easuDispatcher = ComputeDispatcher{
                 ComputeDispatcherParams{}
                 .setCS(Asset_shader::fsr1_easu_cs)
-                .setCbv({m_easuCB})
+                .setDynamicCbvCount(1)
                 .setSrv({input})
                 .setUav({m_easuTexture})
             };
@@ -66,7 +66,7 @@ namespace
             m_rcasDispatcher = ComputeDispatcher{
                 ComputeDispatcherParams{}
                 .setCS(Asset_shader::fsr1_rcas_cs)
-                .setCbv({m_rcasCB})
+                .setDynamicCbvCount(1)
                 .setSrv({m_easuTexture})
                 .setUav({m_rcasTexture})
             };
@@ -87,10 +87,9 @@ namespace
                            static_cast<AF1>(m_outputSize.y),
                            static_cast<AF1>(m_outputSize.x),
                            static_cast<AF1>(m_outputSize.y));
-                m_easuCB.uploadValue(cb);
-
                 int groupsX = (m_outputSize.x + 15) / 16;
                 int groupsY = (m_outputSize.y + 15) / 16;
+                DynamicBinding::SetDynamicCbv(m_easuDispatcher.mapDynamicCbvIndex(0), cb);
                 m_easuDispatcher.dispatch(groupsX, groupsY, 1);
             }
 
@@ -98,10 +97,9 @@ namespace
             {
                 RcasCB cb{};
                 FsrRcasCon(reinterpret_cast<AU1*>(&cb.Const0), sharpnessAttenuation);
-                m_rcasCB.uploadValue(cb);
-
                 int groupsX = (m_outputSize.x + 15) / 16;
                 int groupsY = (m_outputSize.y + 15) / 16;
+                DynamicBinding::SetDynamicCbv(m_rcasDispatcher.mapDynamicCbvIndex(0), cb);
                 m_rcasDispatcher.dispatch(groupsX, groupsY, 1);
             }
         }
@@ -116,11 +114,9 @@ namespace
         Size m_outputSize{};
 
         UnorderedRenderTargetTexture m_easuTexture{};
-        ConstantBufferWrapper<EasuCB> m_easuCB;
         ComputeDispatcher m_easuDispatcher{};
 
         UnorderedRenderTargetTexture m_rcasTexture{};
-        ConstantBufferWrapper<RcasCB> m_rcasCB;
         ComputeDispatcher m_rcasDispatcher{};
     };
 }
@@ -128,7 +124,6 @@ namespace
 struct RaceDrawUpscaler::Impl
 {
     GenericModelDrawer m_aaDrawer{};
-    ConstantBufferWrapper<CheapAA_b10> m_aaCB10{};
     RenderTarget m_aaTarget{};
 
     Fsr1Upscaler m_fsr1Upscaler{};
@@ -141,7 +136,7 @@ struct RaceDrawUpscaler::Impl
             .setVertexInput({})
             .setShader(Asset_shader::cheap_aa)
             .setOptions(GraphicsOptions{})
-            .setCbv10AndLater({m_aaCB10})
+            .setDynamicCbvCount(1)
             .setSrv10AndLater({enderTexture});
 
         m_aaTarget =
@@ -158,10 +153,12 @@ struct RaceDrawUpscaler::Impl
     {
         // AA
         {
-            m_aaCB10->g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale;
-            m_aaCB10.upload();
+            const CheapAA_b10 cb{
+                .g_outputResolution = g_sharedState->gbufferTarget.size() * renderScale,
+            };
 
             const auto bind = m_aaTarget.scopedClearBind();
+            DynamicBinding::SetDynamicCbv(m_aaDrawer.mapDynamicCbvIndex(0), cb);
             m_aaDrawer.draw();
         }
 

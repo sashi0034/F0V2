@@ -123,10 +123,6 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     void update() override
     {
         m_children.updateEach();
-
-        m_state.cb.lambert->lightDirection = m_state.camera.worldMatrix().forward();
-        m_state.cb.lambert->lightColor = Float3{1.0f, 1.0f, 1.0f};
-        m_state.cb.lambert.upload();
     }
 
     void killed() override

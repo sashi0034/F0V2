@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "TY/ActorContainer.h"
 #include "TY/ComputeDispatcher.h"
-#include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicBinding.h"
 #include "TY/GameTime.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
@@ -32,28 +32,26 @@ struct RaceSetupBackgroundDrawer::Impl : ActorBase
     ActorContainer m_children{};
 
     UnorderedRenderTargetTexture m_outputTexture{};
-    ConstantBufferWrapper<Shadertoy_b0> m_cb0{};
+    Shadertoy_b0 m_cb0{};
     ComputeDispatcher m_dispatcher{};
 
     void Init()
     {
         m_outputTexture = RenderTargetTextureParams().setSize(Screen::Size());
 
-        m_cb0 = ConstantBufferWrapper<Shadertoy_b0>{};
-
         m_dispatcher =
             ComputeDispatcherParams()
             .setCS(Asset_shader::race_setup_background_cs)
-            .setCbv({m_cb0})
+            .setDynamicCbvCount(1)
             .setUav({m_outputTexture});
     }
 
     void Draw()
     {
-        m_cb0->g_screenResolution = Screen::SizeF();
-        m_cb0->g_time += InGameDeltaTime() * 0.125f; // FIXME
-        m_cb0.upload();
+        m_cb0.g_screenResolution = Screen::SizeF();
+        m_cb0.g_time += InGameDeltaTime() * 0.125f; // FIXME
 
+        DynamicBinding::SetDynamicCbv(m_dispatcher.mapDynamicCbvIndex(0), m_cb0);
         m_dispatcher.dispatch((Screen::Size().x + 7) / 8, (Screen::Size().y + 7) / 8);
 
         Immediate2D::Texture(m_outputTexture).resized(Screen::Size()).pushAuto();

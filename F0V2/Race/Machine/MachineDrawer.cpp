@@ -5,6 +5,7 @@
 #include "MachineConstants.h"
 #include "Race/IRaceContext.h"
 #include "Race/Common/RaceSharedState.h"
+#include "TY/DynamicBinding.h"
 #include "TY/InlineComponent.h"
 #include "TY/ModelDrawer.h"
 #include "TY/ModelLoader.h"
@@ -44,7 +45,7 @@ struct MachineDrawer::Impl
             .setModel(model)
             .setOptions(GraphicsOptions::FromTarget(g_sharedState->shadowMap))
             .setShader(Asset_shader::shadow_caster)
-            .setCbv10AndLater({g_sharedState->cb.shadowCaster});
+            .setDynamicCbvCount(1);
 
         m_gbufferDrawer =
             ModelDrawerParams{}
@@ -91,6 +92,9 @@ namespace Race
 
     void MachineDrawer::drawShadowMap() const
     {
+        DynamicBinding::SetDynamicCbv(
+            p_impl->m_shadowDrawer.mapDynamicCbvIndex(0),
+            g_sharedState->cb.shadowCasterCbv);
         p_impl->m_shadowDrawer.draw();
     }
 

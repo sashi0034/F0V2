@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "ComputeDispatcher.h"
 
+#include "DynamicBinding.h"
+#include "Logger.h"
 #include "detail/ComputePipelineState.h"
 #include "detail/DescriptorHeap.h"
 #include "detail/RenderContext_singleton.h"
@@ -18,11 +20,24 @@ struct ComputeDispatcher::Impl
 
     Array<UnorderedAccessType> m_uavList{};
 
+    int m_dynamicCbvStartIndex{-1};
+
+    int m_dynamicCbvCount{};
+
     Impl(const ComputeDispatcherParams& params)
     {
+        if (params.dynamicCbvCount < 0)
+        {
+            LogError("ComputeDispatcher: dynamicCbvCount must be non-negative.");
+            assert(false);
+            return;
+        }
+
         m_srvList = params.srv;
 
         m_uavList = params.uav;
+
+        m_dynamicCbvCount = params.dynamicCbvCount;
 
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
@@ -38,15 +53,42 @@ struct ComputeDispatcher::Impl
             }
         };
 
+        m_dynamicCbvStartIndex = static_cast<int>(descriptorHeap.table.size());
+
+        Array<DynamicDescriptorTableElement> dynamicDescriptors{};
+        if (m_dynamicCbvCount > 0)
+        {
+            dynamicDescriptors.push_back(DynamicDescriptorTableElement{
+                .cbvSlot = static_cast<int>(params.cbv.size()),
+                .cbvCount = m_dynamicCbvCount,
+            });
+        }
+
         m_pso = ComputePipelineState{
             ComputePipelineStateParams{
                 .computeShader = params.cs,
                 .samplers = params.samplers,
-                .descriptorTable = descriptorHeap.table
+                .descriptorTable = descriptorHeap.table,
+                .dynamicDescriptors = dynamicDescriptors,
             }
         };
 
         m_descriptorHeap = DescriptorHeap{descriptorHeap};
+    }
+
+    RootParameterIndex GetDynamicCbvParameterIndex(int index) const
+    {
+        if (index < 0 || index >= m_dynamicCbvCount)
+        {
+            LogError(std::format(
+                "ComputeDispatcher::mapDynamicCbvIndex: index {} is out of range [0, {}).",
+                index,
+                m_dynamicCbvCount));
+            assert(false);
+            return RootParameterIndex{-1};
+        }
+
+        return RootParameterIndex{m_dynamicCbvStartIndex + index};
     }
 
     void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const
@@ -76,6 +118,11 @@ struct ComputeDispatcher::Impl
         }
 
         m_pso.commandSet(CommandListType::Draw);
+
+        if (m_dynamicCbvCount > 0)
+        {
+            DynamicBinding::FlushAsCompute();
+        }
 
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetComputeTable(0);
@@ -128,9 +175,34 @@ namespace TY
         return *this;
     }
 
+    ComputeDispatcherParams& ComputeDispatcherParams::setDynamicCbvCount(int count)
+    {
+        if (count < 0)
+        {
+            LogError("ComputeDispatcherParams::setDynamicCbvCount: count must be non-negative.");
+            assert(false);
+            count = 0;
+        }
+
+        dynamicCbvCount = count;
+        return *this;
+    }
+
     ComputeDispatcher::ComputeDispatcher(const ComputeDispatcherParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
+    }
+
+    RootParameterIndex ComputeDispatcher::mapDynamicCbvIndex(int index) const
+    {
+        if (not p_impl)
+        {
+            LogError("ComputeDispatcher::mapDynamicCbvIndex: Dispatcher is empty.");
+            assert(false);
+            return RootParameterIndex{-1};
+        }
+
+        return p_impl->GetDynamicCbvParameterIndex(index);
     }
 
     void ComputeDispatcher::dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const

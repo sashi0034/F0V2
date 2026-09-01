@@ -4,8 +4,7 @@
 #include "Asset.generated.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
-#include "TY/ConstantBuffer.h"
-#include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicBinding.h"
 #include "TY/GameTime.h"
 #include "TY/GenericModelBufferTemplates.h"
 #include "TY/ModelDrawer.h"
@@ -27,7 +26,7 @@ struct GimmickTextureDrawer::Impl : ActorBase
 #endif
     ActorContainer m_children{};
 
-    ConstantBufferWrapper<Gimmick_b10> m_cb10{};
+    Gimmick_b10 m_cb10{};
 
     GenericModelDrawer m_boostPadDrawer{};
 
@@ -47,7 +46,7 @@ struct GimmickTextureDrawer::Impl : ActorBase
             .setVertexInput({})
             .setOptions(GraphicsOptions())
             .setShader(Asset_shader::gimmick_boost_pad)
-            .setCbv10AndLater({m_cb10})
+            .setDynamicCbvCount(1)
         };
 
         m_jumpPadDrawer = GenericModelDrawer{
@@ -56,7 +55,7 @@ struct GimmickTextureDrawer::Impl : ActorBase
             .setVertexInput({})
             .setOptions(GraphicsOptions())
             .setShader(Asset_shader::gimmick_jump_pad)
-            .setCbv10AndLater({m_cb10})
+            .setDynamicCbvCount(1)
         };
 
         m_pitZoneDrawer = GenericModelDrawer{
@@ -65,7 +64,7 @@ struct GimmickTextureDrawer::Impl : ActorBase
             .setVertexInput({})
             .setOptions(GraphicsOptions())
             .setShader(Asset_shader::gimmick_pit_zone)
-            .setCbv10AndLater({m_cb10})
+            .setDynamicCbvCount(1)
         };
 
         drawGimmickTexture();
@@ -76,7 +75,7 @@ private:
     {
         m_children.updateEach();
 
-        m_cb10->g_time += InGameDeltaTime();
+        m_cb10.g_time += InGameDeltaTime();
 
         m_frameCount++;
         if ((m_frameCount % 5) == 0)
@@ -89,22 +88,25 @@ private:
     // - MipSlice を変えて UAV を作成し、ComputeShader で書き込む
     void drawGimmickTexture()
     {
-        m_cb10.upload();
+        const auto cbv = DynamicBinding::UploadDynamicCbv(m_cb10);
 
         // TODO: カメラから本当に見えるものだけ描画したい
 
         {
             const auto bind = g_sharedState->gimmickTextures.boostPad.scopedClearBind();
+            DynamicBinding::SetDynamicCbv(m_boostPadDrawer.mapDynamicCbvIndex(0), cbv);
             m_boostPadDrawer.draw();
         }
 
         {
             const auto bind = g_sharedState->gimmickTextures.jumpPad.scopedClearBind();
+            DynamicBinding::SetDynamicCbv(m_jumpPadDrawer.mapDynamicCbvIndex(0), cbv);
             m_jumpPadDrawer.draw();
         }
 
         {
             const auto bind = g_sharedState->gimmickTextures.pitZone.scopedClearBind();
+            DynamicBinding::SetDynamicCbv(m_pitZoneDrawer.mapDynamicCbvIndex(0), cbv);
             m_pitZoneDrawer.draw();
         }
     }
