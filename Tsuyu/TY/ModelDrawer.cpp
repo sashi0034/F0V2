@@ -96,11 +96,6 @@ namespace TY
         return *this;
     }
 
-    RootParameterIndex ModelDrawer::mapDynamicCbvIndex(int index) const
-    {
-        return m_impl.mapDynamicCbvIndex(index);
-    }
-
     void ModelDrawer::draw() const
     {
         m_impl.draw();

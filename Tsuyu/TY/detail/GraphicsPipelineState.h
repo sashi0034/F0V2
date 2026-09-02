@@ -34,6 +34,10 @@ namespace TY::detail
 
         DescriptorTable descriptorTable() const;
 
+        int dynamicBindingRootParameterOffset() const;
+
+        const Array<DynamicDescriptorEntry>& resolvedDynamicDescriptorTable() const;
+
         void commandSet() const;
 
         class Internal;

@@ -191,6 +191,7 @@ namespace TY::detail
         }
 
         // Dynamic CBV 設定
+        m_dynamicBindingRootParameterOffset = static_cast<int>(rootParameters.size());
         for (const auto& dynamicDescriptor : params.dynamicDescriptorTable)
         {
             if (dynamicDescriptor.cbvCount == 0)
@@ -204,11 +205,16 @@ namespace TY::detail
                 dynamicCbvOffset = dynamicDescriptor.cbvSlot;
             }
 
+            auto resolvedDynamicDescriptor = dynamicDescriptor;
+            resolvedDynamicDescriptor.cbvSlot = dynamicCbvOffset;
+            m_resolvedDynamicDescriptorTable.push_back(resolvedDynamicDescriptor);
+
             for (int i = 0; i < dynamicDescriptor.cbvCount; ++i)
             {
+                const int slotIndex = dynamicCbvOffset + i;
                 D3D12_ROOT_PARAMETER rootParameter{};
                 rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-                rootParameter.Descriptor.ShaderRegister = dynamicCbvOffset + i;
+                rootParameter.Descriptor.ShaderRegister = slotIndex;
                 rootParameter.Descriptor.RegisterSpace = 0;
                 rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
                 rootParameters.push_back(rootParameter);

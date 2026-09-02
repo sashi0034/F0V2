@@ -128,6 +128,17 @@ namespace TY::detail
         return p_impl ? p_impl->m_params.descriptorTable : DescriptorTable{};
     }
 
+    int ComputePipelineState::dynamicBindingRootParameterOffset() const
+    {
+        return p_impl ? p_impl->m_rootSignature.dynamicBindingRootParameterOffset() : 0;
+    }
+
+    const Array<DynamicDescriptorEntry>& ComputePipelineState::resolvedDynamicDescriptorTable() const
+    {
+        static const Array<DynamicDescriptorEntry> Empty{};
+        return p_impl ? p_impl->m_rootSignature.resolvedDynamicDescriptorTable() : Empty;
+    }
+
     void ComputePipelineState::commandSet(CommandListType commandList) const
     {
         if (p_impl) p_impl->CommandSet();

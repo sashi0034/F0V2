@@ -89,7 +89,7 @@ namespace
                            static_cast<AF1>(m_outputSize.y));
                 int groupsX = (m_outputSize.x + 15) / 16;
                 int groupsY = (m_outputSize.y + 15) / 16;
-                DynamicBinding::SetDynamicCbv(m_easuDispatcher.mapDynamicCbvIndex(0), cb);
+                DynamicBinding::SetDynamicCbv(0, cb);
                 m_easuDispatcher.dispatch(groupsX, groupsY, 1);
             }
 
@@ -99,7 +99,7 @@ namespace
                 FsrRcasCon(reinterpret_cast<AU1*>(&cb.Const0), sharpnessAttenuation);
                 int groupsX = (m_outputSize.x + 15) / 16;
                 int groupsY = (m_outputSize.y + 15) / 16;
-                DynamicBinding::SetDynamicCbv(m_rcasDispatcher.mapDynamicCbvIndex(0), cb);
+                DynamicBinding::SetDynamicCbv(0, cb);
                 m_rcasDispatcher.dispatch(groupsX, groupsY, 1);
             }
         }
@@ -158,7 +158,7 @@ struct RaceDrawUpscaler::Impl
             };
 
             const auto bind = m_aaTarget.scopedClearBind();
-            DynamicBinding::SetDynamicCbv(m_aaDrawer.mapDynamicCbvIndex(0), cb);
+            DynamicBinding::SetDynamicCbv(10, cb);
             m_aaDrawer.draw();
         }
 

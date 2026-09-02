@@ -35,12 +35,6 @@ struct GenericModelDrawer::Impl
 
     int m_tableIndexofSrv10AndLater{-1};
 
-    int m_sceneStateRootParameterIndex{-1}; // TODO: m_dynamicCbvStartIndex から逆算
-
-    int m_modelStateRootParameterIndex{-1};
-
-    int m_dynamicCbvStartIndex{-1};
-
     int m_dynamicCbvCount{};
 
     Impl(const GenericModelDrawerParams& params)
@@ -105,9 +99,6 @@ struct GenericModelDrawer::Impl
         }
 
         m_dynamicCbvCount = params.dynamicCbvCount;
-        m_sceneStateRootParameterIndex = static_cast<int>(descriptorHeap.table.size());
-        m_modelStateRootParameterIndex = m_sceneStateRootParameterIndex + 1;
-        m_dynamicCbvStartIndex = m_sceneStateRootParameterIndex + 2;
 
         auto dynamicDescriptorTable = Array<DynamicDescriptorEntry>{
             DynamicDescriptorEntry{
@@ -145,34 +136,21 @@ struct GenericModelDrawer::Impl
         m_worldMatrix = worldMatrix;
     }
 
-    RootParameterIndex GetDynamicCbvParameterIndex(int index) const
-    {
-        if (index < 0 || index >= m_dynamicCbvCount)
-        {
-            LogError(std::format(
-                "GenericModelDrawer::getDynamicCbvParameterIndex: index {} is out of range [0, {}).",
-                index,
-                m_dynamicCbvCount));
-            assert(false);
-            return RootParameterIndex{-1};
-        }
-
-        return RootParameterIndex{m_dynamicCbvStartIndex + index};
-    }
-
     void Draw() const
     {
         m_pso.commandSet();
 
         // カメラ行列設定
         DynamicBinding::SetDynamicCbv(
-            RootParameterIndex{m_sceneStateRootParameterIndex},
+            0,
             RenderContext_singleton::GetSceneStateDynamicCbv());
 
         const ModelState_b1 modelState{.worldMatrix = m_worldMatrix};
-        DynamicBinding::SetDynamicCbv(RootParameterIndex{m_modelStateRootParameterIndex}, modelState);
+        DynamicBinding::SetDynamicCbv(1, modelState);
 
-        DynamicBinding::FlushAsGraphics();
+        DynamicBinding::FlushAsGraphics(
+            m_pso.dynamicBindingRootParameterOffset(),
+            m_pso.resolvedDynamicDescriptorTable());
 
         m_descriptorHeap.commandSet();
 
@@ -263,18 +241,6 @@ namespace TY
     {
         if (p_impl) p_impl->UploadWorldMatrix(worldMatrix);
         return *this;
-    }
-
-    RootParameterIndex GenericModelDrawer::mapDynamicCbvIndex(int index) const
-    {
-        if (not p_impl)
-        {
-            LogError("GenericModelDrawer::getDynamicCbvParameterIndex: Drawer is empty.");
-            assert(false);
-            return RootParameterIndex{-1};
-        }
-
-        return p_impl->GetDynamicCbvParameterIndex(index);
     }
 
     void GenericModelDrawer::draw() const

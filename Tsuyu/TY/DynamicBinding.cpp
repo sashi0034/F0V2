@@ -203,31 +203,35 @@ namespace
             return allocation->gpuAddress;
         }
 
-        void setCbvByAddress(RootParameterIndex rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS address)
+        void setCbvByAddress(int slotIndex, D3D12_GPU_VIRTUAL_ADDRESS address)
         {
-            m_pendingBindings[rootParameterIndex.value] = address;
+            m_pendingBindings[slotIndex] = address;
         }
 
-        void commandSetGraphicsCbv()
+        void commandSetGraphicsCbv(
+            int rootParameterOffset,
+            const Array<DynamicDescriptorEntry>& dynamicDescriptorTables)
         {
-            const auto commandList = RenderContext_singleton::TargetCommandList();
-            for (const auto& [rootParameterIndex, gpuAddress] : m_pendingBindings)
-            {
-                commandList->SetGraphicsRootConstantBufferView(rootParameterIndex, gpuAddress);
-            }
-
-            m_pendingBindings.clear();
+            commandSetCbv(rootParameterOffset, dynamicDescriptorTables, [](
+                          ID3D12GraphicsCommandList* commandList,
+                          UINT rootParameterIndex,
+                          D3D12_GPU_VIRTUAL_ADDRESS gpuAddress)
+                          {
+                              commandList->SetGraphicsRootConstantBufferView(rootParameterIndex, gpuAddress);
+                          });
         }
 
-        void commandSetComputeCbv()
+        void commandSetComputeCbv(
+            int rootParameterOffset,
+            const Array<DynamicDescriptorEntry>& dynamicDescriptorTables)
         {
-            const auto commandList = RenderContext_singleton::TargetCommandList();
-            for (const auto& [rootParameterIndex, gpuAddress] : m_pendingBindings)
-            {
-                commandList->SetComputeRootConstantBufferView(rootParameterIndex, gpuAddress);
-            }
-
-            m_pendingBindings.clear();
+            commandSetCbv(rootParameterOffset, dynamicDescriptorTables, [](
+                          ID3D12GraphicsCommandList* commandList,
+                          UINT rootParameterIndex,
+                          D3D12_GPU_VIRTUAL_ADDRESS gpuAddress)
+                          {
+                              commandList->SetComputeRootConstantBufferView(rootParameterIndex, gpuAddress);
+                          });
         }
 
         static DynamicBindingComponent* instance()
@@ -241,6 +245,61 @@ namespace
         }
 
     private:
+        using RootDescriptorSetter = void (*)(
+            ID3D12GraphicsCommandList* commandList,
+            UINT rootParameterIndex,
+            D3D12_GPU_VIRTUAL_ADDRESS gpuAddress);
+
+        void commandSetCbv(
+            int rootParameterOffset,
+            const Array<DynamicDescriptorEntry>& dynamicDescriptorTables,
+            RootDescriptorSetter commandSet)
+        {
+            if (rootParameterOffset < 0)
+            {
+                LogError("DynamicBinding: rootParameterOffset must be non-negative.");
+                assert(false);
+                m_pendingBindings.clear();
+                return;
+            }
+
+            const auto commandList = RenderContext_singleton::TargetCommandList();
+            bool hasInvalidSlot{};
+            for (const auto& [slotIndex, gpuAddress] : m_pendingBindings)
+            {
+                int rootParameterIndex = rootParameterOffset;
+                bool found{};
+                for (const auto& dynamicDescriptor : dynamicDescriptorTables)
+                {
+                    const int slotOffset = slotIndex - dynamicDescriptor.cbvSlot;
+                    if (slotOffset >= 0 && slotOffset < dynamicDescriptor.cbvCount)
+                    {
+                        rootParameterIndex += slotOffset;
+                        commandSet(commandList, static_cast<UINT>(rootParameterIndex), gpuAddress);
+                        found = true;
+                        break;
+                    }
+
+                    rootParameterIndex += dynamicDescriptor.cbvCount;
+                }
+
+                if (not found)
+                {
+                    LogError(std::format(
+                        "DynamicBinding: CBV slot b{} is not registered in the current root signature.",
+                        slotIndex));
+                    hasInvalidSlot = true;
+                }
+            }
+
+            if (hasInvalidSlot)
+            {
+                assert(false);
+            }
+
+            m_pendingBindings.clear();
+        }
+
         static inline DynamicBindingComponent* s_instance{};
 
         std::array<FrameResource, RenderContext_singleton::FrameBufferCount> m_frameResources{};
@@ -308,23 +367,34 @@ namespace TY::DynamicBinding
         return DynamicCbvHandle(component ? component->upload(data, size, ConstantBufferAlignment) : 0);
     }
 
-    void SetDynamicCbv(RootParameterIndex rootParameterIndex, const void* data, size_t size)
+    void SetDynamicCbv(int slotIndex, const void* data, size_t size)
     {
+        if (slotIndex < 0)
+        {
+            LogError("DynamicBinding::SetDynamicCbv: slotIndex must be non-negative.");
+            assert(false);
+            return;
+        }
+
         const auto component = DynamicBindingComponent::instance();
         assert(component);
+        if (not component)
+        {
+            return;
+        }
 
         const auto address = component->upload(data, size, ConstantBufferAlignment);
         if (address != 0)
         {
-            component->setCbvByAddress(rootParameterIndex, address);
+            component->setCbvByAddress(slotIndex, address);
         }
     }
 
-    void SetDynamicCbv(RootParameterIndex rootParameterIndex, DynamicCbvHandle cbv)
+    void SetDynamicCbv(int slotIndex, DynamicCbvHandle cbv)
     {
-        if (rootParameterIndex.value < 0 || cbv.address == 0)
+        if (slotIndex < 0 || cbv.address == 0)
         {
-            LogError("DynamicBinding::SetDynamicCbvByAddress: Invalid argument.");
+            LogError("DynamicBinding::SetDynamicCbv: Invalid argument.");
             assert(false);
             return;
         }
@@ -332,27 +402,31 @@ namespace TY::DynamicBinding
         const auto component = DynamicBindingComponent::instance();
         if (not component)
         {
-            LogError("DynamicBinding::SetDynamicCbvByAddress: DynamicBindingComponent is not initialized.");
+            LogError("DynamicBinding::SetDynamicCbv: DynamicBindingComponent is not initialized.");
             assert(false);
             return;
         }
 
-        component->setCbvByAddress(rootParameterIndex, cbv.address);
+        component->setCbvByAddress(slotIndex, cbv.address);
     }
 
-    void FlushAsGraphics()
+    void FlushAsGraphics(
+        int rootParameterOffset,
+        const Array<detail::DynamicDescriptorEntry>& dynamicDescriptorTables)
     {
         if (const auto component = DynamicBindingComponent::instance())
         {
-            component->commandSetGraphicsCbv();
+            component->commandSetGraphicsCbv(rootParameterOffset, dynamicDescriptorTables);
         }
     }
 
-    void FlushAsCompute()
+    void FlushAsCompute(
+        int rootParameterOffset,
+        const Array<detail::DynamicDescriptorEntry>& dynamicDescriptorTables)
     {
         if (const auto component = DynamicBindingComponent::instance())
         {
-            component->commandSetComputeCbv();
+            component->commandSetComputeCbv(rootParameterOffset, dynamicDescriptorTables);
         }
     }
 }

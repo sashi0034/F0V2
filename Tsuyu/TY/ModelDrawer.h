@@ -49,9 +49,6 @@ namespace TY
 
         const ModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
 
-        [[nodiscard]]
-        RootParameterIndex mapDynamicCbvIndex(int index) const;
-
         void draw() const;
 
     private:

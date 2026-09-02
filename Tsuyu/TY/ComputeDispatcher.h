@@ -3,7 +3,6 @@
 #include "CbvSrvUav.h"
 #include "ConstantBufferArray.h"
 #include "GraphicsOptions.h"
-#include "RootParameterIndex.h"
 #include "Shader.h"
 
 namespace TY
@@ -41,9 +40,6 @@ namespace TY
         ComputeDispatcher() = default;
 
         ComputeDispatcher(const ComputeDispatcherParams& params);
-
-        [[nodiscard]]
-        RootParameterIndex mapDynamicCbvIndex(int index) const;
 
         void dispatch(int threadGroupCountX, int threadGroupCountY = 1, int threadGroupCountZ = 1) const;
 

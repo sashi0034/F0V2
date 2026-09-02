@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "GenericModelBuffer.h"
-#include "RootParameterIndex.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Mat4x4.h"
 #include "TY/Shader.h"
@@ -48,9 +47,6 @@ namespace TY
 
         // TODO: Rename
         const GenericModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
-
-        [[nodiscard]]
-        RootParameterIndex mapDynamicCbvIndex(int index) const;
 
         void draw() const;
 

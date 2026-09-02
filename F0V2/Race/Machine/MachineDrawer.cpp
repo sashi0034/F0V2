@@ -93,7 +93,7 @@ namespace Race
     void MachineDrawer::drawShadowMap() const
     {
         DynamicBinding::SetDynamicCbv(
-            p_impl->m_shadowDrawer.mapDynamicCbvIndex(0),
+            10,
             g_sharedState->cb.shadowCasterCbv);
         p_impl->m_shadowDrawer.draw();
     }

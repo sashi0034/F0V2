@@ -20,8 +20,6 @@ struct ComputeDispatcher::Impl
 
     Array<UnorderedAccessType> m_uavList{};
 
-    int m_dynamicCbvStartIndex{-1};
-
     int m_dynamicCbvCount{};
 
     Impl(const ComputeDispatcherParams& params)
@@ -53,8 +51,6 @@ struct ComputeDispatcher::Impl
             }
         };
 
-        m_dynamicCbvStartIndex = static_cast<int>(descriptorHeap.table.size());
-
         Array<DynamicDescriptorEntry> dynamicDescriptorTable{};
         if (m_dynamicCbvCount > 0)
         {
@@ -74,21 +70,6 @@ struct ComputeDispatcher::Impl
         };
 
         m_descriptorHeap = DescriptorHeap{descriptorHeap};
-    }
-
-    RootParameterIndex GetDynamicCbvParameterIndex(int index) const
-    {
-        if (index < 0 || index >= m_dynamicCbvCount)
-        {
-            LogError(std::format(
-                "ComputeDispatcher::mapDynamicCbvIndex: index {} is out of range [0, {}).",
-                index,
-                m_dynamicCbvCount));
-            assert(false);
-            return RootParameterIndex{-1};
-        }
-
-        return RootParameterIndex{m_dynamicCbvStartIndex + index};
     }
 
     void Dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const
@@ -121,7 +102,9 @@ struct ComputeDispatcher::Impl
 
         if (m_dynamicCbvCount > 0)
         {
-            DynamicBinding::FlushAsCompute();
+            DynamicBinding::FlushAsCompute(
+                m_pso.dynamicBindingRootParameterOffset(),
+                m_pso.resolvedDynamicDescriptorTable());
         }
 
         m_descriptorHeap.commandSet();
@@ -191,18 +174,6 @@ namespace TY
     ComputeDispatcher::ComputeDispatcher(const ComputeDispatcherParams& params) :
         p_impl(std::make_shared<Impl>(params))
     {
-    }
-
-    RootParameterIndex ComputeDispatcher::mapDynamicCbvIndex(int index) const
-    {
-        if (not p_impl)
-        {
-            LogError("ComputeDispatcher::mapDynamicCbvIndex: Dispatcher is empty.");
-            assert(false);
-            return RootParameterIndex{-1};
-        }
-
-        return p_impl->GetDynamicCbvParameterIndex(index);
     }
 
     void ComputeDispatcher::dispatch(int threadGroupCountX, int threadGroupCountY, int threadGroupCountZ) const

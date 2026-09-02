@@ -131,7 +131,7 @@ namespace Race
     {
         if (p_impl)
         {
-            DynamicBinding::SetDynamicCbv(p_impl->m_drawer.mapDynamicCbvIndex(0), p_impl->m_particleCB);
+            DynamicBinding::SetDynamicCbv(10, p_impl->m_particleCB);
             p_impl->m_drawer.draw();
         }
     }

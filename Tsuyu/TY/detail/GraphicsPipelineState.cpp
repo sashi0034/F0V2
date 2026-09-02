@@ -473,6 +473,17 @@ namespace TY
         return p_impl ? p_impl->m_params.descriptorTable : DescriptorTable{};
     }
 
+    int GraphicsPipelineState::dynamicBindingRootParameterOffset() const
+    {
+        return p_impl ? p_impl->m_rootSignature.dynamicBindingRootParameterOffset() : 0;
+    }
+
+    const Array<DynamicDescriptorEntry>& GraphicsPipelineState::resolvedDynamicDescriptorTable() const
+    {
+        static const Array<DynamicDescriptorEntry> Empty{};
+        return p_impl ? p_impl->m_rootSignature.resolvedDynamicDescriptorTable() : Empty;
+    }
+
     void GraphicsPipelineState::commandSet() const
     {
         if (p_impl) p_impl->CommandSet();

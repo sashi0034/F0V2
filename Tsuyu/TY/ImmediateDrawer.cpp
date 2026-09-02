@@ -210,9 +210,11 @@ struct ImmediateDrawer::Impl : RenderEvent::Listener
 
             buffer.pso.commandSet();
 
-            DynamicBinding::SetDynamicCbv(RootParameterIndex{1}, sceneStateCbv);
-            DynamicBinding::SetDynamicCbv(RootParameterIndex{2}, immediateDrawerCbv);
-            DynamicBinding::FlushAsGraphics();
+            DynamicBinding::SetDynamicCbv(0, sceneStateCbv);
+            DynamicBinding::SetDynamicCbv(1, immediateDrawerCbv);
+            DynamicBinding::FlushAsGraphics(
+                buffer.pso.dynamicBindingRootParameterOffset(),
+                buffer.pso.resolvedDynamicDescriptorTable());
 
             m_descriptorManager.CommandSet(buffer.descriptor);
 

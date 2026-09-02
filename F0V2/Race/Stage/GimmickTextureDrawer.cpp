@@ -94,19 +94,19 @@ private:
 
         {
             const auto bind = g_sharedState->gimmickTextures.boostPad.scopedClearBind();
-            DynamicBinding::SetDynamicCbv(m_boostPadDrawer.mapDynamicCbvIndex(0), cbv);
+            DynamicBinding::SetDynamicCbv(10, cbv);
             m_boostPadDrawer.draw();
         }
 
         {
             const auto bind = g_sharedState->gimmickTextures.jumpPad.scopedClearBind();
-            DynamicBinding::SetDynamicCbv(m_jumpPadDrawer.mapDynamicCbvIndex(0), cbv);
+            DynamicBinding::SetDynamicCbv(10, cbv);
             m_jumpPadDrawer.draw();
         }
 
         {
             const auto bind = g_sharedState->gimmickTextures.pitZone.scopedClearBind();
-            DynamicBinding::SetDynamicCbv(m_pitZoneDrawer.mapDynamicCbvIndex(0), cbv);
+            DynamicBinding::SetDynamicCbv(10, cbv);
             m_pitZoneDrawer.draw();
         }
     }

@@ -51,7 +51,7 @@ struct RaceSetupBackgroundDrawer::Impl : ActorBase
         m_cb0.g_screenResolution = Screen::SizeF();
         m_cb0.g_time += InGameDeltaTime() * 0.125f; // FIXME
 
-        DynamicBinding::SetDynamicCbv(m_dispatcher.mapDynamicCbvIndex(0), m_cb0);
+        DynamicBinding::SetDynamicCbv(0, m_cb0);
         m_dispatcher.dispatch((Screen::Size().x + 7) / 8, (Screen::Size().y + 7) / 8);
 
         Immediate2D::Texture(m_outputTexture).resized(Screen::Size()).pushAuto();

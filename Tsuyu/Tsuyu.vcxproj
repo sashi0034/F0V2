@@ -191,7 +191,6 @@
     <ClInclude Include="TY\ProcessUtils.h" />
     <ClInclude Include="TY\RenderTargetTexture.h" />
     <ClInclude Include="TY\BufferHandle.h" />
-    <ClInclude Include="TY\RootParameterIndex.h" />
     <ClInclude Include="TY\StructuredBufferWrapper.h" />
     <ClInclude Include="TY\TextureHandle.h" />
     <ClInclude Include="TY\TriangleBvh.h" />

@@ -139,8 +139,10 @@ struct TextureDrawer::Impl
     {
         m_pso.commandSet();
 
-        DynamicBinding::SetDynamicCbv(RootParameterIndex{1}, m_sceneState);
-        DynamicBinding::FlushAsGraphics();
+        DynamicBinding::SetDynamicCbv(0, m_sceneState);
+        DynamicBinding::FlushAsGraphics(
+            m_pso.dynamicBindingRootParameterOffset(),
+            m_pso.resolvedDynamicDescriptorTable());
 
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetGraphicsTable(0);

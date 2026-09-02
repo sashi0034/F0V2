@@ -6,7 +6,7 @@
 
 #include "Array.h"
 #include "DynamicHandle.h"
-#include "RootParameterIndex.h"
+#include "detail/DynamicDescriptorEntry.h"
 
 namespace TY
 {
@@ -39,18 +39,22 @@ namespace TY
             return UploadDynamicCbv(&data, sizeof(T));
         }
 
-        void SetDynamicCbv(RootParameterIndex rootParameterIndex, const void* data, size_t size);
+        void SetDynamicCbv(int slotIndex, const void* data, size_t size);
 
         template <typename T>
-        void SetDynamicCbv(RootParameterIndex rootParameterIndex, const T& data)
+        void SetDynamicCbv(int slotIndex, const T& data)
         {
-            return SetDynamicCbv(rootParameterIndex, &data, sizeof(T));
+            return SetDynamicCbv(slotIndex, &data, sizeof(T));
         }
 
-        void SetDynamicCbv(RootParameterIndex rootParameterIndex, DynamicCbvHandle cbv);
+        void SetDynamicCbv(int slotIndex, DynamicCbvHandle cbv);
 
-        void FlushAsGraphics();
+        void FlushAsGraphics(
+            int rootParameterOffset,
+            const Array<detail::DynamicDescriptorEntry>& dynamicDescriptorTables);
 
-        void FlushAsCompute();
+        void FlushAsCompute(
+            int rootParameterOffset,
+            const Array<detail::DynamicDescriptorEntry>& dynamicDescriptorTables);
     }
 }

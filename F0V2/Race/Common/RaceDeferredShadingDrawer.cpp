@@ -66,7 +66,7 @@ namespace
             const Size rtvSize = g_sharedState->gbufferTarget.size() * renderScale;
             constexpr int threadsPerGroup = 32;
             const int threadGroup = (rtvSize.x * rtvSize.y / 2) / threadsPerGroup;
-            DynamicBinding::SetDynamicCbv(m_dispatcher.mapDynamicCbvIndex(0), cb);
+            DynamicBinding::SetDynamicCbv(0, cb);
             m_dispatcher.dispatch(threadGroup);
         }
 
@@ -106,7 +106,7 @@ namespace
         void Draw(float renderScale, const Scenery_b10& cb)
         {
             const Size rtvSize = g_sharedState->gbufferTarget.size() * renderScale;
-            DynamicBinding::SetDynamicCbv(m_dispatcher.mapDynamicCbvIndex(0), cb);
+            DynamicBinding::SetDynamicCbv(0, cb);
             m_dispatcher.dispatch(rtvSize.x / 4, rtvSize.y / 8);
         }
 
