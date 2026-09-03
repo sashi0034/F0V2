@@ -47,7 +47,7 @@ struct ComputeDispatcher::Impl
             },
             .materialCounts = {1},
             .descriptors = {
-                CbvSrvUavSet{params.cbv, {params.srv}, {params.uav}}
+                CbvSrvUavSet{{params.cbv}, {params.srv}, {params.uav}}
             }
         };
 
@@ -140,7 +140,7 @@ namespace TY
         return *this;
     }
 
-    ComputeDispatcherParams& ComputeDispatcherParams::setCbv(const Array<ConstantBufferArrayImpl>& cbv_)
+    ComputeDispatcherParams& ComputeDispatcherParams::setCbv(const Array<ConstantBufferImpl>& cbv_)
     {
         cbv = cbv_;
         return *this;

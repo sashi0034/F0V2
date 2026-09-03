@@ -33,7 +33,7 @@ namespace TY
             return &m_value;
         }
 
-        operator ConstantBufferArrayImpl() const
+        operator ConstantBufferImpl() const
         {
             return m_uploader;
         }

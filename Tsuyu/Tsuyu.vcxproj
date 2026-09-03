@@ -242,7 +242,6 @@
     <ClInclude Include="TY\StructuredBuffer.h" />
     <ClInclude Include="TY\Concepts.h" />
     <ClInclude Include="TY\ConstantBufferWrapper.h" />
-    <ClInclude Include="TY\ConstantBufferArray.h" />
     <ClInclude Include="TY\detail\ComputePipelineState.h" />
     <ClInclude Include="TY\detail\Gamepad_singleton.h" />
     <ClInclude Include="TY\detail\RootSignature.h" />
@@ -401,7 +400,6 @@
     <ClCompile Include="TY\ImmediateDrawer.cpp" />
     <ClCompile Include="TY\Stopwatch.cpp" />
     <ClCompile Include="TY\StructuredBuffer.cpp" />
-    <ClCompile Include="TY\ConstantBufferArray.cpp" />
     <ClCompile Include="TY\detail\ComputePipelineState.cpp" />
     <ClCompile Include="TY\detail\Gamepad_singleton.cpp" />
     <ClCompile Include="TY\detail\RootSignature.cpp" />

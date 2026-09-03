@@ -11,12 +11,12 @@ namespace TY
     public:
         explicit SingleShapeModelBuffer(
             IndexBuffer indexBuffer,
-            ConstantBufferArrayImpl materialCbv = ConstantBufferArrayImpl{Empty},
+            ConstantBufferImpl materialCbv = ConstantBufferImpl{Empty},
             Array<ShaderResourceType> materialSrv = {})
-            : m_materialCbv(std::move(materialCbv))
         {
             m_shape.materialIndex = 0;
             m_shape.indexBuffer = std::move(indexBuffer);
+            m_materialCbv.push_back({std::move(materialCbv)});
 
             if (not materialSrv.empty())
             {
@@ -26,14 +26,14 @@ namespace TY
 
         explicit SingleShapeModelBuffer(
             int placeholderIndexCount,
-            ConstantBufferArrayImpl materialCbv = ConstantBufferArrayImpl{Empty},
+            ConstantBufferImpl materialCbv = ConstantBufferImpl{Empty},
             Array<ShaderResourceType> materialSrv = {})
-            : m_materialCbv(std::move(materialCbv))
         {
             assert(placeholderIndexCount >= 0);
 
             m_shape.materialIndex = 0;
             m_shape.indexBuffer = IndexBuffer::Placeholder(placeholderIndexCount);
+            m_materialCbv.push_back({std::move(materialCbv)});
 
             if (not materialSrv.empty())
             {
@@ -57,7 +57,7 @@ namespace TY
             return 1;
         }
 
-        ConstantBufferArrayImpl materialCbv() const override
+        const Array<Array<ConstantBufferImpl>>& materialCbv() const override
         {
             return m_materialCbv;
         }
@@ -70,7 +70,7 @@ namespace TY
     private:
         GenericModelShapeBufferElement m_shape{};
 
-        ConstantBufferArrayImpl m_materialCbv{Empty};
+        Array<Array<ConstantBufferImpl>> m_materialCbv{};
 
         Array<Array<ShaderResourceType>> m_materialSrv{};
     };

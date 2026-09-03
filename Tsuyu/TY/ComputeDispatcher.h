@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Array.h"
 #include "CbvSrvUav.h"
-#include "ConstantBufferArray.h"
+#include "ConstantBuffer.h"
 #include "GraphicsOptions.h"
 #include "Shader.h"
 
@@ -13,7 +13,7 @@ namespace TY
 
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
-        Array<ConstantBufferArrayImpl> cbv{}; // from b0
+        Array<ConstantBufferImpl> cbv{}; // from b0
 
         Array<ShaderResourceType> srv{}; // from t0
 
@@ -25,7 +25,7 @@ namespace TY
 
         ComputeDispatcherParams& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
 
-        ComputeDispatcherParams& setCbv(const Array<ConstantBufferArrayImpl>& cbv_);
+        ComputeDispatcherParams& setCbv(const Array<ConstantBufferImpl>& cbv_);
 
         ComputeDispatcherParams& setSrv(const Array<ShaderResourceType>& srv_);
 

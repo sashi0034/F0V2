@@ -62,7 +62,7 @@ struct GenericModelDrawer::Impl
                 m_modelBuffer->materialCount(), // [0]
             },
             .descriptors = {
-                CbvSrvUavSet{{m_modelBuffer->materialCbv()}, std::move(materialSrv), {}}, // [0],
+                CbvSrvUavSet{m_modelBuffer->materialCbv(), std::move(materialSrv), {}}, // [0],
             },
         };
 
@@ -76,7 +76,7 @@ struct GenericModelDrawer::Impl
                 .cbvCount = static_cast<int>(params.cbv10AndLater.size()),
             });
             descriptorHeap.materialCounts.push_back(1);
-            descriptorHeap.descriptors.push_back(CbvSrvUavSet{params.cbv10AndLater, {}, {}});
+            descriptorHeap.descriptors.push_back(CbvSrvUavSet{{params.cbv10AndLater}, {}, {}});
         }
 
         // 拡張 SRV 設定
@@ -89,7 +89,7 @@ struct GenericModelDrawer::Impl
                 .srvCount = static_cast<int>(params.srv10AndLater.size()),
             });
             descriptorHeap.materialCounts.push_back(1);
-            descriptorHeap.descriptors.push_back(CbvSrvUavSet{{}, {params.srv10AndLater}, {}});
+            descriptorHeap.descriptors.push_back(CbvSrvUavSet{{{}}, {params.srv10AndLater}, {}});
         }
         if (params.dynamicCbvCount < 0)
         {
@@ -203,7 +203,7 @@ namespace TY
         return *this;
     }
 
-    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferArrayImpl>& cbv)
+    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferImpl>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;

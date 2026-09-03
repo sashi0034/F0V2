@@ -45,12 +45,25 @@ namespace
 
     bool checkTableValid(const DescriptorHeapParams& params, int tableId)
     {
-        if (params.descriptors[tableId].cbv.size() != params.table[tableId].cbvCount)
+        if (params.descriptors[tableId].cbv.size() != params.materialCounts[tableId])
+        {
+            LogError(std::format(
+                "DescriptorHeap: Constant buffer elements count mismatch for table[{}]: {} != {}",
+                tableId,
+                params.descriptors[tableId].cbv.size(),
+                params.materialCounts[tableId]));
+            return false;
+        }
+
+        // FIXME?
+        const int cbvCountPerMaterial =
+            params.descriptors[tableId].cbv.empty() ? 0 : params.descriptors[tableId].cbv[0].size();
+        if (cbvCountPerMaterial != params.table[tableId].cbvCount)
         {
             LogError(std::format(
                 "DescriptorHeap: Constant buffer count mismatch for table[{}]: {} != {}",
                 tableId,
-                params.descriptors[tableId].cbv.size(),
+                cbvCountPerMaterial,
                 params.table[tableId].cbvCount));
             return false;
         }
@@ -91,18 +104,10 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& cb = params.descriptors[tableId].cbv[cbvId];
-        if (not cb.isEmpty() && cb.materialCount() != params.materialCounts[tableId])
-        {
-            LogError(std::format(
-                "DescriptorHeap: Constant buffer count mismatch: {} != {}",
-                cb.materialCount(),
-                params.materialCounts[tableId]));
-            return false;
-        }
+        const auto& cb = params.descriptors[tableId].cbv[materialId][cbvId];
 
         D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-        cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
+        cbvDesc.BufferLocation = cb.bufferLocation();
         cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
         RenderContext_singleton::GetDevice()->CreateConstantBufferView(&cbvDesc, heapHandle);
 
@@ -370,7 +375,7 @@ struct DescriptorHeap::Impl
                 D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
-        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
+        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv[materialId].size();
 
         // SRV
         heapHandle.ptr += incrementSize * srvId;
@@ -398,7 +403,7 @@ struct DescriptorHeap::Impl
                 D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
-        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
+        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv[materialId].size();
 
         // SRV
         heapHandle.ptr += incrementSize * m_descriptors[tableId].srv.size();

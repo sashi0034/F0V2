@@ -24,7 +24,7 @@ namespace TY::ImmediateDrawer_detail
             .table = descriptorTable,
             .materialCounts = {1},
             .descriptors = {
-                CbvSrvUavSet{{}, {{heap.keyResource.srv0}}, {}},
+                CbvSrvUavSet{{{}}, {{heap.keyResource.srv0}}, {}},
             }
         });
 

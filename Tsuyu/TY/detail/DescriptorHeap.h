@@ -3,16 +3,14 @@
 #include "DescriptorEntry.h"
 #include "PipelineType.h"
 #include "TY/CbvSrvUav.h"
-#include "TY/ConstantBufferArray.h"
+#include "TY/ConstantBuffer.h"
 
 namespace TY::detail
 {
     struct CbvSrvUavSet
     {
-        // TODO: それぞれ配列をクラス派生したい
-
-        /// @remark [cbvCount], ConstantBuffer::count() = materialCount
-        Array<ConstantBufferArrayImpl> cbv;
+        /// @remark [materialCount][cbvCount]
+        Array<Array<ConstantBufferImpl>> cbv;
 
         /// @remark [materialCount][srvCount]
         Array<Array<ShaderResourceType>> srv;

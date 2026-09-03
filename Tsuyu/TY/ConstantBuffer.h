@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "ConstantBufferArray.h"
+#include "Empty.h"
 
 namespace TY
 {
@@ -17,10 +17,17 @@ namespace TY
         void upload(const void* data) const;
 
         [[nodiscard]]
-        operator ConstantBufferArrayImpl() const;
+        bool isEmpty() const;
+
+        [[nodiscard]]
+        size_t alignedSize() const;
+
+        [[nodiscard]]
+        uint64_t bufferLocation() const;
 
     private:
-        ConstantBufferArrayImpl m_impl{Empty};
+        struct Impl;
+        std::shared_ptr<Impl> p_impl{};
     };
 
     template <class T>
