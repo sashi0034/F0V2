@@ -3,6 +3,7 @@
 #include "CbvSrvUav.h"
 #include "ConstantBuffer.h"
 #include "GraphicsOptions.h"
+#include "MaterialList.h"
 #include "Shader.h"
 
 namespace TY
@@ -13,11 +14,11 @@ namespace TY
 
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
-        Array<ConstantBufferImpl> cbv{}; // from b0
+        DescriptorList<ConstantBufferImpl> cbv{}; // from b0
 
-        Array<ShaderResourceType> srv{}; // from t0
+        DescriptorList<ShaderResourceType> srv{}; // from t0
 
-        Array<UnorderedAccessType> uav{}; // from u0
+        DescriptorList<UnorderedAccessType> uav{}; // from u0
 
         int dynamicCbvCount{};
 
@@ -25,11 +26,11 @@ namespace TY
 
         ComputeDispatcherParams& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
 
-        ComputeDispatcherParams& setCbv(const Array<ConstantBufferImpl>& cbv_);
+        ComputeDispatcherParams& setCbv(const DescriptorList<ConstantBufferImpl>& cbv_);
 
-        ComputeDispatcherParams& setSrv(const Array<ShaderResourceType>& srv_);
+        ComputeDispatcherParams& setSrv(const DescriptorList<ShaderResourceType>& srv_);
 
-        ComputeDispatcherParams& setUav(const Array<UnorderedAccessType>& uav_);
+        ComputeDispatcherParams& setUav(const DescriptorList<UnorderedAccessType>& uav_);
 
         ComputeDispatcherParams& setDynamicCbvCount(int count);
     };

@@ -1,22 +1,22 @@
 ﻿#pragma once
-#include "CommandListManager.h"
 #include "DescriptorEntry.h"
-#include "PipelineType.h"
 #include "TY/CbvSrvUav.h"
 #include "TY/ConstantBuffer.h"
+#include "TY/HybridArray.h"
+#include "TY/MaterialList.h"
 
 namespace TY::detail
 {
     struct CbvSrvUavSet
     {
         /// @remark [materialCount][cbvCount]
-        Array<Array<ConstantBufferImpl>> cbv;
+        MaterialList<DescriptorList<ConstantBufferImpl>> cbv;
 
         /// @remark [materialCount][srvCount]
-        Array<Array<ShaderResourceType>> srv;
+        MaterialList<DescriptorList<ShaderResourceType>> srv;
 
         /// @remark [materialCount][uavCount]
-        Array<Array<UnorderedAccessType>> uav;
+        MaterialList<DescriptorList<UnorderedAccessType>> uav;
     };
 
     struct DescriptorHeapParams

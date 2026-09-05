@@ -17,9 +17,9 @@ namespace TY
 
         GraphicsOptions options{GraphicsOptions::Default3D()};
 
-        Array<ConstantBufferImpl> cbv10AndLater{};
+        DescriptorList<ConstantBufferImpl> cbv10AndLater{};
 
-        Array<ShaderResourceType> srv10AndLater{};
+        DescriptorList<ShaderResourceType> srv10AndLater{};
 
         int dynamicCbvCount{};
 
@@ -31,9 +31,9 @@ namespace TY
 
         GenericModelDrawerParams& setOptions(const GraphicsOptions& options_);
 
-        GenericModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferImpl>& cbv);
+        GenericModelDrawerParams& setCbv10AndLater(const DescriptorList<ConstantBufferImpl>& cbv);
 
-        GenericModelDrawerParams& setSrv10AndLater(const Array<ShaderResourceType>& srv);
+        GenericModelDrawerParams& setSrv10AndLater(const DescriptorList<ShaderResourceType>& srv);
 
         GenericModelDrawerParams& setDynamicCbvCount(int count);
     };

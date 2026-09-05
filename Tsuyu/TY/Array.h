@@ -24,19 +24,6 @@ namespace TY
             return *this;
         }
 
-        template <typename U = Type>
-        Array<Array<U>> toColumnVector() const
-        {
-            Array<Array<U>> result{};
-            result.reserve(this->size());
-            for (const auto& item : *this)
-            {
-                result.push_back(Array<U>{item});
-            }
-
-            return result;
-        }
-
         template <class Fty, std::enable_if_t<std::is_invocable_r_v<bool, Fty, Type>>* = nullptr>
         [[nodiscard]]
         Array filter(Fty f) const

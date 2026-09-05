@@ -46,13 +46,13 @@ namespace TY
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferImpl>& cbv)
+    ModelDrawerParams& ModelDrawerParams::setCbv10AndLater(const DescriptorList<ConstantBufferImpl>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setSrv10AndLater(const Array<ShaderResourceType>& srv)
+    ModelDrawerParams& ModelDrawerParams::setSrv10AndLater(const DescriptorList<ShaderResourceType>& srv)
     {
         srv10AndLater = srv;
         return *this;

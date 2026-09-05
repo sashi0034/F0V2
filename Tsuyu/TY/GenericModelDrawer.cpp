@@ -203,13 +203,13 @@ namespace TY
         return *this;
     }
 
-    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferImpl>& cbv)
+    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const DescriptorList<ConstantBufferImpl>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;
     }
 
-    GenericModelDrawerParams& GenericModelDrawerParams::setSrv10AndLater(const Array<ShaderResourceType>& srv)
+    GenericModelDrawerParams& GenericModelDrawerParams::setSrv10AndLater(const DescriptorList<ShaderResourceType>& srv)
     {
         srv10AndLater = srv;
         return *this;
