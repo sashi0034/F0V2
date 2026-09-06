@@ -179,7 +179,8 @@ namespace
 
         void afterPresent() override
         {
-            m_pendingBindings.clear();
+            m_pendingCbvBindings.clear();
+            m_pendingSrvBindings.clear();
         }
 
         D3D12_GPU_VIRTUAL_ADDRESS upload(const void* data, size_t size, size_t alignment)
@@ -205,33 +206,45 @@ namespace
 
         void setCbvByAddress(int slotIndex, D3D12_GPU_VIRTUAL_ADDRESS address)
         {
-            m_pendingBindings[slotIndex] = address;
+            m_pendingCbvBindings[slotIndex] = address;
         }
 
-        void commandSetGraphicsCbv(
+        void setSrvByAddress(int slotIndex, D3D12_GPU_VIRTUAL_ADDRESS address)
+        {
+            m_pendingSrvBindings[slotIndex] = address;
+        }
+
+        void commandSetGraphicsBindings(
             int rootParameterOffset,
             const Array<DynamicDescriptorEntry>& dynamicDescriptorTables)
         {
-            commandSetCbv(rootParameterOffset, dynamicDescriptorTables, [](
-                          ID3D12GraphicsCommandList* commandList,
-                          UINT rootParameterIndex,
-                          D3D12_GPU_VIRTUAL_ADDRESS gpuAddress)
-                          {
-                              commandList->SetGraphicsRootConstantBufferView(rootParameterIndex, gpuAddress);
-                          });
+            commandSetBindings(rootParameterOffset, dynamicDescriptorTables, [](
+                               ID3D12GraphicsCommandList* commandList,
+                               UINT rootParameterIndex,
+                               D3D12_GPU_VIRTUAL_ADDRESS gpuAddress)
+                               {
+                                   commandList->SetGraphicsRootConstantBufferView(rootParameterIndex, gpuAddress);
+                               }, DynamicBindingType::Cbv);
+            commandSetBindings(rootParameterOffset, dynamicDescriptorTables, [](
+                               ID3D12GraphicsCommandList* commandList,
+                               UINT rootParameterIndex,
+                               D3D12_GPU_VIRTUAL_ADDRESS gpuAddress)
+                               {
+                                   commandList->SetGraphicsRootShaderResourceView(rootParameterIndex, gpuAddress);
+                               }, DynamicBindingType::Srv);
         }
 
         void commandSetComputeCbv(
             int rootParameterOffset,
             const Array<DynamicDescriptorEntry>& dynamicDescriptorTables)
         {
-            commandSetCbv(rootParameterOffset, dynamicDescriptorTables, [](
-                          ID3D12GraphicsCommandList* commandList,
-                          UINT rootParameterIndex,
-                          D3D12_GPU_VIRTUAL_ADDRESS gpuAddress)
-                          {
-                              commandList->SetComputeRootConstantBufferView(rootParameterIndex, gpuAddress);
-                          });
+            commandSetBindings(rootParameterOffset, dynamicDescriptorTables, [](
+                               ID3D12GraphicsCommandList* commandList,
+                               UINT rootParameterIndex,
+                               D3D12_GPU_VIRTUAL_ADDRESS gpuAddress)
+                               {
+                                   commandList->SetComputeRootConstantBufferView(rootParameterIndex, gpuAddress);
+                               }, DynamicBindingType::Cbv);
         }
 
         static DynamicBindingComponent* instance()
@@ -245,49 +258,60 @@ namespace
         }
 
     private:
+        enum class DynamicBindingType : uint8_t
+        {
+            Cbv,
+            Srv,
+        };
+
         using RootDescriptorSetter = void (*)(
             ID3D12GraphicsCommandList* commandList,
             UINT rootParameterIndex,
             D3D12_GPU_VIRTUAL_ADDRESS gpuAddress);
 
-        void commandSetCbv(
+        void commandSetBindings(
             int rootParameterOffset,
             const Array<DynamicDescriptorEntry>& dynamicDescriptorTables,
-            RootDescriptorSetter commandSet)
+            RootDescriptorSetter commandSet,
+            DynamicBindingType bindingType)
         {
+            const bool isSrv = bindingType == DynamicBindingType::Srv;
+            auto& pendingBindings = isSrv ? m_pendingSrvBindings : m_pendingCbvBindings;
             if (rootParameterOffset < 0)
             {
                 LogError("DynamicBinding: rootParameterOffset must be non-negative.");
                 assert(false);
-                m_pendingBindings.clear();
+                pendingBindings.clear();
                 return;
             }
 
             const auto commandList = RenderContext_singleton::TargetCommandList();
             bool hasInvalidSlot{};
-            for (const auto& [slotIndex, gpuAddress] : m_pendingBindings)
+            for (const auto& [slotIndex, gpuAddress] : pendingBindings)
             {
                 int rootParameterIndex = rootParameterOffset;
                 bool found{};
                 for (const auto& dynamicDescriptor : dynamicDescriptorTables)
                 {
-                    const int slotOffset = slotIndex - dynamicDescriptor.cbvSlot;
-                    if (slotOffset >= 0 && slotOffset < dynamicDescriptor.cbvCount)
+                    const int slotOffset = slotIndex -
+                        (isSrv ? dynamicDescriptor.srvSlot : dynamicDescriptor.cbvSlot);
+                    const int count = isSrv ? dynamicDescriptor.srvCount : dynamicDescriptor.cbvCount;
+                    if (slotOffset >= 0 && slotOffset < count)
                     {
-                        rootParameterIndex += slotOffset;
+                        rootParameterIndex += slotOffset + (isSrv ? dynamicDescriptor.cbvCount : 0);
                         commandSet(commandList, static_cast<UINT>(rootParameterIndex), gpuAddress);
                         found = true;
                         break;
                     }
 
-                    rootParameterIndex += dynamicDescriptor.cbvCount;
+                    rootParameterIndex += dynamicDescriptor.cbvCount + dynamicDescriptor.srvCount;
                 }
 
                 if (not found)
                 {
                     LogError(std::format(
-                        "DynamicBinding: CBV slot b{} is not registered in the current root signature.",
-                        slotIndex));
+                        "DynamicBinding: {} slot {}{} is not registered in the current root signature.",
+                        isSrv ? "SRV" : "CBV", isSrv ? 't' : 'b', slotIndex));
                     hasInvalidSlot = true;
                 }
             }
@@ -297,13 +321,15 @@ namespace
                 assert(false);
             }
 
-            m_pendingBindings.clear();
+            pendingBindings.clear();
         }
 
         static inline DynamicBindingComponent* s_instance{};
 
         std::array<FrameResource, RenderContext_singleton::FrameBufferCount> m_frameResources{};
-        std::unordered_map<int, D3D12_GPU_VIRTUAL_ADDRESS> m_pendingBindings{};
+
+        std::unordered_map<int, D3D12_GPU_VIRTUAL_ADDRESS> m_pendingCbvBindings{};
+        std::unordered_map<int, D3D12_GPU_VIRTUAL_ADDRESS> m_pendingSrvBindings{};
     };
 }
 
@@ -410,13 +436,39 @@ namespace TY::DynamicBinding
         component->setCbvByAddress(slotIndex, cbv.address);
     }
 
+    DynamicSrvHandle UploadDynamicStructuredBuffer(const void* data, size_t sizeInBytes)
+    {
+        const auto component = DynamicBindingComponent::instance();
+        assert(component);
+        return DynamicSrvHandle(component
+                                    ? component->upload(data, sizeInBytes, D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT)
+                                    : 0);
+    }
+
+    void SetDynamicSrv(int slotIndex, DynamicSrvHandle srv)
+    {
+        if (slotIndex < 0 || srv.address == 0)
+        {
+            LogError("DynamicBinding::SetDynamicSrv: Invalid argument.");
+            assert(false);
+            return;
+        }
+
+        const auto component = DynamicBindingComponent::instance();
+        assert(component);
+        if (component)
+        {
+            component->setSrvByAddress(slotIndex, srv.address);
+        }
+    }
+
     void FlushAsGraphics(
         int rootParameterOffset,
         const Array<detail::DynamicDescriptorEntry>& dynamicDescriptorTables)
     {
         if (const auto component = DynamicBindingComponent::instance())
         {
-            component->commandSetGraphicsCbv(rootParameterOffset, dynamicDescriptorTables);
+            component->commandSetGraphicsBindings(rootParameterOffset, dynamicDescriptorTables);
         }
     }
 

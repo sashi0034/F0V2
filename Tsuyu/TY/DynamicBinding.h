@@ -49,6 +49,17 @@ namespace TY
 
         void SetDynamicCbv(int slotIndex, DynamicCbvHandle cbv);
 
+        DynamicSrvHandle UploadDynamicStructuredBuffer(const void* data, size_t sizeInBytes);
+
+        template <typename T, size_t Extent>
+            requires std::is_trivially_copyable_v<std::remove_cv_t<T>>
+        DynamicSrvHandle UploadDynamicStructuredBuffer(std::span<T, Extent> data)
+        {
+            return UploadDynamicStructuredBuffer(data.data(), data.size_bytes());
+        }
+
+        void SetDynamicSrv(int slotIndex, DynamicSrvHandle srv);
+
         void FlushAsGraphics(
             int rootParameterOffset,
             const Array<detail::DynamicDescriptorEntry>& dynamicDescriptorTables);

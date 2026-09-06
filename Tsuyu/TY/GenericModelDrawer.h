@@ -23,6 +23,8 @@ namespace TY
 
         int dynamicCbvCount{};
 
+        int dynamicSrvCount{};
+
         GenericModelDrawerParams& setModel(const std::shared_ptr<IGenericModelBuffer>& model_);
 
         GenericModelDrawerParams& setVertexInput(const Array<VertexInputElement>& vertexInput_);
@@ -36,6 +38,8 @@ namespace TY
         GenericModelDrawerParams& setSrv10AndLater(const DescriptorList<ShaderResourceType>& srv);
 
         GenericModelDrawerParams& setDynamicCbvCount(int count);
+
+        GenericModelDrawerParams& setDynamicSrvCount(int count);
     };
 
     class GenericModelDrawer

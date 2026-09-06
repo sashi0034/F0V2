@@ -5,7 +5,6 @@
 #include "TY/DynamicBinding.h"
 #include "TY/GenericModelBufferTemplates.h"
 #include "TY/GenericModelDrawer.h"
-#include "TY/StructuredBufferWrapper.h"
 
 using namespace Race;
 
@@ -36,12 +35,11 @@ struct SimpleParticleVfxRenderer::Impl
     int m_capacity{};
     IndexBuffer m_indexBuffer{Empty};
     GenericModelDrawer m_drawer{};
-    StructuredBufferT<GpuParticleElement> m_particleBuffer{};
+    DynamicSrvHandle m_particleSrv{};
     SimpleParticle_b10 m_particleCB{};
 
     Impl(const ImagePathWrapper& image, int capacity) :
-        m_capacity(capacity),
-        m_particleBuffer(capacity)
+        m_capacity(capacity)
     {
         assert(not image.isEmpty());
         assert(capacity > 0);
@@ -62,7 +60,8 @@ struct SimpleParticleVfxRenderer::Impl
                     .setWriteMask(false)))
             .setShader(Asset_shader::simple_particle)
             .setDynamicCbvCount(1)
-            .setSrv10AndLater({image.fetchResource(), m_particleBuffer})
+            .setSrv10AndLater({image.fetchResource()})
+            .setDynamicSrvCount(1)
         };
     }
 
@@ -93,9 +92,11 @@ struct SimpleParticleVfxRenderer::Impl
             .cameraRight = cameraRight,
         };
 
+        m_particleSrv = DynamicSrvHandle{};
         if (not gpuElements.empty())
         {
-            m_particleBuffer.upload(gpuElements);
+            m_particleSrv = DynamicBinding::UploadDynamicStructuredBuffer(
+                std::span{gpuElements.data(), gpuElements.size()});
         }
 
         m_indexBuffer.resize(uploadCount * 6);
@@ -129,9 +130,12 @@ namespace Race
 
     void SimpleParticleVfxRenderer::draw() const
     {
-        if (p_impl)
+        if (p_impl && p_impl->m_particleSrv.address != 0)
         {
             DynamicBinding::SetDynamicCbv(10, p_impl->m_particleCB);
+
+            DynamicBinding::SetDynamicSrv(11, p_impl->m_particleSrv);
+
             p_impl->m_drawer.draw();
         }
     }

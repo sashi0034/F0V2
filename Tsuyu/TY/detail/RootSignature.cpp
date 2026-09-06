@@ -190,11 +190,11 @@ namespace TY::detail
             rootParameters.push_back(rootParameter);
         }
 
-        // Dynamic CBV 設定
+        // Dynamic CBV / SRV 設定
         m_dynamicBindingRootParameterOffset = static_cast<int>(rootParameters.size());
         for (const auto& dynamicDescriptor : params.dynamicDescriptorTable)
         {
-            if (dynamicDescriptor.cbvCount == 0)
+            if (dynamicDescriptor.cbvCount == 0 && dynamicDescriptor.srvCount == 0)
             {
                 continue;
             }
@@ -207,6 +207,9 @@ namespace TY::detail
 
             auto resolvedDynamicDescriptor = dynamicDescriptor;
             resolvedDynamicDescriptor.cbvSlot = dynamicCbvOffset;
+            const int dynamicSrvOffset = dynamicDescriptor.srvSlot == DynamicDescriptorEntry::AutoSlot
+                ? srvOffset : dynamicDescriptor.srvSlot;
+            resolvedDynamicDescriptor.srvSlot = dynamicSrvOffset;
             m_resolvedDynamicDescriptorTable.push_back(resolvedDynamicDescriptor);
 
             for (int i = 0; i < dynamicDescriptor.cbvCount; ++i)
@@ -220,7 +223,18 @@ namespace TY::detail
                 rootParameters.push_back(rootParameter);
             }
 
-            cbvOffset = std::max(cbvOffset, dynamicCbvOffset + static_cast<int>(dynamicDescriptor.cbvCount));
+            for (int i = 0; i < dynamicDescriptor.srvCount; ++i)
+            {
+                D3D12_ROOT_PARAMETER rootParameter{};
+                rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+                rootParameter.Descriptor.ShaderRegister = dynamicSrvOffset + i;
+                rootParameter.Descriptor.RegisterSpace = 0;
+                rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+                rootParameters.push_back(rootParameter);
+            }
+
+            cbvOffset = std::max(cbvOffset, dynamicCbvOffset + dynamicDescriptor.cbvCount);
+            srvOffset = std::max(srvOffset, dynamicSrvOffset + dynamicDescriptor.srvCount);
         }
 
         rootSignatureDesc.NumParameters = rootParameters.size();

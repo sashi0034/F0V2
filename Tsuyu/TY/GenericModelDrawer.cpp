@@ -114,6 +114,21 @@ struct GenericModelDrawer::Impl
             });
         }
 
+        if (params.dynamicSrvCount < 0)
+        {
+            LogError("GenericModelDrawer: dynamicSrvCount must be non-negative.");
+            assert(false);
+            return;
+        }
+
+        if (params.dynamicSrvCount > 0)
+        {
+            dynamicDescriptorTable.push_back(DynamicDescriptorEntry{
+                .srvSlot = 10 + static_cast<int>(params.srv10AndLater.size()),
+                .srvCount = params.dynamicSrvCount,
+            });
+        }
+
         m_pso = GraphicsPipelineState{
             GraphicsPipelineStateParams{
                 .shader = params.shader,
@@ -225,6 +240,19 @@ namespace TY
         }
 
         dynamicCbvCount = count;
+        return *this;
+    }
+
+    GenericModelDrawerParams& GenericModelDrawerParams::setDynamicSrvCount(int count)
+    {
+        if (count < 0)
+        {
+            LogError("GenericModelDrawerParams::setDynamicSrvCount: count must be non-negative.");
+            assert(false);
+            count = 0;
+        }
+
+        dynamicSrvCount = count;
         return *this;
     }
 

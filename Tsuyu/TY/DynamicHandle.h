@@ -38,4 +38,13 @@ namespace TY
         {
         }
     };
+
+    struct DynamicSrvHandle
+    {
+        uint64_t address{};
+
+        explicit DynamicSrvHandle(uint64_t address = 0) : address(address)
+        {
+        }
+    };
 }
