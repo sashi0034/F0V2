@@ -28,7 +28,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
 
     ~Impl()
     {
-        DisposeRenderResource();
+        DisposeRenderObject();
     }
 
     uint64_t timestamp() const override
@@ -36,17 +36,17 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
         return m_timestamp;
     }
 
-    void DisposeRenderResource()
+    void DisposeRenderObject()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_pso);
-        RenderContext_singleton::SafeDisposeRenderResource(m_rootSignature.get());
+        RenderContext_singleton::SafeDisposeRenderObject(m_pso);
+        RenderContext_singleton::SafeDisposeRenderObject(m_rootSignature.get());
     }
 
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
 
-        DisposeRenderResource();
+        DisposeRenderObject();
 
         if (not m_params.computeShader.isEmpty())
         {

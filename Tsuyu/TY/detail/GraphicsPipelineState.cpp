@@ -163,7 +163,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
     ~Impl()
     {
-        DisposeRenderResource();
+        DisposeRenderObject();
     }
 
     uint64_t timestamp() const override
@@ -171,17 +171,17 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         return m_timestamp;
     }
 
-    void DisposeRenderResource()
+    void DisposeRenderObject()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_pso);
-        RenderContext_singleton::SafeDisposeRenderResource(m_rootSignature.get());
+        RenderContext_singleton::SafeDisposeRenderObject(m_pso);
+        RenderContext_singleton::SafeDisposeRenderObject(m_rootSignature.get());
     }
 
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
 
-        DisposeRenderResource();
+        DisposeRenderObject();
 
         if (not m_params.shader.ps.isEmpty() && not m_params.shader.vs.isEmpty())
         {

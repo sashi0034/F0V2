@@ -35,7 +35,7 @@ struct TY::Shader_impl : IEngineHotReloadable
 
     ~Shader_impl()
     {
-        DisposeRenderResource();
+        DisposeRenderObject();
     }
 
     std::string GetErrorMessage() const
@@ -53,15 +53,15 @@ struct TY::Shader_impl : IEngineHotReloadable
         return m_timestamp;
     }
 
-    void DisposeRenderResource()
+    void DisposeRenderObject()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_shaderBlob);
+        RenderContext_singleton::SafeDisposeRenderObject(m_shaderBlob);
     }
 
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
-        DisposeRenderResource();
+        DisposeRenderObject();
 
         const std::wstring filepath = ToUtf16(m_params.filepath);
 

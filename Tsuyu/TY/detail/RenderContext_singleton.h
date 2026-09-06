@@ -61,10 +61,9 @@ namespace TY::detail
 
         DynamicCbvHandle GetSceneStateDynamicCbv();
 
-        // TODO: Rename
-        void SafeDisposeRenderResource(const NativeRetainedRenderObject& renderResource);
+        void SafeDisposeRenderObject(const NativeRetainedRenderObject& renderObject);
 
-        void SafeDisposeRenderResource(const PlacedBufferAllocation::Ptr& renderObject);
+        void SafeDisposeRenderObject(const PlacedBufferAllocation::Ptr& renderObject);
 
         size_t GetFlushTimestamp();
 

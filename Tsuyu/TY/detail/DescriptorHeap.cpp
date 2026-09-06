@@ -352,7 +352,7 @@ struct DescriptorHeap::Impl
 
     ~Impl()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_descriptorHeap);
+        RenderContext_singleton::SafeDisposeRenderObject(m_descriptorHeap);
     }
 
     void RegisterSRV(const ShaderResourceType& srv, int tableId, int srvId, int materialId)

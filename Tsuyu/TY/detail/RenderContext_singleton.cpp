@@ -81,9 +81,9 @@ namespace
         return pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";
     }
 
-    bool isNull(const NativeRetainedRenderObject& renderResource)
+    bool isNull(const NativeRetainedRenderObject& renderObject)
     {
-        return std::visit([](auto&& arg) { return arg == nullptr; }, renderResource);
+        return std::visit([](auto&& arg) { return arg == nullptr; }, renderObject);
     }
 
     using RetainedRenderObject = Variant<
@@ -278,23 +278,11 @@ struct RenderContextImpl
         m_swapChain->Present(1, 0);
     }
 
-    Array<RetainedRenderObject>& CurrentDisposedRenderResources()
+    Array<RetainedRenderObject>& CurrentDisposedRenderObjects()
     {
         const size_t index = m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
         return m_disposedRenderObjects[index];
     }
-
-    // void FlushComputeCommandSync()
-    // {
-    //     m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
-    //     m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
-    //
-    //     m_flushTimestamp++;
-    //
-    //     CurrentDisposedRenderResources().clear();
-    //
-    //     m_computeCommandList.WaitLastFlush();
-    // }
 
     void SubmitCommand()
     {
@@ -302,7 +290,7 @@ struct RenderContextImpl
 
         m_flushTimestamp++;
 
-        CurrentDisposedRenderResources().clear();
+        CurrentDisposedRenderObjects().clear();
     }
 
     CommandListManager& GetCommandList(CommandListType type)
@@ -643,17 +631,17 @@ namespace TY::detail
         return s_renderContext.GetSceneStateDynamicCbv();
     }
 
-    void RenderContext_singleton::SafeDisposeRenderResource(const NativeRetainedRenderObject& renderResource)
+    void RenderContext_singleton::SafeDisposeRenderObject(const NativeRetainedRenderObject& renderObject)
     {
-        if (not isNull(renderResource))
+        if (not isNull(renderObject))
         {
-            s_renderContext.CurrentDisposedRenderResources().push_back(renderResource);
+            s_renderContext.CurrentDisposedRenderObjects().push_back(renderObject);
         }
     }
 
-    void RenderContext_singleton::SafeDisposeRenderResource(const PlacedBufferAllocation::Ptr& renderObject)
+    void RenderContext_singleton::SafeDisposeRenderObject(const PlacedBufferAllocation::Ptr& renderObject)
     {
-        s_renderContext.CurrentDisposedRenderResources().push_back(renderObject);
+        s_renderContext.CurrentDisposedRenderObjects().push_back(renderObject);
     }
 
     size_t RenderContext_singleton::GetFlushTimestamp()

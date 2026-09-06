@@ -106,7 +106,7 @@ namespace TY::detail
             p_impl.use_count() == 1 && not p_impl->m_disposed)
         {
             p_impl->m_disposed = true;
-            RenderContext_singleton::SafeDisposeRenderResource(p_impl);
+            RenderContext_singleton::SafeDisposeRenderObject(p_impl);
         }
     }
 

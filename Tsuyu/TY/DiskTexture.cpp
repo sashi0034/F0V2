@@ -19,7 +19,7 @@ struct DiskTexture::Impl
 
     ~Impl()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_uploadBuffer);
+        RenderContext_singleton::SafeDisposeRenderObject(m_uploadBuffer);
     }
 
     Impl(const std::wstring& filename)

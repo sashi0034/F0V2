@@ -63,7 +63,7 @@ namespace
                 m_mappedAddress = nullptr;
             }
 
-            RenderContext_singleton::SafeDisposeRenderResource(m_resource);
+            RenderContext_singleton::SafeDisposeRenderObject(m_resource);
         }
 
         bool isValid() const

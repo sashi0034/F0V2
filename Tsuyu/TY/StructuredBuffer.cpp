@@ -78,7 +78,7 @@ struct StructuredBuffer::Impl
                 frameResource.readbackBuffer->Unmap(0, nullptr);
             }
 
-            RenderContext_singleton::SafeDisposeRenderResource(frameResource.readbackBuffer);
+            RenderContext_singleton::SafeDisposeRenderObject(frameResource.readbackBuffer);
         }
     }
 

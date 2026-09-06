@@ -13,7 +13,7 @@ struct DepthBufferHandle::Impl
 
     ~Impl()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_resource);
+        RenderContext_singleton::SafeDisposeRenderObject(m_resource);
     }
 
     void TransitionResourceState(D3D12_RESOURCE_STATES newState)
