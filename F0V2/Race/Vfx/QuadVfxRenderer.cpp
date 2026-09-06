@@ -2,9 +2,9 @@
 #include "QuadVfxRenderer.h"
 
 #include "Asset.generated.h"
+#include "TY/DynamicBinding.h"
 #include "TY/GenericModelBufferTemplates.h"
 #include "TY/GenericModelDrawer.h"
-#include "TY/StructuredBufferWrapper.h"
 
 using namespace Race;
 
@@ -29,11 +29,10 @@ struct QuadVfxRenderer::Impl
     int m_capacity{};
     IndexBuffer m_indexBuffer{Empty};
     GenericModelDrawer m_drawer{};
-    StructuredBufferT<GpuQuadElement> m_quadBuffer{};
+    DynamicSrvHandle m_quadSrv{};
 
     Impl(const ImagePathWrapper& image, int capacity, GraphicsBlendOptions blendOptions) :
-        m_capacity(capacity),
-        m_quadBuffer(capacity)
+        m_capacity(capacity)
     {
         assert(not image.isEmpty());
         assert(capacity > 0);
@@ -53,7 +52,8 @@ struct QuadVfxRenderer::Impl
                     .setTestEnabled(true)
                     .setWriteMask(false)))
             .setShader(Asset_shader::quad_vfx)
-            .setSrv10AndLater({image.fetchResource(), m_quadBuffer})
+            .setSrv10AndLater({image.fetchResource()})
+            .setDynamicSrvCount(1)
         };
     }
 
@@ -78,9 +78,11 @@ struct QuadVfxRenderer::Impl
             });
         }
 
+        m_quadSrv = DynamicSrvHandle{};
         if (not gpuElements.empty())
         {
-            m_quadBuffer.upload(gpuElements);
+            m_quadSrv = DynamicBinding::UploadDynamicStructuredBuffer(
+                std::span<const GpuQuadElement>{gpuElements.data(), gpuElements.size()});
         }
 
         m_indexBuffer.resize(uploadCount * 6);
@@ -119,8 +121,9 @@ namespace Race
 
     void QuadVfxRenderer::draw() const
     {
-        if (p_impl)
+        if (p_impl && p_impl->m_quadSrv.address != 0)
         {
+            DynamicBinding::SetDynamicSrv(11, p_impl->m_quadSrv);
             p_impl->m_drawer.draw();
         }
     }
