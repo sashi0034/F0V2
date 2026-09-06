@@ -2,10 +2,10 @@
 #include "ConstantBuffer.h"
 
 #include "Logger.h"
-#include "BufferHandle.h"
 #include "Uncopyable.h"
 #include "Utils.h"
 #include "detail/RenderContext_singleton.h"
+#include "detail/PlacedBufferAllocator.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -29,35 +29,29 @@ namespace
             m.maxCapacity = maxCapacity;
             m.timestamp = timestamp; // 直前のタイムスタンプを引き継ぎ
 
-            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(unitSize * maxCapacity);
 
-            assert(not m.uploadBuffer);
-            if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
-                    &heapProperties,
-                    D3D12_HEAP_FLAG_NONE,
-                    &resourceDesc,
-                    D3D12_RESOURCE_STATE_GENERIC_READ,
-                    nullptr,
-                    IID_PPV_ARGS(m.uploadBuffer.ReleaseAndGetAddressOf()));
+            assert(m.uploadBuffer.isEmpty());
+            if (const HRESULT hr = PlacedBufferAllocator_singleton::Upload().createResource(
+                    resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, m.uploadBuffer);
                 FAILED(hr))
             {
                 LogError.writeln("ConstantBuffer: Failed to create uploadBuffer.");
                 return;
             }
 
-            m.uploadBuffer->SetName(L"ConstantBuffer::uploadBuffer");
+            m.uploadBuffer.getResource()->SetName(L"ConstantBuffer::uploadBuffer");
         }
 
         uint8_t* FetchMappedPointer()
         {
             if (not m.mappedPointer)
             {
-                if (const HRESULT hr = m.uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&m.mappedPointer));
+                if (const HRESULT hr = m.uploadBuffer.getResource()->Map(0, nullptr, reinterpret_cast<void**>(&m.mappedPointer));
                     FAILED(hr))
                 {
                     LogError.writeln(std::format("ConstantBuffer: Failed to map resource for 0x{:016x}",
-                                                 reinterpret_cast<uint64_t>(m.uploadBuffer.Get())));
+                                                 reinterpret_cast<uint64_t>(m.uploadBuffer.getResource())));
                     return nullptr;
                 }
             }
@@ -87,7 +81,7 @@ namespace
 
         ID3D12Resource* UploadBuffer() const
         {
-            return m.uploadBuffer.Get();
+            return m.uploadBuffer.getResource();
         }
 
         int MaxCapacity() const
@@ -97,14 +91,14 @@ namespace
 
         bool HasCapacity() const
         {
-            return m.indexInFrame < m.maxCapacity;
+            return not m.uploadBuffer.isEmpty() && m.indexInFrame < m.maxCapacity;
         }
 
         void Unmap()
         {
-            if (m.uploadBuffer && m.mappedPointer)
+            if (not m.uploadBuffer.isEmpty() && m.mappedPointer)
             {
-                m.uploadBuffer->Unmap(0, nullptr);
+                m.uploadBuffer.getResource()->Unmap(0, nullptr);
                 m.mappedPointer = nullptr;
             }
         }
@@ -117,7 +111,7 @@ namespace
     private:
         struct member_t
         {
-            ComPtr<ID3D12Resource> uploadBuffer{};
+            PlacedBufferAllocation uploadBuffer{};
             uint8_t* mappedPointer{};
             uint64_t unitSize{};
             size_t timestamp{};
@@ -129,7 +123,7 @@ namespace
         {
             Unmap();
 
-            RenderContext_singleton::SafeDisposeRenderResource(m.uploadBuffer);
+            m.uploadBuffer = {};
         }
     };
 }
@@ -141,7 +135,7 @@ struct ConstantBufferImpl::Impl
     uint32_t m_sizeInBytes;
     size_t m_alignedSize{};
 
-    BufferHandle m_bufferHandle{};
+    PlacedBufferAllocation m_bufferAllocation{};
 
     using frame_resources = FrameResource;
 
@@ -154,23 +148,17 @@ struct ConstantBufferImpl::Impl
     {
         m_alignedSize = AlignedSize(sizeInBytes, 256);
 
-        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_alignedSize);
 
-        if (const auto hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
-                &heapProperties,
-                D3D12_HEAP_FLAG_NONE,
-                &resourceDesc,
-                D3D12_RESOURCE_STATE_COMMON,
-                nullptr,
-                IID_PPV_ARGS(m_bufferHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON)));
+        if (const auto hr = PlacedBufferAllocator_singleton::Default().createResource(
+                resourceDesc, D3D12_RESOURCE_STATE_COMMON, m_bufferAllocation);
             FAILED(hr))
         {
             LogError.writeln("ConstantBuffer: Failed to create m_finalBuffer.");
             return;
         }
 
-        m_bufferHandle.getResource()->SetName(L"ConstantBuffer::m_bufferHandle");
+        m_bufferAllocation.getResource()->SetName(L"ConstantBuffer::m_bufferAllocation");
 
         m_valid = true;
     }
@@ -194,6 +182,7 @@ struct ConstantBufferImpl::Impl
         {
             const int nextCapacity = Max(1, frameResource.MaxCapacity() * 2);
             frameResource.Rebuild(m_alignedSize, nextCapacity);
+            if (not frameResource.HasCapacity()) return;
         }
 
         uint8_t* dest = frameResource.FetchMappedPointer();
@@ -209,16 +198,16 @@ struct ConstantBufferImpl::Impl
 
         std::memcpy(dest, data, m_sizeInBytes);
 
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
         RenderContext_singleton::TargetCommandList()->CopyBufferRegion(
-            m_bufferHandle.getResource(),
+            m_bufferAllocation.getResource(),
             0,
             frameResource.UploadBuffer(),
             uploadOffset,
             m_alignedSize);
 
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_GENERIC_READ);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_GENERIC_READ);
 
         // if (previousUploadTimestamp == 0)
         // {
@@ -256,6 +245,6 @@ namespace TY
 
     uint64_t ConstantBufferImpl::bufferLocation() const
     {
-        return p_impl ? p_impl->m_bufferHandle.getResource()->GetGPUVirtualAddress() : 0;
+        return p_impl ? p_impl->m_bufferAllocation.getResource()->GetGPUVirtualAddress() : 0;
     }
 }

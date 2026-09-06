@@ -1,10 +1,10 @@
 ﻿#include "pch.h"
 #include "StructuredBuffer.h"
 
-#include "BufferHandle.h"
 #include "GpgpuBuffer.h"
 #include "Logger.h"
 #include "detail/RenderContext_singleton.h"
+#include "detail/PlacedBufferAllocator.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -19,11 +19,11 @@ struct StructuredBuffer::Impl
 
     bool m_writable{};
 
-    BufferHandle m_bufferHandle;
+    PlacedBufferAllocation m_bufferAllocation;
 
     struct frame_resources
     {
-        ComPtr<ID3D12Resource> uploadBuffer;
+        PlacedBufferAllocation uploadBuffer;
         uint8_t* uploadDest{};
 
         ComPtr<ID3D12Resource> readbackBuffer;
@@ -41,8 +41,6 @@ struct StructuredBuffer::Impl
         m_elementStride(elementStride),
         m_writable(isWritable)
     {
-        const auto device = RenderContext_singleton::GetDevice();
-
         m_dataSize = elementCount * elementStride;
         if (m_dataSize <= 0)
         {
@@ -55,16 +53,8 @@ struct StructuredBuffer::Impl
 
         const CD3DX12_RESOURCE_DESC finalBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(m_dataSize, finalBufferFlags);
 
-        CD3DX12_HEAP_PROPERTIES heapProps{D3D12_HEAP_TYPE_DEFAULT};
-
-        if (const auto hr = device->CreateCommittedResource(
-                &heapProps,
-                D3D12_HEAP_FLAG_NONE,
-                &finalBufferDesc,
-                D3D12_RESOURCE_STATE_COMMON,
-                nullptr,
-                IID_PPV_ARGS(m_bufferHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON))
-            );
+        if (const auto hr = PlacedBufferAllocator_singleton::Default().createResource(
+                finalBufferDesc, D3D12_RESOURCE_STATE_COMMON, m_bufferAllocation);
             FAILED(hr))
         {
             LogError.writeln(std::format("StructuredBuffer: Failed to create GPU buffer: {}", hr));
@@ -78,9 +68,9 @@ struct StructuredBuffer::Impl
     {
         for (auto& frameResource : m_frameResources)
         {
-            if (frameResource.uploadBuffer && frameResource.uploadDest)
+            if (not frameResource.uploadBuffer.isEmpty() && frameResource.uploadDest)
             {
-                frameResource.uploadBuffer->Unmap(0, nullptr);
+                frameResource.uploadBuffer.getResource()->Unmap(0, nullptr);
             }
 
             if (frameResource.readbackBuffer && frameResource.readbackSrc)
@@ -88,7 +78,6 @@ struct StructuredBuffer::Impl
                 frameResource.readbackBuffer->Unmap(0, nullptr);
             }
 
-            RenderContext_singleton::SafeDisposeRenderResource(frameResource.uploadBuffer);
             RenderContext_singleton::SafeDisposeRenderResource(frameResource.readbackBuffer);
         }
     }
@@ -109,15 +98,15 @@ struct StructuredBuffer::Impl
         memcpy(frameResource.uploadDest, src, m_elementStride * count);
 
         // GPU へアップロード
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
         const auto commandList = RenderContext_singleton::TargetCommandList();;
-        commandList->CopyResource(m_bufferHandle.getResource(), frameResource.uploadBuffer.Get());
+        commandList->CopyResource(m_bufferAllocation.getResource(), frameResource.uploadBuffer.getResource());
 
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 
         // TODO
-        // m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        // m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     }
 
     // TODO: 昔の実装を書き直す 
@@ -128,7 +117,7 @@ struct StructuredBuffer::Impl
         const auto commandList = RenderContext_singleton::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
-        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_bufferHandle.getResource());
+        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_bufferAllocation.getResource());
         commandList->ResourceBarrier(1, &uavBarrier);
     }
 
@@ -139,11 +128,11 @@ struct StructuredBuffer::Impl
         const auto commandList = RenderContext_singleton::TargetCommandList();
 
         // UAV バリアを入れて、UAV 書き込みの完了を保証
-        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_bufferHandle.getResource());
+        const D3D12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_bufferAllocation.getResource());
         commandList->ResourceBarrier(1, &uavBarrier);
 
         // GPU バッファを COPY_SOURCE に遷移
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_SOURCE);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_COPY_SOURCE);
 
         // Copy GPU -> Readback
         m_flushTimestamp = RenderContext_singleton::GetFlushTimestamp();
@@ -152,10 +141,10 @@ struct StructuredBuffer::Impl
 
         if (not ensureReadbackBuffer(frameResource, m_dataSize)) return;
 
-        commandList->CopyResource(frameResource.readbackBuffer.Get(), m_bufferHandle.getResource());
+        commandList->CopyResource(frameResource.readbackBuffer.Get(), m_bufferAllocation.getResource());
 
         // GPU バッファを UNORDERED_ACCESS に戻す
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS); // FIXME?
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS); // FIXME?
     }
 
     void Readback(uint8_t* dest)
@@ -179,30 +168,24 @@ struct StructuredBuffer::Impl
 private:
     static bool ensureUploadBuffer(frame_resources& frameResource, size_t dataSize)
     {
-        if (not frameResource.uploadBuffer)
+        if (frameResource.uploadBuffer.isEmpty())
         {
-            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
 
-            if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
-                    &heapProperties,
-                    D3D12_HEAP_FLAG_NONE,
-                    &resourceDesc,
-                    D3D12_RESOURCE_STATE_GENERIC_READ,
-                    nullptr,
-                    IID_PPV_ARGS(&frameResource.uploadBuffer));
+            if (const HRESULT hr = PlacedBufferAllocator_singleton::Upload().createResource(
+                    resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, frameResource.uploadBuffer);
                 FAILED(hr))
             {
                 LogError.writeln("StructuredBuffer: Failed to create uploadBuffer.");
                 return false;
             }
 
-            frameResource.uploadBuffer->SetName(L"StructuredBuffer::uploadBuffer");
+            frameResource.uploadBuffer.getResource()->SetName(L"StructuredBuffer::uploadBuffer");
         }
 
         if (not frameResource.uploadDest)
         {
-            if (const HRESULT hr = frameResource.uploadBuffer->Map(
+            if (const HRESULT hr = frameResource.uploadBuffer.getResource()->Map(
                     0, nullptr, reinterpret_cast<void**>(&frameResource.uploadDest));
                 FAILED(hr))
             {
@@ -284,7 +267,7 @@ namespace TY
 
     ID3D12Resource* StructuredBuffer::getBuffer() const
     {
-        return p_impl ? p_impl->m_bufferHandle.getResource() : nullptr;
+        return p_impl ? p_impl->m_bufferAllocation.getResource() : nullptr;
     }
 
     UnorderedStructuredBuffer::UnorderedStructuredBuffer(int elementCount, int elementStride)

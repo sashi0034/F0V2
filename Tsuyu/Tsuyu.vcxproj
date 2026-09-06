@@ -174,6 +174,7 @@
     <ClInclude Include="TY\DepthStencilHandle.h" />
     <ClInclude Include="TY\detail\DynamicDescriptorEntry.h" />
     <ClInclude Include="TY\detail\GpuMemoryUsage.h" />
+    <ClInclude Include="TY\detail\PlacedBufferAllocator.h" />
     <ClInclude Include="TY\detail\SceneState3D_singleton.h" />
     <ClInclude Include="TY\DiskTexture.h" />
     <ClInclude Include="TY\DynamicBinding.h" />
@@ -192,7 +193,6 @@
     <ClInclude Include="TY\Periodic.h" />
     <ClInclude Include="TY\ProcessUtils.h" />
     <ClInclude Include="TY\RenderTargetTexture.h" />
-    <ClInclude Include="TY\BufferHandle.h" />
     <ClInclude Include="TY\StructuredBufferWrapper.h" />
     <ClInclude Include="TY\TextureHandle.h" />
     <ClInclude Include="TY\TriangleBvh.h" />
@@ -351,6 +351,7 @@
     <ClCompile Include="TY\ConstantBuffer.cpp" />
     <ClCompile Include="TY\DepthStencilHandle.cpp" />
     <ClCompile Include="TY\detail\GpuMemoryUsage.cpp" />
+    <ClCompile Include="TY\detail\PlacedBufferAllocator.cpp" />
     <ClCompile Include="TY\detail\SceneState3D_singleton.cpp" />
     <ClCompile Include="TY\DiskTexture.cpp" />
     <ClCompile Include="TY\DynamicBinding.cpp" />
@@ -365,7 +366,6 @@
     <ClCompile Include="TY\Periodic.cpp" />
     <ClCompile Include="TY\ProcessUtils.cpp" />
     <ClCompile Include="TY\RenderTargetTexture.cpp" />
-    <ClCompile Include="TY\BufferHandle.cpp" />
     <ClCompile Include="TY\TextureHandle.cpp" />
     <ClCompile Include="TY\TriangleBvh.cpp" />
     <ClCompile Include="TY\Color.cpp" />

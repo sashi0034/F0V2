@@ -81,10 +81,15 @@ namespace
         return pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";
     }
 
-    bool isNull(const RenderResource& renderResource)
+    bool isNull(const NativeRetainedRenderObject& renderResource)
     {
         return std::visit([](auto&& arg) { return arg == nullptr; }, renderResource);
     }
+
+    using RetainedRenderObject = Variant<
+        NativeRetainedRenderObject,
+        PlacedBufferAllocation::Ptr
+    >;
 }
 
 struct RenderContextImpl
@@ -129,7 +134,7 @@ struct RenderContextImpl
 
     size_t m_dynamicSceneState3DRevision{std::numeric_limits<size_t>::max()};
 
-    std::array<Array<RenderResource>, RenderContext_singleton::FrameBufferCount> m_disposedRenderResources{};
+    std::array<Array<RetainedRenderObject>, RenderContext_singleton::FrameBufferCount> m_disposedRenderObjects{};
 
     // Copy のフラッシュとともに加算
     size_t m_flushTimestamp{};
@@ -273,10 +278,10 @@ struct RenderContextImpl
         m_swapChain->Present(1, 0);
     }
 
-    Array<RenderResource>& CurrentDisposedRenderResources()
+    Array<RetainedRenderObject>& CurrentDisposedRenderResources()
     {
         const size_t index = m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
-        return m_disposedRenderResources[index];
+        return m_disposedRenderObjects[index];
     }
 
     // void FlushComputeCommandSync()
@@ -523,7 +528,7 @@ private:
 
         m_backBuffers = {};
 
-        for (auto& rsc : m_disposedRenderResources)
+        for (auto& rsc : m_disposedRenderObjects)
         {
             rsc.clear();
         }
@@ -573,6 +578,11 @@ namespace TY::detail
     void RenderContext_singleton::Shutdown()
     {
         s_renderContext.OnShutdown();
+
+        for (auto& resources : s_renderContext.m_disposedRenderObjects)
+        {
+            resources.clear();
+        }
 
         s_renderContext = {};
 
@@ -633,12 +643,17 @@ namespace TY::detail
         return s_renderContext.GetSceneStateDynamicCbv();
     }
 
-    void RenderContext_singleton::SafeDisposeRenderResource(const RenderResource& renderResource)
+    void RenderContext_singleton::SafeDisposeRenderResource(const NativeRetainedRenderObject& renderResource)
     {
         if (not isNull(renderResource))
         {
             s_renderContext.CurrentDisposedRenderResources().push_back(renderResource);
         }
+    }
+
+    void RenderContext_singleton::SafeDisposeRenderResource(const PlacedBufferAllocation::Ptr& renderObject)
+    {
+        s_renderContext.CurrentDisposedRenderResources().push_back(renderObject);
     }
 
     size_t RenderContext_singleton::GetFlushTimestamp()

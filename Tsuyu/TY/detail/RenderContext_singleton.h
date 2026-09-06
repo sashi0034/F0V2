@@ -5,6 +5,7 @@
 #include "TY/Mat4x4.h"
 #include "TY/RenderTarget.h"
 #include "TY/Variant.h"
+#include "PlacedBufferAllocator.h"
 
 namespace TY::detail
 {
@@ -14,7 +15,7 @@ namespace TY::detail
         Mat4x4 viewMatrix;
     };
 
-    using RenderResource = Variant<
+    using NativeRetainedRenderObject = Variant<
         ComPtr<ID3DBlob>,
         ComPtr<ID3D12Resource>,
         ComPtr<ID3D12PipelineState>,
@@ -60,7 +61,10 @@ namespace TY::detail
 
         DynamicCbvHandle GetSceneStateDynamicCbv();
 
-        void SafeDisposeRenderResource(const RenderResource& renderResource);
+        // TODO: Rename
+        void SafeDisposeRenderResource(const NativeRetainedRenderObject& renderResource);
+
+        void SafeDisposeRenderResource(const PlacedBufferAllocation::Ptr& renderObject);
 
         size_t GetFlushTimestamp();
 

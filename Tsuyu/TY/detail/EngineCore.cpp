@@ -7,6 +7,7 @@
 #include "ImGuiAdapter_singleton.h"
 #include "EngineKeyboardMouse.h"
 #include "EnginePresetAsset.h"
+#include "PlacedBufferAllocator.h"
 #include "RenderContext_singleton.h"
 #include "EngineStateContext.h"
 #include "EngineTimer.h"
@@ -73,6 +74,8 @@ struct EngineCoreImpl
         Window_singleton::Init();
 
         RenderContext_singleton::Init();
+
+        PlacedBufferAllocator_singleton::Init(RenderContext_singleton::GetDevice());
 
         Window_singleton::Show(); // <-- window will be shown
 
@@ -146,6 +149,8 @@ struct EngineCoreImpl
         ImGuiAdapter_singleton::Shutdown();
 
         ComponentManager_singleton::Shutdown();
+
+        PlacedBufferAllocator_singleton::Shutdown();
 
         // 他のリソースを全て解放してからレンダリングリソースを解放する
         RenderContext_singleton::Shutdown();

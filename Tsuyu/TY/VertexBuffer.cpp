@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
 #include "VertexBuffer.h"
 
-#include "BufferHandle.h"
 #include "Logger.h"
 #include "detail/RenderContext_singleton.h"
+#include "detail/PlacedBufferAllocator.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -14,13 +14,13 @@ struct VertexBufferImpl::Impl
 
     D3D12_VERTEX_BUFFER_VIEW m_vertBufferView{};
 
-    BufferHandle m_bufferHandle{};
+    PlacedBufferAllocation m_bufferAllocation{};
 
     int m_count{};
 
     struct frame_resources
     {
-        ComPtr<ID3D12Resource> uploadBuffer;
+        PlacedBufferAllocation uploadBuffer;
         uint8_t* dest{};
     };
 
@@ -30,28 +30,20 @@ struct VertexBufferImpl::Impl
 
     Impl(int sizeInBytes, int strideInBytes)
     {
-        const auto device = RenderContext_singleton::GetDevice();
-
-        const D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes);
 
         // リソース作成
-        if (const auto hr = device->CreateCommittedResource(
-                &heapProperties,
-                D3D12_HEAP_FLAG_NONE,
-                &resourceDesc,
-                D3D12_RESOURCE_STATE_COMMON,
-                nullptr,
-                IID_PPV_ARGS(m_bufferHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON)));
+        if (const auto hr = PlacedBufferAllocator_singleton::Default().createResource(
+                resourceDesc, D3D12_RESOURCE_STATE_COMMON, m_bufferAllocation);
             FAILED(hr))
         {
-            LogError.writeln("VertexBuffer: Failed to create m_bufferHandle");
+            LogError.writeln("VertexBuffer: Failed to create m_bufferAllocation");
             return;
         }
 
-        m_bufferHandle.getResource()->SetName(L"VertexBuffer::m_bufferHandle");
+        m_bufferAllocation.getResource()->SetName(L"VertexBuffer::m_bufferAllocation");
 
-        m_vertBufferView.BufferLocation = m_bufferHandle.getResource()->GetGPUVirtualAddress();
+        m_vertBufferView.BufferLocation = m_bufferAllocation.getResource()->GetGPUVirtualAddress();
         m_vertBufferView.SizeInBytes = sizeInBytes;
         m_vertBufferView.StrideInBytes = strideInBytes;
 
@@ -64,12 +56,10 @@ struct VertexBufferImpl::Impl
     {
         for (auto& frameResource : m_frameResources)
         {
-            if (frameResource.uploadBuffer && frameResource.dest)
+            if (not frameResource.uploadBuffer.isEmpty() && frameResource.dest)
             {
-                frameResource.uploadBuffer->Unmap(0, nullptr);
+                frameResource.uploadBuffer.getResource()->Unmap(0, nullptr);
             }
-
-            RenderContext_singleton::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
     }
 
@@ -82,30 +72,24 @@ struct VertexBufferImpl::Impl
 
         auto& frameResource = m_frameResources[frameIndex];
 
-        if (not frameResource.uploadBuffer)
+        if (frameResource.uploadBuffer.isEmpty())
         {
-            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_vertBufferView.SizeInBytes);
 
-            if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
-                    &heapProperties,
-                    D3D12_HEAP_FLAG_NONE,
-                    &resourceDesc,
-                    D3D12_RESOURCE_STATE_GENERIC_READ,
-                    nullptr,
-                    IID_PPV_ARGS(&frameResource.uploadBuffer));
+            if (const HRESULT hr = PlacedBufferAllocator_singleton::Upload().createResource(
+                    resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, frameResource.uploadBuffer);
                 FAILED(hr))
             {
                 LogError.writeln("VertexBuffer: Failed to create uploadBuffer.");
                 return;
             }
 
-            frameResource.uploadBuffer->SetName(L"VertexBuffer::uploadBuffer");
+            frameResource.uploadBuffer.getResource()->SetName(L"VertexBuffer::uploadBuffer");
         }
 
         if (not frameResource.dest)
         {
-            if (const HRESULT hr = frameResource.uploadBuffer->Map(
+            if (const HRESULT hr = frameResource.uploadBuffer.getResource()->Map(
                     0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
                 FAILED(hr))
             {
@@ -117,21 +101,21 @@ struct VertexBufferImpl::Impl
         uint8_t* dest = frameResource.dest;
         memcpy(dest, data, size);
 
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
         RenderContext_singleton::TargetCommandList()->CopyBufferRegion(
-            m_bufferHandle.getResource(),
+            m_bufferAllocation.getResource(),
             0,
-            frameResource.uploadBuffer.Get(),
+            frameResource.uploadBuffer.getResource(),
             0,
             size);
 
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
         if (previousUploadTimestamp == 0)
         {
             // 初回実行時は即アンマップする
-            frameResource.uploadBuffer->Unmap(0, nullptr);
+            frameResource.uploadBuffer.getResource()->Unmap(0, nullptr);
             frameResource.dest = nullptr;
         }
     }

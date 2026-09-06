@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
 #include "IndexBuffer.h"
 
-#include "BufferHandle.h"
 #include "Logger.h"
 #include "detail/RenderContext_singleton.h"
+#include "detail/PlacedBufferAllocator.h"
 
 using namespace TY;
 using namespace TY::detail;
@@ -35,11 +35,11 @@ struct IndexBuffer::Impl::Default : Impl
 
     D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
 
-    BufferHandle m_bufferHandle{};
+    PlacedBufferAllocation m_bufferAllocation{};
 
     struct frame_resources
     {
-        ComPtr<ID3D12Resource> uploadBuffer;
+        PlacedBufferAllocation uploadBuffer;
         index_type* dest{};
     };
 
@@ -49,28 +49,20 @@ struct IndexBuffer::Impl::Default : Impl
 
     Default(int count)
     {
-        const auto device = RenderContext_singleton::GetDevice();
-
-        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(index_type) * count);
 
         // リソース作成
-        if (const auto hr = device->CreateCommittedResource(
-                &heapProperties,
-                D3D12_HEAP_FLAG_NONE,
-                &resourceDesc,
-                D3D12_RESOURCE_STATE_COMMON,
-                nullptr,
-                IID_PPV_ARGS(m_bufferHandle.assignResourceAddress(D3D12_RESOURCE_STATE_COMMON)));
+        if (const auto hr = PlacedBufferAllocator_singleton::Default().createResource(
+                resourceDesc, D3D12_RESOURCE_STATE_COMMON, m_bufferAllocation);
             FAILED(hr))
         {
             LogError.writeln(L"IndexBuffer: Failed to create buffer");
             return;
         }
 
-        m_bufferHandle.getResource()->SetName(L"IndexBuffer::m_bufferHandle");
+        m_bufferAllocation.getResource()->SetName(L"IndexBuffer::m_bufferAllocation");
 
-        m_indexBufferView.BufferLocation = m_bufferHandle.getResource()->GetGPUVirtualAddress();
+        m_indexBufferView.BufferLocation = m_bufferAllocation.getResource()->GetGPUVirtualAddress();
         m_indexBufferView.SizeInBytes = resourceDesc.Width;
         m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
@@ -84,12 +76,10 @@ struct IndexBuffer::Impl::Default : Impl
     {
         for (auto& frameResource : m_frameResources)
         {
-            if (frameResource.uploadBuffer && frameResource.dest)
+            if (not frameResource.uploadBuffer.isEmpty() && frameResource.dest)
             {
-                frameResource.uploadBuffer->Unmap(0, nullptr);
+                frameResource.uploadBuffer.getResource()->Unmap(0, nullptr);
             }
-
-            RenderContext_singleton::SafeDisposeRenderResource(frameResource.uploadBuffer);
         }
     }
 
@@ -102,18 +92,12 @@ struct IndexBuffer::Impl::Default : Impl
 
         auto& frameResource = m_frameResources[frameIndex];
 
-        if (not frameResource.uploadBuffer)
+        if (frameResource.uploadBuffer.isEmpty())
         {
-            const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(m_indexBufferView.SizeInBytes);
 
-            if (const HRESULT hr = RenderContext_singleton::GetDevice()->CreateCommittedResource(
-                    &heapProperties,
-                    D3D12_HEAP_FLAG_NONE,
-                    &resourceDesc,
-                    D3D12_RESOURCE_STATE_GENERIC_READ,
-                    nullptr,
-                    IID_PPV_ARGS(&frameResource.uploadBuffer));
+            if (const HRESULT hr = PlacedBufferAllocator_singleton::Upload().createResource(
+                    resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, frameResource.uploadBuffer);
                 FAILED(hr))
             {
                 LogError.writeln("IndexBuffer: Failed to create uploadBuffer.");
@@ -123,7 +107,7 @@ struct IndexBuffer::Impl::Default : Impl
 
         if (not frameResource.dest)
         {
-            if (const HRESULT hr = frameResource.uploadBuffer->Map(
+            if (const HRESULT hr = frameResource.uploadBuffer.getResource()->Map(
                     0, nullptr, reinterpret_cast<void**>(&frameResource.dest));
                 FAILED(hr))
             {
@@ -132,28 +116,28 @@ struct IndexBuffer::Impl::Default : Impl
                 return;
             }
 
-            frameResource.uploadBuffer->SetName(L"IndexBuffer::uploadBuffer");
+            frameResource.uploadBuffer.getResource()->SetName(L"IndexBuffer::uploadBuffer");
         }
 
         index_type* dest = frameResource.dest;
 
         std::ranges::copy(indices, dest);
 
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_COPY_DEST);
 
         RenderContext_singleton::TargetCommandList()->CopyBufferRegion(
-            m_bufferHandle.getResource(),
+            m_bufferAllocation.getResource(),
             0,
-            frameResource.uploadBuffer.Get(),
+            frameResource.uploadBuffer.getResource(),
             0,
             indices.size_in_bytes());
 
-        m_bufferHandle.transitionResourceState(D3D12_RESOURCE_STATE_INDEX_BUFFER);
+        m_bufferAllocation.transitionResourceState(D3D12_RESOURCE_STATE_INDEX_BUFFER);
 
         if (previousUploadTimestamp == 0)
         {
             // 初回実行時は即アンマップする
-            frameResource.uploadBuffer->Unmap(0, nullptr);
+            frameResource.uploadBuffer.getResource()->Unmap(0, nullptr);
             frameResource.dest = nullptr;
         }
     }
