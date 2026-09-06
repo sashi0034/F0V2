@@ -5,7 +5,6 @@
 #include "TY/DynamicBinding.h"
 #include "TY/GenericModelBufferTemplates.h"
 #include "TY/GenericModelDrawer.h"
-#include "TY/StructuredBufferWrapper.h"
 
 using namespace Race;
 
@@ -37,12 +36,11 @@ struct BillboardVfxRenderer::Impl
     int m_capacity{};
     IndexBuffer m_indexBuffer{Empty};
     GenericModelDrawer m_drawer{};
-    StructuredBufferT<GpuParticleElement> m_particleBuffer{};
+    DynamicSrvHandle m_particleSrv{};
     BillboardParticle_b10 m_particleCB{};
 
     Impl(const ImagePathWrapper& image, int capacity, GraphicsBlendOptions blendOptions) :
-        m_capacity(capacity),
-        m_particleBuffer(capacity)
+        m_capacity(capacity)
     {
         assert(not image.isEmpty());
         assert(capacity > 0);
@@ -63,7 +61,8 @@ struct BillboardVfxRenderer::Impl
                     .setWriteMask(false)))
             .setShader(Asset_shader::billboard_effect)
             .setDynamicCbvCount(1)
-            .setSrv10AndLater({image.fetchResource(), m_particleBuffer})
+            .setSrv10AndLater({image.fetchResource()})
+            .setDynamicSrvCount(1)
         };
     }
 
@@ -94,9 +93,11 @@ struct BillboardVfxRenderer::Impl
             .cameraRight = cameraRight,
         };
 
+        m_particleSrv = DynamicSrvHandle{};
         if (not gpuElements.empty())
         {
-            m_particleBuffer.upload(gpuElements);
+            m_particleSrv = DynamicBinding::UploadDynamicStructuredBuffer(
+                std::span<const GpuParticleElement>{gpuElements.data(), gpuElements.size()});
         }
 
         m_indexBuffer.resize(uploadCount * 6);
@@ -135,8 +136,9 @@ namespace Race
 
     void BillboardVfxRenderer::draw() const
     {
-        if (p_impl)
+        if (p_impl && p_impl->m_particleSrv.address != 0)
         {
+            DynamicBinding::SetDynamicSrv(11, p_impl->m_particleSrv);
             DynamicBinding::SetDynamicCbv(10, p_impl->m_particleCB);
             p_impl->m_drawer.draw();
         }
