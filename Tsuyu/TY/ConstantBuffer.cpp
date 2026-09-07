@@ -128,7 +128,7 @@ namespace
     };
 }
 
-struct ConstantBufferImpl::Impl
+struct ConstantBufferObject::Impl
 {
     bool m_valid{};
 
@@ -219,7 +219,7 @@ struct ConstantBufferImpl::Impl
 
 namespace TY
 {
-    ConstantBufferImpl::ConstantBufferImpl(uint32_t sizeInBytes)
+    ConstantBufferObject::ConstantBufferObject(uint32_t sizeInBytes)
         : p_impl(std::make_shared<Impl>(sizeInBytes))
     {
         if (not p_impl->m_valid)
@@ -228,22 +228,22 @@ namespace TY
         }
     }
 
-    void ConstantBufferImpl::upload(const void* data) const
+    void ConstantBufferObject::upload(const void* data) const
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(data));
     }
 
-    bool ConstantBufferImpl::isEmpty() const
+    bool ConstantBufferObject::isEmpty() const
     {
         return not p_impl;
     }
 
-    size_t ConstantBufferImpl::alignedSize() const
+    size_t ConstantBufferObject::alignedSize() const
     {
         return p_impl ? p_impl->m_alignedSize : 0;
     }
 
-    uint64_t ConstantBufferImpl::bufferLocation() const
+    uint64_t ConstantBufferObject::bufferLocation() const
     {
         return p_impl ? p_impl->m_bufferAllocation.getResource()->GetGPUVirtualAddress() : 0;
     }

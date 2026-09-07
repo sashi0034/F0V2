@@ -28,7 +28,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
 {
     ModelShapeBuffer m_shapeBuffer{};
 
-    MaterialList<DescriptorList<ConstantBufferImpl>> m_materialCbv{};
+    MaterialList<DescriptorList<ConstantBufferObject>> m_materialCbv{};
 
     MaterialList<DescriptorList<ShaderResourceType>> m_materialSrv{};
 
@@ -78,7 +78,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
         return static_cast<int>(m_materialCbv.size());
     }
 
-    [[nodiscard]] const MaterialList<DescriptorList<ConstantBufferImpl>>& materialCbv() const override
+    [[nodiscard]] const MaterialList<DescriptorList<ConstantBufferObject>>& materialCbv() const override
     {
         return m_materialCbv;
     }
@@ -136,7 +136,7 @@ namespace TY
         return p_impl->m_shapeBuffer;
     }
 
-    const MaterialList<DescriptorList<ConstantBufferImpl>>& ModelBuffer::materialCbv() const
+    const MaterialList<DescriptorList<ConstantBufferObject>>& ModelBuffer::materialCbv() const
     {
         return p_impl->m_materialCbv;
     }

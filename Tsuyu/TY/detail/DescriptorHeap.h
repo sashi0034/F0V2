@@ -10,7 +10,7 @@ namespace TY::detail
     struct CbvSrvUavSet
     {
         /// @remark [materialCount][cbvCount]
-        MaterialList<DescriptorList<ConstantBufferImpl>> cbv;
+        MaterialList<DescriptorList<ConstantBufferObject>> cbv;
 
         /// @remark [materialCount][srvCount]
         MaterialList<DescriptorList<ShaderResourceType>> srv;

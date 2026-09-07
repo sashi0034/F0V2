@@ -140,7 +140,7 @@ namespace TY
         return *this;
     }
 
-    ComputeDispatcherParams& ComputeDispatcherParams::setCbv(const DescriptorList<ConstantBufferImpl>& cbv_)
+    ComputeDispatcherParams& ComputeDispatcherParams::setCbv(const DescriptorList<ConstantBufferObject>& cbv_)
     {
         cbv = cbv_;
         return *this;

@@ -213,7 +213,7 @@ namespace TY
         return *this;
     }
 
-    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const DescriptorList<ConstantBufferImpl>& cbv)
+    GenericModelDrawerParams& GenericModelDrawerParams::setCbv10AndLater(const DescriptorList<ConstantBufferObject>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;

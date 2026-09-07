@@ -11,7 +11,7 @@ namespace TY
     public:
         explicit SingleShapeModelBuffer(
             IndexBuffer indexBuffer,
-            ConstantBufferImpl materialCbv = ConstantBufferImpl{Empty},
+            ConstantBufferObject materialCbv = ConstantBufferObject{Empty},
             DescriptorList<ShaderResourceType> materialSrv = {})
         {
             m_shape.materialIndex = 0;
@@ -26,7 +26,7 @@ namespace TY
 
         explicit SingleShapeModelBuffer(
             int placeholderIndexCount,
-            ConstantBufferImpl materialCbv = ConstantBufferImpl{Empty},
+            ConstantBufferObject materialCbv = ConstantBufferObject{Empty},
             DescriptorList<ShaderResourceType> materialSrv = {})
         {
             assert(placeholderIndexCount >= 0);
@@ -57,7 +57,7 @@ namespace TY
             return 1;
         }
 
-        const MaterialList<DescriptorList<ConstantBufferImpl>>& materialCbv() const override
+        const MaterialList<DescriptorList<ConstantBufferObject>>& materialCbv() const override
         {
             return m_materialCbv;
         }
@@ -70,7 +70,7 @@ namespace TY
     private:
         GenericModelShapeBufferElement m_shape{};
 
-        MaterialList<DescriptorList<ConstantBufferImpl>> m_materialCbv{};
+        MaterialList<DescriptorList<ConstantBufferObject>> m_materialCbv{};
 
         MaterialList<DescriptorList<ShaderResourceType>> m_materialSrv{};
     };

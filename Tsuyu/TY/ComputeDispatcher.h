@@ -14,7 +14,7 @@ namespace TY
 
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
-        DescriptorList<ConstantBufferImpl> cbv{}; // from b0
+        DescriptorList<ConstantBufferObject> cbv{}; // from b0
 
         DescriptorList<ShaderResourceType> srv{}; // from t0
 
@@ -26,7 +26,7 @@ namespace TY
 
         ComputeDispatcherParams& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
 
-        ComputeDispatcherParams& setCbv(const DescriptorList<ConstantBufferImpl>& cbv_);
+        ComputeDispatcherParams& setCbv(const DescriptorList<ConstantBufferObject>& cbv_);
 
         ComputeDispatcherParams& setSrv(const DescriptorList<ShaderResourceType>& srv_);
 
