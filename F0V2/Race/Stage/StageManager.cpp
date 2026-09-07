@@ -12,7 +12,6 @@
 #include "Race/Common/CourseModelBuilder.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
-#include "TY/ConstantBufferWrapper.h"
 #include "TY/DynamicTexture.h"
 #include "TY/Graphics3D.h"
 #include "TY/ModelDrawer.h"
@@ -403,7 +402,7 @@ private:
             {
                 constexpr float groundY = -100.0f;
                 m_groundPlaneDrawer
-                    .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, groundY, z * 100.0f}))
+                    .setWorldMatrix(Mat4x4::Translate({x * 100.0f, groundY, z * 100.0f}))
                     .draw();
             }
         }

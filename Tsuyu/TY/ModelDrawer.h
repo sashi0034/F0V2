@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "CbvSrvUav.h"
-#include "ConstantBufferArray.h"
+#include "ConstantBuffer.h"
 #include "GenericModelDrawer.h"
 #include "GraphicsOptions.h"
 #include "Mat4x4.h"
@@ -17,9 +17,11 @@ namespace TY
 
         GraphicsOptions options{GraphicsOptions::Default3D()};
 
-        Array<ConstantBufferArrayImpl> cbv10AndLater{};
+        DescriptorList<ConstantBufferObject> cbv10AndLater{};
 
-        Array<ShaderResourceType> srv10AndLater{};
+        DescriptorList<ShaderResourceObject> srv10AndLater{};
+
+        int dynamicCbvCount{};
 
         ModelDrawerParams& loadModel(const std::string& filename);
 
@@ -31,9 +33,11 @@ namespace TY
 
         ModelDrawerParams& setOptions(const GraphicsOptions& options_);
 
-        ModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferArrayImpl>& cbv);
+        ModelDrawerParams& setCbv10AndLater(const DescriptorList<ConstantBufferObject>& cbv);
 
-        ModelDrawerParams& setSrv10AndLater(const Array<ShaderResourceType>& srv);
+        ModelDrawerParams& setSrv10AndLater(const DescriptorList<ShaderResourceObject>& srv);
+
+        ModelDrawerParams& setDynamicCbvCount(int count);
     };
 
     class ModelDrawer
@@ -43,7 +47,7 @@ namespace TY
 
         ModelDrawer(const ModelDrawerParams& params);
 
-        const ModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
+        const ModelDrawer& setWorldMatrix(const Mat4x4& worldMatrix) const;
 
         void draw() const;
 

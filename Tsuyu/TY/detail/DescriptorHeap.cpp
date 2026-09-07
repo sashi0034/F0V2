@@ -45,12 +45,25 @@ namespace
 
     bool checkTableValid(const DescriptorHeapParams& params, int tableId)
     {
-        if (params.descriptors[tableId].cbv.size() != params.table[tableId].cbvCount)
+        if (params.descriptors[tableId].cbv.size() != params.materialCounts[tableId])
+        {
+            LogError(std::format(
+                "DescriptorHeap: Constant buffer elements count mismatch for table[{}]: {} != {}",
+                tableId,
+                params.descriptors[tableId].cbv.size(),
+                params.materialCounts[tableId]));
+            return false;
+        }
+
+        // FIXME?
+        const int cbvCountPerMaterial =
+            params.descriptors[tableId].cbv.empty() ? 0 : params.descriptors[tableId].cbv[0].size();
+        if (cbvCountPerMaterial != params.table[tableId].cbvCount)
         {
             LogError(std::format(
                 "DescriptorHeap: Constant buffer count mismatch for table[{}]: {} != {}",
                 tableId,
-                params.descriptors[tableId].cbv.size(),
+                cbvCountPerMaterial,
                 params.table[tableId].cbvCount));
             return false;
         }
@@ -91,25 +104,17 @@ namespace
         int materialId,
         const DescriptorHeapParams& params)
     {
-        const auto& cb = params.descriptors[tableId].cbv[cbvId];
-        if (not cb.isEmpty() && cb.materialCount() != params.materialCounts[tableId])
-        {
-            LogError(std::format(
-                "DescriptorHeap: Constant buffer count mismatch: {} != {}",
-                cb.materialCount(),
-                params.materialCounts[tableId]));
-            return false;
-        }
+        const auto& cb = params.descriptors[tableId].cbv[materialId][cbvId];
 
         D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-        cbvDesc.BufferLocation = cb.bufferLocation() + materialId * cb.alignedSize();
+        cbvDesc.BufferLocation = cb.bufferLocation();
         cbvDesc.SizeInBytes = static_cast<UINT>(cb.alignedSize());
         RenderContext_singleton::GetDevice()->CreateConstantBufferView(&cbvDesc, heapHandle);
 
         return true;
     }
 
-    bool createShaderResourceViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const ShaderResourceType& srv)
+    bool createShaderResourceViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const ShaderResourceObject& srv)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         ID3D12Resource* p_resource{};
@@ -126,9 +131,9 @@ namespace
 
             p_resource = texture.getResource();
         }
-        else if (srv.isHolds<StructuredBuffer>())
+        else if (srv.isHolds<StructuredBufferObject>())
         {
-            const auto& t = srv.get<StructuredBuffer>();
+            const auto& t = srv.get<StructuredBufferObject>();
             const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer();
 
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -183,7 +188,7 @@ namespace
         return createShaderResourceViewInternal(heapHandle, sr);
     }
 
-    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const UnorderedAccessType& uav)
+    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const UnorderedAccessObject& uav)
     {
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         ID3D12Resource* pResource{};
@@ -200,9 +205,9 @@ namespace
 
             pResource = t.getResource();
         }
-        else if (uav.isHolds<UnorderedStructuredBuffer>())
+        else if (uav.isHolds<UnorderedStructuredBufferObject>())
         {
-            const auto& t = uav.get<UnorderedStructuredBuffer>();
+            const auto& t = uav.get<UnorderedStructuredBufferObject>();
             const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer(); // FIXME
 
             uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -347,10 +352,10 @@ struct DescriptorHeap::Impl
 
     ~Impl()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_descriptorHeap);
+        RenderContext_singleton::SafeDisposeRenderObject(m_descriptorHeap);
     }
 
-    void RegisterSRV(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
+    void RegisterSRV(const ShaderResourceObject& srv, int tableId, int srvId, int materialId)
     {
         if (not m_descriptors[tableId].srv[materialId][srvId].isEmpty())
         {
@@ -370,7 +375,7 @@ struct DescriptorHeap::Impl
                 D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
-        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
+        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv[materialId].size();
 
         // SRV
         heapHandle.ptr += incrementSize * srvId;
@@ -378,7 +383,7 @@ struct DescriptorHeap::Impl
         createShaderResourceViewInternal(heapHandle, srv);
     }
 
-    void ReisterUAV(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
+    void RegisterUAV(const UnorderedAccessObject& uav, int tableId, int uavId, int materialId)
     {
         if (not m_descriptors[tableId].uav[materialId][uavId].isEmpty())
         {
@@ -398,7 +403,7 @@ struct DescriptorHeap::Impl
                 D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         // CBV
-        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv.size();
+        heapHandle.ptr += incrementSize * m_descriptors[tableId].cbv[materialId].size();
 
         // SRV
         heapHandle.ptr += incrementSize * m_descriptors[tableId].srv.size();
@@ -441,14 +446,14 @@ namespace TY::detail
         }
     }
 
-    void DescriptorHeap::registerSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
+    void DescriptorHeap::registerSrv(const ShaderResourceObject& srv, int tableId, int srvId, int materialId)
     {
         if (p_impl) p_impl->RegisterSRV(srv, tableId, srvId, materialId);
     }
 
-    void DescriptorHeap::registerUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
+    void DescriptorHeap::registerUav(const UnorderedAccessObject& uav, int tableId, int uavId, int materialId)
     {
-        if (p_impl) p_impl->ReisterUAV(uav, tableId, uavId, materialId);
+        if (p_impl) p_impl->RegisterUAV(uav, tableId, uavId, materialId);
     }
 
     void DescriptorHeap::commandSet() const

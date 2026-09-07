@@ -1,13 +1,11 @@
 ﻿#pragma once
-#include "CommandListManager.h"
-#include "PipelineType.h"
-#include "TY/ConstantBuffer.h"
-#include "TY/ConstantBufferArray.h"
+#include "TY/DynamicBinding.h"
 #include "TY/IGpuMemoryUsage.h"
 #include "TY/Mat3x2.h"
 #include "TY/Mat4x4.h"
 #include "TY/RenderTarget.h"
 #include "TY/Variant.h"
+#include "PlacedBufferAllocator.h"
 
 namespace TY::detail
 {
@@ -17,7 +15,7 @@ namespace TY::detail
         Mat4x4 viewMatrix;
     };
 
-    using RenderResource = Variant<
+    using NativeRetainedRenderObject = Variant<
         ComPtr<ID3DBlob>,
         ComPtr<ID3D12Resource>,
         ComPtr<ID3D12PipelineState>,
@@ -61,12 +59,11 @@ namespace TY::detail
         [[nodiscard]]
         Mat3x2 FrameBufferToWindow();
 
-        void RefreshSceneStateIfNeeded();
+        DynamicCbvHandle GetSceneStateDynamicCbv();
 
-        [[nodiscard]]
-        ConstantBuffer<SceneState3D_b0> GetSceneState3D_CB0();
+        void SafeDisposeRenderObject(const NativeRetainedRenderObject& renderObject);
 
-        void SafeDisposeRenderResource(const RenderResource& renderResource);
+        void SafeDisposeRenderObject(const PlacedBufferAllocation::Ptr& renderObject);
 
         size_t GetFlushTimestamp();
 

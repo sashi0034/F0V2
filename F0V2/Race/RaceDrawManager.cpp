@@ -9,7 +9,7 @@
 #include "Common/RaceDrawUpscaler.h"
 #include "Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
-#include "TY/ConstantBufferWrapper.h"
+#include "TY/DynamicBinding.h"
 #include "TY/Graphics3D.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
@@ -262,8 +262,9 @@ private:
         cropMatrix.mat.r[3].m128_f32[0] = translation.x;
         cropMatrix.mat.r[3].m128_f32[1] = translation.y;
 
-        g_sharedState->cb.shadowCaster->g_worldToShadowProjection = shadowViewProjection * cropMatrix;
-        g_sharedState->cb.shadowCaster.upload();
+        g_sharedState->cb.shadowCaster.g_worldToShadowProjection = shadowViewProjection * cropMatrix;
+        g_sharedState->cb.shadowCasterCbv =
+            DynamicBinding::UploadDynamicCbv(g_sharedState->cb.shadowCaster);
     }
 
     float orderPriority() const override

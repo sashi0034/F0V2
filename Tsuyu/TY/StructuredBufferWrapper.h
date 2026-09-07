@@ -38,13 +38,13 @@ namespace TY
         }
 
         [[nodiscard]]
-        operator StructuredBuffer() const
+        operator StructuredBufferObject() const
         {
             return m_buffer;
         }
 
     private:
-        StructuredBufferT<T> m_buffer{};
+        StructuredBuffer<T> m_buffer{};
         Array<T> m_data{};
     };
 }

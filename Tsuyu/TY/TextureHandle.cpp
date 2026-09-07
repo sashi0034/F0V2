@@ -14,7 +14,7 @@ struct TextureHandle::Impl
 
     ~Impl()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_textureBuffer);
+        RenderContext_singleton::SafeDisposeRenderObject(m_textureBuffer);
     }
 
     void TransitionResourceState(D3D12_RESOURCE_STATES newState)

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "DynamicHandle.h"
 #include "Mat4x4.h"
 
 namespace TY
@@ -28,8 +29,12 @@ namespace TY
 
         void DrawTriangles(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
 
+        void DrawTriangles(const DynamicVertexBufferHandle& vertexBuffer, const DynamicIndexBufferHandle& indexBuffer);
+
         void DrawLines(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer);
 
         void DrawLines(const VertexBufferImpl& vertexBuffer, const IndexBuffer& indexBuffer, int indexCount);
+
+        void DrawLines(const DynamicVertexBufferHandle& vertexBuffer, const DynamicIndexBufferHandle& indexBuffer);
     }
 }

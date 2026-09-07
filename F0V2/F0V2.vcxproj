@@ -222,7 +222,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Machine\MachineEventHandler.cpp" />
     <ClCompile Include="Race\RaceDrawManager.cpp" />
     <ClCompile Include="Race\RaceController.cpp" />
-    <ClCompile Include="Testbed\Testbed_WaveTest.cpp" />
     <ClCompile Include="Testbed\Testbed_Shadertoy.cpp" />
     <ClCompile Include="Editor\EditorScene.cpp" />
     <ClCompile Include="Editor\EditorNodeTool.cpp" />
@@ -250,10 +249,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\RaceCameraController.cpp" />
     <ClCompile Include="Race\Stage\StageStaticCollider.cpp" />
     <ClCompile Include="Race\Stage\StageManager.cpp" />
-    <ClCompile Include="Testbed\Testbed_Collision1.cpp" />
-    <ClCompile Include="Testbed\Testbed_Collision2.cpp" />
-    <ClCompile Include="Testbed\Testbed_Collision3.cpp" />
-    <ClCompile Include="Testbed\Testbed_Intersection.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHandle.cpp" />
     <ClCompile Include="TY_Extension\GameObjectHierarchy.cpp" />
     <ClCompile Include="TY_Extension\Pose.cpp" />
@@ -281,7 +276,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Testbed\Testbed_AirCombat.cpp" />
     <ClCompile Include="Testbed\Testbed_Basic3D.cpp" />
     <ClCompile Include="Testbed\Testbed_Font.cpp" />
-    <ClCompile Include="Testbed\Testbed_Ocean.cpp" />
     <ClCompile Include="Testbed\Testbed_ShadowMap.cpp" />
     <ClCompile Include="Testbed\Testbed_ImmediateDrawer.cpp" />
     <Content Include="Editor\Editor_template.cpp.txt" />
@@ -369,7 +363,6 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Machine\MachineEventHandler.h" />
     <ClInclude Include="Race\RaceDrawManager.h" />
     <ClInclude Include="Race\RaceController.h" />
-    <ClInclude Include="Testbed\Testbed_WaveTest.h" />
     <ClInclude Include="Testbed\Testbed_Shadertoy.h" />
     <ClInclude Include="Editor\EditorScene.h" />
     <ClInclude Include="Editor\EditorState.h" />
@@ -403,12 +396,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Stage\StageManager.h" />
     <ClInclude Include="Testbed\Testbed_AirCombat.h" />
     <ClInclude Include="Testbed\Testbed_Basic3D.h" />
-    <ClInclude Include="Testbed\Testbed_Collision1.h" />
-    <ClInclude Include="Testbed\Testbed_Collision2.h" />
-    <ClInclude Include="Testbed\Testbed_Collision3.h" />
-    <ClInclude Include="Testbed\Testbed_Intersection.h" />
     <ClInclude Include="Testbed\Testbed_Font.h" />
-    <ClInclude Include="Testbed\Testbed_Ocean.h" />
     <ClInclude Include="Testbed\Testbed_ShadowMap.h" />
     <ClInclude Include="Testbed\Testbed_ImmediateDrawer.h" />
     <ClInclude Include="pch.h" />

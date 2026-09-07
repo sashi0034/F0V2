@@ -28,7 +28,7 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
 
     ~Impl()
     {
-        DisposeRenderResource();
+        DisposeRenderObject();
     }
 
     uint64_t timestamp() const override
@@ -36,17 +36,17 @@ struct ComputePipelineState::Impl : IEngineHotReloadable
         return m_timestamp;
     }
 
-    void DisposeRenderResource()
+    void DisposeRenderObject()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_pso);
-        RenderContext_singleton::SafeDisposeRenderResource(m_rootSignature.get());
+        RenderContext_singleton::SafeDisposeRenderObject(m_pso);
+        RenderContext_singleton::SafeDisposeRenderObject(m_rootSignature.get());
     }
 
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
 
-        DisposeRenderResource();
+        DisposeRenderObject();
 
         if (not m_params.computeShader.isEmpty())
         {
@@ -89,7 +89,7 @@ private:
         m_rootSignature = RootSignature(RootSignatureParams{
             .samplers = params.samplers,
             .descriptorTable = params.descriptorTable,
-            .explicitRegisterStarts = params.explicitRegisterStarts
+            .dynamicDescriptorTable = params.dynamicDescriptorTable,
         });
 
         D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
@@ -126,6 +126,17 @@ namespace TY::detail
     DescriptorTable ComputePipelineState::descriptorTable() const
     {
         return p_impl ? p_impl->m_params.descriptorTable : DescriptorTable{};
+    }
+
+    int ComputePipelineState::dynamicBindingRootParameterOffset() const
+    {
+        return p_impl ? p_impl->m_rootSignature.dynamicBindingRootParameterOffset() : 0;
+    }
+
+    const Array<DynamicDescriptorEntry>& ComputePipelineState::resolvedDynamicDescriptorTable() const
+    {
+        static const Array<DynamicDescriptorEntry> Empty{};
+        return p_impl ? p_impl->m_rootSignature.resolvedDynamicDescriptorTable() : Empty;
     }
 
     void ComputePipelineState::commandSet(CommandListType commandList) const

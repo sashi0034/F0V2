@@ -61,7 +61,6 @@ namespace TY
         [[nodiscard]]
         ScopedRenderTarget scopedBind() const;
 
-        // TODO: Rename?
         [[nodiscard]]
         TextureHandle getFrontRtv() const;
 

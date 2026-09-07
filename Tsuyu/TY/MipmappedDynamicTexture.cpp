@@ -50,10 +50,10 @@ struct MipmappedDynamicTexture::Impl
         //         frameResource.uploadBuffer->Unmap(0, nullptr);
         //     }
         //
-        //     EngineRenderContext::SafeDisposeRenderResource(frameResource.uploadBuffer);
+        //     EngineRenderContext::SafeDisposeRenderObject(frameResource.uploadBuffer);
         // }
 
-        RenderContext_singleton::SafeDisposeRenderResource(m_uploadBuffer); // TODO
+        RenderContext_singleton::SafeDisposeRenderObject(m_uploadBuffer); // TODO
     }
 
     bool Create(const ImageView& image)

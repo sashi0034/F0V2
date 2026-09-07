@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "DescriptorTable.h"
-#include "ShaderRegisterStart.h"
+#include "DescriptorEntry.h"
+#include "DynamicDescriptorEntry.h"
 #include "TY/GraphicsOptions.h"
 
 namespace TY::detail
@@ -8,8 +8,8 @@ namespace TY::detail
     struct RootSignatureParams
     {
         Array<GraphicsSamplerOptions> samplers;
-        Array<DescriptorTableElement> descriptorTable;
-        Array<ShaderRegisterStart> explicitRegisterStarts;
+        Array<DescriptorEntry> descriptorTable;
+        Array<DynamicDescriptorEntry> dynamicDescriptorTable{};
     };
 
     class RootSignature
@@ -29,7 +29,19 @@ namespace TY::detail
             return m_rootSignature.Get();
         }
 
+        int dynamicBindingRootParameterOffset() const
+        {
+            return m_dynamicBindingRootParameterOffset;
+        }
+
+        const Array<DynamicDescriptorEntry>& resolvedDynamicDescriptorTable() const
+        {
+            return m_resolvedDynamicDescriptorTable;
+        }
+
     private:
         ComPtr<ID3D12RootSignature> m_rootSignature{};
+        int m_dynamicBindingRootParameterOffset{};
+        Array<DynamicDescriptorEntry> m_resolvedDynamicDescriptorTable{};
     };
 }

@@ -1,24 +1,22 @@
 ﻿#pragma once
-#include "CommandListManager.h"
-#include "DescriptorTable.h"
-#include "PipelineType.h"
+#include "DescriptorEntry.h"
 #include "TY/CbvSrvUav.h"
-#include "TY/ConstantBufferArray.h"
+#include "TY/ConstantBuffer.h"
+#include "TY/HybridArray.h"
+#include "TY/MaterialList.h"
 
 namespace TY::detail
 {
     struct CbvSrvUavSet
     {
-        // TODO: それぞれ配列をクラス派生したい
-
-        /// @remark [cbvCount], ConstantBuffer::count() = materialCount
-        Array<ConstantBufferArrayImpl> cbv;
+        /// @remark [materialCount][cbvCount]
+        MaterialList<DescriptorList<ConstantBufferObject>> cbv;
 
         /// @remark [materialCount][srvCount]
-        Array<Array<ShaderResourceType>> srv;
+        MaterialList<DescriptorList<ShaderResourceObject>> srv;
 
         /// @remark [materialCount][uavCount]
-        Array<Array<UnorderedAccessType>> uav;
+        MaterialList<DescriptorList<UnorderedAccessObject>> uav;
     };
 
     struct DescriptorHeapParams
@@ -36,9 +34,9 @@ namespace TY::detail
         DescriptorHeap(const DescriptorHeapParams& params);
 
         /// @remark 空の場合のみ登録可能
-        void registerSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId = 0);
+        void registerSrv(const ShaderResourceObject& srv, int tableId, int srvId, int materialId = 0);
 
-        void registerUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId = 0);
+        void registerUav(const UnorderedAccessObject& uav, int tableId, int uavId, int materialId = 0);
 
         void commandSet() const;
 

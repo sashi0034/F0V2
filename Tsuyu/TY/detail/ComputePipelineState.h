@@ -1,14 +1,14 @@
 ﻿#pragma once
 #include "CommandListManager.h"
-#include "DescriptorTable.h"
-#include "ShaderRegisterStart.h"
+#include "DescriptorEntry.h"
+#include "DynamicDescriptorEntry.h"
 #include "TY/Array.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"
 
 namespace TY::detail
 {
-    struct DescriptorTableElement;
+    struct DescriptorEntry;
 
     struct ComputePipelineStateParams
     {
@@ -16,9 +16,9 @@ namespace TY::detail
 
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
-        Array<DescriptorTableElement> descriptorTable;
+        Array<DescriptorEntry> descriptorTable;
 
-        Array<ShaderRegisterStart> explicitRegisterStarts{};
+        Array<DynamicDescriptorEntry> dynamicDescriptorTable{};
     };
 
     class ComputePipelineState
@@ -29,6 +29,10 @@ namespace TY::detail
         ComputePipelineState(const ComputePipelineStateParams& params);
 
         DescriptorTable descriptorTable() const;
+
+        int dynamicBindingRootParameterOffset() const;
+
+        const Array<DynamicDescriptorEntry>& resolvedDynamicDescriptorTable() const;
 
         void commandSet(CommandListType commandList) const;
 

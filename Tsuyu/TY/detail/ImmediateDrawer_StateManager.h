@@ -40,6 +40,6 @@ namespace TY::ImmediateDrawer_detail
 
         std::optional<state_type> m_next{};
 
-        state_type& getNext();
+        state_type& fetchNext();
     };
 }

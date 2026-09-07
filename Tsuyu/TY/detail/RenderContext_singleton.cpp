@@ -10,7 +10,7 @@
 #include "Window_singleton.h"
 #include "GpuMemoryUsage.h"
 #include "SceneState3D_singleton.h"
-#include "TY/ConstantBuffer.h"
+#include "TY/DynamicBinding.h"
 #include "TY/Logger.h"
 #include "TY/Mat3x2.h"
 #include "TY/ProcessUtils.h"
@@ -81,10 +81,15 @@ namespace
         return pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";
     }
 
-    bool isNull(const RenderResource& renderResource)
+    bool isNull(const NativeRetainedRenderObject& renderObject)
     {
-        return std::visit([](auto&& arg) { return arg == nullptr; }, renderResource);
+        return std::visit([](auto&& arg) { return arg == nullptr; }, renderObject);
     }
+
+    using RetainedRenderObject = Variant<
+        NativeRetainedRenderObject,
+        PlacedBufferAllocation::Ptr
+    >;
 }
 
 struct RenderContextImpl
@@ -119,9 +124,17 @@ struct RenderContextImpl
 
     std::optional<bool> m_wantsFullscreen{};
 
-    ConstantBuffer<SceneState3D_b0> m_sceneState3D{Empty};
+    SceneState3D_b0 m_sceneState3DValue{};
 
-    std::array<Array<RenderResource>, RenderContext_singleton::FrameBufferCount> m_disposedRenderResources{};
+    size_t m_sceneState3DRevision{};
+
+    DynamicCbvHandle m_dynamicSceneState3DHandle{};
+
+    size_t m_dynamicSceneState3DTimestamp{std::numeric_limits<size_t>::max()};
+
+    size_t m_dynamicSceneState3DRevision{std::numeric_limits<size_t>::max()};
+
+    std::array<Array<RetainedRenderObject>, RenderContext_singleton::FrameBufferCount> m_disposedRenderObjects{};
 
     // Copy のフラッシュとともに加算
     size_t m_flushTimestamp{};
@@ -235,9 +248,6 @@ struct RenderContextImpl
         // バックバッファ作成
         setupBackBuffers();
 
-        // 共通コンスタントバッファの初期化
-        m_sceneState3D = ConstantBuffer<SceneState3D_b0>{};
-
         m_valid = true;
     }
 
@@ -268,23 +278,11 @@ struct RenderContextImpl
         m_swapChain->Present(1, 0);
     }
 
-    Array<RenderResource>& CurrentDisposedRenderResources()
+    Array<RetainedRenderObject>& CurrentDisposedRenderObjects()
     {
         const size_t index = m_flushTimestamp % RenderContext_singleton::FrameBufferCount;
-        return m_disposedRenderResources[index];
+        return m_disposedRenderObjects[index];
     }
-
-    // void FlushComputeCommandSync()
-    // {
-    //     m_copyCommandList.CloseAndFlushAfter(m_drawCommandList);
-    //     m_computeCommandList.CloseAndFlushAfter(m_copyCommandList);
-    //
-    //     m_flushTimestamp++;
-    //
-    //     CurrentDisposedRenderResources().clear();
-    //
-    //     m_computeCommandList.WaitLastFlush();
-    // }
 
     void SubmitCommand()
     {
@@ -292,7 +290,7 @@ struct RenderContextImpl
 
         m_flushTimestamp++;
 
-        CurrentDisposedRenderResources().clear();
+        CurrentDisposedRenderObjects().clear();
     }
 
     CommandListManager& GetCommandList(CommandListType type)
@@ -315,13 +313,35 @@ struct RenderContextImpl
     {
         if (SceneState3D_singleton::ShouldRefresh())
         {
-            SceneState3D_b0 b{};
-            b.projectionMatrix = SceneState3D_singleton::GetProjectionMatrix();
-            b.viewMatrix = SceneState3D_singleton::GetViewMatrix();
-            m_sceneState3D.upload(b);
+            m_sceneState3DValue.projectionMatrix = SceneState3D_singleton::GetProjectionMatrix();
+            m_sceneState3DValue.viewMatrix = SceneState3D_singleton::GetViewMatrix();
+            ++m_sceneState3DRevision;
 
             SceneState3D_singleton::OnRefreshed();
         }
+    }
+
+    DynamicCbvHandle GetSceneStateDynamicCbv()
+    {
+        RefreshSceneStateIfNeeded();
+
+        const size_t timestamp = m_flushTimestamp;
+        if (m_dynamicSceneState3DHandle.address == 0 ||
+            m_dynamicSceneState3DTimestamp != timestamp ||
+            m_dynamicSceneState3DRevision != m_sceneState3DRevision)
+        {
+            const auto cbv = DynamicBinding::UploadDynamicCbv(m_sceneState3DValue);
+            if (cbv.address == 0)
+            {
+                return DynamicCbvHandle{0};
+            }
+
+            m_dynamicSceneState3DHandle = cbv;
+            m_dynamicSceneState3DTimestamp = timestamp;
+            m_dynamicSceneState3DRevision = m_sceneState3DRevision;
+        }
+
+        return m_dynamicSceneState3DHandle;
     }
 
     void OnShutdown()
@@ -496,7 +516,7 @@ private:
 
         m_backBuffers = {};
 
-        for (auto& rsc : m_disposedRenderResources)
+        for (auto& rsc : m_disposedRenderObjects)
         {
             rsc.clear();
         }
@@ -546,6 +566,11 @@ namespace TY::detail
     void RenderContext_singleton::Shutdown()
     {
         s_renderContext.OnShutdown();
+
+        for (auto& resources : s_renderContext.m_disposedRenderObjects)
+        {
+            resources.clear();
+        }
 
         s_renderContext = {};
 
@@ -601,22 +626,22 @@ namespace TY::detail
         return s_renderContext.m_frameBufferToWindow;
     }
 
-    void RenderContext_singleton::RefreshSceneStateIfNeeded()
+    DynamicCbvHandle RenderContext_singleton::GetSceneStateDynamicCbv()
     {
-        s_renderContext.RefreshSceneStateIfNeeded();
+        return s_renderContext.GetSceneStateDynamicCbv();
     }
 
-    ConstantBuffer<SceneState3D_b0> RenderContext_singleton::GetSceneState3D_CB0()
+    void RenderContext_singleton::SafeDisposeRenderObject(const NativeRetainedRenderObject& renderObject)
     {
-        return s_renderContext.m_sceneState3D;
-    }
-
-    void RenderContext_singleton::SafeDisposeRenderResource(const RenderResource& renderResource)
-    {
-        if (not isNull(renderResource))
+        if (not isNull(renderObject))
         {
-            s_renderContext.CurrentDisposedRenderResources().push_back(renderResource);
+            s_renderContext.CurrentDisposedRenderObjects().push_back(renderObject);
         }
+    }
+
+    void RenderContext_singleton::SafeDisposeRenderObject(const PlacedBufferAllocation::Ptr& renderObject)
+    {
+        s_renderContext.CurrentDisposedRenderObjects().push_back(renderObject);
     }
 
     size_t RenderContext_singleton::GetFlushTimestamp()

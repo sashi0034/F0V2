@@ -84,11 +84,11 @@ struct RenderTarget::Impl
 
     ~Impl()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_rtvDescriptorHeap);
-        RenderContext_singleton::SafeDisposeRenderResource(m_dsvDescriptorHeap);
+        RenderContext_singleton::SafeDisposeRenderObject(m_rtvDescriptorHeap);
+        RenderContext_singleton::SafeDisposeRenderObject(m_dsvDescriptorHeap);
 
-        // EngineRenderContext::SafeDisposeRenderResource(m_rtvResource);
-        // RenderContext_singleton::SafeDisposeRenderResource(m_dsvHandle);
+        // EngineRenderContext::SafeDisposeRenderObject(m_rtvResource);
+        // RenderContext_singleton::SafeDisposeRenderObject(m_dsvHandle);
     }
 
     bool CreateInternal(const RenderTargetParams& params)

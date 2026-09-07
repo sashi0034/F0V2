@@ -88,7 +88,6 @@ namespace TY::detail
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 
         // ディスクリプタテーブルの設定
-        std::span explicitRegisterStarts = params.explicitRegisterStarts;
         std::vector<D3D12_ROOT_PARAMETER> rootParameters{};
         std::vector<std::vector<D3D12_DESCRIPTOR_RANGE>> descriptorRanges{};
         int cbvOffset{};
@@ -97,79 +96,88 @@ namespace TY::detail
         descriptorRanges.resize(descriptorTable.size());
         for (int tableIndex = 0; tableIndex < descriptorTable.size(); ++tableIndex)
         {
-            if (not explicitRegisterStarts.empty() && tableIndex == explicitRegisterStarts[0].descriptorTableIndex)
+            const auto& descriptorTableElement = descriptorTable[tableIndex];
+
+            // 明示的なレジスタ開始番号が指定されている場合、オフセットを変更
+            if (descriptorTableElement.cbvCount > 0 &&
+                descriptorTableElement.cbvSlot != DescriptorEntry::AutoSlot)
             {
-                // 明示的なレジスタ開始番号が指定されている場合、オフセットを変更
-                if (explicitRegisterStarts[0].cbvStart >= cbvOffset)
+                if (descriptorTableElement.cbvSlot >= cbvOffset)
                 {
-                    cbvOffset = explicitRegisterStarts[0].cbvStart;
+                    cbvOffset = descriptorTableElement.cbvSlot;
                 }
                 else
                 {
                     LogError(std::format(
-                        "RootSignature: cbvOffset is greater than explicit cbvStart in table {}.", tableIndex));
+                        "RootSignature: cbvOffset is greater than explicit cbvSlot in table {}.", tableIndex));
                 }
+            }
 
-                if (explicitRegisterStarts[0].srvStart >= srvOffset)
+            if (descriptorTableElement.srvCount > 0 &&
+                descriptorTableElement.srvSlot != DescriptorEntry::AutoSlot)
+            {
+                if (descriptorTableElement.srvSlot >= srvOffset)
                 {
-                    srvOffset = explicitRegisterStarts[0].srvStart;
+                    srvOffset = descriptorTableElement.srvSlot;
                 }
                 else
                 {
                     LogError(std::format(
-                        "RootSignature: srvOffset is greater than explicit srvStart in table {}.", tableIndex));
+                        "RootSignature: srvOffset is greater than explicit srvSlot in table {}.", tableIndex));
                 }
+            }
 
-                if (explicitRegisterStarts[0].uavStart >= uavOffset)
+            if (descriptorTableElement.uavCount > 0 &&
+                descriptorTableElement.uavSlot != DescriptorEntry::AutoSlot)
+            {
+                if (descriptorTableElement.uavSlot >= uavOffset)
                 {
-                    uavOffset = explicitRegisterStarts[0].uavStart;
+                    uavOffset = descriptorTableElement.uavSlot;
                 }
                 else
                 {
                     LogError(std::format(
-                        "RootSignature: uavOffset is greater than explicit uavStart in table {}.", tableIndex));
+                        "RootSignature: uavOffset is greater than explicit uavSlot in table {}.", tableIndex));
                 }
-
-                explicitRegisterStarts = explicitRegisterStarts.subspan(1);
             }
 
             // CBV 設定
-            if (descriptorTable[tableIndex].cbvCount > 0)
+            if (descriptorTableElement.cbvCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
-                d.NumDescriptors = descriptorTable[tableIndex].cbvCount;
+                d.NumDescriptors = static_cast<UINT>(descriptorTableElement.cbvCount);
                 d.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
                 d.BaseShaderRegister = cbvOffset;
                 d.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
                 descriptorRanges[tableIndex].push_back(d);
-                cbvOffset += descriptorTable[tableIndex].cbvCount;
+                cbvOffset += descriptorTableElement.cbvCount;
             }
 
             // SRV 設定
-            if (descriptorTable[tableIndex].srvCount > 0)
+            if (descriptorTableElement.srvCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
-                d.NumDescriptors = descriptorTable[tableIndex].srvCount;
+                d.NumDescriptors = static_cast<UINT>(descriptorTableElement.srvCount);
                 d.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
                 d.BaseShaderRegister = srvOffset;
                 d.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
                 descriptorRanges[tableIndex].push_back(d);
-                srvOffset += descriptorTable[tableIndex].srvCount;
+                srvOffset += descriptorTableElement.srvCount;
             }
 
             // UAV 設定
-            if (descriptorTable[tableIndex].uavCount > 0)
+            if (descriptorTableElement.uavCount > 0)
             {
                 D3D12_DESCRIPTOR_RANGE d{};
-                d.NumDescriptors = descriptorTable[tableIndex].uavCount;
+                d.NumDescriptors = static_cast<UINT>(descriptorTableElement.uavCount);
                 d.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
                 d.BaseShaderRegister = uavOffset;
                 d.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
                 descriptorRanges[tableIndex].push_back(d);
-                uavOffset += descriptorTable[tableIndex].uavCount;
+                uavOffset += descriptorTableElement.uavCount;
             }
 
             // ルートパラメータの設定
@@ -180,6 +188,53 @@ namespace TY::detail
             rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
             rootParameters.push_back(rootParameter);
+        }
+
+        // Dynamic CBV / SRV 設定
+        m_dynamicBindingRootParameterOffset = static_cast<int>(rootParameters.size());
+        for (const auto& dynamicDescriptor : params.dynamicDescriptorTable)
+        {
+            if (dynamicDescriptor.cbvCount == 0 && dynamicDescriptor.srvCount == 0)
+            {
+                continue;
+            }
+
+            int dynamicCbvOffset = cbvOffset;
+            if (dynamicDescriptor.cbvSlot != DynamicDescriptorEntry::AutoSlot)
+            {
+                dynamicCbvOffset = dynamicDescriptor.cbvSlot;
+            }
+
+            auto resolvedDynamicDescriptor = dynamicDescriptor;
+            resolvedDynamicDescriptor.cbvSlot = dynamicCbvOffset;
+            const int dynamicSrvOffset = dynamicDescriptor.srvSlot == DynamicDescriptorEntry::AutoSlot
+                ? srvOffset : dynamicDescriptor.srvSlot;
+            resolvedDynamicDescriptor.srvSlot = dynamicSrvOffset;
+            m_resolvedDynamicDescriptorTable.push_back(resolvedDynamicDescriptor);
+
+            for (int i = 0; i < dynamicDescriptor.cbvCount; ++i)
+            {
+                const int slotIndex = dynamicCbvOffset + i;
+                D3D12_ROOT_PARAMETER rootParameter{};
+                rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+                rootParameter.Descriptor.ShaderRegister = slotIndex;
+                rootParameter.Descriptor.RegisterSpace = 0;
+                rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+                rootParameters.push_back(rootParameter);
+            }
+
+            for (int i = 0; i < dynamicDescriptor.srvCount; ++i)
+            {
+                D3D12_ROOT_PARAMETER rootParameter{};
+                rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+                rootParameter.Descriptor.ShaderRegister = dynamicSrvOffset + i;
+                rootParameter.Descriptor.RegisterSpace = 0;
+                rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+                rootParameters.push_back(rootParameter);
+            }
+
+            cbvOffset = std::max(cbvOffset, dynamicCbvOffset + dynamicDescriptor.cbvCount);
+            srvOffset = std::max(srvOffset, dynamicSrvOffset + dynamicDescriptor.srvCount);
         }
 
         rootSignatureDesc.NumParameters = rootParameters.size();

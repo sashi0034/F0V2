@@ -163,7 +163,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
 
     ~Impl()
     {
-        DisposeRenderResource();
+        DisposeRenderObject();
     }
 
     uint64_t timestamp() const override
@@ -171,17 +171,17 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         return m_timestamp;
     }
 
-    void DisposeRenderResource()
+    void DisposeRenderObject()
     {
-        RenderContext_singleton::SafeDisposeRenderResource(m_pso);
-        RenderContext_singleton::SafeDisposeRenderResource(m_rootSignature.get());
+        RenderContext_singleton::SafeDisposeRenderObject(m_pso);
+        RenderContext_singleton::SafeDisposeRenderObject(m_rootSignature.get());
     }
 
     void HotReload() override
     {
         m_timestamp = System::FrameCount();
 
-        DisposeRenderResource();
+        DisposeRenderObject();
 
         if (not m_params.shader.ps.isEmpty() && not m_params.shader.vs.isEmpty())
         {
@@ -302,7 +302,7 @@ struct GraphicsPipelineState::Impl : IEngineHotReloadable
         m_rootSignature = RootSignature(RootSignatureParams{
             .samplers = params.options.samplers,
             .descriptorTable = params.descriptorTable,
-            .explicitRegisterStarts = params.explicitRegisterStarts
+            .dynamicDescriptorTable = params.dynamicDescriptorTable,
         });
 
         pipelineDesc.pRootSignature = m_rootSignature.getPointer();
@@ -330,10 +330,24 @@ namespace
     size_t hashParams(const GraphicsPipelineStateParams& params)
     {
         size_t hash = params.descriptorTable.size();
-        for (auto& d : params.descriptorTable)
+        for (const auto& descriptor : params.descriptorTable)
         {
-            const size_t h = d.cbvCount << 16 | d.srvCount << 8 | d.uavCount;
-            hash = combineHash(hash, h);
+            hash = combineHash(hash, static_cast<size_t>(descriptor.cbvSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.cbvCount));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.srvSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.srvCount));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.uavSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(descriptor.uavCount));
+        }
+
+        for (const auto& dynamicDescriptor : params.dynamicDescriptorTable)
+        {
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.cbvSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.cbvCount));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.srvSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.srvCount));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.uavSlot + 1));
+            hash = combineHash(hash, static_cast<size_t>(dynamicDescriptor.uavCount));
         }
 
         hash = combineHash(hash, params.shader.vs.unique_id());
@@ -445,7 +459,7 @@ namespace TY
         if (shader.vs.unique_id() != other.shader.vs.unique_id()) return false;
         if (options != other.options) return false;
         if (descriptorTable != other.descriptorTable) return false;
-        if (explicitRegisterStarts != other.explicitRegisterStarts) return false;
+        if (dynamicDescriptorTable != other.dynamicDescriptorTable) return false;
         return true;
     }
 
@@ -457,6 +471,17 @@ namespace TY
     DescriptorTable GraphicsPipelineState::descriptorTable() const
     {
         return p_impl ? p_impl->m_params.descriptorTable : DescriptorTable{};
+    }
+
+    int GraphicsPipelineState::dynamicBindingRootParameterOffset() const
+    {
+        return p_impl ? p_impl->m_rootSignature.dynamicBindingRootParameterOffset() : 0;
+    }
+
+    const Array<DynamicDescriptorEntry>& GraphicsPipelineState::resolvedDynamicDescriptorTable() const
+    {
+        static const Array<DynamicDescriptorEntry> Empty{};
+        return p_impl ? p_impl->m_rootSignature.resolvedDynamicDescriptorTable() : Empty;
     }
 
     void GraphicsPipelineState::commandSet() const

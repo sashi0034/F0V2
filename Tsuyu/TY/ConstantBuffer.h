@@ -1,45 +1,52 @@
 ﻿#pragma once
-#include "ConstantBufferArray.h"
+#include "Empty.h"
 
 namespace TY
 {
-    class ConstantBufferImpl
+    class ConstantBufferObject
     {
     public:
         [[nodiscard]]
-        ConstantBufferImpl(Empty_t)
+        ConstantBufferObject(Empty_t)
         {
         }
 
         [[nodiscard]]
-        ConstantBufferImpl(uint32_t sizeInBytes);
+        ConstantBufferObject(uint32_t sizeInBytes);
 
         void upload(const void* data) const;
 
         [[nodiscard]]
-        operator ConstantBufferArrayImpl() const;
+        bool isEmpty() const;
+
+        [[nodiscard]]
+        size_t alignedSize() const;
+
+        [[nodiscard]]
+        uint64_t bufferLocation() const;
 
     private:
-        ConstantBufferArrayImpl m_impl{Empty};
+        struct Impl;
+        std::shared_ptr<Impl> p_impl{};
     };
 
     template <class T>
-    class ConstantBuffer : public ConstantBufferImpl
+    class ConstantBuffer : public ConstantBufferObject
     {
     public:
         [[nodiscard]]
-        ConstantBuffer(Empty_t) : ConstantBufferImpl(Empty)
+        ConstantBuffer(Empty_t) : ConstantBufferObject(Empty)
         {
         }
 
         [[nodiscard]]
-        ConstantBuffer() : ConstantBufferImpl(sizeof(T))
+        ConstantBuffer() : ConstantBufferObject(sizeof(T))
         {
         }
 
         void upload(const T& data) const
         {
-            ConstantBufferImpl::upload(&data);
+            ConstantBufferObject::upload(&data);
         }
     };
 }

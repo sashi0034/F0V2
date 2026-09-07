@@ -190,7 +190,7 @@ struct Testbed_ImmediateDrawer_impl
             ModelDrawerParams{}
             .setModel(PrimitiveModel3D::TexturePlane(groundPlaneTexture, Float2{1024.0f, 1024.0f}))
             .setShader(m_shaders.model)
-        }.uploadWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
+        }.setWorldMatrix(Mat4x4::Translate({0.0f, groundPositionY, 0.0f}));
 
         m_playerDrawer = ModelDrawer{
             ModelDrawerParams{}
@@ -222,7 +222,7 @@ struct Testbed_ImmediateDrawer_impl
 
     void Update()
     {
-        m_playerDrawer.uploadWorldMatrix(m_playerPose.getMatrix()).draw();
+        m_playerDrawer.setWorldMatrix(m_playerPose.getMatrix()).draw();
 
         if (not KeyShift.pressed())
         {
@@ -272,11 +272,11 @@ struct Testbed_ImmediateDrawer_impl
 
         // -----------------------------------------------
 
-        m_skydomeModel.uploadWorldMatrix(Mat4x4::Translate(m_camera.eyePosition())).draw();
+        m_skydomeModel.setWorldMatrix(Mat4x4::Translate(m_camera.eyePosition())).draw();
 
         m_groundPlaneDrawer.draw();
 
-        m_mountainDrawer.uploadWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
+        m_mountainDrawer.setWorldMatrix(Mat4x4::Scale(Float3{5.0})).draw();
 
         m_playerDrawer.draw();
 

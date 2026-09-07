@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "ComputeDispatcher.h"
 
+#include "DynamicBinding.h"
+#include "Logger.h"
 #include "detail/ComputePipelineState.h"
 #include "detail/DescriptorHeap.h"
 #include "detail/RenderContext_singleton.h"
@@ -14,31 +16,56 @@ struct ComputeDispatcher::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
-    Array<ShaderResourceType> m_srvList{};
+    DescriptorList<ShaderResourceObject> m_srvList{};
 
-    Array<UnorderedAccessType> m_uavList{};
+    DescriptorList<UnorderedAccessObject> m_uavList{};
+
+    int m_dynamicCbvCount{};
 
     Impl(const ComputeDispatcherParams& params)
     {
+        if (params.dynamicCbvCount < 0)
+        {
+            LogError("ComputeDispatcher: dynamicCbvCount must be non-negative.");
+            assert(false);
+            return;
+        }
+
         m_srvList = params.srv;
 
         m_uavList = params.uav;
 
+        m_dynamicCbvCount = params.dynamicCbvCount;
+
         auto descriptorHeap = DescriptorHeapParams{
             .table = {
-                {params.cbv.size(), params.srv.size(), params.uav.size()}
+                DescriptorEntry{
+                    .cbvCount = static_cast<int>(params.cbv.size()),
+                    .srvCount = static_cast<int>(params.srv.size()),
+                    .uavCount = static_cast<int>(params.uav.size()),
+                }
             },
             .materialCounts = {1},
             .descriptors = {
-                CbvSrvUavSet{params.cbv, {params.srv}, {params.uav}}
+                CbvSrvUavSet{{params.cbv}, {params.srv}, {params.uav}}
             }
         };
+
+        Array<DynamicDescriptorEntry> dynamicDescriptorTable{};
+        if (m_dynamicCbvCount > 0)
+        {
+            dynamicDescriptorTable.push_back(DynamicDescriptorEntry{
+                .cbvSlot = static_cast<int>(params.cbv.size()),
+                .cbvCount = m_dynamicCbvCount,
+            });
+        }
 
         m_pso = ComputePipelineState{
             ComputePipelineStateParams{
                 .computeShader = params.cs,
                 .samplers = params.samplers,
-                .descriptorTable = descriptorHeap.table
+                .descriptorTable = descriptorHeap.table,
+                .dynamicDescriptorTable = dynamicDescriptorTable,
             }
         };
 
@@ -73,6 +100,13 @@ struct ComputeDispatcher::Impl
 
         m_pso.commandSet(CommandListType::Draw);
 
+        if (m_dynamicCbvCount > 0)
+        {
+            DynamicBinding::FlushAsCompute(
+                m_pso.dynamicBindingRootParameterOffset(),
+                m_pso.resolvedDynamicDescriptorTable());
+        }
+
         m_descriptorHeap.commandSet();
         m_descriptorHeap.commandSetComputeTable(0);
 
@@ -106,21 +140,34 @@ namespace TY
         return *this;
     }
 
-    ComputeDispatcherParams& ComputeDispatcherParams::setCbv(const Array<ConstantBufferArrayImpl>& cbv_)
+    ComputeDispatcherParams& ComputeDispatcherParams::setCbv(const DescriptorList<ConstantBufferObject>& cbv_)
     {
         cbv = cbv_;
         return *this;
     }
 
-    ComputeDispatcherParams& ComputeDispatcherParams::setSrv(const Array<ShaderResourceType>& srv_)
+    ComputeDispatcherParams& ComputeDispatcherParams::setSrv(const DescriptorList<ShaderResourceObject>& srv_)
     {
         srv = srv_;
         return *this;
     }
 
-    ComputeDispatcherParams& ComputeDispatcherParams::setUav(const Array<UnorderedAccessType>& uav_)
+    ComputeDispatcherParams& ComputeDispatcherParams::setUav(const DescriptorList<UnorderedAccessObject>& uav_)
     {
         uav = uav_;
+        return *this;
+    }
+
+    ComputeDispatcherParams& ComputeDispatcherParams::setDynamicCbvCount(int count)
+    {
+        if (count < 0)
+        {
+            LogError("ComputeDispatcherParams::setDynamicCbvCount: count must be non-negative.");
+            assert(false);
+            count = 0;
+        }
+
+        dynamicCbvCount = count;
         return *this;
     }
 

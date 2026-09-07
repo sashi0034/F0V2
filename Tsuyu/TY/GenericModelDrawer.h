@@ -17,9 +17,13 @@ namespace TY
 
         GraphicsOptions options{GraphicsOptions::Default3D()};
 
-        Array<ConstantBufferArrayImpl> cbv10AndLater{};
+        DescriptorList<ConstantBufferObject> cbv10AndLater{};
 
-        Array<ShaderResourceType> srv10AndLater{};
+        DescriptorList<ShaderResourceObject> srv10AndLater{};
+
+        int dynamicCbvCount{};
+
+        int dynamicSrvCount{};
 
         GenericModelDrawerParams& setModel(const std::shared_ptr<IGenericModelBuffer>& model_);
 
@@ -29,9 +33,13 @@ namespace TY
 
         GenericModelDrawerParams& setOptions(const GraphicsOptions& options_);
 
-        GenericModelDrawerParams& setCbv10AndLater(const Array<ConstantBufferArrayImpl>& cbv);
+        GenericModelDrawerParams& setCbv10AndLater(const DescriptorList<ConstantBufferObject>& cbv);
 
-        GenericModelDrawerParams& setSrv10AndLater(const Array<ShaderResourceType>& srv);
+        GenericModelDrawerParams& setSrv10AndLater(const DescriptorList<ShaderResourceObject>& srv);
+
+        GenericModelDrawerParams& setDynamicCbvCount(int count);
+
+        GenericModelDrawerParams& setDynamicSrvCount(int count);
     };
 
     class GenericModelDrawer
@@ -41,7 +49,7 @@ namespace TY
 
         GenericModelDrawer(const GenericModelDrawerParams& params);
 
-        const GenericModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
+        const GenericModelDrawer& setWorldMatrix(const Mat4x4& worldMatrix) const;
 
         void draw() const;
 

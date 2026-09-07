@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include "Array.h"
 #include "CbvSrvUav.h"
-#include "ConstantBufferArray.h"
+#include "ConstantBuffer.h"
 #include "GraphicsOptions.h"
+#include "MaterialList.h"
 #include "Shader.h"
 
 namespace TY
@@ -13,21 +14,25 @@ namespace TY
 
         Array<GraphicsSamplerOptions> samplers{GraphicsSamplerOptions()};
 
-        Array<ConstantBufferArrayImpl> cbv{}; // from b0
+        DescriptorList<ConstantBufferObject> cbv{}; // from b0
 
-        Array<ShaderResourceType> srv{}; // from t0
+        DescriptorList<ShaderResourceObject> srv{}; // from t0
 
-        Array<UnorderedAccessType> uav{}; // from u0
+        DescriptorList<UnorderedAccessObject> uav{}; // from u0
+
+        int dynamicCbvCount{};
 
         ComputeDispatcherParams& setCS(const ComputeShader& cs_);
 
         ComputeDispatcherParams& setSamplers(const Array<GraphicsSamplerOptions>& samplers_);
 
-        ComputeDispatcherParams& setCbv(const Array<ConstantBufferArrayImpl>& cbv_);
+        ComputeDispatcherParams& setCbv(const DescriptorList<ConstantBufferObject>& cbv_);
 
-        ComputeDispatcherParams& setSrv(const Array<ShaderResourceType>& srv_);
+        ComputeDispatcherParams& setSrv(const DescriptorList<ShaderResourceObject>& srv_);
 
-        ComputeDispatcherParams& setUav(const Array<UnorderedAccessType>& uav_);
+        ComputeDispatcherParams& setUav(const DescriptorList<UnorderedAccessObject>& uav_);
+
+        ComputeDispatcherParams& setDynamicCbvCount(int count);
     };
 
     class ComputeDispatcher

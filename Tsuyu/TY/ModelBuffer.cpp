@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "ModelBuffer.h"
 
-#include "ConstantBufferArray.h"
+#include "ConstantBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 
@@ -28,9 +28,9 @@ struct ModelBuffer::Impl : IGenericModelBuffer
 {
     ModelShapeBuffer m_shapeBuffer{};
 
-    ConstantBufferArray<ModelMaterialParameters> m_materialCbv{Empty};
+    MaterialList<DescriptorList<ConstantBufferObject>> m_materialCbv{};
 
-    Array<Array<ShaderResourceType>> m_materialSrv{};
+    MaterialList<DescriptorList<ShaderResourceObject>> m_materialSrv{};
 
     Impl(const ModelData& modelData)
         : m_shapeBuffer(modelData.shapes)
@@ -46,12 +46,14 @@ struct ModelBuffer::Impl : IGenericModelBuffer
 
     void initializeMaterial(const Array<ModelMaterial>& materials)
     {
-        m_materialCbv = ConstantBufferArray<ModelMaterialParameters>{
-            materials.map([](const ModelMaterial& material)
-            {
-                return material.parameters;
-            })
-        };
+        m_materialCbv.clear();
+        m_materialCbv.reserve(materials.size());
+        for (const ModelMaterial& material : materials)
+        {
+            ConstantBuffer<ModelMaterialParameters> materialCbv{};
+            materialCbv.upload(material.parameters);
+            m_materialCbv.push_back({std::move(materialCbv)});
+        }
 
         for (const ModelMaterial& material : materials)
         {
@@ -73,15 +75,15 @@ struct ModelBuffer::Impl : IGenericModelBuffer
 
     [[nodiscard]] int materialCount() const override
     {
-        return static_cast<int>(m_materialCbv.materialCount());
+        return static_cast<int>(m_materialCbv.size());
     }
 
-    [[nodiscard]] ConstantBufferArrayImpl materialCbv() const override
+    [[nodiscard]] const MaterialList<DescriptorList<ConstantBufferObject>>& materialCbv() const override
     {
         return m_materialCbv;
     }
 
-    Array<Array<ShaderResourceType>> materialSrv() const override
+    MaterialList<DescriptorList<ShaderResourceObject>> materialSrv() const override
     {
         return m_materialSrv;
     }
@@ -134,7 +136,7 @@ namespace TY
         return p_impl->m_shapeBuffer;
     }
 
-    const ConstantBufferArray<ModelMaterialParameters>& ModelBuffer::materialCbv() const
+    const MaterialList<DescriptorList<ConstantBufferObject>>& ModelBuffer::materialCbv() const
     {
         return p_impl->m_materialCbv;
     }

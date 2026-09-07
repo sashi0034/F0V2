@@ -4,10 +4,10 @@ namespace TY::detail
 {
     namespace RenderEvent
     {
-        class Lister
+        class Listener
         {
         public:
-            virtual ~Lister()
+            virtual ~Listener()
             {
                 m_shouldRemove = true;
             }
@@ -29,6 +29,6 @@ namespace TY::detail
             bool m_shouldRemove{};
         };
 
-        void AddLister(const std::shared_ptr<Lister>& subscribable);
+        void AddLister(const std::shared_ptr<Listener>& subscribable);
     }
 }

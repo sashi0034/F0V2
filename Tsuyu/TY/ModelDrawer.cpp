@@ -2,7 +2,8 @@
 #include "ModelDrawer.h"
 
 #include "Array.h"
-#include "ConstantBufferArray.h"
+#include "ConstantBuffer.h"
+#include "Logger.h"
 #include "Mat4x4.h"
 #include "ModelLoader.h"
 #include "detail/DescriptorHeap.h"
@@ -45,15 +46,28 @@ namespace TY
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setCbv10AndLater(const Array<ConstantBufferArrayImpl>& cbv)
+    ModelDrawerParams& ModelDrawerParams::setCbv10AndLater(const DescriptorList<ConstantBufferObject>& cbv)
     {
         cbv10AndLater = cbv;
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setSrv10AndLater(const Array<ShaderResourceType>& srv)
+    ModelDrawerParams& ModelDrawerParams::setSrv10AndLater(const DescriptorList<ShaderResourceObject>& srv)
     {
         srv10AndLater = srv;
+        return *this;
+    }
+
+    ModelDrawerParams& ModelDrawerParams::setDynamicCbvCount(int count)
+    {
+        if (count < 0)
+        {
+            LogError("ModelDrawerParams::setDynamicCbvCount: count must be non-negative.");
+            assert(false);
+            count = 0;
+        }
+
+        dynamicCbvCount = count;
         return *this;
     }
 
@@ -70,14 +84,15 @@ namespace TY
                 .shader = params.shader,
                 .options = params.options,
                 .cbv10AndLater = params.cbv10AndLater,
-                .srv10AndLater = params.srv10AndLater
+                .srv10AndLater = params.srv10AndLater,
+                .dynamicCbvCount = params.dynamicCbvCount,
             }
         };
     }
 
-    const ModelDrawer& ModelDrawer::uploadWorldMatrix(const Mat4x4& worldMatrix) const
+    const ModelDrawer& ModelDrawer::setWorldMatrix(const Mat4x4& worldMatrix) const
     {
-        (void)m_impl.uploadWorldMatrix(worldMatrix);
+        (void)m_impl.setWorldMatrix(worldMatrix);
         return *this;
     }
 

@@ -11,12 +11,12 @@ namespace TY
     public:
         explicit SingleShapeModelBuffer(
             IndexBuffer indexBuffer,
-            ConstantBufferArrayImpl materialCbv = ConstantBufferArrayImpl{Empty},
-            Array<ShaderResourceType> materialSrv = {})
-            : m_materialCbv(std::move(materialCbv))
+            ConstantBufferObject materialCbv = ConstantBufferObject{Empty},
+            DescriptorList<ShaderResourceObject> materialSrv = {})
         {
             m_shape.materialIndex = 0;
             m_shape.indexBuffer = std::move(indexBuffer);
+            m_materialCbv.push_back({std::move(materialCbv)});
 
             if (not materialSrv.empty())
             {
@@ -26,14 +26,14 @@ namespace TY
 
         explicit SingleShapeModelBuffer(
             int placeholderIndexCount,
-            ConstantBufferArrayImpl materialCbv = ConstantBufferArrayImpl{Empty},
-            Array<ShaderResourceType> materialSrv = {})
-            : m_materialCbv(std::move(materialCbv))
+            ConstantBufferObject materialCbv = ConstantBufferObject{Empty},
+            DescriptorList<ShaderResourceObject> materialSrv = {})
         {
             assert(placeholderIndexCount >= 0);
 
             m_shape.materialIndex = 0;
             m_shape.indexBuffer = IndexBuffer::Placeholder(placeholderIndexCount);
+            m_materialCbv.push_back({std::move(materialCbv)});
 
             if (not materialSrv.empty())
             {
@@ -57,12 +57,12 @@ namespace TY
             return 1;
         }
 
-        ConstantBufferArrayImpl materialCbv() const override
+        const MaterialList<DescriptorList<ConstantBufferObject>>& materialCbv() const override
         {
             return m_materialCbv;
         }
 
-        Array<Array<ShaderResourceType>> materialSrv() const override
+        MaterialList<DescriptorList<ShaderResourceObject>> materialSrv() const override
         {
             return m_materialSrv;
         }
@@ -70,8 +70,8 @@ namespace TY
     private:
         GenericModelShapeBufferElement m_shape{};
 
-        ConstantBufferArrayImpl m_materialCbv{Empty};
+        MaterialList<DescriptorList<ConstantBufferObject>> m_materialCbv{};
 
-        Array<Array<ShaderResourceType>> m_materialSrv{};
+        MaterialList<DescriptorList<ShaderResourceObject>> m_materialSrv{};
     };
 }

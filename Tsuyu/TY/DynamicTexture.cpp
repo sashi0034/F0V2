@@ -76,7 +76,7 @@ struct DynamicTexture::Impl
                 frameResource.uploadBuffer->Unmap(0, nullptr);
             }
 
-            RenderContext_singleton::SafeDisposeRenderResource(frameResource.uploadBuffer);
+            RenderContext_singleton::SafeDisposeRenderObject(frameResource.uploadBuffer);
         }
     }
 

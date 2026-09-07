@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "DescriptorTable.h"
-#include "ShaderRegisterStart.h"
+#include "DescriptorEntry.h"
+#include "DynamicDescriptorEntry.h"
 #include "TY/Array.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Shader.h"
@@ -18,7 +18,7 @@ namespace TY::detail
 
         DescriptorTable descriptorTable{};
 
-        Array<ShaderRegisterStart> explicitRegisterStarts{};
+        Array<DynamicDescriptorEntry> dynamicDescriptorTable{};
 
         bool equalsTo(const GraphicsPipelineStateParams& other) const;
     };
@@ -33,6 +33,10 @@ namespace TY::detail
         GraphicsPipelineState(const GraphicsPipelineStateParams& params);
 
         DescriptorTable descriptorTable() const;
+
+        int dynamicBindingRootParameterOffset() const;
+
+        const Array<DynamicDescriptorEntry>& resolvedDynamicDescriptorTable() const;
 
         void commandSet() const;
 
