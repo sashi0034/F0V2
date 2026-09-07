@@ -22,7 +22,7 @@ struct EnginePresetAssetImpl
 
     ComputeShader m_stubCS{};
 
-    UnorderedStructuredBuffer m_emptyStructuredBuffer{};
+    UnorderedStructuredBufferObject m_emptyStructuredBuffer{};
 
     void Init()
     {
@@ -35,7 +35,7 @@ struct EnginePresetAssetImpl
 
         m_stubCS = ComputeShader{ShaderParams::CS("asset/engine/compute_stub.hlsl")};
 
-        m_emptyStructuredBuffer = UnorderedStructuredBuffer(1, sizeof(uint8_t));
+        m_emptyStructuredBuffer = UnorderedStructuredBufferObject(1, sizeof(uint8_t));
 
         m_initialized = true;
     }
@@ -82,7 +82,7 @@ namespace TY::detail
         return s_enginePresetAsset.m_stubCS;
     }
 
-    UnorderedStructuredBuffer EnginePresetAsset::GetEmptyStructuredBuffer()
+    UnorderedStructuredBufferObject EnginePresetAsset::GetEmptyStructuredBuffer()
     {
         assert(s_enginePresetAsset.m_initialized);
         return s_enginePresetAsset.m_emptyStructuredBuffer;

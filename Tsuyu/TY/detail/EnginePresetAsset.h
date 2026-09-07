@@ -5,7 +5,7 @@ namespace TY
 {
     class TextureHandle;
 
-    class UnorderedStructuredBuffer;
+    class UnorderedStructuredBufferObject;
 }
 
 namespace TY::detail
@@ -24,6 +24,6 @@ namespace TY::detail
 
         ComputeShader GetStubCS();
 
-        UnorderedStructuredBuffer GetEmptyStructuredBuffer();
+        UnorderedStructuredBufferObject GetEmptyStructuredBuffer();
     }
 }

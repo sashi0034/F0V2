@@ -10,7 +10,7 @@ using namespace TY;
 using namespace TY::detail;
 
 // TODO: 昔の実装を書き直す 
-struct StructuredBuffer::Impl
+struct StructuredBufferObject::Impl
 {
     bool m_valid = false;
 
@@ -236,7 +236,7 @@ private:
 
 namespace TY
 {
-    StructuredBuffer::StructuredBuffer(int elementCount, int elementStride)
+    StructuredBufferObject::StructuredBufferObject(int elementCount, int elementStride)
         : p_impl(std::make_shared<Impl>(elementCount, elementStride, false))
     {
         if (not p_impl->m_valid)
@@ -245,32 +245,32 @@ namespace TY
         }
     }
 
-    bool StructuredBuffer::isEmpty() const
+    bool StructuredBufferObject::isEmpty() const
     {
         return not p_impl;
     }
 
-    void StructuredBuffer::upload(const void* src, int count)
+    void StructuredBufferObject::upload(const void* src, int count)
     {
         if (p_impl) p_impl->Upload(static_cast<const uint8_t*>(src), count);
     }
 
-    int StructuredBuffer::elementCount() const
+    int StructuredBufferObject::elementCount() const
     {
         return p_impl ? p_impl->m_elementCount : 0;
     }
 
-    int StructuredBuffer::elementStride() const
+    int StructuredBufferObject::elementStride() const
     {
         return p_impl ? p_impl->m_elementStride : 0;
     }
 
-    ID3D12Resource* StructuredBuffer::getBuffer() const
+    ID3D12Resource* StructuredBufferObject::getBuffer() const
     {
         return p_impl ? p_impl->m_bufferAllocation.getResource() : nullptr;
     }
 
-    UnorderedStructuredBuffer::UnorderedStructuredBuffer(int elementCount, int elementStride)
+    UnorderedStructuredBufferObject::UnorderedStructuredBufferObject(int elementCount, int elementStride)
     {
         p_impl = std::make_shared<Impl>(elementCount, elementStride, true);
         if (not p_impl->m_valid)
@@ -279,7 +279,7 @@ namespace TY
         }
     }
 
-    void UnorderedStructuredBuffer::afterDispatch()
+    void UnorderedStructuredBufferObject::afterDispatch()
     {
         if (p_impl)
         {
@@ -287,7 +287,7 @@ namespace TY
         }
     }
 
-    void UnorderedStructuredBuffer::beforeFlush()
+    void UnorderedStructuredBufferObject::beforeFlush()
     {
         if (p_impl)
         {
@@ -295,7 +295,7 @@ namespace TY
         }
     }
 
-    void UnorderedStructuredBuffer::readback(void* dst)
+    void UnorderedStructuredBufferObject::readback(void* dst)
     {
         if (p_impl)
         {

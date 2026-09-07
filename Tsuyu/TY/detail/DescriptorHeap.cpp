@@ -131,9 +131,9 @@ namespace
 
             p_resource = texture.getResource();
         }
-        else if (srv.isHolds<StructuredBuffer>())
+        else if (srv.isHolds<StructuredBufferObject>())
         {
-            const auto& t = srv.get<StructuredBuffer>();
+            const auto& t = srv.get<StructuredBufferObject>();
             const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer();
 
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -205,9 +205,9 @@ namespace
 
             pResource = t.getResource();
         }
-        else if (uav.isHolds<UnorderedStructuredBuffer>())
+        else if (uav.isHolds<UnorderedStructuredBufferObject>())
         {
-            const auto& t = uav.get<UnorderedStructuredBuffer>();
+            const auto& t = uav.get<UnorderedStructuredBufferObject>();
             const auto& rsc = t.getBuffer() ? t : EnginePresetAsset::GetEmptyStructuredBuffer(); // FIXME
 
             uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;

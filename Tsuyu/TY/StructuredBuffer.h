@@ -3,12 +3,12 @@
 
 namespace TY
 {
-    class StructuredBuffer
+    class StructuredBufferObject
     {
     public:
-        StructuredBuffer() = default;
+        StructuredBufferObject() = default;
 
-        StructuredBuffer(int elementCount, int elementStride);
+        StructuredBufferObject(int elementCount, int elementStride);
 
         bool isEmpty() const;
 
@@ -25,12 +25,12 @@ namespace TY
         std::shared_ptr<Impl> p_impl{};
     };
 
-    class UnorderedStructuredBuffer : public StructuredBuffer
+    class UnorderedStructuredBufferObject : public StructuredBufferObject
     {
     public:
-        UnorderedStructuredBuffer() = default;
+        UnorderedStructuredBufferObject() = default;
 
-        UnorderedStructuredBuffer(int elementCount, int elementStride);
+        UnorderedStructuredBufferObject(int elementCount, int elementStride);
 
         void afterDispatch();
 
@@ -39,21 +39,20 @@ namespace TY
         void readback(void* dst);
     };
 
-    // TODO: Rename
     template <typename T>
-    class StructuredBufferT : public StructuredBuffer
+    class StructuredBuffer : public StructuredBufferObject
     {
     public:
-        StructuredBufferT() = default;
+        StructuredBuffer() = default;
 
-        StructuredBufferT(int elementCount)
-            : StructuredBuffer(elementCount, sizeof(T))
+        StructuredBuffer(int elementCount)
+            : StructuredBufferObject(elementCount, sizeof(T))
         {
         }
 
         void upload(const Array<T>& data)
         {
-            StructuredBuffer::upload(data.data(), data.size());
+            StructuredBufferObject::upload(data.data(), data.size());
         }
     };
 }
