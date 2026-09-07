@@ -47,7 +47,7 @@ namespace TY
 
         ModelDrawer(const ModelDrawerParams& params);
 
-        const ModelDrawer& uploadWorldMatrix(const Mat4x4& worldMatrix) const;
+        const ModelDrawer& setWorldMatrix(const Mat4x4& worldMatrix) const;
 
         void draw() const;
 

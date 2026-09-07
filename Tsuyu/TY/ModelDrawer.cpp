@@ -90,9 +90,9 @@ namespace TY
         };
     }
 
-    const ModelDrawer& ModelDrawer::uploadWorldMatrix(const Mat4x4& worldMatrix) const
+    const ModelDrawer& ModelDrawer::setWorldMatrix(const Mat4x4& worldMatrix) const
     {
-        (void)m_impl.uploadWorldMatrix(worldMatrix);
+        (void)m_impl.setWorldMatrix(worldMatrix);
         return *this;
     }
 

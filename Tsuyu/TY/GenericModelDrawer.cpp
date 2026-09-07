@@ -141,14 +141,9 @@ struct GenericModelDrawer::Impl
 
         m_descriptorHeap = DescriptorHeap(descriptorHeap);
 
-        UploadWorldMatrix(Mat4x4::Identity());
+        m_worldMatrix = Mat4x4::Identity();
 
         m_valid = true;
-    }
-
-    void UploadWorldMatrix(const Mat4x4& worldMatrix)
-    {
-        m_worldMatrix = worldMatrix;
     }
 
     void Draw() const
@@ -265,9 +260,9 @@ namespace TY
         }
     }
 
-    const GenericModelDrawer& GenericModelDrawer::uploadWorldMatrix(const Mat4x4& worldMatrix) const
+    const GenericModelDrawer& GenericModelDrawer::setWorldMatrix(const Mat4x4& worldMatrix) const
     {
-        if (p_impl) p_impl->UploadWorldMatrix(worldMatrix);
+        if (p_impl) p_impl->m_worldMatrix = worldMatrix;
         return *this;
     }
 

@@ -58,7 +58,7 @@ struct EditorNodeTool::Impl : GameObjectBase
         for (int i = 0; i < m_segments.size(); ++i)
         {
             const auto& pos = m_segments[i].p1;
-            m_torusDrawer.uploadWorldMatrix(Mat4x4::Translate(pos)).draw();
+            m_torusDrawer.setWorldMatrix(Mat4x4::Translate(pos)).draw();
         }
 
         // 面描画

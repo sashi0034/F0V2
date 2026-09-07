@@ -250,7 +250,7 @@ struct Internal::FighterBody
     void Draw() const
     {
         const auto matrix = m_pose.getMatrix();
-        m_model.uploadWorldMatrix(Mat4x4{Quaternion::RotateZ(m_roll)} * matrix).draw();
+        m_model.setWorldMatrix(Mat4x4{Quaternion::RotateZ(m_roll)} * matrix).draw();
     }
 
     void DebugGUI()
@@ -308,7 +308,7 @@ public:
 
     void Draw() const
     {
-        m_model.uploadWorldMatrix(m_pose.getMatrix()).draw();
+        m_model.setWorldMatrix(m_pose.getMatrix()).draw();
     }
 
     bool CollideWith(const Pose& targetPose, float radius = 5.0f) const
@@ -579,12 +579,12 @@ struct Testbed_AirCombat_impl
 
         // -----------------------------------------------
 
-        m_skydomeModel.uploadWorldMatrix(Mat4x4::Translate(m_camera.EyePosition())).draw();
+        m_skydomeModel.setWorldMatrix(Mat4x4::Translate(m_camera.EyePosition())).draw();
 
         {
             Pose pose{};
             pose.position.y = groundPositionY;
-            m_groundPlaneModel.uploadWorldMatrix(pose.getMatrix()).draw();
+            m_groundPlaneModel.setWorldMatrix(pose.getMatrix()).draw();
         }
 
         m_player.Draw();

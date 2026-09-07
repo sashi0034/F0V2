@@ -402,7 +402,7 @@ private:
             {
                 constexpr float groundY = -100.0f;
                 m_groundPlaneDrawer
-                    .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, groundY, z * 100.0f}))
+                    .setWorldMatrix(Mat4x4::Translate({x * 100.0f, groundY, z * 100.0f}))
                     .draw();
             }
         }

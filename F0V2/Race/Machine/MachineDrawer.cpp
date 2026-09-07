@@ -68,8 +68,8 @@ struct MachineDrawer::Impl
 
         const Mat4x4& worldMatrix = localRotation * machine.state.m_pose.getMatrix();
 
-        (void)m_shadowDrawer.uploadWorldMatrix(worldMatrix);
-        (void)m_gbufferDrawer.uploadWorldMatrix(worldMatrix);
+        (void)m_shadowDrawer.setWorldMatrix(worldMatrix);
+        (void)m_gbufferDrawer.setWorldMatrix(worldMatrix);
     }
 };
 

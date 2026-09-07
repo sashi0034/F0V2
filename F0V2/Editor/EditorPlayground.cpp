@@ -160,7 +160,7 @@ struct EditorPlayground::Impl : ActorBase
             {
                 constexpr float groundPositionY = -100.0f;
                 m_groundPlaneDrawer
-                    .uploadWorldMatrix(Mat4x4::Translate({x * 100.0f, groundPositionY, z * 100.0f}))
+                    .setWorldMatrix(Mat4x4::Translate({x * 100.0f, groundPositionY, z * 100.0f}))
                     .draw();
             }
         }
