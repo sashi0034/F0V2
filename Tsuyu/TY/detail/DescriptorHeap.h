@@ -13,10 +13,10 @@ namespace TY::detail
         MaterialList<DescriptorList<ConstantBufferObject>> cbv;
 
         /// @remark [materialCount][srvCount]
-        MaterialList<DescriptorList<ShaderResourceType>> srv;
+        MaterialList<DescriptorList<ShaderResourceObject>> srv;
 
         /// @remark [materialCount][uavCount]
-        MaterialList<DescriptorList<UnorderedAccessType>> uav;
+        MaterialList<DescriptorList<UnorderedAccessObject>> uav;
     };
 
     struct DescriptorHeapParams
@@ -34,9 +34,9 @@ namespace TY::detail
         DescriptorHeap(const DescriptorHeapParams& params);
 
         /// @remark 空の場合のみ登録可能
-        void registerSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId = 0);
+        void registerSrv(const ShaderResourceObject& srv, int tableId, int srvId, int materialId = 0);
 
-        void registerUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId = 0);
+        void registerUav(const UnorderedAccessObject& uav, int tableId, int uavId, int materialId = 0);
 
         void commandSet() const;
 

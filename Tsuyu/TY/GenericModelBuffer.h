@@ -33,6 +33,6 @@ namespace TY
         virtual const MaterialList<DescriptorList<ConstantBufferObject>>& materialCbv() const = 0;
 
         /// @remark [materialCount][textureCount]
-        virtual MaterialList<DescriptorList<ShaderResourceType>> materialSrv() const = 0;
+        virtual MaterialList<DescriptorList<ShaderResourceObject>> materialSrv() const = 0;
     };
 }

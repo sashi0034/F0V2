@@ -19,7 +19,7 @@ namespace TY
 
         DescriptorList<ConstantBufferObject> cbv10AndLater{};
 
-        DescriptorList<ShaderResourceType> srv10AndLater{};
+        DescriptorList<ShaderResourceObject> srv10AndLater{};
 
         int dynamicCbvCount{};
 
@@ -35,7 +35,7 @@ namespace TY
 
         ModelDrawerParams& setCbv10AndLater(const DescriptorList<ConstantBufferObject>& cbv);
 
-        ModelDrawerParams& setSrv10AndLater(const DescriptorList<ShaderResourceType>& srv);
+        ModelDrawerParams& setSrv10AndLater(const DescriptorList<ShaderResourceObject>& srv);
 
         ModelDrawerParams& setDynamicCbvCount(int count);
     };

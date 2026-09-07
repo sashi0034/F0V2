@@ -16,9 +16,9 @@ struct ComputeDispatcher::Impl
 
     DescriptorHeap m_descriptorHeap{};
 
-    DescriptorList<ShaderResourceType> m_srvList{};
+    DescriptorList<ShaderResourceObject> m_srvList{};
 
-    DescriptorList<UnorderedAccessType> m_uavList{};
+    DescriptorList<UnorderedAccessObject> m_uavList{};
 
     int m_dynamicCbvCount{};
 
@@ -146,13 +146,13 @@ namespace TY
         return *this;
     }
 
-    ComputeDispatcherParams& ComputeDispatcherParams::setSrv(const DescriptorList<ShaderResourceType>& srv_)
+    ComputeDispatcherParams& ComputeDispatcherParams::setSrv(const DescriptorList<ShaderResourceObject>& srv_)
     {
         srv = srv_;
         return *this;
     }
 
-    ComputeDispatcherParams& ComputeDispatcherParams::setUav(const DescriptorList<UnorderedAccessType>& uav_)
+    ComputeDispatcherParams& ComputeDispatcherParams::setUav(const DescriptorList<UnorderedAccessObject>& uav_)
     {
         uav = uav_;
         return *this;

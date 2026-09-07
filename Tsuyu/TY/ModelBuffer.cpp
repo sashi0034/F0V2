@@ -30,7 +30,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
 
     MaterialList<DescriptorList<ConstantBufferObject>> m_materialCbv{};
 
-    MaterialList<DescriptorList<ShaderResourceType>> m_materialSrv{};
+    MaterialList<DescriptorList<ShaderResourceObject>> m_materialSrv{};
 
     Impl(const ModelData& modelData)
         : m_shapeBuffer(modelData.shapes)
@@ -83,7 +83,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
         return m_materialCbv;
     }
 
-    MaterialList<DescriptorList<ShaderResourceType>> materialSrv() const override
+    MaterialList<DescriptorList<ShaderResourceObject>> materialSrv() const override
     {
         return m_materialSrv;
     }

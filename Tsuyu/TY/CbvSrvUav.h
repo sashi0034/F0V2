@@ -7,7 +7,11 @@
 
 namespace TY
 {
-    class ShaderResourceType : public Variant<TextureHandle, StructuredBufferObject, DepthBufferHandle>
+    class ShaderResourceObject
+        : public Variant<
+            StructuredBufferObject,
+            TextureHandle,
+            DepthBufferHandle>
     {
     public:
         using Variant::Variant;
@@ -19,7 +23,10 @@ namespace TY
         }
     };
 
-    class UnorderedAccessType : public Variant<UnorderedTextureHandle, UnorderedStructuredBufferObject>
+    class UnorderedAccessObject
+        : public Variant<
+            UnorderedTextureHandle,
+            UnorderedStructuredBufferObject>
     {
     public:
         using Variant::Variant;

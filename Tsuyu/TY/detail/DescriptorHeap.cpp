@@ -114,7 +114,7 @@ namespace
         return true;
     }
 
-    bool createShaderResourceViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const ShaderResourceType& srv)
+    bool createShaderResourceViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const ShaderResourceObject& srv)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         ID3D12Resource* p_resource{};
@@ -188,7 +188,7 @@ namespace
         return createShaderResourceViewInternal(heapHandle, sr);
     }
 
-    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const UnorderedAccessType& uav)
+    bool createUnorderedAccessViewInternal(D3D12_CPU_DESCRIPTOR_HANDLE heapHandle, const UnorderedAccessObject& uav)
     {
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         ID3D12Resource* pResource{};
@@ -355,7 +355,7 @@ struct DescriptorHeap::Impl
         RenderContext_singleton::SafeDisposeRenderObject(m_descriptorHeap);
     }
 
-    void RegisterSRV(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
+    void RegisterSRV(const ShaderResourceObject& srv, int tableId, int srvId, int materialId)
     {
         if (not m_descriptors[tableId].srv[materialId][srvId].isEmpty())
         {
@@ -383,7 +383,7 @@ struct DescriptorHeap::Impl
         createShaderResourceViewInternal(heapHandle, srv);
     }
 
-    void ReisterUAV(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
+    void RegisterUAV(const UnorderedAccessObject& uav, int tableId, int uavId, int materialId)
     {
         if (not m_descriptors[tableId].uav[materialId][uavId].isEmpty())
         {
@@ -446,14 +446,14 @@ namespace TY::detail
         }
     }
 
-    void DescriptorHeap::registerSrv(const ShaderResourceType& srv, int tableId, int srvId, int materialId)
+    void DescriptorHeap::registerSrv(const ShaderResourceObject& srv, int tableId, int srvId, int materialId)
     {
         if (p_impl) p_impl->RegisterSRV(srv, tableId, srvId, materialId);
     }
 
-    void DescriptorHeap::registerUav(const UnorderedAccessType& uav, int tableId, int uavId, int materialId)
+    void DescriptorHeap::registerUav(const UnorderedAccessObject& uav, int tableId, int uavId, int materialId)
     {
-        if (p_impl) p_impl->ReisterUAV(uav, tableId, uavId, materialId);
+        if (p_impl) p_impl->RegisterUAV(uav, tableId, uavId, materialId);
     }
 
     void DescriptorHeap::commandSet() const

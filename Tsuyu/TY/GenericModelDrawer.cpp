@@ -219,7 +219,7 @@ namespace TY
         return *this;
     }
 
-    GenericModelDrawerParams& GenericModelDrawerParams::setSrv10AndLater(const DescriptorList<ShaderResourceType>& srv)
+    GenericModelDrawerParams& GenericModelDrawerParams::setSrv10AndLater(const DescriptorList<ShaderResourceObject>& srv)
     {
         srv10AndLater = srv;
         return *this;

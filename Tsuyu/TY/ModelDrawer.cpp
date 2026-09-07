@@ -52,7 +52,7 @@ namespace TY
         return *this;
     }
 
-    ModelDrawerParams& ModelDrawerParams::setSrv10AndLater(const DescriptorList<ShaderResourceType>& srv)
+    ModelDrawerParams& ModelDrawerParams::setSrv10AndLater(const DescriptorList<ShaderResourceObject>& srv)
     {
         srv10AndLater = srv;
         return *this;

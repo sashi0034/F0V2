@@ -16,9 +16,9 @@ namespace TY
 
         DescriptorList<ConstantBufferObject> cbv{}; // from b0
 
-        DescriptorList<ShaderResourceType> srv{}; // from t0
+        DescriptorList<ShaderResourceObject> srv{}; // from t0
 
-        DescriptorList<UnorderedAccessType> uav{}; // from u0
+        DescriptorList<UnorderedAccessObject> uav{}; // from u0
 
         int dynamicCbvCount{};
 
@@ -28,9 +28,9 @@ namespace TY
 
         ComputeDispatcherParams& setCbv(const DescriptorList<ConstantBufferObject>& cbv_);
 
-        ComputeDispatcherParams& setSrv(const DescriptorList<ShaderResourceType>& srv_);
+        ComputeDispatcherParams& setSrv(const DescriptorList<ShaderResourceObject>& srv_);
 
-        ComputeDispatcherParams& setUav(const DescriptorList<UnorderedAccessType>& uav_);
+        ComputeDispatcherParams& setUav(const DescriptorList<UnorderedAccessObject>& uav_);
 
         ComputeDispatcherParams& setDynamicCbvCount(int count);
     };
