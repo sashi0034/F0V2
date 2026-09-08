@@ -1,2 +1,3 @@
 !*.obj
 *.blend*
+!f0_coffine/f0_coffine.blend
