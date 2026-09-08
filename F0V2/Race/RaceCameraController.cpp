@@ -11,6 +11,7 @@
 #include "TY/PrimitiveTypes3D.h"
 #include "TY/SimpleCamera3D.h"
 #include "TY/SimpleInput.h"
+#include "Util/ExpLerp.h"
 
 using namespace Race;
 
@@ -67,11 +68,10 @@ private:
         // m_cameraUp = m_cameraUp.rotatedTowards(
         //     machine.state.m_upVector, 5.0f * InGameDeltaTime(), machine.state.m_forwardVector);
 
-        for (const float dt : StandardStep_60Hz())
-        {
-            // m_cameraForward = m_cameraForward.slerp(machine.state.m_forwardVector, dt * 10.0f);
-            m_cameraUp = m_cameraUp.slerp(machine.state.m_upVector, dt * 10.0f);
-        }
+        // m_cameraForward = m_cameraForward.slerp(machine.state.m_forwardVector, cameraUpAlpha);
+        m_cameraUp = m_cameraUp.slerp(
+            machine.state.m_upVector,
+            Util::FastExpAlpha(10.0f * Dt_60Hz, InGameDeltaTime()));
 
         Float3 eyePos, targetPos;
         computeEyeAndTarget(machine, eyePos, targetPos);

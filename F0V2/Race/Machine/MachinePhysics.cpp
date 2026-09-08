@@ -11,6 +11,7 @@
 #include "TY/Intersects3D.h"
 #include "TY/Immediate3D.h"
 #include "Util/DebugTomlValue.h"
+#include "Util/ExpLerp.h"
 #include "Util/ImmediatePrint.h"
 
 using namespace Race;
@@ -401,10 +402,8 @@ namespace Race
             if (Abs(deviceInput.pitch) < 0.5f || Math::Sign(deviceInput.pitch) != Math::Sign(state.m_rawPitchRate))
             {
                 // 弱い入力なら減衰
-                for (const auto dt : StandardStep_60Hz())
-                {
-                    state.m_rawPitchRate *= 0.5f;
-                }
+                state.m_rawPitchRate = Util::FastExpLerp(
+                    state.m_rawPitchRate, 0.0f, 0.5f, InGameDeltaTime());
             }
 
             constexpr float speed = 2.0f;
@@ -510,8 +509,10 @@ namespace Race
 
         // -----------------------------------------------
 
-        for (const float dt : StandardStep_60Hz())
         {
+            const float dt = InGameDeltaTime();
+            const float frameScale = dt / Dt_60Hz;
+
             // 左ジョイスティック操作: 左右
             const float rightHandling = deviceInput.rightHandling;
             float rightShift;
@@ -529,13 +530,13 @@ namespace Race
             }
 
             constexpr float steeringSensitivity = 0.015f;
-            state.m_forwardVector += state.rightVector() * (rightShift * steeringSensitivity);
+            state.m_forwardVector += state.rightVector() * (rightShift * steeringSensitivity * frameScale);
             state.m_forwardVector = state.m_forwardVector.normalized();
 
             if (state.m_hyperTurn != 0.0f)
             {
                 // 速度偏向
-                state.m_forwardVector += state.rightVector() * state.m_hyperTurn * 1.0f;
+                state.m_forwardVector += state.rightVector() * state.m_hyperTurn * frameScale;
                 state.m_forwardVector = state.m_forwardVector.normalized();
 
                 const Float3 upVector =
@@ -546,7 +547,7 @@ namespace Race
                     const Float3 upVelocity = upVector * upVector.dot(state.m_velocity);
                     Float3 v = state.m_velocity - upVelocity;
 
-                    const float t = Min(0.1f, Abs(state.m_hyperTurn)); // TODO: dt 依存にする
+                    const float t = Util::FastExpAlpha(Min(0.1f, Abs(state.m_hyperTurn)), dt);
                     v = v.length() * v.normalized().safe_slerp(state.m_forwardVector, t, state.m_upVector);
 
                     state.m_velocity = upVelocity + v;
@@ -609,10 +610,9 @@ namespace Race
                 Quaternion::FromAxes(visualRightVector, visualUpVector, state.m_visualForwardVector);
 
             // 滑らかに回転
-            for (const auto dt : StandardStep_60Hz())
-            {
-                state.m_pose.rotation = state.m_pose.rotation.slerp(targetRotation, 10.0f * dt);
-            }
+            state.m_pose.rotation = state.m_pose.rotation.slerp(
+                targetRotation,
+                Util::FastExpAlpha(10.0f * Dt_60Hz, InGameDeltaTime()));
         }
 
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
@@ -643,12 +643,12 @@ namespace Race
         }
 
         // 速度の減衰
-        for (const auto dt : StandardStep_60Hz())
         {
-            constexpr float mu = 0.5f; // TODO
-            if (state.m_velocity.lengthSq() > Math::Square(mu))
+            constexpr float mu = 0.5f;
+            const float delta = mu * InGameDeltaTime() / Dt_60Hz;
+            if (state.m_velocity.lengthSq() > Math::Square(delta))
             {
-                state.m_velocity -= state.m_velocity.normalized() * mu;
+                state.m_velocity -= state.m_velocity.normalized() * delta;
             }
             else
             {

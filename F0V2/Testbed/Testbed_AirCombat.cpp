@@ -25,6 +25,8 @@
 #include "TY/PrimitiveModel3D.h"
 #include "TY/SimpleInput.h"
 
+#include "Util/ExpLerp.h"
+
 using namespace TY;
 
 namespace
@@ -217,10 +219,7 @@ struct Internal::FighterBody
     {
         // ロール更新
         const float targetRoll = input.roll * 15.0_deg;
-        for (const auto dt : StandardStep_60Hz())
-        {
-            m_roll = Math::Lerp(m_roll, targetRoll, 10.0f * dt);
-        }
+        m_roll = Util::FastExpLerp(m_roll, targetRoll, 10.0f * Dt_60Hz, System::DeltaTime());
 
         // 速度更新
         m_forwardSpeed += 5.0f * input.speed * System::DeltaTime();
