@@ -16,8 +16,7 @@ namespace
 {
     struct MachineDrawerCache : IInlineComponent
     {
-        ModelData modelData = // PrimitiveModel3D::Capsule(MachineRadius, MachineHeight, ColorF32{1.0f});
-            ModelLoader::Load(Asset_model::aero_machine.path());
+        ModelData modelData = ModelLoader::Load(Asset_model::f0_coffine.path());
 
         ModelShapeBuffer shapeBuffer = ModelShapeBuffer{modelData.shapes};
     };
@@ -36,7 +35,13 @@ struct MachineDrawer::Impl
         m_id = id;
 
         auto materials = s_machineDrawerCache->modelData.materials;
-        materials[0].parameters.diffuse = linearColor.toFloat3();
+        for (auto& material : materials)
+        {
+            if (material.name == "Paint_Primary_White")
+            {
+                material.parameters.diffuse = linearColor.toFloat3();
+            }
+        }
 
         const ModelBuffer model = ModelBuffer{s_machineDrawerCache->shapeBuffer, materials};
 
@@ -51,22 +56,15 @@ struct MachineDrawer::Impl
             ModelDrawerParams{}
             .setModel(model)
             .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
-            .setShader(Asset_shader::gbuffer_pass);
+            .setShader(Asset_shader::gbuffer_coffine);
     }
 
     void Update()
     {
         const auto& machine = GetRaceContext().machineManager().machineList()[m_id];
 
-        Mat4x4 localRotation = // Mat4x4(Quaternion::RotateX(Math::HalfPiF));
-            // Mat4x4::Identity();
-            Mat4x4(Quaternion::RotateX(Math::PiF));
-        if (machine.state.isDead())
-        {
-            localRotation = Mat4x4::Identity(); // TODO: 死亡グラフィック
-        }
-
-        const Mat4x4& worldMatrix = localRotation * machine.state.m_pose.getMatrix();
+        // f0_coffine is exported with +Z forward and +Y up, matching the pose.
+        const Mat4x4& worldMatrix = machine.state.m_pose.getMatrix();
 
         (void)m_shadowDrawer.setWorldMatrix(worldMatrix);
         (void)m_gbufferDrawer.setWorldMatrix(worldMatrix);

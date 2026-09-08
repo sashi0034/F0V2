@@ -12,6 +12,7 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper dynamic_ocean{"asset/shader/dynamic_ocean.hlsl"};
     static const inline ComputeShaderPathWrapper fsr1_easu_cs{"asset/shader/fsr1/fsr1_easu_cs.hlsl"};
     static const inline ComputeShaderPathWrapper fsr1_rcas_cs{"asset/shader/fsr1/fsr1_rcas_cs.hlsl"};
+    static const inline GraphicsShaderPathWrapper gbuffer_coffine{"asset/shader/gbuffer_coffine.hlsl"};
     static const inline GraphicsShaderPathWrapper gbuffer_pass{"asset/shader/gbuffer_pass.hlsl"};
     static const inline GraphicsShaderPathWrapper gimmick_boost_pad{"asset/shader/gimmick_boost_pad.hlsl"};
     static const inline GraphicsShaderPathWrapper gimmick_jump_pad{"asset/shader/gimmick_jump_pad.hlsl"};
@@ -145,6 +146,7 @@ namespace Asset_model
     static const inline ModelPathWrapper aero_machine{"asset/model/aero_machine.obj"};
     static const inline ModelPathWrapper cinnamon{"asset/model/cinnamon.obj"};
     static const inline ModelPathWrapper dirty_plane{"asset/model/dirty_plane.obj"};
+    static const inline ModelPathWrapper f0_coffine{"asset/model/f0_coffine/f0_coffine.obj"};
     static const inline ModelPathWrapper moji_hashi{"asset/model/moji_hashi.obj"};
     static const inline ModelPathWrapper moji_hashira{"asset/model/moji_hashira.obj"};
     static const inline ModelPathWrapper moji_kuzu{"asset/model/moji_kuzu.obj"};

@@ -1,0 +1,57 @@
+newmtl Paint_Primary_White
+Ka 0 0 0
+Kd 0.790000 0.830000 0.900000
+Ks 0.25 0.25 0.25
+Ns 30.000
+d 1.0
+illum 2
+
+newmtl Paint_Secondary_Navy
+Ka 0 0 0
+Kd 0.012000 0.035000 0.170000
+Ks 0.25 0.25 0.25
+Ns 39.322
+d 1.0
+illum 2
+
+newmtl Mechanical_Graphite
+Ka 0 0 0
+Kd 0.022000 0.028000 0.042000
+Ks 0.25 0.25 0.25
+Ns 20.222
+d 1.0
+illum 2
+
+newmtl Canopy_Smoked
+Ka 0 0 0
+Kd 0.012000 0.018000 0.027000
+Ks 0.25 0.25 0.25
+Ns 100.041
+d 1.0
+illum 2
+
+newmtl Panel_Trim
+Ka 0 0 0
+Kd 0.055000 0.075000 0.110000
+Ks 0.25 0.25 0.25
+Ns 32.722
+d 1.0
+illum 2
+
+newmtl Light_Lens_NoEmission
+Ka 0 0 0
+Kd 0.150000 0.650000 1.000000
+Ks 0.25 0.25 0.25
+Ns 48.000
+d 1.0
+illum 2
+
+newmtl RaceNumber_ReplaceTexture
+Ka 0 0 0
+Kd 1.000000 1.000000 1.000000
+Ks 0.25 0.25 0.25
+Ns 17.531
+d 1.0
+illum 2
+map_Kd f0_coffine_number.png
+
