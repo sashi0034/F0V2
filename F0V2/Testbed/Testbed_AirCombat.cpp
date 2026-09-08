@@ -28,6 +28,7 @@
 #include "Util/ExpLerp.h"
 
 using namespace TY;
+using namespace Util;
 
 namespace
 {
@@ -219,7 +220,7 @@ struct Internal::FighterBody
     {
         // ロール更新
         const float targetRoll = input.roll * 15.0_deg;
-        m_roll = Util::FastExpLerp(m_roll, targetRoll, 10.0f * Dt_60Hz, System::DeltaTime());
+        m_roll = FastExpLerp(m_roll, targetRoll, 10.0f * Dt_60Hz, System::DeltaTime());
 
         // 速度更新
         m_forwardSpeed += 5.0f * input.speed * System::DeltaTime();

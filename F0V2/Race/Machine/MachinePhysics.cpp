@@ -15,6 +15,7 @@
 #include "Util/ImmediatePrint.h"
 
 using namespace Race;
+using namespace Util;
 
 namespace
 {
@@ -404,7 +405,7 @@ namespace Race
             if (Abs(deviceInput.pitch) < 0.5f || Math::Sign(deviceInput.pitch) != Math::Sign(state.m_rawPitchRate))
             {
                 // 弱い入力なら減衰
-                state.m_rawPitchRate = Util::FastExpLerp(
+                state.m_rawPitchRate = FastExpLerp(
                     state.m_rawPitchRate, 0.0f, 0.5f, dt);
             }
 
@@ -548,7 +549,7 @@ namespace Race
                     const Float3 upVelocity = upVector * upVector.dot(state.m_velocity);
                     Float3 v = state.m_velocity - upVelocity;
 
-                    const float t = Util::FastExpAlpha(Min(0.1f, Abs(state.m_hyperTurn)), dt);
+                    const float t = FastExpAlpha(Min(0.1f, Abs(state.m_hyperTurn)), dt);
                     v = v.length() * v.normalized().safe_slerp(state.m_forwardVector, t, state.m_upVector);
 
                     state.m_velocity = upVelocity + v;
@@ -613,7 +614,7 @@ namespace Race
             // 滑らかに回転
             state.m_pose.rotation = state.m_pose.rotation.slerp(
                 targetRotation,
-                Util::FastExpAlpha(10.0f * Dt_60Hz, dt));
+                FastExpAlpha(10.0f * Dt_60Hz, dt));
         }
 
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();

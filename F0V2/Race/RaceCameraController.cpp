@@ -14,6 +14,7 @@
 #include "Util/ExpLerp.h"
 
 using namespace Race;
+using namespace Util;
 
 namespace
 {
@@ -71,7 +72,7 @@ private:
         // m_cameraForward = m_cameraForward.slerp(machine.state.m_forwardVector, cameraUpAlpha);
         m_cameraUp = m_cameraUp.slerp(
             machine.state.m_upVector,
-            Util::FastExpAlpha(10.0f * Dt_60Hz, InGameDeltaTime()));
+            FastExpAlpha(10.0f * Dt_60Hz, InGameDeltaTime()));
 
         Float3 eyePos, targetPos;
         computeEyeAndTarget(machine, eyePos, targetPos);
