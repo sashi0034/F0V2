@@ -513,7 +513,7 @@ namespace Race
         // -----------------------------------------------
 
         {
-            const float frameScale = dt / Dt_60Hz;
+            const float frameScale = dt / DeltaTime60FPS;
 
             // 左ジョイスティック操作: 左右
             const float rightHandling = deviceInput.rightHandling;
@@ -614,7 +614,7 @@ namespace Race
             // 滑らかに回転
             state.m_pose.rotation = state.m_pose.rotation.slerp(
                 targetRotation,
-                FastExpAlpha(10.0f * Dt_60Hz, dt));
+                FastExpAlpha(10.0f / 60.0f, dt));
         }
 
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
@@ -647,7 +647,7 @@ namespace Race
         // 速度の減衰
         {
             constexpr float mu = 0.5f;
-            const float delta = mu * dt / Dt_60Hz;
+            const float delta = mu * (dt / DeltaTime60FPS);
             if (state.m_velocity.lengthSq() > Math::Square(delta))
             {
                 state.m_velocity -= state.m_velocity.normalized() * delta;

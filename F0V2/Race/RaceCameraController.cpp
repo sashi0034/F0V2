@@ -72,7 +72,7 @@ private:
         // m_cameraForward = m_cameraForward.slerp(machine.state.m_forwardVector, cameraUpAlpha);
         m_cameraUp = m_cameraUp.slerp(
             machine.state.m_upVector,
-            FastExpAlpha(10.0f * Dt_60Hz, InGameDeltaTime()));
+            FastExpAlpha(10.0f / 60.0f, InGameDeltaTime()));
 
         Float3 eyePos, targetPos;
         computeEyeAndTarget(machine, eyePos, targetPos);

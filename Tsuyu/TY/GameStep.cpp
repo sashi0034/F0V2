@@ -25,10 +25,10 @@ namespace
     {
         bool init() override
         {
-            s_standardSteps[static_cast<int>(HertzKind::T_120Hz)] = GameStepTimer(Dt_120Hz);
-            s_standardSteps[static_cast<int>(HertzKind::T_60Hz)] = GameStepTimer(Dt_60Hz);
-            s_standardSteps[static_cast<int>(HertzKind::T_30Hz)] = GameStepTimer(Dt_30Hz);
-            s_standardSteps[static_cast<int>(HertzKind::T_15Hz)] = GameStepTimer(Dt_15Hz);
+            s_standardSteps[static_cast<int>(HertzKind::T_120Hz)] = GameStepTimer(1.0 / 120);
+            s_standardSteps[static_cast<int>(HertzKind::T_60Hz)] = GameStepTimer(1.0 / 60);
+            s_standardSteps[static_cast<int>(HertzKind::T_30Hz)] = GameStepTimer(1.0 / 30);
+            s_standardSteps[static_cast<int>(HertzKind::T_15Hz)] = GameStepTimer(1.0 / 15);
 
             return true;
         }

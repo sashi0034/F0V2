@@ -3,11 +3,6 @@
 
 namespace TY
 {
-    constexpr float Dt_120Hz = 1.0 / 120;
-    constexpr float Dt_60Hz = 1.0 / 60;
-    constexpr float Dt_30Hz = 1.0 / 30;
-    constexpr float Dt_15Hz = 1.0 / 15;
-
     class GameStep
     {
     public:

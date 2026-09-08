@@ -5,6 +5,8 @@
 
 namespace Util
 {
+    constexpr float DeltaTime60FPS = 1.0f / 60.0f;
+
     /// @brief Computes a frame-rate-independent alpha for interpolation.
     float ExpAlpha(float alpha, float deltaTime);
 
