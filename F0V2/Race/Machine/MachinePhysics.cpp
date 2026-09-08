@@ -260,6 +260,8 @@ namespace Race
             return updateOutcome;
         }
 
+        const float dt = InGameDeltaTime();
+
         // const Float3 gravity = state.m_gravity - state.m_surfaceNormal * state.m_surfaceNormal.dot(state.m_gravity);
         Float3 gravity = state.m_gravity; // FIXME: 地面方向の成分を除去?
 
@@ -278,7 +280,7 @@ namespace Race
             }
         }
 
-        state.m_velocity += gravity * gravityFactor * InGameDeltaTime();
+        state.m_velocity += gravity * gravityFactor * dt;
 
         auto deviceInput = props.input;
         if (state.isDead())
@@ -294,9 +296,9 @@ namespace Race
         }
 
         // ブースト入力処理
-        state.m_manualBoostCooldownTime = Max(0.0f, state.m_manualBoostCooldownTime - InGameDeltaTime());
+        state.m_manualBoostCooldownTime = Max(0.0f, state.m_manualBoostCooldownTime - dt);
 
-        state.m_boostComboCountdown = Max(0.0f, state.m_boostComboCountdown - InGameDeltaTime());
+        state.m_boostComboCountdown = Max(0.0f, state.m_boostComboCountdown - dt);
         if (state.m_boostComboCountdown <= 0.0f)
         {
             state.m_boostComboCount = 0;
@@ -346,16 +348,16 @@ namespace Race
         {
             // const float comboBonus = 1.0f + state.m_boostComboCount * 0.1f;
             const float speed = 150.0f * Min(1.0f, state.m_manualBoost);
-            state.m_velocity += state.m_forwardVector * speed * InGameDeltaTime();
+            state.m_velocity += state.m_forwardVector * speed * dt;
 
-            state.m_manualBoost = Max<float>(0.0f, state.m_manualBoost - InGameDeltaTime());
+            state.m_manualBoost = Max<float>(0.0f, state.m_manualBoost - dt);
         }
 
         if (state.m_passiveBoost > 0.0f)
         {
-            state.m_velocity += state.m_forwardVector * 100.0f * Min(1.0f, state.m_passiveBoost) * InGameDeltaTime();
+            state.m_velocity += state.m_forwardVector * 100.0f * Min(1.0f, state.m_passiveBoost) * dt;
 
-            state.m_passiveBoost = Max<float>(0.0f, state.m_passiveBoost - InGameDeltaTime());
+            state.m_passiveBoost = Max<float>(0.0f, state.m_passiveBoost - dt);
         }
 
         // ハイパーターン
@@ -375,9 +377,9 @@ namespace Race
         {
             // 傾く
             const float impulseIntensity = 0.5 + Min(state.m_velocity.length(), 100.0f) / 100.0f;
-            state.m_hyperTurn += deviceInput.rightHandling * impulseIntensity * InGameDeltaTime();
+            state.m_hyperTurn += deviceInput.rightHandling * impulseIntensity * dt;
 
-            state.m_hyperTurnTime = Max<float>(0.0f, state.m_hyperTurnTime - InGameDeltaTime());
+            state.m_hyperTurnTime = Max<float>(0.0f, state.m_hyperTurnTime - dt);
             if (state.m_hyperTurnTime == 0.0f)
             {
                 state.m_stabilizingAfterHyperTurn = true;
@@ -388,7 +390,7 @@ namespace Race
         {
             // 体制復帰
             const auto s = Math::Sign(state.m_hyperTurn);
-            state.m_hyperTurn -= s * 5.0f * InGameDeltaTime();
+            state.m_hyperTurn -= s * 5.0f * dt;
             if (s != Math::Sign(state.m_hyperTurn))
             {
                 state.m_hyperTurn = 0.0f;
@@ -403,11 +405,11 @@ namespace Race
             {
                 // 弱い入力なら減衰
                 state.m_rawPitchRate = Util::FastExpLerp(
-                    state.m_rawPitchRate, 0.0f, 0.5f, InGameDeltaTime());
+                    state.m_rawPitchRate, 0.0f, 0.5f, dt);
             }
 
             constexpr float speed = 2.0f;
-            state.m_rawPitchRate += speed * deviceInput.pitch * InGameDeltaTime();
+            state.m_rawPitchRate += speed * deviceInput.pitch * dt;
             if (Abs(state.m_rawPitchRate) > 1.0f)
             {
                 state.m_rawPitchRate = 1.0f * Math::Sign(state.m_rawPitchRate);
@@ -431,7 +433,7 @@ namespace Race
             constexpr float driftPivot = maxDriftOffset * 0.5f + boundary * 0.5f;
             const float targetDriftOffset = driftTrigger * driftPivot + deviceInput.rightHandling * handlingRange;
 
-            const float d = InGameDeltaTime() * 10.0f;
+            const float d = dt * 10.0f;
             if (Abs(targetDriftOffset - state.m_driftOffset) < d)
             {
                 state.m_driftOffset = targetDriftOffset;
@@ -447,7 +449,7 @@ namespace Race
         if (Math::Sign(driftTrigger) != Math::Sign(state.m_driftOffset))
         {
             // ドリフト量を減らす
-            const float delta = 15.0f * InGameDeltaTime(); // > 0
+            const float delta = 15.0f * dt; // > 0
             state.m_driftOffset -= delta * Math::Sign(state.m_driftOffset);
             if (Abs(state.m_driftOffset) < delta)
             {
@@ -463,7 +465,7 @@ namespace Race
 
         // 移動処理
         {
-            Float3 moveVector = state.m_velocity * InGameDeltaTime();
+            Float3 moveVector = state.m_velocity * dt;
 
             ResolveMachineMove(state, moveVector, props);
         }
@@ -510,7 +512,6 @@ namespace Race
         // -----------------------------------------------
 
         {
-            const float dt = InGameDeltaTime();
             const float frameScale = dt / Dt_60Hz;
 
             // 左ジョイスティック操作: 左右
@@ -612,7 +613,7 @@ namespace Race
             // 滑らかに回転
             state.m_pose.rotation = state.m_pose.rotation.slerp(
                 targetRotation,
-                Util::FastExpAlpha(10.0f * Dt_60Hz, InGameDeltaTime()));
+                Util::FastExpAlpha(10.0f * Dt_60Hz, dt));
         }
 
         const Float3 slippedRightVector = state.m_upVector.cross(slippedForwardVector).normalized();
@@ -629,7 +630,7 @@ namespace Race
 
             const Float3& fv = slippedForwardVector;
             const Float3& rv = slippedRightVector;
-            v = v - rv * rv.dot(v) * InGameDeltaTime() * 0.5f;
+            v = v - rv * rv.dot(v) * dt * 0.5f;
 
             float newForwardLength =
                 Math::Sign(fv.dot(v)) * std::sqrt(forwardRightSq - Math::Square(rv.dot(v)));
@@ -645,7 +646,7 @@ namespace Race
         // 速度の減衰
         {
             constexpr float mu = 0.5f;
-            const float delta = mu * InGameDeltaTime() / Dt_60Hz;
+            const float delta = mu * dt / Dt_60Hz;
             if (state.m_velocity.lengthSq() > Math::Square(delta))
             {
                 state.m_velocity -= state.m_velocity.normalized() * delta;
