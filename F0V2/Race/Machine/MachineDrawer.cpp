@@ -41,6 +41,13 @@ struct MachineDrawer::Impl
             {
                 material.parameters.diffuse = linearColor.toFloat3();
             }
+
+            if (material.name == "Light_Lens")
+            {
+                material.parameters.diffuse = MinVector3(
+                    Float3::One(),
+                    (linearColor.toFloat3() + Float3::One() * 0.1f) * 1.5f);
+            }
         }
 
         const ModelBuffer model = ModelBuffer{s_machineDrawerCache->shapeBuffer, materials};
