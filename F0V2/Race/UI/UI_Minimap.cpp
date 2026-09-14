@@ -6,6 +6,8 @@
 #include "Race/Machine/MachineConstants.h"
 #include "Race/Stage/StageManager.h"
 #include "TY/ActorContainer.h"
+#include "TY/DynamicBinding.h"
+#include "TY/GameTime.h"
 #include "TY/Graphics3D.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
@@ -15,17 +17,26 @@
 #include "TY/Palette.h"
 #include "TY/RenderTarget.h"
 #include "TY/Screen.h"
+#include "Util/ExpLerp.h"
 
 using namespace Race;
+using namespace Util;
 
 namespace
 {
+    /// @brief minimap.hlsl の cbuffer Minimap : register(b10)
+    struct Minimap_b10
+    {
+        Float3 g_lightDirection{};
+        float _padding{};
+    };
+
     constexpr Size MinimapTextureSize{256, 256};
 
     // NOTE: 正射影ではこの値を変えても見た目の拡大率は変わらず、クリップ範囲だけが動く。
-    constexpr float CameraHeight = 50.0f;
-    constexpr float CameraNearZ = 1.0f;
-    constexpr float CameraFarZ = 100.0f; // CameraHeight より十分大きくしないと、プレイヤーより下の地形が far 側で切り落とされる
+    constexpr float CameraHeight = 400.0f;
+    constexpr float CameraNearZ = -400.0f;
+    constexpr float CameraFarZ = 800.0f; // CameraHeight より十分大きくしないと、プレイヤーより下の地形が far 側で切り落とされる
 
     void pushMachineMarker(const Float2& position, float radius, const ColorF32& color)
     {
@@ -50,6 +61,8 @@ struct UI_Minimap::Impl : ActorBase
 
     Array<ModelDrawer> m_courseMinimapDrawer{};
 
+    Float3 m_cameraForward{};
+
     void Init()
     {
         m_renderTarget =
@@ -71,29 +84,38 @@ struct UI_Minimap::Impl : ActorBase
                 ModelDrawerParams{}
                 .setModel(model)
                 .setShader(Asset_shader::minimap)
-                .setOptions(GraphicsOptions::FromTarget(m_renderTarget)));
+                .setOptions(GraphicsOptions::FromTarget(m_renderTarget))
+                .setDynamicCbvCount(1));
         }
     }
 
-    void Draw() const
+    void Update()
     {
-        // レンダーターゲットを差し替える前に、積まれているスクリーン向けの図形を吐き出しておく
-        ImmediateDrawer::Global().draw();
-
         const auto& machines = GetRaceContext().machineManager().machineList();
         const auto& player = machines[PlayerMachineId];
 
         const Float3 playerPos = player.state.m_pose.position;
-        const Float3 playerUp = player.state.m_upVector;
         const auto& playerLocation = player.state.m_lapProgress.segmentAndStrip();
-        const Float3 roadForward = GetRaceContext().stageManager().courseSegments()[playerLocation.segmentIndex]
-            .midwayStrips[playerLocation.stripIndex].toNext.normalized(); // TODO: lerp
 
-        // プレイヤーの頭上から、進行方向が画面上向きになるように見下ろす
-        const Mat4x4 view = Mat4x4::LookAt(playerPos + playerUp * CameraHeight, playerPos, roadForward);
+        const auto& strip = GetRaceContext().stageManager().courseSegments()[playerLocation.segmentIndex]
+            .midwayStrips[playerLocation.stripIndex];
+
+        const Float3 targetForward = strip.toNext.normalized();
+        if (m_cameraForward.isZero())
+        {
+            m_cameraForward = targetForward;
+        }
+        else
+        {
+            m_cameraForward = m_cameraForward.slerp(targetForward, FastExpAlpha(0.1f, InGameDeltaTime()));
+        }
+
+        const Float3 cameraUp = m_cameraForward.cross(strip.rightmost - strip.leftmost).normalized();
+
+        const Mat4x4 view = Mat4x4::LookAt(playerPos + cameraUp * CameraHeight, playerPos, m_cameraForward);
 
         // 代案: Mat4x4::PerspectiveFov(Math::ToRadians(50.0f), 1.0f, CameraNearZ, CameraFarZ)
-        constexpr float CameraViewSize = 300.0f; // 正射影で切り取るワールド空間の一辺の長さ
+        constexpr float CameraViewSize = 400.0f; // 正射影で切り取るワールド空間の一辺の長さ
         const Mat4x4 projection = Mat4x4::Orthographic(CameraViewSize, CameraViewSize, CameraNearZ, CameraFarZ);
 
         // -----------------------------------------------
@@ -103,12 +125,17 @@ struct UI_Minimap::Impl : ActorBase
 
         Graphics3D::SetViewMatrix(view);
         Graphics3D::SetProjectionMatrix(projection);
+
         {
             const auto bind = m_renderTarget.scopedClearBind();
+
+            // 光は常に頭上から差す
+            const auto cbv = DynamicBinding::UploadDynamicCbv(Minimap_b10{.g_lightDirection = -cameraUp});
 
             // コース (頂点はワールド空間に焼かれているのでワールド行列は単位行列)
             for (const auto& drawer : m_courseMinimapDrawer)
             {
+                DynamicBinding::SetDynamicCbv(10, cbv);
                 drawer.setWorldMatrix(Mat4x4::Identity()).draw();
             }
 
@@ -120,6 +147,12 @@ struct UI_Minimap::Impl : ActorBase
 
         Graphics3D::SetViewMatrix(previousView);
         Graphics3D::SetProjectionMatrix(previousProjection);
+    }
+
+    void Draw() const
+    {
+        // レンダーターゲットを差し替える前に、積まれているスクリーン向けの図形を吐き出しておく
+        ImmediateDrawer::Global().draw();
 
         // 出来上がったテクスチャをスクリーンへ合成する
         Immediate2D::Texture{m_renderTarget.getFrontRtv()}
@@ -170,6 +203,8 @@ private:
     void update() override
     {
         m_children.updateEach();
+
+        Update();
     }
 
     void killed() override
