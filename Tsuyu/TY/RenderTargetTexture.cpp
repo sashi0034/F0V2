@@ -48,9 +48,9 @@ struct RenderTargetTexture::Impl
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
-                D3D12_RESOURCE_STATE_RENDER_TARGET,
+                params.initialState,
                 &clearValue,
-                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_RENDER_TARGET)));
+                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(params.initialState)));
             FAILED(hr))
         {
             LogError(std::format("RenderTargetTexture: Failed to create texture resource: {:08x}", hr));
@@ -84,6 +84,12 @@ namespace TY
     RenderTargetTextureParams& RenderTargetTextureParams::setFormat(GraphicsFormat format_)
     {
         format = format_;
+        return *this;
+    }
+
+    RenderTargetTextureParams& RenderTargetTextureParams::setInitialState(D3D12_RESOURCE_STATES initialState_)
+    {
+        initialState = initialState_;
         return *this;
     }
 

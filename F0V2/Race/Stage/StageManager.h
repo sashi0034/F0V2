@@ -18,6 +18,10 @@ namespace Race
 
         float courseLength() const;
 
+        // const Array<ModelBuffer>& courseModels() const;
+
+        const Array<ModelBuffer>& courseMinimapModels() const;
+
         StageStaticCollider& stageStaticCollider();
         const StageStaticCollider& stageStaticCollider() const;
 

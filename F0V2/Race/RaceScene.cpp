@@ -38,8 +38,6 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
     RaceVfxDrawer m_vfxDrawer{};
 
-    RaceController m_raceController{};
-
     StageManager m_stageManager{};
 
     MachineManager m_machineManager{};
@@ -55,6 +53,8 @@ struct RaceScene::Impl : ActorBase, IRaceContext
     MetaAI m_metaAI{};
 
     MachineVfxEmitter m_machineVfxEmitter{};
+
+    RaceController m_raceController{};
 
     Impl(bool context)
     {
@@ -83,9 +83,6 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         m_vfxDrawer = m_children.birth(RaceVfxDrawer());
         m_vfxDrawer.init();
-
-        m_raceController = m_children.birth(RaceController());
-        m_raceController.init();
 
         m_stageManager = m_children.birth(StageManager());
         m_stageManager.init();
@@ -118,6 +115,9 @@ struct RaceScene::Impl : ActorBase, IRaceContext
 
         m_machineVfxEmitter = m_children.birth(MachineVfxEmitter());
         m_machineVfxEmitter.init();
+
+        m_raceController = m_children.birth(RaceController());
+        m_raceController.init();
     }
 
     void update() override

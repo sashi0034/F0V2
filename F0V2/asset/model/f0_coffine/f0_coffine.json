@@ -1,0 +1,23 @@
+{
+  "name": "f0_coffine",
+  "triangles": 4286,
+  "obj_indices": 12780,
+  "forward": "+Z",
+  "up": "+Y",
+  "length_m": 4,
+  "source_center": [
+    0.0,
+    -0.0049828290939331055,
+    0.7684997320175171
+  ],
+  "uniform_scale": 0.9638474811571881,
+  "materials": [
+    "Paint_Primary_White",
+    "Paint_Secondary_Navy",
+    "Mechanical_Graphite",
+    "Canopy_Smoked",
+    "Panel_Trim",
+    "Light_Lens_NoEmission",
+    "RaceNumber_ReplaceTexture"
+  ]
+}

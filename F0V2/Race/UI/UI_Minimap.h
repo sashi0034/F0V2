@@ -3,12 +3,14 @@
 
 namespace Race
 {
-    class UI_template : public ActorHandle
+    class UI_Minimap : public ActorHandle
     {
     public:
-        Hud_template();
+        UI_Minimap();
 
         void init();
+
+        void draw() const;
 
         std::shared_ptr<ActorBase> asActor() const override;
 
