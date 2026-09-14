@@ -183,6 +183,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
     ModelDrawer m_groundPlaneDrawer{};
 
+    Array<ModelBuffer> m_courseModels{};
+
     Array<ModelDrawer> m_courseDrawers{};
 
     Array<Array<GimmickPlacement>> m_gimmickPlacements{};
@@ -237,10 +239,12 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
             if (courseModel.isEmpty())
             {
+                m_courseModels.push_back({});
                 m_courseDrawers.push_back({});
             }
             else
             {
+                m_courseModels.push_back(courseModel);
                 m_courseDrawers.push_back(
                     ModelDrawerParams{}
                     .setModel(courseModel)
@@ -455,6 +459,11 @@ namespace Race
     float StageManager::courseLength() const
     {
         return p_impl->m_courseLength;
+    }
+
+    const Array<ModelBuffer>& StageManager::courseModels() const
+    {
+        return p_impl->m_courseModels;
     }
 
     StageStaticCollider& StageManager::stageStaticCollider()
