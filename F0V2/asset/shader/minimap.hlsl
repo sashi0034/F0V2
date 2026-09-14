@@ -21,16 +21,10 @@ cbuffer ModelMaterial : register(b2)
     float g_shininess;
 }
 
-// 常にプレイヤーの頭上から差す光。光の進行方向 (= -プレイヤーの上ベクトル) が入る
 cbuffer Minimap : register(b10)
 {
     float3 g_lightDirection;
 }
-
-// ミニマップは単色 + 簡易陰影で描くので、マテリアルもテクスチャも参照しない
-static const float3 g_minimapBaseColor = float3(0.5, 0.5, 0.5);
-
-static const float g_minimapAmbient = 0.35;
 
 struct PSInput
 {
@@ -54,9 +48,10 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
 float4 PS(PSInput input) : SV_TARGET
 {
     const float3 n = normalize(input.normal);
-    const float ndl = saturate(dot(n, -normalize(g_lightDirection)));
+    const float NoL = saturate(dot(n, -normalize(g_lightDirection)));
 
-    const float shade = g_minimapAmbient + (1.0 - g_minimapAmbient) * ndl;
+    static const float minShade = 0.0;
+    const float shade = minShade + (1.0 - minShade) * NoL;
 
-    return float4(g_minimapBaseColor * shade, 1.0);
+    return float4(float3(1, 1, 1) * 0.15, shade);
 }

@@ -31,10 +31,10 @@ namespace
         float _padding{};
     };
 
-    constexpr Size MinimapTextureSize{256, 256};
+    constexpr Size MinimapTextureSize{400, 400};
 
     // NOTE: 正射影ではこの値を変えても見た目の拡大率は変わらず、クリップ範囲だけが動く。
-    constexpr float CameraHeight = 400.0f;
+    constexpr float CameraHeight = 200.0f;
     constexpr float CameraNearZ = -400.0f;
     constexpr float CameraFarZ = 800.0f; // CameraHeight より十分大きくしないと、プレイヤーより下の地形が far 側で切り落とされる
 
