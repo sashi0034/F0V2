@@ -110,7 +110,7 @@ private:
 
         MachinePhysicsProps::input_t input;
 
-        bool leftHyperInput{}, rightHyperInput{};
+        bool leftQuickTurnInput{}, rightQuickTurnInput{};
         if (IsUsingGamepad())
         {
             input.accelPressed = MainGamepad.a().pressed ||
@@ -128,8 +128,8 @@ private:
 
             input.driftTrigger = -MainGamepad.leftTrigger() + MainGamepad.rightTrigger();
 
-            leftHyperInput = MainGamepad.lb().down;
-            rightHyperInput = MainGamepad.rb().down;
+            leftQuickTurnInput = MainGamepad.lb().down;
+            rightQuickTurnInput = MainGamepad.rb().down;
         }
         else
         {
@@ -146,8 +146,8 @@ private:
             input.driftTrigger =
                 (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
 
-            leftHyperInput = leftKeyDoubleTapped;
-            rightHyperInput = rightKeyDoubleTapped;
+            leftQuickTurnInput = leftKeyDoubleTapped;
+            rightQuickTurnInput = rightKeyDoubleTapped;
 
             // ダブルアップの次はシングルタップでクイックターンを出来るようにする
             if (leftKeyDoubleTapped) m_leftKeyDoubleTap.setRemainingTime(m_leftKeyDoubleTap.getInterval());
@@ -155,7 +155,7 @@ private:
         }
 
         input.quickTurnRequested =
-            (input.rightHandling < -0.1f && leftHyperInput) || (input.rightHandling > 0.1f && rightHyperInput);
+            (input.rightHandling < -0.1f && leftQuickTurnInput) || (input.rightHandling > 0.1f && rightQuickTurnInput);
 
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)
