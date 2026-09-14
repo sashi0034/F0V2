@@ -9,6 +9,7 @@
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
+#include "Race/Common/CourseMinimapModelBuilder.h"
 #include "Race/Common/CourseModelBuilder.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
@@ -183,7 +184,9 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
     ModelDrawer m_groundPlaneDrawer{};
 
-    Array<ModelBuffer> m_courseModels{};
+    // Array<ModelBuffer> m_courseModels{};
+
+    Array<ModelBuffer> m_courseMinimapModels{};
 
     Array<ModelDrawer> m_courseDrawers{};
 
@@ -228,23 +231,25 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
             const auto& segment = g_sharedState->courseSegments[i];
 
             colliders.push_back({});
+            CourseMinimapModelBuilder minimapModelBuilder{};
             const auto courseModel = BuildCourseModel(
                 segment,
                 {
                     .createStartingLine = i == 0,
                     .outCollider = &colliders.back(),
                     .outGimmickPlacements = &m_gimmickPlacements[i],
+                    .outMinimapModel = &minimapModelBuilder,
                 }
             );
 
+            m_courseMinimapModels.push_back(minimapModelBuilder.build());
+
             if (courseModel.isEmpty())
             {
-                m_courseModels.push_back({});
                 m_courseDrawers.push_back({});
             }
             else
             {
-                m_courseModels.push_back(courseModel);
                 m_courseDrawers.push_back(
                     ModelDrawerParams{}
                     .setModel(courseModel)
@@ -461,9 +466,14 @@ namespace Race
         return p_impl->m_courseLength;
     }
 
-    const Array<ModelBuffer>& StageManager::courseModels() const
+    // const Array<ModelBuffer>& StageManager::courseModels() const
+    // {
+    //     return p_impl->m_courseModels;
+    // }
+
+    const Array<ModelBuffer>& StageManager::courseMinimapModels() const
     {
-        return p_impl->m_courseModels;
+        return p_impl->m_courseMinimapModels;
     }
 
     StageStaticCollider& StageManager::stageStaticCollider()

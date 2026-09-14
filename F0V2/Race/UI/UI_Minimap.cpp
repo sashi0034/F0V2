@@ -72,19 +72,21 @@ struct UI_Minimap::Impl : ActorBase
                 .setSize(MinimapTextureSize)
                 .setClearColor(ColorF32{0.0f, 0.0f})); // アルファ 0 で透明クリア
 
-        const auto& courseModels = GetRaceContext().stageManager().courseModels();
+        const auto& courseModels = GetRaceContext().stageManager().courseMinimapModels();
 
         m_courseMinimapDrawer.clear();
         for (const auto& model : courseModels)
         {
-            // NOTE: StageManager はモデルを持たないセグメントにも空要素を入れてくる
             if (model.isEmpty()) continue;
 
             m_courseMinimapDrawer.push_back(
                 ModelDrawerParams{}
                 .setModel(model)
                 .setShader(Asset_shader::minimap)
-                .setOptions(GraphicsOptions::FromTarget(m_renderTarget))
+                .setOptions(
+                    GraphicsOptions::FromTarget(m_renderTarget)
+                    // 単面モデルなのでカリング無し
+                    .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None)))
                 .setDynamicCbvCount(1));
         }
     }

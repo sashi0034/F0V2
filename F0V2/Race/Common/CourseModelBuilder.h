@@ -8,6 +8,8 @@
 
 namespace Race
 {
+    class CourseMinimapModelBuilder;
+
     struct CoursePolygoneCollider
     {
         Array<IndexedTriangle> groundTris{};
@@ -30,6 +32,7 @@ namespace Race
         bool createStartingLine{};
         CoursePolygoneCollider* outCollider = nullptr;
         Array<GimmickPlacement>* outGimmickPlacements = nullptr;
+        CourseMinimapModelBuilder* outMinimapModel = nullptr;
     };
 
     ModelBuffer BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options);

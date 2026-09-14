@@ -2,6 +2,7 @@
 #include "CourseModelBuilder.h"
 
 #include "CourseConstants.h"
+#include "CourseMinimapModelBuilder.h"
 #include "RaceSharedState.h"
 #include "TY/DynamicTexture.h"
 #include "TY/Image.h"
@@ -85,6 +86,14 @@ namespace
 
         v_offset += 4;
         i_offset += 6;
+
+        if (options.outMinimapModel)
+        {
+            // ミニマップ向けには単面ぶんだけ積む
+            options.outMinimapModel->pushGroundQuad(
+                {l0.pos, l0.normal}, {r0.pos, r0.normal},
+                {l1.pos, l1.normal}, {r1.pos, r1.normal});
+        }
 
         if (options.outCollider)
         {
