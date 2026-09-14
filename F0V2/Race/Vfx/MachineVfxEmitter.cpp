@@ -26,10 +26,10 @@ namespace
         Float3 lastBoostEmitPosition{};
         float driftEmitCountdown{};
         float driftInitialRotation{};
-        bool hyperTurnWasActive{};
-        float hyperTurnEmitCountdown{};
-        float hyperTurnParticleDirection{};
-        int hyperTurnParticlesRemaining{};
+        bool quickTurnWasActive{};
+        float quickTurnEmitCountdown{};
+        float quickTurnParticleDirection{};
+        int quickTurnParticlesRemaining{};
         float previousAttackedTime{};
         bool initialized{};
     };
@@ -39,9 +39,9 @@ namespace
         state.boostIntensity = 0.0f;
         state.lastBoostEmitPosition = machine.state.m_pose.position;
         state.driftEmitCountdown = 0.0f;
-        state.hyperTurnWasActive = machine.state.m_hyperTurnTime > 0.0f;
-        state.hyperTurnEmitCountdown = 0.0f;
-        state.hyperTurnParticlesRemaining = 0;
+        state.quickTurnWasActive = machine.state.m_quickTurnTime > 0.0f;
+        state.quickTurnEmitCountdown = 0.0f;
+        state.quickTurnParticlesRemaining = 0;
         state.previousAttackedTime = machine.state.m_lastAttackedByOtherMachineTime;
     }
 
@@ -304,7 +304,7 @@ namespace
 
     // -----------------------------------------------
 
-    struct HyperTurnVfx : IRaceVfxSystem
+    struct QuickTurnVfx : IRaceVfxSystem
     {
         struct Particle
         {
@@ -337,33 +337,33 @@ namespace
             static constexpr int emitCount = 5;
             static constexpr float emitInterval = 0.05f;
 
-            const bool hyperTurnIsActive = machine.state.m_hyperTurnTime > 0.0f;
-            const bool hyperTurnStarted = hyperTurnIsActive && not state.hyperTurnWasActive;
-            state.hyperTurnWasActive = hyperTurnIsActive;
+            const bool quickTurnIsActive = machine.state.m_quickTurnTime > 0.0f;
+            const bool quickTurnStarted = quickTurnIsActive && not state.quickTurnWasActive;
+            state.quickTurnWasActive = quickTurnIsActive;
 
-            if (hyperTurnStarted)
+            if (quickTurnStarted)
             {
-                state.hyperTurnEmitCountdown = 0.0f;
-                state.hyperTurnParticlesRemaining = emitCount;
+                state.quickTurnEmitCountdown = 0.0f;
+                state.quickTurnParticlesRemaining = emitCount;
 
-                state.hyperTurnParticleDirection = Math::Sign(machine.state.m_hyperTurn);
-                if (state.hyperTurnParticleDirection == 0.0f)
+                state.quickTurnParticleDirection = Math::Sign(machine.state.m_quickTurn);
+                if (state.quickTurnParticleDirection == 0.0f)
                 {
-                    state.hyperTurnParticleDirection = Math::Sign(machine.props.input.rightHandling);
+                    state.quickTurnParticleDirection = Math::Sign(machine.props.input.rightHandling);
                 }
             }
 
-            if (state.hyperTurnParticlesRemaining <= 0)
+            if (state.quickTurnParticlesRemaining <= 0)
             {
                 return;
             }
 
-            if (not hyperTurnStarted)
+            if (not quickTurnStarted)
             {
-                state.hyperTurnEmitCountdown -= InGameDeltaTime();
+                state.quickTurnEmitCountdown -= InGameDeltaTime();
             }
 
-            if (state.hyperTurnEmitCountdown > 0.0f)
+            if (state.quickTurnEmitCountdown > 0.0f)
             {
                 return;
             }
@@ -375,13 +375,13 @@ namespace
 
             m_particles.push_back(Particle{
                 .targetMachineId = machine.id(),
-                .particleIndex = emitCount - state.hyperTurnParticlesRemaining,
-                .turnDirection = state.hyperTurnParticleDirection,
+                .particleIndex = emitCount - state.quickTurnParticlesRemaining,
+                .turnDirection = state.quickTurnParticleDirection,
                 .lifetime = 0.3f,
             });
 
-            state.hyperTurnEmitCountdown += emitInterval;
-            --state.hyperTurnParticlesRemaining;
+            state.quickTurnEmitCountdown += emitInterval;
+            --state.quickTurnParticlesRemaining;
         }
 
         void update(const RaceVfxFrameContext& context) override
@@ -548,20 +548,20 @@ struct MachineVfxEmitter::Impl : ActorBase
 
     std::shared_ptr<BoostVfx> m_boostVfx{};
     std::shared_ptr<DriftVfx> m_driftVfx{};
-    std::shared_ptr<HyperTurnVfx> m_hyperTurnVfx{};
+    std::shared_ptr<QuickTurnVfx> m_quickTurnVfx{};
     std::shared_ptr<CollisionVfx> m_collisionVfx{};
 
     void Init()
     {
         m_boostVfx = std::make_shared<BoostVfx>();
         m_driftVfx = std::make_shared<DriftVfx>();
-        m_hyperTurnVfx = std::make_shared<HyperTurnVfx>();
+        m_quickTurnVfx = std::make_shared<QuickTurnVfx>();
         m_collisionVfx = std::make_shared<CollisionVfx>();
 
         auto& vfxDrawer = GetRaceContext().vfxDrawer();
         vfxDrawer.registerVfxSystem(m_boostVfx);
         vfxDrawer.registerVfxSystem(m_driftVfx);
-        vfxDrawer.registerVfxSystem(m_hyperTurnVfx);
+        vfxDrawer.registerVfxSystem(m_quickTurnVfx);
         vfxDrawer.registerVfxSystem(m_collisionVfx);
     }
 
@@ -602,7 +602,7 @@ private:
 
             m_boostVfx->emitIfNeeded(machine, state);
             m_driftVfx->emitIfNeeded(machine, state);
-            m_hyperTurnVfx->emitIfNeeded(machine, state);
+            m_quickTurnVfx->emitIfNeeded(machine, state);
             m_collisionVfx->emitIfNeeded(machine, state);
         }
     }
@@ -616,7 +616,7 @@ private:
     {
         auto& vfxDrawer = GetRaceContext().vfxDrawer();
         vfxDrawer.unregisterVfxSystem(m_collisionVfx.get());
-        vfxDrawer.unregisterVfxSystem(m_hyperTurnVfx.get());
+        vfxDrawer.unregisterVfxSystem(m_quickTurnVfx.get());
         vfxDrawer.unregisterVfxSystem(m_driftVfx.get());
         vfxDrawer.unregisterVfxSystem(m_boostVfx.get());
     }

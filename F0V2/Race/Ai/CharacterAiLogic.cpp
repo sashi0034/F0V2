@@ -305,7 +305,7 @@ namespace Race
 
                 if (turningDemand > 0.75f)
                 {
-                    input.hyperTurnRequested = true;
+                    input.quickTurnRequested = true;
                 }
             }
         }

@@ -331,7 +331,7 @@ private:
             messages.push_back(U"[ A ]: アクセル");
             messages.push_back(U"[ B ]: " + boostMessage);
             messages.push_back(U"[ LT | RT ]: ドリフト");
-            messages.push_back(U"[ LB | RB ]: ハイパーターン");
+            messages.push_back(U"[ LB | RB ]: クイックターン");
         }
         else
         {
@@ -339,7 +339,7 @@ private:
             messages.push_back(U"[ W ]: アクセル");
             messages.push_back(U"[ Space ]: " + boostMessage);
             messages.push_back(U"[ \U000F004D | \U000F0054 ]: ドリフト");
-            messages.push_back(U"[ \U000F004D \U000F004D | \U000F0054 \U000F0054 ]: ハイパーターン");
+            messages.push_back(U"[ \U000F004D \U000F004D | \U000F0054 \U000F0054 ]: クイックターン");
             messages.push_back(U"[ \U000F005D | \U000F0045 ]: ピッチ (空中)");
         }
 

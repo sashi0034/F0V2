@@ -149,12 +149,12 @@ private:
             leftHyperInput = leftKeyDoubleTapped;
             rightHyperInput = rightKeyDoubleTapped;
 
-            // ダブルアップの次はシングルタップでハイパーターンを出来るようにする
+            // ダブルアップの次はシングルタップでクイックターンを出来るようにする
             if (leftKeyDoubleTapped) m_leftKeyDoubleTap.setRemainingTime(m_leftKeyDoubleTap.getInterval());
             if (rightKeyDoubleTapped) m_rightKeyDoubleTap.setRemainingTime(m_rightKeyDoubleTap.getInterval());
         }
 
-        input.hyperTurnRequested =
+        input.quickTurnRequested =
             (input.rightHandling < -0.1f && leftHyperInput) || (input.rightHandling > 0.1f && rightHyperInput);
 
 #if defined(_DEBUG)
@@ -231,9 +231,9 @@ private:
             Asset_sound::Boost().playOneShot();
         }
 
-        if (updateOutcome.hyperTurnAccepted)
+        if (updateOutcome.quickTurnAccepted)
         {
-            Asset_sound::HyperTurn().playOneShot();
+            Asset_sound::QuickTurn().playOneShot();
         }
 
         // -----------------------------------------------
