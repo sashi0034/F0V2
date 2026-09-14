@@ -50,8 +50,8 @@ float4 PS(PSInput input) : SV_TARGET
     const float3 n = normalize(input.normal);
     const float NoL = saturate(dot(n, -normalize(g_lightDirection)));
 
-    static const float minShade = 0.0;
-    const float shade = minShade + (1.0 - minShade) * NoL;
+    const float shade = 0.1 + 0.4 * NoL;
 
-    return float4(float3(1, 1, 1) * 0.15, shade);
+    const float3 baseColor = float3(0.45, 0.075, 0.3);
+    return float4(baseColor, shade);
 }

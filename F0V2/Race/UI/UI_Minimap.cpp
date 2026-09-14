@@ -8,6 +8,8 @@
 #include "TY/ActorContainer.h"
 #include "TY/DynamicBinding.h"
 #include "TY/GameTime.h"
+#include "TY/GenericModelBufferTemplates.h"
+#include "TY/GenericModelDrawer.h"
 #include "TY/Graphics3D.h"
 #include "TY/Immediate2D.h"
 #include "TY/ImmediateDrawer.h"
@@ -57,20 +59,25 @@ struct UI_Minimap::Impl : ActorBase
 #endif
     ActorContainer m_children{};
 
-    RenderTarget m_renderTarget{};
+    RenderTarget m_courseTarget{}; // コースだけを描く中間ターゲット (縁取りの入力)
+
+    RenderTarget m_renderTarget{}; // 最終ターゲット
 
     Array<ModelDrawer> m_courseMinimapDrawer{};
+
+    GenericModelDrawer m_outlineDrawer{};
 
     Float3 m_cameraForward{};
 
     void Init()
     {
-        m_renderTarget =
-            RenderTargetParams{}
-            .setRtv(
-                RtvParams{}
-                .setSize(MinimapTextureSize)
-                .setClearColor(ColorF32{0.0f, 0.0f})); // アルファ 0 で透明クリア
+        const auto rtvParams =
+            RtvParams{}
+            .setSize(MinimapTextureSize)
+            .setClearColor(ColorF32{0.0f, 0.0f}); //  // アルファ 0 で透明クリア
+
+        m_courseTarget = RenderTarget{RenderTargetParams{}.setRtv(rtvParams)};
+        m_renderTarget = RenderTarget{RenderTargetParams{}.setRtv(rtvParams)};
 
         const auto& courseModels = GetRaceContext().stageManager().courseMinimapModels();
 
@@ -84,11 +91,23 @@ struct UI_Minimap::Impl : ActorBase
                 .setModel(model)
                 .setShader(Asset_shader::minimap)
                 .setOptions(
-                    GraphicsOptions::FromTarget(m_renderTarget)
+                    GraphicsOptions::FromTarget(m_courseTarget)
                     // 単面モデルなのでカリング無し
                     .setRasterizer(GraphicsRasterizerOptions::Default3D().setCull(GraphicsCullMode::None)))
                 .setDynamicCbvCount(1));
         }
+
+        m_outlineDrawer =
+            GenericModelDrawerParams{}
+            .setModel(std::make_unique<SingleShapeModelBuffer>(6))
+            .setVertexInput({})
+            .setShader(Asset_shader::minimap_outline)
+            .setOptions(
+                GraphicsOptions{}
+                .setRtvFormats(m_renderTarget.getRtvFormats())
+                // コース色と縁はシェーダー内で合成済みなので、そのまま書き込む
+                .setBlend(GraphicsBlendOptions::Opaque()))
+            .setSrv10AndLater({m_courseTarget.getFrontRtv()});
     }
 
     void Update()
@@ -117,7 +136,7 @@ struct UI_Minimap::Impl : ActorBase
         const Mat4x4 view = Mat4x4::LookAt(playerPos + cameraUp * CameraHeight, playerPos, m_cameraForward);
 
         // 代案: Mat4x4::PerspectiveFov(Math::ToRadians(50.0f), 1.0f, CameraNearZ, CameraFarZ)
-        constexpr float CameraViewSize = 400.0f; // 正射影で切り取るワールド空間の一辺の長さ
+        constexpr float CameraViewSize = 800.0f; // 正射影で切り取るワールド空間の一辺の長さ
         const Mat4x4 projection = Mat4x4::Orthographic(CameraViewSize, CameraViewSize, CameraNearZ, CameraFarZ);
 
         // -----------------------------------------------
@@ -129,7 +148,7 @@ struct UI_Minimap::Impl : ActorBase
         Graphics3D::SetProjectionMatrix(projection);
 
         {
-            const auto bind = m_renderTarget.scopedClearBind();
+            const auto bind = m_courseTarget.scopedClearBind();
 
             // 光は常に頭上から差す
             const auto cbv = DynamicBinding::UploadDynamicCbv(Minimap_b10{.g_lightDirection = -cameraUp});
@@ -140,6 +159,13 @@ struct UI_Minimap::Impl : ActorBase
                 DynamicBinding::SetDynamicCbv(10, cbv);
                 drawer.setWorldMatrix(Mat4x4::Identity()).draw();
             }
+        }
+
+        {
+            const auto bind = m_renderTarget.scopedClearBind();
+
+            // コースの不透明部分に白縁をつける (マーカーを描く前に行うので、マーカーは縁取られない)
+            m_outlineDrawer.draw();
 
             drawMachineMarkers(machines, view * projection);
 
@@ -191,14 +217,14 @@ private:
             if (not projectToTexture(machine.state.m_pose.position, markerPos)) continue;
 
             constexpr float RivalMarkerRadius = 4.0f;
-            pushMachineMarker(markerPos, RivalMarkerRadius, Palette::Crimson);
+            pushMachineMarker(markerPos, RivalMarkerRadius, Palette::Red);
         }
 
         const auto& player = machines[PlayerMachineId];
         if (projectToTexture(player.state.m_pose.position, markerPos))
         {
             constexpr float PlayerMarkerRadius = 4.0f;
-            pushMachineMarker(markerPos, PlayerMarkerRadius, Palette::CornflowerBlue);
+            pushMachineMarker(markerPos, PlayerMarkerRadius, Palette::DodgerBlue);
         }
     }
 

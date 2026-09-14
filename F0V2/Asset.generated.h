@@ -19,6 +19,7 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper gimmick_pit_zone{"asset/shader/gimmick_pit_zone.hlsl"};
     static const inline GraphicsShaderPathWrapper lambert{"asset/shader/lambert.hlsl"};
     static const inline GraphicsShaderPathWrapper minimap{"asset/shader/minimap.hlsl"};
+    static const inline GraphicsShaderPathWrapper minimap_outline{"asset/shader/minimap_outline.hlsl"};
     static const inline GraphicsShaderPathWrapper model{"asset/shader/model.hlsl"};
     static const inline GraphicsShaderPathWrapper phong{"asset/shader/phong.hlsl"};
     static const inline GraphicsShaderPathWrapper phong_shadow{"asset/shader/phong_shadow.hlsl"};
