@@ -210,14 +210,19 @@ private:
             return true;
         };
 
+        const auto& machineManager = GetRaceContext().machineManager();
+        const int playerRank = machineManager.getEvaluation(PlayerMachineId).rank;
+
         Float2 markerPos{};
         for (const auto& machine : machines)
         {
             if (machine.id() == PlayerMachineId) continue;
             if (not projectToTexture(machine.state.m_pose.position, markerPos)) continue;
 
+            // プレイヤーより順位が低い敵は色を変える
+            const bool isBehindPlayer = machineManager.getEvaluation(machine.id()).rank > playerRank;
             constexpr float RivalMarkerRadius = 4.0f;
-            pushMachineMarker(markerPos, RivalMarkerRadius, Palette::Red);
+            pushMachineMarker(markerPos, RivalMarkerRadius, isBehindPlayer ? Palette::Red : Palette::DeepPink);
         }
 
         const auto& player = machines[PlayerMachineId];
