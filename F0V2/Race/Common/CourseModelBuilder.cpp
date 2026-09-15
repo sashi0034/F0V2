@@ -653,10 +653,10 @@ namespace
                     topShape,
                     l0, r0, l1, r1,
                     options);
-                pushGroundBottomFace(
-                    bottomShape,
-                    l0, r0, l1, r1,
-                    options);
+                // pushGroundBottomFace( // Bottom は見えない
+                //     bottomShape,
+                //     l0, r0, l1, r1,
+                //     options);
             }
         }
 
