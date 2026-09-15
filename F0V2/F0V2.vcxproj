@@ -165,6 +165,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
     <ClCompile Include="Race\Common\CourseMinimapModelBuilder.cpp" />
+    <ClCompile Include="Race\Common\GimmickModelBuilder.cpp" />
     <ClCompile Include="Race\UI\UI_Minimap.cpp" />
     <ClCompile Include="Race\Vfx\BillboardVfxRenderer.cpp" />
     <ClCompile Include="Race\Vfx\MachineVfxEmitter.cpp" />
@@ -346,6 +347,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Common\AIRank.h" />
     <ClInclude Include="Race\Common\CourseFileInfo.h" />
     <ClInclude Include="Race\Common\CourseGimmick.h" />
+    <ClInclude Include="Race\Common\GimmickModelBuilder.h" />
     <ClInclude Include="Race\Common\RaceDeferredShadingDrawer.h" />
     <ClInclude Include="Race\Common\RaceDrawUpscaler.h" />
     <ClInclude Include="Race\Common\CourseMinimapModelBuilder.h" />
