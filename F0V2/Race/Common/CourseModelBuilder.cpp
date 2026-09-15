@@ -45,11 +45,17 @@ namespace
         Float3 normal{};
     };
 
+    struct GroundShapeData
+    {
+        Array<ModelVertex> vertices;
+        int vertexOffset{};
+
+        Array<uint16_t> indices;
+        int indexOffset{};
+    };
+
     void pushGroundTopFace(
-        Array<ModelVertex>& vertices,
-        Array<uint16_t>& indices,
-        int& v_offset,
-        int& i_offset,
+        GroundShapeData& shape,
         const FaceVertex& l0,
         const FaceVertex& r0,
         const FaceVertex& l1,
@@ -57,20 +63,20 @@ namespace
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
 
-        indices[i_offset] = v_offset;
-        indices[i_offset + 1] = v_offset + 2;
-        indices[i_offset + 2] = v_offset + 1;
-        indices[i_offset + 3] = v_offset + 1;
-        indices[i_offset + 4] = v_offset + 2;
-        indices[i_offset + 5] = v_offset + 3;
+        shape.indices[shape.indexOffset] = shape.vertexOffset;
+        shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 2] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 3] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 4] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 5] = shape.vertexOffset + 3;
 
-        v_offset += 4;
-        i_offset += 6;
+        shape.vertexOffset += 4;
+        shape.indexOffset += 6;
 
         if (options.outMinimapModel)
         {
@@ -151,10 +157,7 @@ namespace
     }
 
     void pushGroundBottomFace(
-        Array<ModelVertex>& vertices,
-        Array<uint16_t>& indices,
-        int& v_offset,
-        int& i_offset,
+        GroundShapeData& shape,
         const FaceVertex& l0,
         const FaceVertex& r0,
         const FaceVertex& l1,
@@ -162,20 +165,20 @@ namespace
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{r1.pos, -r1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{l1.pos, -l1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{r0.pos, -r0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{l0.pos, -l0.normal, uvRect.tr()};
+        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, -r1.normal, uvRect.bl()};
+        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, -l1.normal, uvRect.br()};
+        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, -r0.normal, uvRect.tl()};
+        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, -l0.normal, uvRect.tr()};
 
-        indices[i_offset] = v_offset;
-        indices[i_offset + 1] = v_offset + 1;
-        indices[i_offset + 2] = v_offset + 2;
-        indices[i_offset + 3] = v_offset + 1;
-        indices[i_offset + 4] = v_offset + 3;
-        indices[i_offset + 5] = v_offset + 2;
+        shape.indices[shape.indexOffset] = shape.vertexOffset;
+        shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 2] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 3] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 4] = shape.vertexOffset + 3;
+        shape.indices[shape.indexOffset + 5] = shape.vertexOffset + 2;
 
-        v_offset += 4;
-        i_offset += 6;
+        shape.vertexOffset += 4;
+        shape.indexOffset += 6;
 
         // TODO: 様子を見て下面のコライダー追加
     }
@@ -187,12 +190,17 @@ namespace
         constexpr int startingLineStripCount = 2;
 
         {
-            Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
-            Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
-            int v_offset{};
-            int i_offset{};
-
             const int m0 = createStartingLine ? startingLineStripCount : 0;
+            const int faceCount = static_cast<int>(segment.midwayStrips.size()) - 1 - m0;
+            GroundShapeData topShape{
+                .vertices = Array<ModelVertex>(faceCount * 4),
+                .indices = Array<uint16_t>(faceCount * 6),
+            };
+            GroundShapeData bottomShape{
+                .vertices = Array<ModelVertex>(faceCount * 4),
+                .indices = Array<uint16_t>(faceCount * 6),
+            };
+
             for (int m = m0; m < segment.midwayStrips.size() - 1; ++m)
             {
                 auto& s0 = segment.midwayStrips[m];
@@ -204,32 +212,50 @@ namespace
                 const FaceVertex r1{s1.rightmost, s1.normal};
 
                 pushGroundTopFace(
-                    vertices, indices, v_offset, i_offset,
+                    topShape,
                     l0, r0, l1, r1,
                     options);
                 pushGroundBottomFace(
-                    vertices, indices, v_offset, i_offset,
+                    bottomShape,
                     l0, r0, l1, r1,
                     options);
             }
 
             model.shapes.push_back(ModelShape{
-                std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+                std::move(topShape.vertices),
+                std::move(topShape.indices),
+                static_cast<uint16_t>(model.materials.size())
             });
             model.materials.push_back({
-                .name = "plain",
+                .name = "plain_top",
                 .parameters = {
                     .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
+                }
+            });
+
+            model.shapes.push_back(ModelShape{
+                std::move(bottomShape.vertices),
+                std::move(bottomShape.indices),
+                static_cast<uint16_t>(model.materials.size())
+            });
+            model.materials.push_back({
+                .name = "plain_bottom",
+                .parameters = {
+                    .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
                 }
             });
         }
 
         if (createStartingLine)
         {
-            Array<ModelVertex> vertices(startingLineStripCount * 8);
-            Array<uint16_t> indices(startingLineStripCount * 12);
-            int v_offset{};
-            int i_offset{};
+            GroundShapeData topShape{
+                .vertices = Array<ModelVertex>(startingLineStripCount * 4),
+                .indices = Array<uint16_t>(startingLineStripCount * 6),
+            };
+            GroundShapeData bottomShape{
+                .vertices = Array<ModelVertex>(startingLineStripCount * 4),
+                .indices = Array<uint16_t>(startingLineStripCount * 6),
+            };
 
             constexpr float texH = 1.0f / startingLineStripCount;
             float texW{};
@@ -250,17 +276,19 @@ namespace
                 }
 
                 pushGroundTopFace(
-                    vertices, indices, v_offset, i_offset,
+                    topShape,
                     l0, r0, l1, r1,
                     options, RectF{0.0f, texH * m, texW, texH});
                 pushGroundBottomFace(
-                    vertices, indices, v_offset, i_offset,
+                    bottomShape,
                     l0, r0, l1, r1,
                     options, RectF{0.0f, texH * m, texW, texH});
             }
 
             model.shapes.push_back(ModelShape{
-                std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+                std::move(topShape.vertices),
+                std::move(topShape.indices),
+                static_cast<uint16_t>(model.materials.size())
             });
             model.materials.push_back({
                 .name = "starting_line",
@@ -268,6 +296,18 @@ namespace
                     .albedo = Float3::One(),
                 },
                 .albedoTexture = s_builderCache->startingLineTexture,
+            });
+
+            model.shapes.push_back(ModelShape{
+                std::move(bottomShape.vertices),
+                std::move(bottomShape.indices),
+                static_cast<uint16_t>(model.materials.size())
+            });
+            model.materials.push_back({
+                .name = "starting_line_bottom",
+                .parameters = {
+                    .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
+                }
             });
         }
     }
@@ -291,14 +331,16 @@ namespace
 
         // -----------------------------------------------
 
-        Array<ModelVertex> vertices(
-            (hasEntry + hasExit) * PipeEntryExitStrips * ((halfSubdivision1) * 4 * 2) +
-            (pipeStrips - 1) * (subdivision * 4 * 2));
-        Array<uint16_t> indices(
-            (hasEntry + hasExit) * PipeEntryExitStrips * (halfSubdivision1 * 6 * 2) +
-            (pipeStrips - 1) * (subdivision * 6 * 2));
-        int v_offset{};
-        int i_offset{};
+        const int faceCount =
+            (hasEntry + hasExit) * PipeEntryExitStrips * (halfSubdivision1 - 1) + (pipeStrips - 1) * subdivision;
+        GroundShapeData topShape{
+            .vertices = Array<ModelVertex>(faceCount * 4),
+            .indices = Array<uint16_t>(faceCount * 6),
+        };
+        GroundShapeData bottomShape{
+            .vertices = Array<ModelVertex>(faceCount * 4),
+            .indices = Array<uint16_t>(faceCount * 6),
+        };
 
         // -----------------------------------------------
 
@@ -346,11 +388,11 @@ namespace
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
                     pushGroundTopFace(
-                        vertices, indices, v_offset, i_offset,
+                        topShape,
                         l0, r0, l1, r1,
                         options);
                     pushGroundBottomFace(
-                        vertices, indices, v_offset, i_offset,
+                        bottomShape,
                         l0, r0, l1, r1,
                         options);
                 }
@@ -383,12 +425,14 @@ namespace
                 r1.normal = -n1s[i1];
 
                 pushGroundTopFace(
-                    vertices, indices, v_offset, i_offset,
-                    l0, r0, l1, r1,
+                    topShape,
+                    l0, r0,
+                    l1, r1,
                     options);
                 pushGroundBottomFace(
-                    vertices, indices, v_offset, i_offset,
-                    l0, r0, l1, r1,
+                    bottomShape,
+                    l0, r0,
+                    l1, r1,
                     options);
             }
         }
@@ -435,24 +479,40 @@ namespace
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
                     pushGroundTopFace(
-                        vertices, indices, v_offset, i_offset,
-                        l0, r0, l1, r1,
+                        topShape,
+                        l0, r0,
+                        l1, r1,
                         options);
                     pushGroundBottomFace(
-                        vertices, indices, v_offset, i_offset,
-                        l0, r0, l1, r1,
+                        bottomShape,
+                        l0, r0,
+                        l1, r1,
                         options);
                 }
             }
         }
 
-        model.shapes.push_back(
-            ModelShape{std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())}
-        );
+        model.shapes.push_back(ModelShape{
+            std::move(topShape.vertices),
+            std::move(topShape.indices),
+            static_cast<uint16_t>(model.materials.size())
+        });
         model.materials.push_back({
-            .name = "plain",
+            .name = "plain_top",
             .parameters = {
                 .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
+            }
+        });
+
+        model.shapes.push_back(ModelShape{
+            std::move(bottomShape.vertices),
+            std::move(bottomShape.indices),
+            static_cast<uint16_t>(model.materials.size())
+        });
+        model.materials.push_back({
+            .name = "plain_bottom",
+            .parameters = {
+                .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
             }
         });
     }
@@ -473,14 +533,17 @@ namespace
 
         // -----------------------------------------------
 
-        Array<ModelVertex> vertices(
-            (hasEntry + hasExit) * CylinderEntryExitStrips * (entryExitSubdivision * 4 * 2) +
-            (cylinderStrips - 1) * (subdivision * 4 * 2));
-        Array<uint16_t> indices(
-            (hasEntry + hasExit) * CylinderEntryExitStrips * (entryExitSubdivision * 6 * 2) +
-            (cylinderStrips - 1) * (subdivision * 6 * 2));
-        int v_offset{};
-        int i_offset{};
+        const int faceCount =
+            (hasEntry + hasExit) * CylinderEntryExitStrips * (entryExitSubdivision - 1) +
+            (cylinderStrips - 1) * subdivision;
+        GroundShapeData topShape{
+            .vertices = Array<ModelVertex>(faceCount * 4),
+            .indices = Array<uint16_t>(faceCount * 6),
+        };
+        GroundShapeData bottomShape{
+            .vertices = Array<ModelVertex>(faceCount * 4),
+            .indices = Array<uint16_t>(faceCount * 6),
+        };
 
         // -----------------------------------------------
 
@@ -543,11 +606,11 @@ namespace
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
                     pushGroundTopFace(
-                        vertices, indices, v_offset, i_offset,
+                        topShape,
                         l0, r0, l1, r1,
                         options);
                     pushGroundBottomFace(
-                        vertices, indices, v_offset, i_offset,
+                        bottomShape,
                         l0, r0, l1, r1,
                         options);
                 }
@@ -605,11 +668,11 @@ namespace
                 l1.normal = n1s[i1];
 
                 pushGroundTopFace(
-                    vertices, indices, v_offset, i_offset,
+                    topShape,
                     l0, r0, l1, r1,
                     options);
                 pushGroundBottomFace(
-                    vertices, indices, v_offset, i_offset,
+                    bottomShape,
                     l0, r0, l1, r1,
                     options);
             }
@@ -670,24 +733,38 @@ namespace
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
                     pushGroundTopFace(
-                        vertices, indices, v_offset, i_offset,
+                        topShape,
                         l0, r0, l1, r1,
                         options);
                     pushGroundBottomFace(
-                        vertices, indices, v_offset, i_offset,
+                        bottomShape,
                         l0, r0, l1, r1,
                         options);
                 }
             }
         }
 
-        model.shapes.push_back(
-            ModelShape{std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())}
-        );
+        model.shapes.push_back(ModelShape{
+            std::move(topShape.vertices),
+            std::move(topShape.indices),
+            static_cast<uint16_t>(model.materials.size())
+        });
         model.materials.push_back({
-            .name = "plain",
+            .name = "plain_top",
             .parameters = {
                 .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
+            }
+        });
+
+        model.shapes.push_back(ModelShape{
+            std::move(bottomShape.vertices),
+            std::move(bottomShape.indices),
+            static_cast<uint16_t>(model.materials.size())
+        });
+        model.materials.push_back({
+            .name = "plain_bottom",
+            .parameters = {
+                .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
             }
         });
     }
