@@ -26,7 +26,7 @@ namespace Race
         m_vertices.push_back(ModelVertex{r0.position, r0.normal, Float2{0.0f, 0.0f}});
         m_vertices.push_back(ModelVertex{l0.position, l0.normal, Float2{1.0f, 0.0f}});
 
-        // 巻き順は pushGroundFaces の表面と揃えてある
+        // 巻き順は pushGroundTopFace と揃えてある
         m_indices.push_back(v_offset);
         m_indices.push_back(v_offset + 2);
         m_indices.push_back(v_offset + 1);
