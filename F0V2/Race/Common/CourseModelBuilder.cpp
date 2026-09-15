@@ -52,6 +52,12 @@ namespace
 
         Array<uint16_t> indices;
         int indexOffset{};
+
+        explicit GroundShapeData(int faceCount)
+            : vertices(faceCount * 4),
+              indices(faceCount * 6)
+        {
+        }
     };
 
     void pushGroundTopFace(
@@ -192,14 +198,8 @@ namespace
         {
             const int m0 = createStartingLine ? startingLineStripCount : 0;
             const int faceCount = static_cast<int>(segment.midwayStrips.size()) - 1 - m0;
-            GroundShapeData topShape{
-                .vertices = Array<ModelVertex>(faceCount * 4),
-                .indices = Array<uint16_t>(faceCount * 6),
-            };
-            GroundShapeData bottomShape{
-                .vertices = Array<ModelVertex>(faceCount * 4),
-                .indices = Array<uint16_t>(faceCount * 6),
-            };
+            GroundShapeData topShape{faceCount};
+            GroundShapeData bottomShape{faceCount};
 
             for (int m = m0; m < segment.midwayStrips.size() - 1; ++m)
             {
@@ -248,14 +248,8 @@ namespace
 
         if (createStartingLine)
         {
-            GroundShapeData topShape{
-                .vertices = Array<ModelVertex>(startingLineStripCount * 4),
-                .indices = Array<uint16_t>(startingLineStripCount * 6),
-            };
-            GroundShapeData bottomShape{
-                .vertices = Array<ModelVertex>(startingLineStripCount * 4),
-                .indices = Array<uint16_t>(startingLineStripCount * 6),
-            };
+            GroundShapeData topShape{startingLineStripCount};
+            GroundShapeData bottomShape{startingLineStripCount};
 
             constexpr float texH = 1.0f / startingLineStripCount;
             float texW{};
@@ -333,14 +327,8 @@ namespace
 
         const int faceCount =
             (hasEntry + hasExit) * PipeEntryExitStrips * (halfSubdivision1 - 1) + (pipeStrips - 1) * subdivision;
-        GroundShapeData topShape{
-            .vertices = Array<ModelVertex>(faceCount * 4),
-            .indices = Array<uint16_t>(faceCount * 6),
-        };
-        GroundShapeData bottomShape{
-            .vertices = Array<ModelVertex>(faceCount * 4),
-            .indices = Array<uint16_t>(faceCount * 6),
-        };
+        GroundShapeData topShape{faceCount};
+        GroundShapeData bottomShape{faceCount};
 
         // -----------------------------------------------
 
@@ -536,14 +524,8 @@ namespace
         const int faceCount =
             (hasEntry + hasExit) * CylinderEntryExitStrips * (entryExitSubdivision - 1) +
             (cylinderStrips - 1) * subdivision;
-        GroundShapeData topShape{
-            .vertices = Array<ModelVertex>(faceCount * 4),
-            .indices = Array<uint16_t>(faceCount * 6),
-        };
-        GroundShapeData bottomShape{
-            .vertices = Array<ModelVertex>(faceCount * 4),
-            .indices = Array<uint16_t>(faceCount * 6),
-        };
+        GroundShapeData topShape{faceCount};
+        GroundShapeData bottomShape{faceCount};
 
         // -----------------------------------------------
 
