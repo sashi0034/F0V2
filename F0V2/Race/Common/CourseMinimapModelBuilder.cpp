@@ -54,7 +54,7 @@ namespace Race
         model.materials.push_back({
             .name = "minimap",
             .parameters = {
-                .diffuse = Float3::One(),
+                .albedo = Float3::One(),
             },
         });
 

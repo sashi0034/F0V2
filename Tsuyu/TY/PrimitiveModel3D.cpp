@@ -43,10 +43,7 @@ namespace TY
         ModelData data;
 
         ModelMaterialParameters params;
-        params.ambient = color.toFloat3() * 0.1f; // Ambient は拡散成分の 10%
-        params.diffuse = color.toFloat3();
-        params.specular = {1.0f, 1.0f, 1.0f};
-        params.shininess = 32.0f;
+        params.albedo = color.toFloat3();
 
         data.materials.push_back({"Triangle", params, {}});
 
@@ -81,10 +78,7 @@ namespace TY
         ModelData data;
 
         ModelMaterialParameters params;
-        params.ambient = color.toFloat3() * 0.1f; // Ambient は拡散成分の 10%
-        params.diffuse = color.toFloat3();
-        params.specular = {1.0f, 1.0f, 1.0f};
-        params.shininess = 32.0f;
+        params.albedo = color.toFloat3();
 
         data.materials.push_back({"Quad", params, {}});
 
@@ -125,10 +119,7 @@ namespace TY
         ModelData data;
 
         ModelMaterialParameters params;
-        params.ambient = color.toFloat3() * 0.1f; // Ambient は拡散成分の 10%
-        params.diffuse = color.toFloat3();
-        params.specular = {1.0f, 1.0f, 1.0f};
-        params.shininess = 32.0f;
+        params.albedo = color.toFloat3();
 
         data.materials.push_back({"Sphere", params, {}});
 
@@ -192,10 +183,7 @@ namespace TY
         ModelData data;
 
         ModelMaterialParameters params;
-        params.ambient = color.toFloat3() * 0.1f;
-        params.diffuse = color.toFloat3();
-        params.specular = {1.0f, 1.0f, 1.0f};
-        params.shininess = 32.0f;
+        params.albedo = color.toFloat3();
 
         data.materials.push_back({"Torus", params, {}});
 
@@ -272,10 +260,7 @@ namespace TY
 
         // マテリアル（スフィアと同様）
         ModelMaterialParameters params;
-        params.ambient = color.toFloat3() * 0.1f;
-        params.diffuse = color.toFloat3();
-        params.specular = {1.0f, 1.0f, 1.0f};
-        params.shininess = 32.0f;
+        params.albedo = color.toFloat3();
 
         data.materials.push_back({"Capsule", params, {}});
 
@@ -396,10 +381,7 @@ namespace TY
         ModelData data;
 
         ModelMaterialParameters params;
-        params.ambient = {0.1f, 0.1f, 0.1f};
-        params.diffuse = color.toFloat3();
-        params.specular = {1.0f, 1.0f, 1.0f};
-        params.shininess = 32.0f;
+        params.albedo = color.toFloat3();
 
         data.materials.push_back({"Plane", params, {}});
 
@@ -412,10 +394,7 @@ namespace TY
         ModelData data;
 
         ModelMaterialParameters params;
-        params.ambient = {0.1f, 0.1f, 0.1f};
-        params.diffuse = {1.0f, 1.0f, 1.0f};
-        params.specular = {1.0f, 1.0f, 1.0f};
-        params.shininess = 32.0f;
+        params.albedo = {1.0f, 1.0f, 1.0f};
 
         data.materials.push_back({"TexturePlane", params, texture});
 

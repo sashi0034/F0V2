@@ -39,12 +39,12 @@ struct MachineDrawer::Impl
         {
             if (material.name == "Paint_Primary_White")
             {
-                material.parameters.diffuse = linearColor.toFloat3();
+                material.parameters.albedo = linearColor.toFloat3();
             }
 
             if (material.name == "Light_Lens")
             {
-                material.parameters.diffuse = MinVector3(
+                material.parameters.albedo = MinVector3(
                     Float3::One(),
                     (linearColor.toFloat3() + Float3::One() * 0.1f) * 1.5f);
             }

@@ -15,10 +15,7 @@ cbuffer ModelState : register(b1)
 
 cbuffer ModelMaterial : register(b2)
 {
-    float3 g_ambient;
-    float3 g_diffuse;
-    float3 g_specular;
-    float g_shininess;
+    float3 g_albedo;
 }
 
 struct PSInput
@@ -60,7 +57,7 @@ PSOutput PS(PSInput input)
 
     const float4 texel = g_texture0.Sample(g_sampler0, input.uv);
     clip(texel.a - 0.5);
-    output.albedoBuffer = float4(texel.rgb * g_diffuse, 1.0);
+    output.albedoBuffer = float4(texel.rgb * g_albedo, 1.0);
 
     output.normalBuffer = float4(normalize(input.normal) * 0.5 + 0.5, 1.0);
 

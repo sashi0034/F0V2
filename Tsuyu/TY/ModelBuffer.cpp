@@ -57,7 +57,7 @@ struct ModelBuffer::Impl : IGenericModelBuffer
 
         for (const ModelMaterial& material : materials)
         {
-            m_materialSrv.push_back({material.diffuseTexture});
+            m_materialSrv.push_back({material.albedoTexture});
         }
 
         // TODO: Add another texture types if needed

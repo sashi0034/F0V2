@@ -273,7 +273,7 @@ namespace
             model.materials.push_back({
                 .name = "plain",
                 .parameters = {
-                    .diffuse = sRGB(Float3::One() * 0.5f).toFloat3()
+                    .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
                 }
             });
         }
@@ -315,9 +315,9 @@ namespace
             model.materials.push_back({
                 .name = "starting_line",
                 .parameters = {
-                    .diffuse = Float3::One(),
+                    .albedo = Float3::One(),
                 },
-                .diffuseTexture = s_builderCache->startingLineTexture,
+                .albedoTexture = s_builderCache->startingLineTexture,
             });
         }
     }
@@ -490,7 +490,7 @@ namespace
         model.materials.push_back({
             .name = "plain",
             .parameters = {
-                .diffuse = sRGB(Float3::One() * 0.5f).toFloat3()
+                .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
             }
         });
     }
@@ -713,7 +713,7 @@ namespace
         model.materials.push_back({
             .name = "plain",
             .parameters = {
-                .diffuse = sRGB(Float3::One() * 0.5f).toFloat3()
+                .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
             }
         });
     }
@@ -767,7 +767,7 @@ namespace
         model.materials.push_back({
             .name = "barrier",
             .parameters = {
-                .diffuse = sRGB(0.97f, 0.53f, 0.00f).toFloat3()
+                .albedo = sRGB(0.97f, 0.53f, 0.00f).toFloat3()
             }
         });
     }
@@ -877,9 +877,9 @@ namespace
             model.materials.push_back({
                 .name = "boost_pad",
                 .parameters = {
-                    .diffuse = Float3::One()
+                    .albedo = Float3::One()
                 },
-                .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
+                .albedoTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
             });
         }
         else
@@ -888,9 +888,9 @@ namespace
             model.materials.push_back({
                 .name = "jump_pad",
                 .parameters = {
-                    .diffuse = Float3::One()
+                    .albedo = Float3::One()
                 },
-                .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
+                .albedoTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
             });
         }
     }
@@ -994,9 +994,9 @@ namespace
             model.materials.push_back({
                 .name = "boost_pad",
                 .parameters = {
-                    .diffuse = Float3::One()
+                    .albedo = Float3::One()
                 },
-                .diffuseTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
+                .albedoTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
             });
         }
         else
@@ -1005,9 +1005,9 @@ namespace
             model.materials.push_back({
                 .name = "jump_pad",
                 .parameters = {
-                    .diffuse = Float3::One()
+                    .albedo = Float3::One()
                 },
-                .diffuseTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
+                .albedoTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
             });
         }
     }
@@ -1085,9 +1085,9 @@ namespace
         model.materials.push_back({
             .name = "pit_zone",
             .parameters = {
-                .diffuse = Float3::One()
+                .albedo = Float3::One()
             },
-            .diffuseTexture = g_sharedState->gimmickTextures.pitZone.getFrontRtv()
+            .albedoTexture = g_sharedState->gimmickTextures.pitZone.getFrontRtv()
         });
     }
 

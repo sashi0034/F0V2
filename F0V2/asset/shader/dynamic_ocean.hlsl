@@ -17,10 +17,7 @@ cbuffer ModelState : register(b1)
 
 cbuffer ModelMaterial : register(b2)
 {
-    float3 g_ambient;
-    float3 g_diffuse;
-    float3 g_specular;
-    float g_shininess;
+    float3 g_albedo;
 }
 
 cbuffer DynamicOcean : register(b10)
