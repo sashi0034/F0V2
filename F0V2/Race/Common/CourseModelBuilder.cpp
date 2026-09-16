@@ -16,6 +16,8 @@ using namespace Race;
 
 namespace
 {
+    constexpr float bottomThickness = 5.0f;
+
     Image createStartingLineImage()
     {
         constexpr int half = 32;
@@ -43,7 +45,64 @@ namespace
     {
         Float3 pos{};
         Float3 normal{};
+
+        FaceVertex withNormal(const Float3 n) const
+        {
+            return FaceVertex{pos, n};
+        }
     };
+
+    // 0 -> 1 が進行方向、l -> r が左から右
+    struct FaceQuad
+    {
+        FaceVertex l0{};
+        FaceVertex r0{};
+        FaceVertex l1{};
+        FaceVertex r1{};
+    };
+
+    // 上面の四角形から、厚みの分だけずらした下面の四角形を作る
+    FaceQuad makeBottomFaceQuad(const FaceQuad& top)
+    {
+        const auto toBottom = [](const FaceVertex& v)
+        {
+            return FaceVertex{v.pos - v.normal * bottomThickness, -v.normal};
+        };
+
+        return FaceQuad{toBottom(top.l0), toBottom(top.r0), toBottom(top.l1), toBottom(top.r1)};
+    }
+
+    // 辺から外側へ向かう法線 (上面の法線と直交する成分)
+    Float3 getOutwardNormal(const FaceVertex& edge, const FaceVertex& opposite)
+    {
+        const Float3 d = edge.pos - opposite.pos;
+        return (d - edge.normal * d.dot(edge.normal)).normalized();
+    }
+
+    // 上面と下面の左端をつなぐ側面の四角形
+    // 上面と巻き順を合わせるため、下の辺を l 側、上の辺を r 側とする
+    FaceQuad makeLeftSideFaceQuad(const FaceQuad& top, const FaceQuad& bottom)
+    {
+        const Float3 n0 = getOutwardNormal(top.l0, top.r0);
+        const Float3 n1 = getOutwardNormal(top.l1, top.r1);
+
+        return FaceQuad{
+            bottom.l0.withNormal(n0), top.l0.withNormal(n0),
+            bottom.l1.withNormal(n1), top.l1.withNormal(n1)
+        };
+    }
+
+    // 上面と下面の右端をつなぐ側面の四角形
+    FaceQuad makeRightSideFaceQuad(const FaceQuad& top, const FaceQuad& bottom)
+    {
+        const Float3 n0 = getOutwardNormal(top.r0, top.l0);
+        const Float3 n1 = getOutwardNormal(top.r1, top.l1);
+
+        return FaceQuad{
+            top.r0.withNormal(n0), bottom.r0.withNormal(n0),
+            top.r1.withNormal(n1), bottom.r1.withNormal(n1)
+        };
+    }
 
     struct GroundShapeData
     {
@@ -62,13 +121,12 @@ namespace
 
     void pushGroundTopFace(
         GroundShapeData& shape,
-        const FaceVertex& l0,
-        const FaceVertex& r0,
-        const FaceVertex& l1,
-        const FaceVertex& r1,
+        const FaceQuad& face,
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
+        const auto& [l0, r0, l1, r1] = face;
+
         shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
         shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
         shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
@@ -164,17 +222,16 @@ namespace
 
     void pushGroundBottomFace(
         GroundShapeData& shape,
-        const FaceVertex& l0,
-        const FaceVertex& r0,
-        const FaceVertex& l1,
-        const FaceVertex& r1,
+        const FaceQuad& face,
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, -r1.normal, uvRect.bl()};
-        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, -l1.normal, uvRect.br()};
-        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, -r0.normal, uvRect.tl()};
-        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, -l0.normal, uvRect.tr()};
+        const auto& [l0, r0, l1, r1] = face;
+
+        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
@@ -189,11 +246,54 @@ namespace
         // TODO: 様子を見て下面のコライダー追加
     }
 
+    // 上面と下面の間の隙間を埋める側面
+    void pushGroundSideFace(
+        GroundShapeData& shape,
+        const FaceQuad& face,
+        const RectF& uvRect = RectF{0, 0, 1, 1})
+    {
+        const auto& [l0, r0, l1, r1] = face;
+
+        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+
+        shape.indices[shape.indexOffset] = shape.vertexOffset;
+        shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 2] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 3] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 4] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 5] = shape.vertexOffset + 3;
+
+        shape.vertexOffset += 4;
+        shape.indexOffset += 6;
+    }
+
+    void addGroundSideShape(ModelData& model, GroundShapeData& sideShape)
+    {
+        model.shapes.push_back(ModelShape{
+            std::move(sideShape.vertices),
+            std::move(sideShape.indices),
+            static_cast<uint16_t>(model.materials.size())
+        });
+        model.materials.push_back({
+            .name = "plain_side",
+            .parameters = {
+                .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
+            }
+        });
+    }
+
     void buildRoadModel(
         ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         const bool createStartingLine = options.createStartingLine;
         constexpr int startingLineStripCount = 2;
+
+        // ガードレールがある場合は側面の隙間が隠れるので、側面は不要
+        const bool needsSideFace = not segment.gimmicks.contains(CourseGimmickKind::Barrier);
+        GroundShapeData sideShape{needsSideFace ? (static_cast<int>(segment.midwayStrips.size()) - 1) * 2 : 0};
 
         {
             const int m0 = createStartingLine ? startingLineStripCount : 0;
@@ -206,19 +306,20 @@ namespace
                 auto& s0 = segment.midwayStrips[m];
                 auto& s1 = segment.midwayStrips[m + 1];
 
-                const FaceVertex l0{s0.leftmost, s0.normal};
-                const FaceVertex r0{s0.rightmost, s0.normal};
-                const FaceVertex l1{s1.leftmost, s1.normal};
-                const FaceVertex r1{s1.rightmost, s1.normal};
+                const FaceQuad topFace{
+                    {s0.leftmost, s0.normal}, {s0.rightmost, s0.normal},
+                    {s1.leftmost, s1.normal}, {s1.rightmost, s1.normal}
+                };
+                const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
-                pushGroundTopFace(
-                    topShape,
-                    l0, r0, l1, r1,
-                    options);
-                pushGroundBottomFace(
-                    bottomShape,
-                    l0, r0, l1, r1,
-                    options);
+                pushGroundTopFace(topShape, topFace, options);
+                pushGroundBottomFace(bottomShape, bottomFace, options);
+
+                if (needsSideFace)
+                {
+                    pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                    pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                }
             }
 
             model.shapes.push_back(ModelShape{
@@ -258,10 +359,11 @@ namespace
                 auto& s0 = segment.midwayStrips[m];
                 auto& s1 = segment.midwayStrips[m + 1];
 
-                const FaceVertex l0{s0.leftmost, s0.normal};
-                const FaceVertex r0{s0.rightmost, s0.normal};
-                const FaceVertex l1{s1.leftmost, s1.normal};
-                const FaceVertex r1{s1.rightmost, s1.normal};
+                const FaceQuad topFace{
+                    {s0.leftmost, s0.normal}, {s0.rightmost, s0.normal},
+                    {s1.leftmost, s1.normal}, {s1.rightmost, s1.normal}
+                };
+                const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
                 if (m == 0)
                 {
@@ -269,14 +371,15 @@ namespace
                     texW = texH * (s0.rightmost - s0.leftmost).length() / (s1.center - s0.center).length();
                 }
 
-                pushGroundTopFace(
-                    topShape,
-                    l0, r0, l1, r1,
-                    options, RectF{0.0f, texH * m, texW, texH});
-                pushGroundBottomFace(
-                    bottomShape,
-                    l0, r0, l1, r1,
-                    options, RectF{0.0f, texH * m, texW, texH});
+                const RectF uvRect{0.0f, texH * m, texW, texH};
+                pushGroundTopFace(topShape, topFace, options, uvRect);
+                pushGroundBottomFace(bottomShape, bottomFace, options, uvRect);
+
+                if (needsSideFace)
+                {
+                    pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                    pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                }
             }
 
             model.shapes.push_back(ModelShape{
@@ -304,6 +407,11 @@ namespace
                 }
             });
         }
+
+        if (needsSideFace)
+        {
+            addGroundSideShape(model, sideShape);
+        }
     }
 
     void buildPipeModel(
@@ -327,8 +435,10 @@ namespace
 
         const int faceCount =
             (hasEntry + hasExit) * PipeEntryExitStrips * (halfSubdivision1 - 1) + (pipeStrips - 1) * subdivision;
+        const int sideFaceCount = (hasEntry + hasExit) * PipeEntryExitStrips * 2; // 出入り口は円周が閉じていないので、両端に側面が必要
         GroundShapeData topShape{faceCount};
         GroundShapeData bottomShape{faceCount};
+        GroundShapeData sideShape{sideFaceCount};
 
         // -----------------------------------------------
 
@@ -375,14 +485,20 @@ namespace
                     l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
-                    pushGroundTopFace(
-                        topShape,
-                        l0, r0, l1, r1,
-                        options);
-                    pushGroundBottomFace(
-                        bottomShape,
-                        l0, r0, l1, r1,
-                        options);
+                    const FaceQuad topFace{l0, r0, l1, r1};
+                    const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
+
+                    pushGroundTopFace(topShape, topFace, options);
+                    pushGroundBottomFace(bottomShape, bottomFace, options);
+
+                    if (i0 == 0)
+                    {
+                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                    }
+                    if (i1 == halfSubdivision1 - 1)
+                    {
+                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                    }
                 }
             }
         }
@@ -412,16 +528,10 @@ namespace
                 l1.normal = -n1s[i0];
                 r1.normal = -n1s[i1];
 
-                pushGroundTopFace(
-                    topShape,
-                    l0, r0,
-                    l1, r1,
-                    options);
-                pushGroundBottomFace(
-                    bottomShape,
-                    l0, r0,
-                    l1, r1,
-                    options);
+                const FaceQuad topFace{l0, r0, l1, r1};
+
+                pushGroundTopFace(topShape, topFace, options);
+                pushGroundBottomFace(bottomShape, makeBottomFaceQuad(topFace), options);
             }
         }
 
@@ -466,16 +576,20 @@ namespace
                     l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
-                    pushGroundTopFace(
-                        topShape,
-                        l0, r0,
-                        l1, r1,
-                        options);
-                    pushGroundBottomFace(
-                        bottomShape,
-                        l0, r0,
-                        l1, r1,
-                        options);
+                    const FaceQuad topFace{l0, r0, l1, r1};
+                    const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
+
+                    pushGroundTopFace(topShape, topFace, options);
+                    pushGroundBottomFace(bottomShape, bottomFace, options);
+
+                    if (i0 == 0)
+                    {
+                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                    }
+                    if (i1 == halfSubdivision1 - 1)
+                    {
+                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                    }
                 }
             }
         }
@@ -503,6 +617,11 @@ namespace
                 .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
             }
         });
+
+        if (sideFaceCount > 0)
+        {
+            addGroundSideShape(model, sideShape);
+        }
     }
 
     void buildCylinderModel(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
@@ -524,8 +643,11 @@ namespace
         const int faceCount =
             (hasEntry + hasExit) * CylinderEntryExitStrips * (entryExitSubdivision - 1) +
             (cylinderStrips - 1) * subdivision;
+        // 出入り口は円周が閉じていないので、両端に側面が必要
+        const int sideFaceCount = (hasEntry + hasExit) * CylinderEntryExitStrips * 2;
         GroundShapeData topShape{faceCount};
         GroundShapeData bottomShape{faceCount};
+        GroundShapeData sideShape{sideFaceCount};
 
         // -----------------------------------------------
 
@@ -587,14 +709,20 @@ namespace
                     l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
-                    pushGroundTopFace(
-                        topShape,
-                        l0, r0, l1, r1,
-                        options);
-                    pushGroundBottomFace(
-                        bottomShape,
-                        l0, r0, l1, r1,
-                        options);
+                    const FaceQuad topFace{l0, r0, l1, r1};
+                    const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
+
+                    pushGroundTopFace(topShape, topFace, options);
+                    pushGroundBottomFace(bottomShape, bottomFace, options);
+
+                    if (i0 == 0)
+                    {
+                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                    }
+                    if (i1 == entryExitSubdivision - 1)
+                    {
+                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                    }
                 }
             }
         }
@@ -649,14 +777,11 @@ namespace
                 r1.normal = n1s[i0];
                 l1.normal = n1s[i1];
 
-                pushGroundTopFace(
-                    topShape,
-                    l0, r0, l1, r1,
-                    options);
+                const FaceQuad topFace{l0, r0, l1, r1};
+
+                pushGroundTopFace(topShape, topFace, options);
                 // pushGroundBottomFace( // Bottom は見えない
-                //     bottomShape,
-                //     l0, r0, l1, r1,
-                //     options);
+                //     bottomShape, makeBottomFaceQuad(topFace), options);
             }
         }
 
@@ -714,14 +839,20 @@ namespace
                     l1.normal = (cap_l0.normal * (1 - s1_rate) + cap_l1.normal * s1_rate).normalized();
                     r1.normal = (cap_r0.normal * (1 - s1_rate) + cap_r1.normal * s1_rate).normalized();
 
-                    pushGroundTopFace(
-                        topShape,
-                        l0, r0, l1, r1,
-                        options);
-                    pushGroundBottomFace(
-                        bottomShape,
-                        l0, r0, l1, r1,
-                        options);
+                    const FaceQuad topFace{l0, r0, l1, r1};
+                    const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
+
+                    pushGroundTopFace(topShape, topFace, options);
+                    pushGroundBottomFace(bottomShape, bottomFace, options);
+
+                    if (i0 == 0)
+                    {
+                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                    }
+                    if (i1 == entryExitSubdivision - 1)
+                    {
+                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                    }
                 }
             }
         }
@@ -749,6 +880,11 @@ namespace
                 .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
             }
         });
+
+        if (sideFaceCount > 0)
+        {
+            addGroundSideShape(model, sideShape);
+        }
     }
 }
 
