@@ -316,7 +316,15 @@ namespace
 
         // ガードレールがある場合は側面の隙間が隠れるので、側面は不要
         const bool needsSideFace = not segment.gimmicks.contains(CourseGimmickKind::Barrier);
-        GroundShapeData sideShape{needsSideFace ? (static_cast<int>(segment.midwayStrips.size()) - 1) * 2 : 0};
+
+        // 前後が Gap の場合は断面が見えるので塞ぐ
+        const bool needsFrontCap = options.priorStyle == CourseSegmentStyle::Gap;
+        const bool needsBackCap = options.nextStyle == CourseSegmentStyle::Gap;
+        const int lastStrip = static_cast<int>(segment.midwayStrips.size()) - 2;
+
+        const int sideFaceCount =
+            (needsSideFace ? (lastStrip + 1) * 2 : 0) + needsFrontCap + needsBackCap;
+        GroundShapeData sideShape{sideFaceCount};
 
         {
             const int m0 = createStartingLine ? startingLineStripCount : 0;
@@ -342,6 +350,16 @@ namespace
                 {
                     pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
                     pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                }
+
+                if (needsFrontCap && m == 0)
+                {
+                    pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace));
+                }
+
+                if (needsBackCap && m == lastStrip)
+                {
+                    pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace));
                 }
             }
 
@@ -403,6 +421,16 @@ namespace
                     pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
                     pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
                 }
+
+                if (needsFrontCap && m == 0)
+                {
+                    pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace));
+                }
+
+                if (needsBackCap && m == lastStrip)
+                {
+                    pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace));
+                }
             }
 
             model.shapes.push_back(ModelShape{
@@ -431,7 +459,7 @@ namespace
             });
         }
 
-        if (needsSideFace)
+        if (sideFaceCount > 0)
         {
             addGroundSideShape(model, sideShape);
         }

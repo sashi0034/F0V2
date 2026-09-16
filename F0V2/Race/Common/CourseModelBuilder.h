@@ -30,6 +30,8 @@ namespace Race
     struct CourseModelBuilderOptions
     {
         bool createStartingLine{};
+        CourseSegmentStyle priorStyle{};
+        CourseSegmentStyle nextStyle{};
         CoursePolygoneCollider* outCollider = nullptr;
         Array<GimmickPlacement>* outGimmickPlacements = nullptr;
         CourseMinimapModelBuilder* outMinimapModel = nullptr;

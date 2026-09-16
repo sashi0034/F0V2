@@ -13,6 +13,7 @@
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
 #include "TY/Intersects2D.h"
+#include "TY/Math.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/PrimitiveModel3D.h"
@@ -176,7 +177,13 @@ private:
 
         for (const auto i : rebuildIndexes)
         {
-            const auto modelBuffer = BuildCourseModel(m_segments[i], {});
+            const auto modelBuffer = BuildCourseModel(
+                m_segments[i],
+                {
+                    .priorStyle = m_segments[Modulo<int>(i - 1, m_segments.size())].style,
+                    .nextStyle = m_segments[(i + 1) % m_segments.size()].style,
+                }
+            );
             if (modelBuffer.isEmpty())
             {
                 m_courseDrawers[i] = {};

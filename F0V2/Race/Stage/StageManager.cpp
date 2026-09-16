@@ -228,7 +228,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         m_gimmickPlacements.resize(g_sharedState->courseSegments.size());
         for (int i = 0; i < g_sharedState->courseSegments.size(); ++i)
         {
-            const auto& segment = g_sharedState->courseSegments[i];
+            const auto& segments = g_sharedState->courseSegments;
+            const auto& segment = segments[i];
 
             colliders.push_back({});
             CourseMinimapModelBuilder minimapModelBuilder{};
@@ -236,6 +237,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
                 segment,
                 {
                     .createStartingLine = i == 0,
+                    .priorStyle = segments[Modulo<int>(i - 1, segments.size())].style,
+                    .nextStyle = segments[(i + 1) % segments.size()].style,
                     .outCollider = &colliders.back(),
                     .outGimmickPlacements = &m_gimmickPlacements[i],
                     .outMinimapModel = &minimapModelBuilder,
