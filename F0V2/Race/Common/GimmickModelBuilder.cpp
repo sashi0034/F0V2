@@ -11,55 +11,133 @@ using namespace Race;
 
 namespace
 {
+    constexpr float bottomThickness = 5.0f;
+
     struct FaceVertex
     {
         Float3 pos{};
         Float3 normal{};
+
+        FaceVertex withNormal(const Float3 n) const
+        {
+            return FaceVertex{pos, n};
+        }
     };
 
-    void pushGimmickFaces(
-        Array<ModelVertex>& vertices,
-        Array<uint16_t>& indices,
-        int& v_offset,
-        int& i_offset,
+    // 0 -> 1 が進行方向、l -> r が左から右
+    struct FaceQuad
+    {
+        FaceVertex l0{};
+        FaceVertex r0{};
+        FaceVertex l1{};
+        FaceVertex r1{};
+    };
+
+    // 上面の四角形から、thickness の分だけずらした下面の四角形を作る
+    FaceQuad makeBottomFaceQuad(const FaceQuad& top, float thickness)
+    {
+        const auto toBottom = [thickness](const FaceVertex& v)
+        {
+            return FaceVertex{v.pos - v.normal * thickness, -v.normal};
+        };
+
+        return FaceQuad{toBottom(top.l0), toBottom(top.r0), toBottom(top.l1), toBottom(top.r1)};
+    }
+
+    // 辺から外側へ向かう法線 (上面の法線と直交する成分)
+    Float3 getOutwardNormal(const FaceVertex& edge, const FaceVertex& opposite)
+    {
+        const Float3 d = edge.pos - opposite.pos;
+        return (d - edge.normal * d.dot(edge.normal)).normalized();
+    }
+
+    // 上面と下面の左端をつなぐ側面の四角形
+    // 上面と巻き順を合わせるため、下の辺を l 側、上の辺を r 側とする
+    FaceQuad makeLeftSideFaceQuad(const FaceQuad& top, const FaceQuad& bottom)
+    {
+        const Float3 n0 = getOutwardNormal(top.l0, top.r0);
+        const Float3 n1 = getOutwardNormal(top.l1, top.r1);
+
+        return FaceQuad{
+            bottom.l0.withNormal(n0), top.l0.withNormal(n0),
+            bottom.l1.withNormal(n1), top.l1.withNormal(n1)
+        };
+    }
+
+    // 上面と下面の右端をつなぐ側面の四角形
+    FaceQuad makeRightSideFaceQuad(const FaceQuad& top, const FaceQuad& bottom)
+    {
+        const Float3 n0 = getOutwardNormal(top.r0, top.l0);
+        const Float3 n1 = getOutwardNormal(top.r1, top.l1);
+
+        return FaceQuad{
+            top.r0.withNormal(n0), bottom.r0.withNormal(n0),
+            top.r1.withNormal(n1), bottom.r1.withNormal(n1)
+        };
+    }
+
+    // 上面と下面の 0 側 (進行方向の手前) の断面を塞ぐ四角形
+    // 上面と巻き順を合わせるため、下の辺を 0 側、上の辺を 1 側とする
+    FaceQuad makeFrontCapFaceQuad(const FaceQuad& top, const FaceQuad& bottom)
+    {
+        const Float3 n = -((top.l1.pos + top.r1.pos) - (top.l0.pos + top.r0.pos)).normalized();
+
+        return FaceQuad{
+            bottom.l0.withNormal(n), bottom.r0.withNormal(n),
+            top.l0.withNormal(n), top.r0.withNormal(n)
+        };
+    }
+
+    // 上面と下面の 1 側 (進行方向の奥) の断面を塞ぐ四角形
+    FaceQuad makeBackCapFaceQuad(const FaceQuad& top, const FaceQuad& bottom)
+    {
+        const Float3 n = ((top.l1.pos + top.r1.pos) - (top.l0.pos + top.r0.pos)).normalized();
+
+        return FaceQuad{
+            top.l1.withNormal(n), top.r1.withNormal(n),
+            bottom.l1.withNormal(n), bottom.r1.withNormal(n)
+        };
+    }
+
+    struct GimmickShapeData
+    {
+        Array<ModelVertex> vertices;
+        int vertexOffset{};
+
+        Array<uint16_t> indices;
+        int indexOffset{};
+
+        explicit GimmickShapeData(int faceCount)
+            : vertices(faceCount * 4),
+              indices(faceCount * 6)
+        {
+        }
+    };
+
+    void pushGimmickTopFace(
+        GimmickShapeData& shape,
         int stripIndex,
-        const FaceVertex& l0,
-        const FaceVertex& r0,
-        const FaceVertex& l1,
-        const FaceVertex& r1,
+        const FaceQuad& face,
         GimmickTriangleAttribute::kind_t gimmick,
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
-        vertices[v_offset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+        const auto& [l0, r0, l1, r1] = face;
 
-        indices[i_offset] = v_offset;
-        indices[i_offset + 1] = v_offset + 2;
-        indices[i_offset + 2] = v_offset + 1;
-        indices[i_offset + 3] = v_offset + 1;
-        indices[i_offset + 4] = v_offset + 2;
-        indices[i_offset + 5] = v_offset + 3;
+        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
 
-        v_offset += 4;
-        i_offset += 6;
+        shape.indices[shape.indexOffset] = shape.vertexOffset;
+        shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 2] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 3] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 4] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 5] = shape.vertexOffset + 3;
 
-        vertices[v_offset] = ModelVertex{r1.pos, -r1.normal, uvRect.bl()};
-        vertices[v_offset + 1] = ModelVertex{l1.pos, -l1.normal, uvRect.br()};
-        vertices[v_offset + 2] = ModelVertex{r0.pos, -r0.normal, uvRect.tl()};
-        vertices[v_offset + 3] = ModelVertex{l0.pos, -l0.normal, uvRect.tr()};
-
-        indices[i_offset] = v_offset;
-        indices[i_offset + 1] = v_offset + 1;
-        indices[i_offset + 2] = v_offset + 2;
-        indices[i_offset + 3] = v_offset + 1;
-        indices[i_offset + 4] = v_offset + 3;
-        indices[i_offset + 5] = v_offset + 2;
-
-        v_offset += 4;
-        i_offset += 6;
+        shape.vertexOffset += 4;
+        shape.indexOffset += 6;
 
         if (options.outCollider)
         {
@@ -89,49 +167,109 @@ namespace
         }
     }
 
+    void pushGimmickBottomFace(
+        GimmickShapeData& shape,
+        const FaceQuad& face,
+        const RectF& uvRect = RectF{0, 0, 1, 1})
+    {
+        const auto& [l0, r0, l1, r1] = face;
+
+        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+
+        shape.indices[shape.indexOffset] = shape.vertexOffset;
+        shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 2] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 3] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 4] = shape.vertexOffset + 3;
+        shape.indices[shape.indexOffset + 5] = shape.vertexOffset + 2;
+
+        shape.vertexOffset += 4;
+        shape.indexOffset += 6;
+    }
+
+    // 上面と下面の間の隙間を埋める側面
+    void pushGimmickSideFace(
+        GimmickShapeData& shape,
+        const FaceQuad& face,
+        const RectF& uvRect = RectF{0, 0, 1, 1})
+    {
+        const auto& [l0, r0, l1, r1] = face;
+
+        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
+        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
+        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
+        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+
+        shape.indices[shape.indexOffset] = shape.vertexOffset;
+        shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 2] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 3] = shape.vertexOffset + 1;
+        shape.indices[shape.indexOffset + 4] = shape.vertexOffset + 2;
+        shape.indices[shape.indexOffset + 5] = shape.vertexOffset + 3;
+
+        shape.vertexOffset += 4;
+        shape.indexOffset += 6;
+    }
+
     void buildBarrier_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
-        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 2 * 8);
-        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 2 * 12);
-        int v_offset{};
-        int i_offset{};
+        constexpr float barrierHeight = 2.5f;
+        constexpr float barrierThickness = 1.0f;
 
-        for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
+        const int lastStrip = static_cast<int>(segment.midwayStrips.size()) - 2;
+
+        // 左右それぞれ、ストリップごとに上面・下面・側面 2 つ、最初と最後に断面
+        GimmickShapeData shape{((lastStrip + 1) * 4 + 2) * 2};
+
+        for (int m = 0; m <= lastStrip; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];
 
-            constexpr float barrierHeight = 2.5f;
-
             const Float3 s0_l2r = (s0.rightmost - s0.leftmost).normalized();
             const Float3 s1_l2r = (s1.rightmost - s1.leftmost).normalized();
 
-            const FaceVertex l0b{s0.leftmost, s0_l2r};
-            const FaceVertex l1b{s1.leftmost, s1_l2r};
+            // 道路側を向く面を上面とし、下端は地面の底面まで下げる
+            // 上面と巻き順を合わせるため、左側は上端を l 側、右側は下端を l 側とする
+            const FaceQuad leftTopFace{
+                {s0.leftmost + s0.normal * barrierHeight, s0_l2r},
+                {s0.leftmost - s0.normal * bottomThickness, s0_l2r},
+                {s1.leftmost + s1.normal * barrierHeight, s1_l2r},
+                {s1.leftmost - s1.normal * bottomThickness, s1_l2r},
+            };
+            const FaceQuad rightTopFace{
+                {s0.rightmost - s0.normal * bottomThickness, -s0_l2r},
+                {s0.rightmost + s0.normal * barrierHeight, -s0_l2r},
+                {s1.rightmost - s1.normal * bottomThickness, -s1_l2r},
+                {s1.rightmost + s1.normal * barrierHeight, -s1_l2r},
+            };
 
-            const FaceVertex l0t{s0.leftmost + s0.normal * barrierHeight, s0_l2r};
-            const FaceVertex l1t{s1.leftmost + s1.normal * barrierHeight, s1_l2r};
+            for (const FaceQuad& topFace : {leftTopFace, rightTopFace})
+            {
+                const FaceQuad bottomFace = makeBottomFaceQuad(topFace, barrierThickness);
 
-            const FaceVertex r0b{s0.rightmost, -s0_l2r};
-            const FaceVertex r1b{s1.rightmost, -s1_l2r};
+                pushGimmickTopFace(shape, m, topFace, GimmickTriangleAttribute::kind_t::Barrier, options);
+                pushGimmickBottomFace(shape, bottomFace);
+                pushGimmickSideFace(shape, makeLeftSideFaceQuad(topFace, bottomFace));
+                pushGimmickSideFace(shape, makeRightSideFaceQuad(topFace, bottomFace));
 
-            const FaceVertex r0t{s0.rightmost + s0.normal * barrierHeight, -s0_l2r};
-            const FaceVertex r1t{s1.rightmost + s1.normal * barrierHeight, -s1_l2r};
-
-            pushGimmickFaces(
-                vertices, indices, v_offset, i_offset,
-                m, l0b, l1b, l0t, l1t,
-                GimmickTriangleAttribute::kind_t::Barrier,
-                options);
-            pushGimmickFaces(
-                vertices, indices, v_offset, i_offset,
-                m, r1b, r0b, r1t, r0t,
-                GimmickTriangleAttribute::kind_t::Barrier,
-                options);
+                // FIXME: 前後のセグメントに Barrier があるときは断面を塞がないようにする
+                if (m == 0)
+                {
+                    pushGimmickSideFace(shape, makeFrontCapFaceQuad(topFace, bottomFace));
+                }
+                if (m == lastStrip)
+                {
+                    pushGimmickSideFace(shape, makeBackCapFaceQuad(topFace, bottomFace));
+                }
+            }
         }
 
         model.shapes.push_back(ModelShape{
-            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+            std::move(shape.vertices), std::move(shape.indices), static_cast<uint16_t>(model.materials.size())
         });
         model.materials.push_back({
             .name = "barrier",
@@ -226,19 +364,14 @@ namespace
             normal
         };
 
-        Array<ModelVertex> vertices(8);
-        Array<uint16_t> indices(12);
-        int v_offset{};
-        int i_offset{};
+        const FaceQuad topFace{l0, r0, l1, r1};
 
-        pushGimmickFaces(
-            vertices, indices, v_offset, i_offset,
-            s0_index, l0, r0, l1, r1,
-            gimmick,
-            options);
+        GimmickShapeData shape{2};
+        pushGimmickTopFace(shape, s0_index, topFace, gimmick, options);
+        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f));
 
         model.shapes.push_back(ModelShape{
-            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+            std::move(shape.vertices), std::move(shape.indices), static_cast<uint16_t>(model.materials.size())
         });
 
         if (gimmick == GimmickTriangleAttribute::kind_t::BoostPad)
@@ -343,19 +476,14 @@ namespace
             normal
         };
 
-        Array<ModelVertex> vertices(8);
-        Array<uint16_t> indices(12);
-        int v_offset{};
-        int i_offset{};
+        const FaceQuad topFace{l0, r0, l1, r1};
 
-        pushGimmickFaces(
-            vertices, indices, v_offset, i_offset,
-            s0_index, l0, r0, l1, r1,
-            gimmick,
-            options);
+        GimmickShapeData shape{2};
+        pushGimmickTopFace(shape, s0_index, topFace, gimmick, options);
+        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f));
 
         model.shapes.push_back(ModelShape{
-            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+            std::move(shape.vertices), std::move(shape.indices), static_cast<uint16_t>(model.materials.size())
         });
 
         if (gimmick == GimmickTriangleAttribute::kind_t::BoostPad)
@@ -417,10 +545,7 @@ namespace
             return;
         }
 
-        Array<ModelVertex> vertices((segment.midwayStrips.size() - 1) * 8);
-        Array<uint16_t> indices((segment.midwayStrips.size() - 1) * 12);
-        int v_offset{};
-        int i_offset{};
+        GimmickShapeData shape{(static_cast<int>(segment.midwayStrips.size()) - 1) * 2};
 
         float texY{};
         for (int m = 0; m < segment.midwayStrips.size() - 1; ++m)
@@ -431,25 +556,24 @@ namespace
             const auto lr0 = separateStrip(s0, lcr);
             const auto lr1 = separateStrip(s1, lcr);
 
-            const FaceVertex l0{lr0.first + s0.normal * padElevation, s0.normal};
-            const FaceVertex r0{lr0.second + s0.normal * padElevation, s0.normal};
-            const FaceVertex l1{lr1.first + s1.normal * padElevation, s1.normal};
-            const FaceVertex r1{lr1.second + s1.normal * padElevation, s1.normal};
+            const FaceQuad topFace{
+                {lr0.first + s0.normal * padElevation, s0.normal},
+                {lr0.second + s0.normal * padElevation, s0.normal},
+                {lr1.first + s1.normal * padElevation, s1.normal},
+                {lr1.second + s1.normal * padElevation, s1.normal},
+            };
 
             const float texH = 2.0f * (s1.center - s0.center).length() / (s0.rightmost - s0.leftmost).length();
+            const RectF uvRect{0.0f, texY, 1.0f, texH};
 
-            pushGimmickFaces(
-                vertices, indices, v_offset, i_offset,
-                m, l0, r0, l1, r1,
-                GimmickTriangleAttribute::kind_t::PitZone,
-                options,
-                RectF{0.0f, texY, 1.0f, texH});
+            pushGimmickTopFace(shape, m, topFace, GimmickTriangleAttribute::kind_t::PitZone, options, uvRect);
+            pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), uvRect);
 
             texY += texH;
         }
 
         model.shapes.push_back(ModelShape{
-            std::move(vertices), std::move(indices), static_cast<uint16_t>(model.materials.size())
+            std::move(shape.vertices), std::move(shape.indices), static_cast<uint16_t>(model.materials.size())
         });
         model.materials.push_back({
             .name = "pit_zone",
