@@ -104,6 +104,29 @@ namespace
         };
     }
 
+    // 上面と下面の 0 側 (進行方向の手前) の断面を塞ぐ四角形
+    // 上面と巻き順を合わせるため、下の辺を 0 側、上の辺を 1 側とする
+    FaceQuad makeFrontCapFaceQuad(const FaceQuad& top, const FaceQuad& bottom)
+    {
+        const Float3 n = -((top.l1.pos + top.r1.pos) - (top.l0.pos + top.r0.pos)).normalized();
+
+        return FaceQuad{
+            bottom.l0.withNormal(n), bottom.r0.withNormal(n),
+            top.l0.withNormal(n), top.r0.withNormal(n)
+        };
+    }
+
+    // 上面と下面の 1 側 (進行方向の奥) の断面を塞ぐ四角形
+    FaceQuad makeBackCapFaceQuad(const FaceQuad& top, const FaceQuad& bottom)
+    {
+        const Float3 n = ((top.l1.pos + top.r1.pos) - (top.l0.pos + top.r0.pos)).normalized();
+
+        return FaceQuad{
+            top.l1.withNormal(n), top.r1.withNormal(n),
+            bottom.l1.withNormal(n), bottom.r1.withNormal(n)
+        };
+    }
+
     struct GroundShapeData
     {
         Array<ModelVertex> vertices;
@@ -435,7 +458,9 @@ namespace
 
         const int faceCount =
             (hasEntry + hasExit) * PipeEntryExitStrips * (halfSubdivision1 - 1) + (pipeStrips - 1) * subdivision;
-        const int sideFaceCount = (hasEntry + hasExit) * PipeEntryExitStrips * 2; // 出入り口は円周が閉じていないので、両端に側面が必要
+        // 出入り口は円周が閉じていないので、両端に側面が必要
+        // さらに、円周のうち出入り口と繋がっていない上半分の断面を塞ぐ面が必要
+        const int sideFaceCount = (hasEntry + hasExit) * (PipeEntryExitStrips * 2 + (subdivision - halfSubdivision0));
         GroundShapeData topShape{faceCount};
         GroundShapeData bottomShape{faceCount};
         GroundShapeData sideShape{sideFaceCount};
@@ -503,7 +528,9 @@ namespace
             }
         }
 
-        for (int m = hasEntry * PipeEntryExitStrips; m < hasEntry * PipeEntryExitStrips + pipeStrips - 1; ++m)
+        const int pipeFirstStrip = hasEntry * PipeEntryExitStrips;
+        const int pipeLastStrip = pipeFirstStrip + pipeStrips - 2;
+        for (int m = pipeFirstStrip; m <= pipeLastStrip; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
             auto& s1 = segment.midwayStrips[m + 1];
@@ -529,9 +556,23 @@ namespace
                 r1.normal = -n1s[i1];
 
                 const FaceQuad topFace{l0, r0, l1, r1};
+                const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
                 pushGroundTopFace(topShape, topFace, options);
-                pushGroundBottomFace(bottomShape, makeBottomFaceQuad(topFace), options);
+                pushGroundBottomFace(bottomShape, bottomFace, options);
+
+                // 出入り口と繋がっていない上半分は断面が開いているので塞ぐ
+                if (i0 >= halfSubdivision0)
+                {
+                    if (hasEntry && m == pipeFirstStrip)
+                    {
+                        pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace));
+                    }
+                    if (hasExit && m == pipeLastStrip)
+                    {
+                        pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace));
+                    }
+                }
             }
         }
 
@@ -644,7 +685,9 @@ namespace
             (hasEntry + hasExit) * CylinderEntryExitStrips * (entryExitSubdivision - 1) +
             (cylinderStrips - 1) * subdivision;
         // 出入り口は円周が閉じていないので、両端に側面が必要
-        const int sideFaceCount = (hasEntry + hasExit) * CylinderEntryExitStrips * 2;
+        // さらに、出入り口のシリンダー側の端の断面を塞ぐ面が必要
+        const int sideFaceCount =
+            (hasEntry + hasExit) * (CylinderEntryExitStrips * 2 + (entryExitSubdivision - 1));
         GroundShapeData topShape{faceCount};
         GroundShapeData bottomShape{faceCount};
         GroundShapeData sideShape{sideFaceCount};
@@ -722,6 +765,12 @@ namespace
                     if (i1 == entryExitSubdivision - 1)
                     {
                         pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                    }
+
+                    // シリンダー側の端の断面を塞ぐ
+                    if (s == CylinderEntryExitStrips - 1)
+                    {
+                        pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace));
                     }
                 }
             }
@@ -852,6 +901,12 @@ namespace
                     if (i1 == entryExitSubdivision - 1)
                     {
                         pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                    }
+
+                    // シリンダー側の端の断面を塞ぐ
+                    if (s == 0)
+                    {
+                        pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace));
                     }
                 }
             }
