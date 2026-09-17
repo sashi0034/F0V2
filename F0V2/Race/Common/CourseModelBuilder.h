@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "CourseData.h"
+#include "CourseModelShape.h"
 #include "CourseTriangleAttribute.h"
 #include "TY/Array.h"
-#include "TY/ModelBuffer.h"
 #include "TY/PrimitiveTypes3D.h"
 #include "TY/TriangleBvh.h"
 
@@ -37,5 +37,5 @@ namespace Race
         CourseMinimapModelBuilder* outMinimapModel = nullptr;
     };
 
-    ModelBuffer BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options);
+    CourseModelData BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options);
 }

@@ -17,10 +17,11 @@ namespace
     {
         Float3 pos{};
         Float3 normal{};
+        float metadata{};
 
         FaceVertex withNormal(const Float3 n) const
         {
-            return FaceVertex{pos, n};
+            return FaceVertex{pos, n, metadata};
         }
     };
 
@@ -38,7 +39,7 @@ namespace
     {
         const auto toBottom = [thickness](const FaceVertex& v)
         {
-            return FaceVertex{v.pos - v.normal * thickness, -v.normal};
+            return FaceVertex{v.pos - v.normal * thickness, -v.normal, v.metadata};
         };
 
         return FaceQuad{toBottom(top.l0), toBottom(top.r0), toBottom(top.l1), toBottom(top.r1)};
@@ -101,7 +102,7 @@ namespace
 
     struct GimmickShapeData
     {
-        Array<ModelVertex> vertices;
+        Array<CourseModelVertex> vertices;
         int vertexOffset{};
 
         Array<uint16_t> indices;
@@ -118,16 +119,18 @@ namespace
         GimmickShapeData& shape,
         int stripIndex,
         const FaceQuad& face,
+        const CourseFaceType faceType,
         GimmickTriangleAttribute::kind_t gimmick,
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
+        const auto t = static_cast<uint32_t>(faceType);
 
-        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
-        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
-        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
-        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
@@ -170,14 +173,16 @@ namespace
     void pushGimmickBottomFace(
         GimmickShapeData& shape,
         const FaceQuad& face,
+        const CourseFaceType faceType,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
+        const auto t = static_cast<uint32_t>(faceType);
 
-        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
-        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
-        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
-        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
@@ -194,14 +199,16 @@ namespace
     void pushGimmickSideFace(
         GimmickShapeData& shape,
         const FaceQuad& face,
+        const CourseFaceType faceType,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
+        const auto t = static_cast<uint32_t>(faceType);
 
-        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
-        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
-        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
-        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
@@ -214,7 +221,8 @@ namespace
         shape.indexOffset += 6;
     }
 
-    void buildBarrier_Road(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
+    void buildBarrier_Road(
+        CourseModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         constexpr float barrierHeight = 2.5f;
         constexpr float barrierThickness = 1.0f;
@@ -251,31 +259,26 @@ namespace
             {
                 const FaceQuad bottomFace = makeBottomFaceQuad(topFace, barrierThickness);
 
-                pushGimmickTopFace(shape, m, topFace, GimmickTriangleAttribute::kind_t::Barrier, options);
-                pushGimmickBottomFace(shape, bottomFace);
-                pushGimmickSideFace(shape, makeLeftSideFaceQuad(topFace, bottomFace));
-                pushGimmickSideFace(shape, makeRightSideFaceQuad(topFace, bottomFace));
+                pushGimmickTopFace(
+                    shape, m, topFace, CourseFaceType::BarrierTop, GimmickTriangleAttribute::kind_t::Barrier, options);
+                pushGimmickBottomFace(shape, bottomFace, CourseFaceType::BarrierBottom);
+                pushGimmickSideFace(shape, makeLeftSideFaceQuad(topFace, bottomFace), CourseFaceType::BarrierSide);
+                pushGimmickSideFace(shape, makeRightSideFaceQuad(topFace, bottomFace), CourseFaceType::BarrierSide);
 
                 // FIXME: 前後のセグメントに Barrier があるときは断面を塞がないようにする
                 if (m == 0)
                 {
-                    pushGimmickSideFace(shape, makeFrontCapFaceQuad(topFace, bottomFace));
+                    pushGimmickSideFace(shape, makeFrontCapFaceQuad(topFace, bottomFace), CourseFaceType::BarrierSide);
                 }
                 if (m == lastStrip)
                 {
-                    pushGimmickSideFace(shape, makeBackCapFaceQuad(topFace, bottomFace));
+                    pushGimmickSideFace(shape, makeBackCapFaceQuad(topFace, bottomFace), CourseFaceType::BarrierSide);
                 }
             }
         }
 
-        model.shapes.push_back(ModelShape{
-            std::move(shape.vertices), std::move(shape.indices), static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "barrier",
-            .parameters = {
-                .albedo = sRGB(0.97f, 0.53f, 0.00f).toFloat3()
-            }
+        model.shapes.push_back(CourseModelShape{
+            std::move(shape.vertices), std::move(shape.indices), model.takeMaterialIndex("plain")
         });
     }
 
@@ -303,7 +306,7 @@ namespace
     }
 
     void buildPad_Road(
-        ModelData& model,
+        CourseModelData& model,
         const CourseSegment& segment,
         LCR lcr,
         GimmickTriangleAttribute::kind_t gimmick,
@@ -367,38 +370,24 @@ namespace
         const FaceQuad topFace{l0, r0, l1, r1};
 
         GimmickShapeData shape{2};
-        pushGimmickTopFace(shape, s0_index, topFace, gimmick, options);
-        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f));
+        pushGimmickTopFace(shape, s0_index, topFace, CourseFaceType::Default, gimmick, options);
+        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default);
 
-        model.shapes.push_back(ModelShape{
-            std::move(shape.vertices), std::move(shape.indices), static_cast<uint16_t>(model.materials.size())
+        assert(gimmick == GimmickTriangleAttribute::kind_t::BoostPad ||
+            gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
+
+        const uint16_t materialIndex =
+            gimmick == GimmickTriangleAttribute::kind_t::BoostPad
+                ? model.takeMaterialIndex("boost_pad", g_sharedState->gimmickTextures.boostPad.getFrontRtv())
+                : model.takeMaterialIndex("jump_pad", g_sharedState->gimmickTextures.jumpPad.getFrontRtv());
+
+        model.shapes.push_back(CourseModelShape{
+            std::move(shape.vertices), std::move(shape.indices), materialIndex
         });
-
-        if (gimmick == GimmickTriangleAttribute::kind_t::BoostPad)
-        {
-            model.materials.push_back({
-                .name = "boost_pad",
-                .parameters = {
-                    .albedo = Float3::One()
-                },
-                .albedoTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
-            });
-        }
-        else
-        {
-            assert(gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
-            model.materials.push_back({
-                .name = "jump_pad",
-                .parameters = {
-                    .albedo = Float3::One()
-                },
-                .albedoTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
-            });
-        }
     }
 
     void buildPad_Circular(
-        ModelData& model,
+        CourseModelData& model,
         const CourseSegment& segment,
         LCR lcr,
         GimmickTriangleAttribute::kind_t gimmick,
@@ -479,34 +468,20 @@ namespace
         const FaceQuad topFace{l0, r0, l1, r1};
 
         GimmickShapeData shape{2};
-        pushGimmickTopFace(shape, s0_index, topFace, gimmick, options);
-        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f));
+        pushGimmickTopFace(shape, s0_index, topFace, CourseFaceType::Default, gimmick, options);
+        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default);
 
-        model.shapes.push_back(ModelShape{
-            std::move(shape.vertices), std::move(shape.indices), static_cast<uint16_t>(model.materials.size())
+        assert(gimmick == GimmickTriangleAttribute::kind_t::BoostPad ||
+            gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
+
+        const uint16_t materialIndex =
+            gimmick == GimmickTriangleAttribute::kind_t::BoostPad
+                ? model.takeMaterialIndex("boost_pad", g_sharedState->gimmickTextures.boostPad.getFrontRtv())
+                : model.takeMaterialIndex("jump_pad", g_sharedState->gimmickTextures.jumpPad.getFrontRtv());
+
+        model.shapes.push_back(CourseModelShape{
+            std::move(shape.vertices), std::move(shape.indices), materialIndex
         });
-
-        if (gimmick == GimmickTriangleAttribute::kind_t::BoostPad)
-        {
-            model.materials.push_back({
-                .name = "boost_pad",
-                .parameters = {
-                    .albedo = Float3::One()
-                },
-                .albedoTexture = g_sharedState->gimmickTextures.boostPad.getFrontRtv()
-            });
-        }
-        else
-        {
-            assert(gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
-            model.materials.push_back({
-                .name = "jump_pad",
-                .parameters = {
-                    .albedo = Float3::One()
-                },
-                .albedoTexture = g_sharedState->gimmickTextures.jumpPad.getFrontRtv()
-            });
-        }
     }
 
     std::pair<Float3, Float3> separateStrip(const CourseStrip& s, LCR lcr)
@@ -534,7 +509,7 @@ namespace
         }
     }
 
-    void buildPitZone_Road(ModelData& model, const CourseSegment& segment, LCR lcr,
+    void buildPitZone_Road(CourseModelData& model, const CourseSegment& segment, LCR lcr,
                            const CourseModelBuilderOptions& options)
     {
         constexpr float padElevation = 0.5f;
@@ -566,26 +541,22 @@ namespace
             const float texH = 2.0f * (s1.center - s0.center).length() / (s0.rightmost - s0.leftmost).length();
             const RectF uvRect{0.0f, texY, 1.0f, texH};
 
-            pushGimmickTopFace(shape, m, topFace, GimmickTriangleAttribute::kind_t::PitZone, options, uvRect);
-            pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), uvRect);
+            pushGimmickTopFace(
+                shape, m, topFace, CourseFaceType::Default, GimmickTriangleAttribute::kind_t::PitZone, options, uvRect);
+            pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default, uvRect);
 
             texY += texH;
         }
 
-        model.shapes.push_back(ModelShape{
-            std::move(shape.vertices), std::move(shape.indices), static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "pit_zone",
-            .parameters = {
-                .albedo = Float3::One()
-            },
-            .albedoTexture = g_sharedState->gimmickTextures.pitZone.getFrontRtv()
+        model.shapes.push_back(CourseModelShape{
+            std::move(shape.vertices), std::move(shape.indices),
+            model.takeMaterialIndex("pit_zone", g_sharedState->gimmickTextures.pitZone.getFrontRtv())
         });
     }
 }
 
-void Race::BuildGimmickModel(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
+void Race::BuildGimmickModel(
+    CourseModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
 {
     for (const auto& gimmick : segment.gimmicks)
     {

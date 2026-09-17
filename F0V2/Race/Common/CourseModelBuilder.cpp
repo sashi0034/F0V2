@@ -45,10 +45,11 @@ namespace
     {
         Float3 pos{};
         Float3 normal{};
+        float metadata{};
 
         FaceVertex withNormal(const Float3 n) const
         {
-            return FaceVertex{pos, n};
+            return FaceVertex{pos, n, metadata};
         }
     };
 
@@ -66,7 +67,7 @@ namespace
     {
         const auto toBottom = [](const FaceVertex& v)
         {
-            return FaceVertex{v.pos - v.normal * bottomThickness, -v.normal};
+            return FaceVertex{v.pos - v.normal * bottomThickness, -v.normal, v.metadata};
         };
 
         return FaceQuad{toBottom(top.l0), toBottom(top.r0), toBottom(top.l1), toBottom(top.r1)};
@@ -129,7 +130,7 @@ namespace
 
     struct GroundShapeData
     {
-        Array<ModelVertex> vertices;
+        Array<CourseModelVertex> vertices;
         int vertexOffset{};
 
         Array<uint16_t> indices;
@@ -145,15 +146,17 @@ namespace
     void pushGroundTopFace(
         GroundShapeData& shape,
         const FaceQuad& face,
+        const CourseFaceType faceType,
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
+        const auto t = static_cast<uint32_t>(faceType);
 
-        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
-        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
-        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
-        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
@@ -246,15 +249,17 @@ namespace
     void pushGroundBottomFace(
         GroundShapeData& shape,
         const FaceQuad& face,
+        const CourseFaceType faceType,
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
+        const auto t = static_cast<uint32_t>(faceType);
 
-        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
-        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
-        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
-        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
@@ -273,14 +278,16 @@ namespace
     void pushGroundSideFace(
         GroundShapeData& shape,
         const FaceQuad& face,
+        const CourseFaceType faceType,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
+        const auto t = static_cast<uint32_t>(faceType);
 
-        shape.vertices[shape.vertexOffset] = ModelVertex{r1.pos, r1.normal, uvRect.bl()};
-        shape.vertices[shape.vertexOffset + 1] = ModelVertex{l1.pos, l1.normal, uvRect.br()};
-        shape.vertices[shape.vertexOffset + 2] = ModelVertex{r0.pos, r0.normal, uvRect.tl()};
-        shape.vertices[shape.vertexOffset + 3] = ModelVertex{l0.pos, l0.normal, uvRect.tr()};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
@@ -293,23 +300,17 @@ namespace
         shape.indexOffset += 6;
     }
 
-    void addGroundSideShape(ModelData& model, GroundShapeData& sideShape)
+    void addGroundSideShape(CourseModelData& model, GroundShapeData& sideShape)
     {
-        model.shapes.push_back(ModelShape{
+        model.shapes.push_back(CourseModelShape{
             std::move(sideShape.vertices),
             std::move(sideShape.indices),
-            static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "plain_side",
-            .parameters = {
-                .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
-            }
+            model.takeMaterialIndex("plain")
         });
     }
 
     void buildRoadModel(
-        ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
+        CourseModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         const bool createStartingLine = options.createStartingLine;
         constexpr int startingLineStripCount = 2;
@@ -330,61 +331,59 @@ namespace
             const int m0 = createStartingLine ? startingLineStripCount : 0;
             const int faceCount = static_cast<int>(segment.midwayStrips.size()) - 1 - m0;
             GroundShapeData topShape{faceCount};
-            GroundShapeData bottomShape{faceCount};
+            GroundShapeData bottomShape{faceCount}; // TODO: topShape, bottomShape で分ける意味が無くなったので統合する 
 
+            float vOffset = 0;
             for (int m = m0; m < segment.midwayStrips.size() - 1; ++m)
             {
                 auto& s0 = segment.midwayStrips[m];
                 auto& s1 = segment.midwayStrips[m + 1];
 
+                // metadata に道幅を入れる
+                const float w0 = (s0.rightmost - s0.leftmost).length();
+                const float w1 = (s1.rightmost - s1.leftmost).length();
+
                 const FaceQuad topFace{
-                    {s0.leftmost, s0.normal}, {s0.rightmost, s0.normal},
-                    {s1.leftmost, s1.normal}, {s1.rightmost, s1.normal}
+                    {s0.leftmost, s0.normal, w0}, {s0.rightmost, s0.normal, w0},
+                    {s1.leftmost, s1.normal, w1}, {s1.rightmost, s1.normal, w1}
                 };
                 const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
-                pushGroundTopFace(topShape, topFace, options);
-                pushGroundBottomFace(bottomShape, bottomFace, options);
+                const float v1 = vOffset + s0.lengthToNext;
+                const RectF roadUV = RectF{1.0f, vOffset, -2.0f, v1 - vOffset};
+
+                pushGroundTopFace(topShape, topFace, CourseFaceType::RoadTop, options, roadUV);
+                pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::RoadBottom, options, roadUV);
 
                 if (needsSideFace)
                 {
-                    pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
-                    pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                    pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace), CourseFaceType::RoadSide);
+                    pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace), CourseFaceType::RoadSide);
                 }
 
                 if (needsFrontCap && m == 0)
                 {
-                    pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace));
+                    pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace), CourseFaceType::RoadSide);
                 }
 
                 if (needsBackCap && m == lastStrip)
                 {
-                    pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace));
+                    pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace), CourseFaceType::RoadSide);
                 }
+
+                vOffset = v1;
             }
 
-            model.shapes.push_back(ModelShape{
+            model.shapes.push_back(CourseModelShape{
                 std::move(topShape.vertices),
                 std::move(topShape.indices),
-                static_cast<uint16_t>(model.materials.size())
-            });
-            model.materials.push_back({
-                .name = "plain_top",
-                .parameters = {
-                    .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
-                }
+                model.takeMaterialIndex("plain")
             });
 
-            model.shapes.push_back(ModelShape{
+            model.shapes.push_back(CourseModelShape{
                 std::move(bottomShape.vertices),
                 std::move(bottomShape.indices),
-                static_cast<uint16_t>(model.materials.size())
-            });
-            model.materials.push_back({
-                .name = "plain_bottom",
-                .parameters = {
-                    .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
-                }
+                model.takeMaterialIndex("plain")
             });
         }
 
@@ -400,62 +399,52 @@ namespace
                 auto& s0 = segment.midwayStrips[m];
                 auto& s1 = segment.midwayStrips[m + 1];
 
+                const float w0 = (s0.rightmost - s0.leftmost).length();
+                const float w1 = (s1.rightmost - s1.leftmost).length();
+
                 const FaceQuad topFace{
-                    {s0.leftmost, s0.normal}, {s0.rightmost, s0.normal},
-                    {s1.leftmost, s1.normal}, {s1.rightmost, s1.normal}
+                    {s0.leftmost, s0.normal, w0}, {s0.rightmost, s0.normal, w0},
+                    {s1.leftmost, s1.normal, w1}, {s1.rightmost, s1.normal, w1}
                 };
                 const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
                 if (m == 0)
                 {
                     assert((s1.center - s0.center).length()>0);
-                    texW = texH * (s0.rightmost - s0.leftmost).length() / (s1.center - s0.center).length();
+                    texW = texH * w0 / (s1.center - s0.center).length();
                 }
 
                 const RectF uvRect{0.0f, texH * m, texW, texH};
-                pushGroundTopFace(topShape, topFace, options, uvRect);
-                pushGroundBottomFace(bottomShape, bottomFace, options, uvRect);
+                pushGroundTopFace(topShape, topFace, CourseFaceType::Default, options, uvRect);
+                pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::RoadBottom, options, uvRect);
 
                 if (needsSideFace)
                 {
-                    pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
-                    pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                    pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace), CourseFaceType::RoadSide);
+                    pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace), CourseFaceType::RoadSide);
                 }
 
                 if (needsFrontCap && m == 0)
                 {
-                    pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace));
+                    pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace), CourseFaceType::RoadSide);
                 }
 
                 if (needsBackCap && m == lastStrip)
                 {
-                    pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace));
+                    pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace), CourseFaceType::RoadSide);
                 }
             }
 
-            model.shapes.push_back(ModelShape{
+            model.shapes.push_back(CourseModelShape{
                 std::move(topShape.vertices),
                 std::move(topShape.indices),
-                static_cast<uint16_t>(model.materials.size())
-            });
-            model.materials.push_back({
-                .name = "starting_line",
-                .parameters = {
-                    .albedo = Float3::One(),
-                },
-                .albedoTexture = s_builderCache->startingLineTexture,
+                model.takeMaterialIndex("starting_line", s_builderCache->startingLineTexture)
             });
 
-            model.shapes.push_back(ModelShape{
+            model.shapes.push_back(CourseModelShape{
                 std::move(bottomShape.vertices),
                 std::move(bottomShape.indices),
-                static_cast<uint16_t>(model.materials.size())
-            });
-            model.materials.push_back({
-                .name = "starting_line_bottom",
-                .parameters = {
-                    .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
-                }
+                model.takeMaterialIndex("plain")
             });
         }
 
@@ -466,7 +455,7 @@ namespace
     }
 
     void buildPipeModel(
-        ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
+        CourseModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         // TODO: 終端部分の調整
 
@@ -541,16 +530,18 @@ namespace
                     const FaceQuad topFace{l0, r0, l1, r1};
                     const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
-                    pushGroundTopFace(topShape, topFace, options);
-                    pushGroundBottomFace(bottomShape, bottomFace, options);
+                    pushGroundTopFace(topShape, topFace, CourseFaceType::PipeEntryExitTop, options);
+                    pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::PipeEntryExitBottom, options);
 
                     if (i0 == 0)
                     {
-                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::PipeEntryExitSide);
                     }
                     if (i1 == halfSubdivision1 - 1)
                     {
-                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::PipeEntryExitSide);
                     }
                 }
             }
@@ -586,19 +577,21 @@ namespace
                 const FaceQuad topFace{l0, r0, l1, r1};
                 const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
-                pushGroundTopFace(topShape, topFace, options);
-                pushGroundBottomFace(bottomShape, bottomFace, options);
+                pushGroundTopFace(topShape, topFace, CourseFaceType::PipeInner, options);
+                pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::PipeOuter, options);
 
                 // 出入り口と繋がっていない上半分は断面が開いているので塞ぐ
                 if (i0 >= halfSubdivision0)
                 {
                     if (hasEntry && m == pipeFirstStrip)
                     {
-                        pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::PipeCap);
                     }
                     if (hasExit && m == pipeLastStrip)
                     {
-                        pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::PipeCap);
                     }
                 }
             }
@@ -648,43 +641,33 @@ namespace
                     const FaceQuad topFace{l0, r0, l1, r1};
                     const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
-                    pushGroundTopFace(topShape, topFace, options);
-                    pushGroundBottomFace(bottomShape, bottomFace, options);
+                    pushGroundTopFace(topShape, topFace, CourseFaceType::PipeEntryExitTop, options);
+                    pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::PipeEntryExitBottom, options);
 
                     if (i0 == 0)
                     {
-                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::PipeEntryExitSide);
                     }
                     if (i1 == halfSubdivision1 - 1)
                     {
-                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::PipeEntryExitSide);
                     }
                 }
             }
         }
 
-        model.shapes.push_back(ModelShape{
+        model.shapes.push_back(CourseModelShape{
             std::move(topShape.vertices),
             std::move(topShape.indices),
-            static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "plain_top",
-            .parameters = {
-                .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
-            }
+            model.takeMaterialIndex("plain")
         });
 
-        model.shapes.push_back(ModelShape{
+        model.shapes.push_back(CourseModelShape{
             std::move(bottomShape.vertices),
             std::move(bottomShape.indices),
-            static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "plain_bottom",
-            .parameters = {
-                .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
-            }
+            model.takeMaterialIndex("plain")
         });
 
         if (sideFaceCount > 0)
@@ -693,7 +676,8 @@ namespace
         }
     }
 
-    void buildCylinderModel(ModelData& model, const CourseSegment& segment, const CourseModelBuilderOptions& options)
+    void buildCylinderModel(CourseModelData& model, const CourseSegment& segment,
+                            const CourseModelBuilderOptions& options)
     {
         constexpr int subdivision = CylinderSubdivision;
         constexpr int entryExitSubdivision = CylinderSubdivision * 2;
@@ -783,22 +767,25 @@ namespace
                     const FaceQuad topFace{l0, r0, l1, r1};
                     const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
-                    pushGroundTopFace(topShape, topFace, options);
-                    pushGroundBottomFace(bottomShape, bottomFace, options);
+                    pushGroundTopFace(topShape, topFace, CourseFaceType::CylinderEntryExitTop, options);
+                    pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::CylinderEntryExitBottom, options);
 
                     if (i0 == 0)
                     {
-                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::CylinderEntryExitSide);
                     }
                     if (i1 == entryExitSubdivision - 1)
                     {
-                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::CylinderEntryExitSide);
                     }
 
                     // シリンダー側の端の断面を塞ぐ
                     if (s == CylinderEntryExitStrips - 1)
                     {
-                        pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeBackCapFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::CylinderEntryExitCap);
                     }
                 }
             }
@@ -856,7 +843,7 @@ namespace
 
                 const FaceQuad topFace{l0, r0, l1, r1};
 
-                pushGroundTopFace(topShape, topFace, options);
+                pushGroundTopFace(topShape, topFace, CourseFaceType::CylinderOuter, options);
                 // pushGroundBottomFace( // Bottom は見えない
                 //     bottomShape, makeBottomFaceQuad(topFace), options);
             }
@@ -919,49 +906,40 @@ namespace
                     const FaceQuad topFace{l0, r0, l1, r1};
                     const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
-                    pushGroundTopFace(topShape, topFace, options);
-                    pushGroundBottomFace(bottomShape, bottomFace, options);
+                    pushGroundTopFace(topShape, topFace, CourseFaceType::CylinderEntryExitTop, options);
+                    pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::CylinderEntryExitBottom, options);
 
                     if (i0 == 0)
                     {
-                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeLeftSideFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::CylinderEntryExitSide);
                     }
                     if (i1 == entryExitSubdivision - 1)
                     {
-                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeRightSideFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::CylinderEntryExitSide);
                     }
 
                     // シリンダー側の端の断面を塞ぐ
                     if (s == 0)
                     {
-                        pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace));
+                        pushGroundSideFace(sideShape, makeFrontCapFaceQuad(topFace, bottomFace),
+                                           CourseFaceType::CylinderEntryExitCap);
                     }
                 }
             }
         }
 
-        model.shapes.push_back(ModelShape{
+        model.shapes.push_back(CourseModelShape{
             std::move(topShape.vertices),
             std::move(topShape.indices),
-            static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "plain_top",
-            .parameters = {
-                .albedo = sRGB(Float3::One() * 0.5f).toFloat3()
-            }
+            model.takeMaterialIndex("plain")
         });
 
-        model.shapes.push_back(ModelShape{
+        model.shapes.push_back(CourseModelShape{
             std::move(bottomShape.vertices),
             std::move(bottomShape.indices),
-            static_cast<uint16_t>(model.materials.size())
-        });
-        model.materials.push_back({
-            .name = "plain_bottom",
-            .parameters = {
-                .albedo = sRGB(Float3::One() * 0.1f).toFloat3()
-            }
+            model.takeMaterialIndex("plain")
         });
 
         if (sideFaceCount > 0)
@@ -973,11 +951,11 @@ namespace
 
 namespace Race
 {
-    ModelBuffer BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options)
+    CourseModelData BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options)
     {
         assert(segment.midwayStrips.size() > 0);
 
-        ModelData model{};
+        CourseModelData model{};
 
         if (segment.style == CourseSegmentStyle::Road)
         {

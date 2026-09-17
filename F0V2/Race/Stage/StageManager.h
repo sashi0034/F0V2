@@ -4,6 +4,7 @@
 #include "Race/Common/CourseModelBuilder.h"
 #include "Race/Common/CourseTriangleAttribute.h"
 #include "Race/Machine/LapProgress.h"
+#include "TY/ModelBuffer.h"
 #include "TY/TriangleBvh.h"
 #include "TY_Extension/GameObjectHandle.h"
 

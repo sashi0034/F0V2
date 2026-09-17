@@ -13,6 +13,8 @@ namespace Asset_shader
     static const inline ComputeShaderPathWrapper fsr1_easu_cs{"asset/shader/fsr1/fsr1_easu_cs.hlsl"};
     static const inline ComputeShaderPathWrapper fsr1_rcas_cs{"asset/shader/fsr1/fsr1_rcas_cs.hlsl"};
     static const inline GraphicsShaderPathWrapper gbuffer_coffine{"asset/shader/gbuffer_coffine.hlsl"};
+    static const inline GraphicsShaderPathWrapper gbuffer_course1{"asset/shader/gbuffer_course1.hlsl"};
+    static const inline GraphicsShaderPathWrapper gbuffer_course2{"asset/shader/gbuffer_course2.hlsl"};
     static const inline GraphicsShaderPathWrapper gbuffer_pass{"asset/shader/gbuffer_pass.hlsl"};
     static const inline GraphicsShaderPathWrapper gimmick_boost_pad{"asset/shader/gimmick_boost_pad.hlsl"};
     static const inline GraphicsShaderPathWrapper gimmick_jump_pad{"asset/shader/gimmick_jump_pad.hlsl"};
@@ -177,8 +179,8 @@ namespace Asset_sound
     static const inline SoundAudioPathWrapper FinalRap{"asset/sound/FinalRap.mp3"};
     static const inline SoundAudioPathWrapper Finish{"asset/sound/Finish.mp3"};
     static const inline SoundAudioPathWrapper GotBoostPower{"asset/sound/GotBoostPower.mp3"};
-    static const inline SoundAudioPathWrapper QuickTurn{"asset/sound/QuickTurn.mp3"};
     static const inline SoundAudioPathWrapper JumpPad{"asset/sound/JumpPad.mp3"};
+    static const inline SoundAudioPathWrapper QuickTurn{"asset/sound/QuickTurn.mp3"};
     static const inline SoundAudioPathWrapper RecoverPad{"asset/sound/RecoverPad.mp3"};
 }
 

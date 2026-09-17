@@ -11,6 +11,7 @@
 #include "Race/RaceContextContent.h"
 #include "Race/Common/CourseMinimapModelBuilder.h"
 #include "Race/Common/CourseModelBuilder.h"
+#include "Race/Common/CourseModelDrawer.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/DynamicTexture.h"
@@ -188,7 +189,7 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
     Array<ModelBuffer> m_courseMinimapModels{};
 
-    Array<ModelDrawer> m_courseDrawers{};
+    Array<CourseModelDrawer> m_courseDrawers{};
 
     Array<Array<GimmickPlacement>> m_gimmickPlacements{};
 
@@ -247,18 +248,10 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
             m_courseMinimapModels.push_back(minimapModelBuilder.build());
 
-            if (courseModel.isEmpty())
-            {
-                m_courseDrawers.push_back({});
-            }
-            else
-            {
-                m_courseDrawers.push_back(
-                    ModelDrawerParams{}
-                    .setModel(courseModel)
-                    .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
-                    .setShader(Asset_shader::gbuffer_pass));
-            }
+            // Gap セグメントなど、描くものが無い場合は空のドロワーになる
+            m_courseDrawers.push_back(CourseModelDrawer{
+                courseModel, GraphicsOptions::FromTarget(g_sharedState->gbufferTarget)
+            });
 
             m_triangleCount += colliders.back().groundTris.size();
 
