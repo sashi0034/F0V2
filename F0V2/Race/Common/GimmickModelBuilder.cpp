@@ -379,9 +379,9 @@ namespace
         const uint16_t materialIndex =
             gimmick == GimmickTriangleAttribute::kind_t::BoostPad
                 ? model.takeMaterialIndex(
-                    "boost_pad", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::BoostPad).getFrontRtv())
+                    "boost_pad", g_sharedState->courseRenderTexture(CourseRenderTextureKind::BoostPad).getFrontRtv())
                 : model.takeMaterialIndex(
-                    "jump_pad", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::JumpPad).getFrontRtv());
+                    "jump_pad", g_sharedState->courseRenderTexture(CourseRenderTextureKind::JumpPad).getFrontRtv());
 
         model.shapes.push_back(CourseModelShape{
             std::move(shape.vertices), std::move(shape.indices), materialIndex
@@ -479,9 +479,9 @@ namespace
         const uint16_t materialIndex =
             gimmick == GimmickTriangleAttribute::kind_t::BoostPad
                 ? model.takeMaterialIndex(
-                    "boost_pad", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::BoostPad).getFrontRtv())
+                    "boost_pad", g_sharedState->courseRenderTexture(CourseRenderTextureKind::BoostPad).getFrontRtv())
                 : model.takeMaterialIndex(
-                    "jump_pad", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::JumpPad).getFrontRtv());
+                    "jump_pad", g_sharedState->courseRenderTexture(CourseRenderTextureKind::JumpPad).getFrontRtv());
 
         model.shapes.push_back(CourseModelShape{
             std::move(shape.vertices), std::move(shape.indices), materialIndex
@@ -555,7 +555,7 @@ namespace
         model.shapes.push_back(CourseModelShape{
             std::move(shape.vertices), std::move(shape.indices),
             model.takeMaterialIndex(
-                "pit_zone", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::PitZone).getFrontRtv())
+                "pit_zone", g_sharedState->courseRenderTexture(CourseRenderTextureKind::PitZone).getFrontRtv())
         });
     }
 }

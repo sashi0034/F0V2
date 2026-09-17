@@ -3,7 +3,7 @@
 namespace Race
 {
     /// @brief 実行時に描画しておくコース用テクスチャの種類
-    enum class CourseDynamicTextureKind : uint8_t
+    enum class CourseRenderTextureKind : uint8_t
     {
         RoadTop,
         RoadBottom,
@@ -17,5 +17,5 @@ namespace Race
         Max, // end marker
     };
 
-    constexpr int CourseDynamicTextureKindCount = static_cast<int>(CourseDynamicTextureKind::Max);
+    constexpr int CourseRenderTextureKindCount = static_cast<int>(CourseRenderTextureKind::Max);
 }

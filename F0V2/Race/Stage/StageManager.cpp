@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "StageStaticCollider.h"
-#include "CourseDynamicTextureDrawer.h"
+#include "CourseRenderTextureDrawer.h"
 #include "CB/Skydome.h"
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
@@ -199,7 +199,7 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
     StageStaticCollider m_staticCollider{};
 
-    CourseDynamicTextureDrawer m_courseDynamicTextureDrawer{};
+    CourseRenderTextureDrawer m_courseRenderTextureDrawer{};
 
     Array<start_position> m_startPositions{};
 
@@ -263,8 +263,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         m_staticCollider = StageStaticCollider();
         m_staticCollider.build(colliders);
 
-        m_courseDynamicTextureDrawer = m_children.birth(CourseDynamicTextureDrawer());
-        m_courseDynamicTextureDrawer.init();
+        m_courseRenderTextureDrawer = m_children.birth(CourseRenderTextureDrawer());
+        m_courseRenderTextureDrawer.init();
 
         buildStartPositions();
 

@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "CourseDynamicTextureDrawer.h"
+#include "CourseRenderTextureDrawer.h"
 
 #include "Asset.generated.h"
-#include "Race/Common/CourseDynamicTextureKind.h"
+#include "Race/Common/CourseRenderTextureKind.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/DynamicBinding.h"
@@ -14,12 +14,12 @@ using namespace Race;
 
 namespace
 {
-    struct CourseDynamicTexture_b10
+    struct CourseRenderTexture_b10
     {
         float g_time;
     };
 
-    GraphicsShader GetShaderOf(CourseDynamicTextureKind kind)
+    GraphicsShader GetShaderOf(CourseRenderTextureKind kind)
     {
         const auto courseShader = [](const std::string& psEntryPoint)
         {
@@ -32,12 +32,12 @@ namespace
 
         switch (kind)
         {
-        case CourseDynamicTextureKind::RoadTop: return courseShader("PS_RoadTop");
-        case CourseDynamicTextureKind::RoadBottom: return courseShader("PS_RoadBottom");
-        case CourseDynamicTextureKind::RoadSide: return courseShader("PS_RoadSide");
-        case CourseDynamicTextureKind::BoostPad: return Asset_shader::gimmick_boost_pad;
-        case CourseDynamicTextureKind::JumpPad: return Asset_shader::gimmick_jump_pad;
-        case CourseDynamicTextureKind::PitZone: return Asset_shader::gimmick_pit_zone;
+        case CourseRenderTextureKind::RoadTop: return courseShader("PS_RoadTop");
+        case CourseRenderTextureKind::RoadBottom: return courseShader("PS_RoadBottom");
+        case CourseRenderTextureKind::RoadSide: return courseShader("PS_RoadSide");
+        case CourseRenderTextureKind::BoostPad: return Asset_shader::gimmick_boost_pad;
+        case CourseRenderTextureKind::JumpPad: return Asset_shader::gimmick_jump_pad;
+        case CourseRenderTextureKind::PitZone: return Asset_shader::gimmick_pit_zone;
         default: break;
         }
 
@@ -46,16 +46,16 @@ namespace
     }
 }
 
-struct CourseDynamicTextureDrawer::Impl : ActorBase
+struct CourseRenderTextureDrawer::Impl : ActorBase
 {
 #if defined(_DEBUG)
-    std::u32string m_debugName = U"CourseDynamicTextureDrawer";
+    std::u32string m_debugName = U"CourseRenderTextureDrawer";
 #endif
     ActorContainer m_children{};
 
-    CourseDynamicTexture_b10 m_cb10{};
+    CourseRenderTexture_b10 m_cb10{};
 
-    std::array<GenericModelDrawer, CourseDynamicTextureKindCount> m_drawers{};
+    std::array<GenericModelDrawer, CourseRenderTextureKindCount> m_drawers{};
 
     int m_frameCount{};
 
@@ -63,14 +63,14 @@ struct CourseDynamicTextureDrawer::Impl : ActorBase
     {
         const auto model = std::make_shared<SingleShapeModelBuffer>(6);
 
-        for (int i = 0; i < CourseDynamicTextureKindCount; ++i)
+        for (int i = 0; i < CourseRenderTextureKindCount; ++i)
         {
             m_drawers[i] = GenericModelDrawer{
                 GenericModelDrawerParams{}
                 .setModel(model)
                 .setVertexInput({})
                 .setOptions(GraphicsOptions())
-                .setShader(GetShaderOf(static_cast<CourseDynamicTextureKind>(i)))
+                .setShader(GetShaderOf(static_cast<CourseRenderTextureKind>(i)))
                 .setDynamicCbvCount(1)
             };
         }
@@ -100,9 +100,9 @@ private:
 
         // TODO: カメラから本当に見えるものだけ描画したい
 
-        for (int i = 0; i < CourseDynamicTextureKindCount; ++i)
+        for (int i = 0; i < CourseRenderTextureKindCount; ++i)
         {
-            const auto bind = g_sharedState->courseDynamicTextures[i].scopedClearBind();
+            const auto bind = g_sharedState->courseRenderTextures[i].scopedClearBind();
             DynamicBinding::SetDynamicCbv(10, cbv);
             m_drawers[i].draw();
         }
@@ -116,17 +116,17 @@ private:
 
 namespace Race
 {
-    CourseDynamicTextureDrawer::CourseDynamicTextureDrawer() :
+    CourseRenderTextureDrawer::CourseRenderTextureDrawer() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void CourseDynamicTextureDrawer::init()
+    void CourseRenderTextureDrawer::init()
     {
         p_impl->Init();
     }
 
-    std::shared_ptr<ActorBase> CourseDynamicTextureDrawer::asActor() const
+    std::shared_ptr<ActorBase> CourseRenderTextureDrawer::asActor() const
     {
         return p_impl;
     }
