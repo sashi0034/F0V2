@@ -18,7 +18,7 @@ cbuffer ModelState : register(b1)
 // {
 // }
 
-// CouseFaceType.h でも定義
+// CourseFaceType.h でも定義
 enum FaceType
 {
     FaceType_Default, // テクスチャをそのまま出す面
