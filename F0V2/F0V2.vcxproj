@@ -198,6 +198,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\shader\gimmick_boost_pad.hlsl" />
     <Content Include="asset\shader\gimmick_jump_pad.hlsl" />
     <Content Include="asset\shader\gimmick_pit_zone.hlsl" />
+    <Content Include="asset\shader\prerender_course1.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <Content Include="asset\shader\scenery1_cs.hlsl" />
@@ -224,7 +225,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Common\RaceDeferredShadingDrawer.cpp" />
     <ClCompile Include="Race\Common\RaceDrawUpscaler.cpp" />
     <ClCompile Include="Race\RaceDrawQualityController.cpp" />
-    <ClCompile Include="Race\Stage\GimmickTextureDrawer.cpp" />
+    <ClCompile Include="Race\Stage\CourseDynamicTextureDrawer.cpp" />
     <ClCompile Include="Race\UI\UI_DurabilityBar.cpp" />
     <ClCompile Include="Race\UI\UI_LabelText.cpp" />
     <ClCompile Include="Race\Machine\MachineDrawer.cpp" />
@@ -348,6 +349,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\AI\CharacterAIInputCommand.h" />
     <ClInclude Include="Race\AI\MetaAI.h" />
     <ClInclude Include="Race\Common\AIRank.h" />
+    <ClInclude Include="Race\Common\CourseDynamicTextureKind.h" />
     <ClInclude Include="Race\Common\CourseFileInfo.h" />
     <ClInclude Include="Race\Common\CourseGimmick.h" />
     <ClInclude Include="Race\Common\CourseModelDrawer.h" />
@@ -368,7 +370,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Vfx\SimpleParticleVfxRenderer.h" />
     <ClInclude Include="Race\RaceControlState.h" />
     <ClInclude Include="Race\RaceDrawQualityController.h" />
-    <ClInclude Include="Race\Stage\GimmickTextureDrawer.h" />
+    <ClInclude Include="Race\Stage\CourseDynamicTextureDrawer.h" />
     <ClInclude Include="Race\UI\RaceUIController.h" />
     <ClInclude Include="Race\UI\UI_DurabilityBar.h" />
     <ClInclude Include="Race\UI\UI_LabelText.h" />

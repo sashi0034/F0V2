@@ -3,10 +3,10 @@
 
 namespace Race
 {
-    class GimmickTextureDrawer : public ActorHandle
+    class CourseDynamicTextureDrawer : public ActorHandle
     {
     public:
-        GimmickTextureDrawer();
+        CourseDynamicTextureDrawer();
 
         void init();
 

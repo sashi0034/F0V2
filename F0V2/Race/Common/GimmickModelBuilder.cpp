@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "GimmickModelBuilder.h"
 
 #include "CourseConstants.h"
@@ -378,8 +378,10 @@ namespace
 
         const uint16_t materialIndex =
             gimmick == GimmickTriangleAttribute::kind_t::BoostPad
-                ? model.takeMaterialIndex("boost_pad", g_sharedState->gimmickTextures.boostPad.getFrontRtv())
-                : model.takeMaterialIndex("jump_pad", g_sharedState->gimmickTextures.jumpPad.getFrontRtv());
+                ? model.takeMaterialIndex(
+                    "boost_pad", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::BoostPad).getFrontRtv())
+                : model.takeMaterialIndex(
+                    "jump_pad", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::JumpPad).getFrontRtv());
 
         model.shapes.push_back(CourseModelShape{
             std::move(shape.vertices), std::move(shape.indices), materialIndex
@@ -476,8 +478,10 @@ namespace
 
         const uint16_t materialIndex =
             gimmick == GimmickTriangleAttribute::kind_t::BoostPad
-                ? model.takeMaterialIndex("boost_pad", g_sharedState->gimmickTextures.boostPad.getFrontRtv())
-                : model.takeMaterialIndex("jump_pad", g_sharedState->gimmickTextures.jumpPad.getFrontRtv());
+                ? model.takeMaterialIndex(
+                    "boost_pad", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::BoostPad).getFrontRtv())
+                : model.takeMaterialIndex(
+                    "jump_pad", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::JumpPad).getFrontRtv());
 
         model.shapes.push_back(CourseModelShape{
             std::move(shape.vertices), std::move(shape.indices), materialIndex
@@ -550,7 +554,8 @@ namespace
 
         model.shapes.push_back(CourseModelShape{
             std::move(shape.vertices), std::move(shape.indices),
-            model.takeMaterialIndex("pit_zone", g_sharedState->gimmickTextures.pitZone.getFrontRtv())
+            model.takeMaterialIndex(
+                "pit_zone", g_sharedState->courseDynamicTexture(CourseDynamicTextureKind::PitZone).getFrontRtv())
         });
     }
 }

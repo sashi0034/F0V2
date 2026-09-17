@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "AIRank.h"
 #include "CourseData.h"
+#include "CourseDynamicTextureKind.h"
 #include "CB/ShadowCaster.h"
 #include "TY/Array.h"
 #include "TY/DynamicHandle.h"
@@ -38,12 +39,7 @@ namespace Race
 
         RenderTarget shadowMap{};
 
-        struct
-        {
-            RenderTarget boostPad{};
-            RenderTarget jumpPad{};
-            RenderTarget pitZone{};
-        } gimmickTextures{};
+        std::array<RenderTarget, CourseDynamicTextureKindCount> courseDynamicTextures{};
 
         bool isRaceStarted{};
 
@@ -52,6 +48,12 @@ namespace Race
         AIRank aiRank{};
 
         RaceSharedState();
+
+        [[nodiscard]]
+        const RenderTarget& courseDynamicTexture(CourseDynamicTextureKind kind) const
+        {
+            return courseDynamicTextures[static_cast<int>(kind)];
+        }
     };
 
     inline InlineComponent<RaceSharedState> g_sharedState{};

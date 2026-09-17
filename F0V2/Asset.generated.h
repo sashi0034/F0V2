@@ -25,6 +25,7 @@ namespace Asset_shader
     static const inline GraphicsShaderPathWrapper model{"asset/shader/model.hlsl"};
     static const inline GraphicsShaderPathWrapper phong{"asset/shader/phong.hlsl"};
     static const inline GraphicsShaderPathWrapper phong_shadow{"asset/shader/phong_shadow.hlsl"};
+    static const inline GraphicsShaderPathWrapper prerender_course1{"asset/shader/prerender_course1.hlsl"};
     static const inline GraphicsShaderPathWrapper quad_vfx{"asset/shader/quad_vfx.hlsl"};
     static const inline GraphicsShaderPathWrapper r32_float_visualizer{"asset/shader/r32_float_visualizer.hlsl"};
     static const inline ComputeShaderPathWrapper race_setup_background_cs{"asset/shader/race_setup_background_cs.hlsl"};

@@ -3,6 +3,29 @@
 
 #include "TY/Screen.h"
 
+using namespace Race;
+
+namespace
+{
+    /// @brief kind ごとのテクスチャの一辺のサイズ
+    int GetTextureSizeOf(CourseDynamicTextureKind kind)
+    {
+        switch (kind)
+        {
+        case CourseDynamicTextureKind::RoadTop: return 512;
+        case CourseDynamicTextureKind::RoadBottom: return 256;
+        case CourseDynamicTextureKind::RoadSide: return 256;
+        case CourseDynamicTextureKind::BoostPad: return 128;
+        case CourseDynamicTextureKind::JumpPad: return 128;
+        case CourseDynamicTextureKind::PitZone: return 256;
+        default: break;
+        }
+
+        assert(false);
+        return 128;
+    }
+}
+
 namespace Race
 {
     RaceSharedState::RaceSharedState()
@@ -50,25 +73,16 @@ namespace Race
 
         // -----------------------------------------------
 
-        gimmickTextures.boostPad =
-            RenderTargetParams{}
-            .setRtv(
-                RtvParams{}
-                .setSize(Size::One() * 128)
-                .setClearColor(ColorF32{1.0f, 1.0f}));
+        for (int i = 0; i < CourseDynamicTextureKindCount; ++i)
+        {
+            const int textureSize = GetTextureSizeOf(static_cast<CourseDynamicTextureKind>(i));
 
-        gimmickTextures.jumpPad =
-            RenderTargetParams{}
-            .setRtv(
-                RtvParams{}
-                .setSize(Size::One() * 128)
-                .setClearColor(ColorF32{1.0f, 1.0f}));
-
-        gimmickTextures.pitZone =
-            RenderTargetParams{}
-            .setRtv(
-                RtvParams{}
-                .setSize(Size::One() * 256)
-                .setClearColor(ColorF32{1.0f, 1.0f}));
+            courseDynamicTextures[i] =
+                RenderTargetParams{}
+                .setRtv(
+                    RtvParams{}
+                    .setSize(Size::One() * textureSize)
+                    .setClearColor(ColorF32{1.0f, 1.0f}));
+        }
     }
 }

@@ -6,7 +6,7 @@ Texture2D<float4> g_texture0 : register(t10);
 
 SamplerState g_sampler0 : register(s0);
 
-cbuffer Gimmick_b10 : register(b10)
+cbuffer CourseDynamicTexture_b10 : register(b10)
 {
     float g_time;
 }
