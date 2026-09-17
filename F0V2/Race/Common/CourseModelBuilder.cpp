@@ -148,25 +148,60 @@ namespace
         const FaceQuad& face,
         const CourseFaceType faceType,
         const CourseModelBuilderOptions& options,
-        const RectF& uvRect = RectF{0, 0, 1, 1})
+        const RectF& uvRect = RectF{0, 0, 1, 1},
+        const bool splitCenter = false) // TODO: 分割数を指定する?
     {
         const auto& [l0, r0, l1, r1] = face;
         const auto t = static_cast<uint32_t>(faceType);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
+        // NOTE: 面を分割することで矩形の UV 補完精度が向上する
+        std::array<FaceQuad, 2> subFaces{face};
+        std::array<RectF, 2> subUVRects{uvRect};
+        int subFaceCount = 1;
+        if (splitCenter)
+        {
+            const FaceVertex c0{
+                (l0.pos + r0.pos) * 0.5f, (l0.normal + r0.normal).normalized(), (l0.metadata + r0.metadata) * 0.5f
+            };
+            const FaceVertex c1{
+                (l1.pos + r1.pos) * 0.5f, (l1.normal + r1.normal).normalized(), (l1.metadata + r1.metadata) * 0.5f
+            };
 
-        shape.indices[shape.indexOffset] = shape.vertexOffset;
-        shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
-        shape.indices[shape.indexOffset + 2] = shape.vertexOffset + 1;
-        shape.indices[shape.indexOffset + 3] = shape.vertexOffset + 1;
-        shape.indices[shape.indexOffset + 4] = shape.vertexOffset + 2;
-        shape.indices[shape.indexOffset + 5] = shape.vertexOffset + 3;
+            const float halfW = uvRect.w * 0.5f;
+            subFaces = {FaceQuad{l0, c0, l1, c1}, FaceQuad{c0, r0, c1, r1}};
+            subUVRects = {
+                RectF{uvRect.x + halfW, uvRect.y, halfW, uvRect.h},
+                RectF{uvRect.x, uvRect.y, halfW, uvRect.h}
+            };
+            subFaceCount = 2;
+        }
 
-        shape.vertexOffset += 4;
-        shape.indexOffset += 6;
+        for (int i = 0; i < subFaceCount; ++i)
+        {
+            const auto& [sl0, sr0, sl1, sr1] = subFaces[i];
+            const RectF& subUV = subUVRects[i];
+
+            shape.vertices[shape.vertexOffset] = CourseModelVertex{sr1.pos, sr1.normal, subUV.bl(), t, sr1.metadata};
+            shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{
+                sl1.pos, sl1.normal, subUV.br(), t, sl1.metadata
+            };
+            shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{
+                sr0.pos, sr0.normal, subUV.tl(), t, sr0.metadata
+            };
+            shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{
+                sl0.pos, sl0.normal, subUV.tr(), t, sl0.metadata
+            };
+
+            shape.indices[shape.indexOffset] = shape.vertexOffset;
+            shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
+            shape.indices[shape.indexOffset + 2] = shape.vertexOffset + 1;
+            shape.indices[shape.indexOffset + 3] = shape.vertexOffset + 1;
+            shape.indices[shape.indexOffset + 4] = shape.vertexOffset + 2;
+            shape.indices[shape.indexOffset + 5] = shape.vertexOffset + 3;
+
+            shape.vertexOffset += 4;
+            shape.indexOffset += 6;
+        }
 
         if (options.outMinimapModel)
         {
@@ -330,8 +365,9 @@ namespace
         {
             const int m0 = createStartingLine ? startingLineStripCount : 0;
             const int faceCount = static_cast<int>(segment.midwayStrips.size()) - 1 - m0;
-            GroundShapeData topShape{faceCount};
-            GroundShapeData bottomShape{faceCount}; // TODO: topShape, bottomShape で分ける意味が無くなったので統合する 
+            constexpr int subFaces = 2;
+            GroundShapeData topShape{faceCount * subFaces};
+            GroundShapeData bottomShape{faceCount}; // TODO: topShape, bottomShape で分ける意味が無くなったので統合する
 
             float vOffset = 0;
             for (int m = m0; m < segment.midwayStrips.size() - 1; ++m)
@@ -352,7 +388,7 @@ namespace
                 const float v1 = vOffset + s0.lengthToNext;
                 const RectF roadUV = RectF{1.0f, vOffset, -2.0f, v1 - vOffset};
 
-                pushGroundTopFace(topShape, topFace, CourseFaceType::RoadTop, options, roadUV);
+                pushGroundTopFace(topShape, topFace, CourseFaceType::RoadTop, options, roadUV, /* splitCenter */ true);
                 pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::RoadBottom, options, roadUV);
 
                 if (needsSideFace)
