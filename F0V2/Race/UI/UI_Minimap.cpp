@@ -219,10 +219,20 @@ private:
             if (machine.id() == PlayerMachineId) continue;
             if (not projectToTexture(machine.state.m_pose.position, markerPos)) continue;
 
-            // プレイヤーより順位が低い敵は色を変える
-            const bool isBehindPlayer = machineManager.getEvaluation(machine.id()).rank > playerRank;
+            ColorF32 color;
+            if (machine.state.isDead())
+            {
+                color = Palette::DarkGray;
+            }
+            else
+            {
+                // プレイヤーより順位が低い敵は色を変える
+                const bool isBehindPlayer = machineManager.getEvaluation(machine.id()).rank > playerRank;
+                color = isBehindPlayer ? Palette::Red : Palette::DeepPink;
+            }
+
             constexpr float RivalMarkerRadius = 4.0f;
-            pushMachineMarker(markerPos, RivalMarkerRadius, isBehindPlayer ? Palette::Red : Palette::DeepPink);
+            pushMachineMarker(markerPos, RivalMarkerRadius, color);
         }
 
         const auto& player = machines[PlayerMachineId];
