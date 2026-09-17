@@ -1,4 +1,4 @@
-Texture2D<float4> g_texture0 : register(t0); // TODO: いずれ Texture2DArray を導入して 1 マテリアルにしたい
+Texture2D<float4> g_texture0 : register(t0); // TODO: いずれ Texture2D<float4>[] で 1 マテリアルにしたい
 
 SamplerState g_sampler0 : register(s0);
 
