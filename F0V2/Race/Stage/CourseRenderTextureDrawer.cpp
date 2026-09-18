@@ -55,7 +55,7 @@ struct CourseRenderTextureDrawer::Impl : ActorBase
 
     CourseRenderTexture_b10 m_cb10{};
 
-    std::array<GenericModelDrawer, CourseRenderTextureKindCount> m_drawers{};
+    std::array<GenericModelDrawer, CourseRenderTextureCount> m_drawers{};
 
     int m_frameCount{};
 
@@ -63,7 +63,7 @@ struct CourseRenderTextureDrawer::Impl : ActorBase
     {
         const auto model = std::make_shared<SingleShapeModelBuffer>(6);
 
-        for (int i = 0; i < CourseRenderTextureKindCount; ++i)
+        for (int i = 0; i < CourseRenderTextureCount; ++i)
         {
             m_drawers[i] = GenericModelDrawer{
                 GenericModelDrawerParams{}
@@ -98,7 +98,7 @@ private:
 
         // TODO: カメラから本当に見えるものだけ描画したい
 
-        for (int i = 0; i < CourseRenderTextureKindCount; ++i)
+        for (int i = 0; i < CourseRenderTextureCount; ++i)
         {
             const auto bind = g_sharedState->courseRenderTextures[i].scopedClearBind();
             DynamicBinding::SetDynamicCbv(10, cbv);

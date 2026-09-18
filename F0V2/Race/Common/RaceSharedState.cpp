@@ -73,7 +73,7 @@ namespace Race
 
         // -----------------------------------------------
 
-        for (int i = 0; i < CourseRenderTextureKindCount; ++i)
+        for (int i = 0; i < CourseRenderTextureCount; ++i)
         {
             const int textureSize = GetTextureSizeOf(static_cast<CourseRenderTextureKind>(i));
 

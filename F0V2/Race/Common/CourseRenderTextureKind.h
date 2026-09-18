@@ -17,5 +17,5 @@ namespace Race
         Max, // end marker
     };
 
-    constexpr int CourseRenderTextureKindCount = static_cast<int>(CourseRenderTextureKind::Max);
+    constexpr int CourseRenderTextureCount = static_cast<int>(CourseRenderTextureKind::Max);
 }

@@ -39,7 +39,7 @@ namespace Race
 
         RenderTarget shadowMap{};
 
-        std::array<RenderTarget, CourseRenderTextureKindCount> courseRenderTextures{};
+        std::array<RenderTarget, CourseRenderTextureCount> courseRenderTextures{};
 
         bool isRaceStarted{};
 
