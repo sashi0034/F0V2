@@ -2,6 +2,7 @@
 #include "CourseModelDrawer.h"
 
 #include "Asset.generated.h"
+#include "RaceSharedState.h"
 #include "TY/GenericModelBuffer.h"
 #include "TY/IndexBuffer.h"
 #include "TY/VertexBuffer.h"
@@ -18,20 +19,22 @@ namespace
             for (const auto& shape : data.shapes)
             {
                 m_shapes.push_back(GenericModelShapeBufferElement{
-                    .materialIndex = shape.materialIndex,
+                    .materialIndex = 0,
                     .vertexBuffer = VertexBuffer<CourseModelVertex>{shape.vertexBuffer},
                     .indexBuffer = IndexBuffer{shape.indexBuffer},
                 });
             }
 
-            for (const auto& material : data.materials)
-            {
-                // FIXME: シェーダーは b2 を読まないが、GenericModelDrawer が CBV を 1 つ要求するのでダミーを置く
-                m_materialCbv.push_back({ConstantBufferObject{Empty}});
+            // FIXME: シェーダーは b2 を読まないが、GenericModelDrawer が CBV を 1 つ要求するのでダミーを置く
+            m_materialCbv.push_back({ConstantBufferObject{Empty}});
 
-                // srvCountPerMaterial を 1 に固定するため、テクスチャが無くても必ず 1 つ入れる
-                m_materialSrv.push_back({material.texture});
+            DescriptorList<ShaderResourceObject> textures{};
+            for (const auto& texture : g_sharedState->courseTextures)
+            {
+                textures.push_back(texture);
             }
+
+            m_materialSrv.push_back(textures);
         }
 
         int shapeCount() const override
@@ -82,7 +85,8 @@ namespace Race
                      {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT},
                      {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT},
                      {"TEXCOORD", 1, DXGI_FORMAT_R32_UINT},
-                     {"TEXCOORD", 2, DXGI_FORMAT_R32_FLOAT},
+                     {"TEXCOORD", 2, DXGI_FORMAT_R32_UINT},
+                     {"TEXCOORD", 3, DXGI_FORMAT_R32_FLOAT},
                  })
                  .setShader(Asset_shader::gbuffer_course1)
                  .setOptions(options);

@@ -2,7 +2,7 @@
 #include "GimmickModelBuilder.h"
 
 #include "CourseConstants.h"
-#include "RaceSharedState.h"
+#include "CourseTextureKind.h"
 #include "TY/Color.h"
 #include "TY/Math.h"
 #include "TY/Rect.h"
@@ -120,17 +120,19 @@ namespace
         int stripIndex,
         const FaceQuad& face,
         const CourseFaceType faceType,
+        const CourseTextureKind textureKind,
         GimmickTriangleAttribute::kind_t gimmick,
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
         const auto t = static_cast<uint32_t>(faceType);
+        const auto ti = static_cast<uint32_t>(textureKind);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
@@ -174,15 +176,17 @@ namespace
         GimmickShapeData& shape,
         const FaceQuad& face,
         const CourseFaceType faceType,
+        const CourseTextureKind textureKind,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
         const auto t = static_cast<uint32_t>(faceType);
+        const auto ti = static_cast<uint32_t>(textureKind);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
@@ -200,15 +204,17 @@ namespace
         GimmickShapeData& shape,
         const FaceQuad& face,
         const CourseFaceType faceType,
+        const CourseTextureKind textureKind,
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
         const auto t = static_cast<uint32_t>(faceType);
+        const auto ti = static_cast<uint32_t>(textureKind);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
@@ -260,26 +266,34 @@ namespace
                 const FaceQuad bottomFace = makeBottomFaceQuad(topFace, barrierThickness);
 
                 pushGimmickTopFace(
-                    shape, m, topFace, CourseFaceType::BarrierTop, GimmickTriangleAttribute::kind_t::Barrier, options);
-                pushGimmickBottomFace(shape, bottomFace, CourseFaceType::BarrierBottom);
-                pushGimmickSideFace(shape, makeLeftSideFaceQuad(topFace, bottomFace), CourseFaceType::BarrierSide);
-                pushGimmickSideFace(shape, makeRightSideFaceQuad(topFace, bottomFace), CourseFaceType::BarrierSide);
+                    shape, m, topFace,
+                    CourseFaceType::BarrierTop, CourseTextureKind::None, GimmickTriangleAttribute::kind_t::Barrier,
+                    options);
+                pushGimmickBottomFace(shape, bottomFace, CourseFaceType::BarrierBottom, CourseTextureKind::None);
+                pushGimmickSideFace(
+                    shape, makeLeftSideFaceQuad(topFace, bottomFace),
+                    CourseFaceType::BarrierSide, CourseTextureKind::None);
+                pushGimmickSideFace(
+                    shape, makeRightSideFaceQuad(topFace, bottomFace),
+                    CourseFaceType::BarrierSide, CourseTextureKind::None);
 
                 // FIXME: 前後のセグメントに Barrier があるときは断面を塞がないようにする
                 if (m == 0)
                 {
-                    pushGimmickSideFace(shape, makeFrontCapFaceQuad(topFace, bottomFace), CourseFaceType::BarrierSide);
+                    pushGimmickSideFace(
+                        shape, makeFrontCapFaceQuad(topFace, bottomFace),
+                        CourseFaceType::BarrierSide, CourseTextureKind::None);
                 }
                 if (m == lastStrip)
                 {
-                    pushGimmickSideFace(shape, makeBackCapFaceQuad(topFace, bottomFace), CourseFaceType::BarrierSide);
+                    pushGimmickSideFace(
+                        shape, makeBackCapFaceQuad(topFace, bottomFace),
+                        CourseFaceType::BarrierSide, CourseTextureKind::None);
                 }
             }
         }
 
-        model.shapes.push_back(CourseModelShape{
-            std::move(shape.vertices), std::move(shape.indices), model.takeMaterialIndex("plain")
-        });
+        model.shapes.push_back(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
     }
 
     enum class LCR : uint8_t
@@ -369,23 +383,19 @@ namespace
 
         const FaceQuad topFace{l0, r0, l1, r1};
 
-        GimmickShapeData shape{2};
-        pushGimmickTopFace(shape, s0_index, topFace, CourseFaceType::Default, gimmick, options);
-        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default);
-
         assert(gimmick == GimmickTriangleAttribute::kind_t::BoostPad ||
             gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
 
-        const uint16_t materialIndex =
+        const CourseTextureKind textureKind =
             gimmick == GimmickTriangleAttribute::kind_t::BoostPad
-                ? model.takeMaterialIndex(
-                    "boost_pad", g_sharedState->courseTexture(CourseTextureKind::BoostPad))
-                : model.takeMaterialIndex(
-                    "jump_pad", g_sharedState->courseTexture(CourseTextureKind::JumpPad));
+                ? CourseTextureKind::BoostPad
+                : CourseTextureKind::JumpPad;
 
-        model.shapes.push_back(CourseModelShape{
-            std::move(shape.vertices), std::move(shape.indices), materialIndex
-        });
+        GimmickShapeData shape{2};
+        pushGimmickTopFace(shape, s0_index, topFace, CourseFaceType::Default, textureKind, gimmick, options);
+        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default, textureKind);
+
+        model.shapes.push_back(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
     }
 
     void buildPad_Circular(
@@ -469,23 +479,19 @@ namespace
 
         const FaceQuad topFace{l0, r0, l1, r1};
 
-        GimmickShapeData shape{2};
-        pushGimmickTopFace(shape, s0_index, topFace, CourseFaceType::Default, gimmick, options);
-        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default);
-
         assert(gimmick == GimmickTriangleAttribute::kind_t::BoostPad ||
             gimmick == GimmickTriangleAttribute::kind_t::JumpPad);
 
-        const uint16_t materialIndex =
+        const CourseTextureKind textureKind =
             gimmick == GimmickTriangleAttribute::kind_t::BoostPad
-                ? model.takeMaterialIndex(
-                    "boost_pad", g_sharedState->courseTexture(CourseTextureKind::BoostPad))
-                : model.takeMaterialIndex(
-                    "jump_pad", g_sharedState->courseTexture(CourseTextureKind::JumpPad));
+                ? CourseTextureKind::BoostPad
+                : CourseTextureKind::JumpPad;
 
-        model.shapes.push_back(CourseModelShape{
-            std::move(shape.vertices), std::move(shape.indices), materialIndex
-        });
+        GimmickShapeData shape{2};
+        pushGimmickTopFace(shape, s0_index, topFace, CourseFaceType::Default, textureKind, gimmick, options);
+        pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default, textureKind);
+
+        model.shapes.push_back(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
     }
 
     std::pair<Float3, Float3> separateStrip(const CourseStrip& s, LCR lcr)
@@ -546,17 +552,16 @@ namespace
             const RectF uvRect{0.0f, texY, 1.0f, texH};
 
             pushGimmickTopFace(
-                shape, m, topFace, CourseFaceType::Default, GimmickTriangleAttribute::kind_t::PitZone, options, uvRect);
-            pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default, uvRect);
+                shape, m, topFace,
+                CourseFaceType::Default, CourseTextureKind::PitZone, GimmickTriangleAttribute::kind_t::PitZone,
+                options, uvRect);
+            pushGimmickBottomFace(
+                shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default, CourseTextureKind::PitZone, uvRect);
 
             texY += texH;
         }
 
-        model.shapes.push_back(CourseModelShape{
-            std::move(shape.vertices), std::move(shape.indices),
-            model.takeMaterialIndex(
-                "pit_zone", g_sharedState->courseTexture(CourseTextureKind::PitZone))
-        });
+        model.shapes.push_back(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
     }
 }
 

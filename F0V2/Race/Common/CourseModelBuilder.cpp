@@ -3,8 +3,8 @@
 
 #include "CourseConstants.h"
 #include "CourseMinimapModelBuilder.h"
+#include "CourseTextureKind.h"
 #include "GimmickModelBuilder.h"
-#include "RaceSharedState.h"
 #include "TY/Quaternion.h"
 #include "TY/Immediate3D.h"
 #include "TY/Rect.h"
@@ -117,16 +117,36 @@ namespace
         }
     };
 
+    CourseTextureKind faceTypeToTextureKind(const CourseFaceType faceType)
+    {
+        switch (faceType)
+        {
+        case CourseFaceType::RoadTop: return CourseTextureKind::RoadTop;
+        case CourseFaceType::RoadBottom: return CourseTextureKind::RoadBottom;
+        case CourseFaceType::RoadSide: return CourseTextureKind::RoadSide;
+        default: return CourseTextureKind::None; // TODO: パイプ・シリンダー・バリア用のテクスチャ
+        }
+    }
+
+    uint32_t getTextureIndex(const CourseFaceType faceType)
+    {
+        return static_cast<uint32_t>(faceTypeToTextureKind(faceType));
+    }
+
     void pushGroundTopFace(
         GroundShapeData& shape,
         const FaceQuad& face,
         const CourseFaceType faceType,
         const CourseModelBuilderOptions& options,
         const RectF& uvRect = RectF{0, 0, 1, 1},
-        const bool splitCenter = false) // TODO: 分割数を指定する?
+        const bool splitCenter = false, // TODO: 分割数を指定する?
+        const CourseTextureKind overrideTexture = CourseTextureKind::None)
     {
         const auto& [l0, r0, l1, r1] = face;
         const auto t = static_cast<uint32_t>(faceType);
+        const auto ti = overrideTexture != CourseTextureKind::None
+                            ? static_cast<int>(overrideTexture)
+                            : getTextureIndex(faceType);
 
         // NOTE: 面を分割することで矩形の UV 補完精度が向上する
         std::array<FaceQuad, 2> subFaces{face};
@@ -155,15 +175,17 @@ namespace
             const auto& [sl0, sr0, sl1, sr1] = subFaces[i];
             const RectF& subUV = subUVRects[i];
 
-            shape.vertices[shape.vertexOffset] = CourseModelVertex{sr1.pos, sr1.normal, subUV.bl(), t, sr1.metadata};
+            shape.vertices[shape.vertexOffset] = CourseModelVertex{
+                sr1.pos, sr1.normal, subUV.bl(), t, ti, sr1.metadata
+            };
             shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{
-                sl1.pos, sl1.normal, subUV.br(), t, sl1.metadata
+                sl1.pos, sl1.normal, subUV.br(), t, ti, sl1.metadata
             };
             shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{
-                sr0.pos, sr0.normal, subUV.tl(), t, sr0.metadata
+                sr0.pos, sr0.normal, subUV.tl(), t, ti, sr0.metadata
             };
             shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{
-                sl0.pos, sl0.normal, subUV.tr(), t, sl0.metadata
+                sl0.pos, sl0.normal, subUV.tr(), t, ti, sl0.metadata
             };
 
             shape.indices[shape.indexOffset] = shape.vertexOffset;
@@ -260,15 +282,19 @@ namespace
         const FaceQuad& face,
         const CourseFaceType faceType,
         const CourseModelBuilderOptions& options,
-        const RectF& uvRect = RectF{0, 0, 1, 1})
+        const RectF& uvRect = RectF{0, 0, 1, 1},
+        const CourseTextureKind overrideTexture = CourseTextureKind::None)
     {
         const auto& [l0, r0, l1, r1] = face;
         const auto t = static_cast<uint32_t>(faceType);
+        const auto ti = overrideTexture != CourseTextureKind::None
+                            ? static_cast<int>(overrideTexture)
+                            : getTextureIndex(faceType);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
@@ -288,15 +314,19 @@ namespace
         GroundShapeData& shape,
         const FaceQuad& face,
         const CourseFaceType faceType,
-        const RectF& uvRect = RectF{0, 0, 1, 1})
+        const RectF& uvRect = RectF{0, 0, 1, 1},
+        const CourseTextureKind overrideTexture = CourseTextureKind::None)
     {
         const auto& [l0, r0, l1, r1] = face;
         const auto t = static_cast<uint32_t>(faceType);
+        const auto ti = overrideTexture != CourseTextureKind::None
+                            ? static_cast<int>(overrideTexture)
+                            : getTextureIndex(faceType);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
@@ -314,7 +344,6 @@ namespace
         model.shapes.push_back(CourseModelShape{
             std::move(sideShape.vertices),
             std::move(sideShape.indices),
-            model.takeMaterialIndex("plain")
         });
     }
 
@@ -387,13 +416,11 @@ namespace
             model.shapes.push_back(CourseModelShape{
                 std::move(topShape.vertices),
                 std::move(topShape.indices),
-                model.takeMaterialIndex("plain")
             });
 
             model.shapes.push_back(CourseModelShape{
                 std::move(bottomShape.vertices),
                 std::move(bottomShape.indices),
-                model.takeMaterialIndex("plain")
             });
         }
 
@@ -425,7 +452,9 @@ namespace
                 }
 
                 const RectF uvRect{0.0f, texH * m, texW, texH};
-                pushGroundTopFace(topShape, topFace, CourseFaceType::Default, options, uvRect);
+                pushGroundTopFace(
+                    topShape, topFace, CourseFaceType::Default, options, uvRect, /* splitCenter */ false,
+                    CourseTextureKind::StartingLine);
                 pushGroundBottomFace(bottomShape, bottomFace, CourseFaceType::RoadBottom, options, uvRect);
 
                 if (needsSideFace)
@@ -448,14 +477,11 @@ namespace
             model.shapes.push_back(CourseModelShape{
                 std::move(topShape.vertices),
                 std::move(topShape.indices),
-                model.takeMaterialIndex(
-                    "starting_line", g_sharedState->courseTexture(CourseTextureKind::StartingLine))
             });
 
             model.shapes.push_back(CourseModelShape{
                 std::move(bottomShape.vertices),
                 std::move(bottomShape.indices),
-                model.takeMaterialIndex("plain")
             });
         }
 
@@ -672,13 +698,11 @@ namespace
         model.shapes.push_back(CourseModelShape{
             std::move(topShape.vertices),
             std::move(topShape.indices),
-            model.takeMaterialIndex("plain")
         });
 
         model.shapes.push_back(CourseModelShape{
             std::move(bottomShape.vertices),
             std::move(bottomShape.indices),
-            model.takeMaterialIndex("plain")
         });
 
         if (sideFaceCount > 0)
@@ -944,13 +968,11 @@ namespace
         model.shapes.push_back(CourseModelShape{
             std::move(topShape.vertices),
             std::move(topShape.indices),
-            model.takeMaterialIndex("plain")
         });
 
         model.shapes.push_back(CourseModelShape{
             std::move(bottomShape.vertices),
             std::move(bottomShape.indices),
-            model.takeMaterialIndex("plain")
         });
 
         if (sideFaceCount > 0)

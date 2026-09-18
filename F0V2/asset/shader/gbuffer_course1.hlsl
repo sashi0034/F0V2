@@ -1,4 +1,8 @@
-Texture2D<float4> g_texture0 : register(t0); // TODO: いずれ Texture2D<float4>[] で 1 マテリアルにしたい
+// CourseTextureKind.h でも定義
+#define CourseTextureCount 8
+
+// TODO: いずれ Texture2D<float4> g_textures[] (unbounded) にしたい
+Texture2D<float4> g_textures[CourseTextureCount] : register(t0);
 
 SamplerState g_sampler0 : register(s0);
 
@@ -52,6 +56,7 @@ struct PSInput
     float viewDistance : TEXCOORD0; // [near, far]
     float2 uv : TEXCOORD1;
     nointerpolation uint faceType : TEXCOORD2;
+    nointerpolation uint textureIndex : TEXCOORD4;
     float metadata : TEXCOORD3; // faceType ごとに意味が異なる
 };
 
@@ -60,7 +65,8 @@ PSInput VS(
     float4 normal : NORMAL,
     float2 uv : TEXCOORD0,
     uint faceType : TEXCOORD1,
-    float metadata : TEXCOORD2)
+    uint textureIndex : TEXCOORD2,
+    float metadata : TEXCOORD3)
 {
     PSInput result;
 
@@ -76,6 +82,8 @@ PSInput VS(
     result.uv = uv;
 
     result.faceType = faceType;
+
+    result.textureIndex = textureIndex;
 
     result.metadata = metadata;
 
@@ -98,7 +106,7 @@ float3 srgbToLinear(float3 c)
 
 float3 shadeDefaultFace(PSInput input)
 {
-    return g_texture0.Sample(g_sampler0, input.uv).rgb;
+    return g_textures[NonUniformResourceIndex(input.textureIndex)].Sample(g_sampler0, input.uv).rgb;
 }
 
 float3 shadeRoadTop(PSInput input)
