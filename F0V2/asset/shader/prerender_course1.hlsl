@@ -141,7 +141,7 @@ float4 PS_RoadTop(PSInput input) : SV_Target
     const float3 gas = lerp(float3(0.18, 0.19, 0.20), float3(0.24, 0.22, 0.17), smoothstep(0.3, 0.7, hue));
     rgb += gas * body * 0.85;
     rgb += float3(0.16, 0.15, 0.10) * filament * (0.25 + 0.75 * detail);
-    rgb *= 1.0 - 0.15 * dust;
+    rgb *= 1.0 - 0.12 * dust;
     rgb += float3(0.18, 0.16, 0.12) * lightWave * (0.25 * body + 0.75 * filament);
     rgb += float3(0.16, 0.16, 0.15) * pow(body, 3.0) * 0.35;
 
@@ -179,7 +179,7 @@ float4 PS_RoadTop(PSInput input) : SV_Target
     const float shoulder = smoothstep(0.80, 1.0, roadX);
     const float sideLinePulse = 0.90 + 0.10 * sin(TWO_PI * (uv.y * 4.0 - g_time * 0.25));
 
-    rgb *= lerp(1.0, 0.62, shoulder);
+    rgb *= lerp(1.0, 0.67, shoulder);
     rgb = lerp(rgb, platinumGold, centerMetaball);
     rgb = lerp(rgb, platinumGold * sideLinePulse, sideLine);
 
