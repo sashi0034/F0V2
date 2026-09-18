@@ -40,24 +40,46 @@ namespace
         return image;
     }
 
-    // 0 なら描画対象外
-    int getRenderTextureSizeOf(CourseTextureKind kind)
+    struct CourseRenderTextureConfig
+    {
+        int size; // 0 なら描画対象外
+        int updateInterval; // 何フレームおきに描き直すか
+    };
+
+    CourseRenderTextureConfig getRenderTextureConfigOf(CourseTextureKind kind)
     {
         switch (kind)
         {
-        case CourseTextureKind::None: return 0;
-        case CourseTextureKind::StartingLine: return 0;
-        case CourseTextureKind::RoadTop: return 512;
-        case CourseTextureKind::RoadBottom: return 256;
-        case CourseTextureKind::RoadSide: return 256;
-        case CourseTextureKind::BoostPad: return 128;
-        case CourseTextureKind::JumpPad: return 128;
-        case CourseTextureKind::PitZone: return 256;
+        case CourseTextureKind::None: return {};
+        case CourseTextureKind::StartingLine: return {};
+        case CourseTextureKind::RoadTop: return {.size = 512, .updateInterval = 2};
+        case CourseTextureKind::RoadBottom: return {.size = 256, .updateInterval = 20};
+        case CourseTextureKind::RoadSide: return {.size = 256, .updateInterval = 10};
+        case CourseTextureKind::BoostPad: return {.size = 128, .updateInterval = 5};
+        case CourseTextureKind::JumpPad: return {.size = 128, .updateInterval = 5};
+        case CourseTextureKind::PitZone: return {.size = 256, .updateInterval = 5};
         default: break;
         }
 
         assert(false);
-        return 128;
+        return {};
+    }
+
+    const std::array<CourseRenderTextureConfig, CourseTextureCount>& getRenderTextureConfigs()
+    {
+        static const std::array<CourseRenderTextureConfig, CourseTextureCount> s_configs = []
+        {
+            std::array<CourseRenderTextureConfig, CourseTextureCount> result{};
+
+            for (int i = 0; i < CourseTextureCount; ++i)
+            {
+                result[i] = getRenderTextureConfigOf(static_cast<CourseTextureKind>(i));
+            }
+
+            return result;
+        }();
+
+        return s_configs;
     }
 
     GraphicsShader getShaderOf(CourseTextureKind kind)
@@ -109,16 +131,20 @@ struct CourseTextureRenderer::Impl : ActorBase
         DynamicTexture startingLineTexture = DynamicTexture{createStartingLineImage()};
         g_sharedState->courseTextures[static_cast<int>(CourseTextureKind::StartingLine)] = startingLineTexture;
 
+        const auto& configs = getRenderTextureConfigs();
+
         for (int i = 0; i < CourseTextureCount; ++i)
         {
-            const int textureSize = getRenderTextureSizeOf(static_cast<CourseTextureKind>(i));
-            if (textureSize == 0) continue;
+            const auto& config = configs[i];
+            if (config.size == 0) continue;
+
+            assert(config.updateInterval >= 1);
 
             m_renderTargets[i] =
                 RenderTargetParams{}
                 .setRtv(
                     RtvParams{}
-                    .setSize(Size::One() * textureSize)
+                    .setSize(Size::One() * config.size)
                     .setClearColor(ColorF32{1.0f, 1.0f})
                     .enableFullMipLevels());
 
@@ -134,7 +160,7 @@ struct CourseTextureRenderer::Impl : ActorBase
             };
         }
 
-        drawTextures();
+        renderTextures(true);
     }
 
 private:
@@ -145,21 +171,23 @@ private:
         m_cb10.g_time += InGameDeltaTime();
 
         m_frameCount++;
-        if ((m_frameCount % 5) == 0)
-        {
-            drawTextures();
-        }
+
+        renderTextures();
     }
 
-    void drawTextures()
+    void renderTextures(bool renderAll = false)
     {
         const auto cbv = DynamicBinding::UploadDynamicCbv(m_cb10);
+
+        const auto& configs = getRenderTextureConfigs();
 
         // TODO: カメラから本当に見えるものだけ描画したい
 
         for (int i = 0; i < CourseTextureCount; ++i)
         {
             if (m_renderTargets[i].isEmpty()) continue;
+
+            if (not renderAll && (m_frameCount % configs[i].updateInterval) != 0) continue;
 
             const auto bind = m_renderTargets[i].scopedClearBind();
             DynamicBinding::SetDynamicCbv(10, cbv);
