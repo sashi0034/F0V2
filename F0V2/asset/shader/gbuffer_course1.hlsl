@@ -57,7 +57,7 @@ struct PSInput
     float2 uv : TEXCOORD1;
     nointerpolation uint faceType : TEXCOORD2;
     nointerpolation uint textureIndex : TEXCOORD4;
-    float metadata : TEXCOORD3; // faceType ごとに意味が異なる
+    float metadata : TEXCOORD3; // faceType ごとに意味が異なる // TODO: 事情が変わったので消してもいいかも
 };
 
 PSInput VS(
@@ -111,39 +111,27 @@ float3 shadeDefaultFace(PSInput input)
 
 float3 shadeRoadTop(PSInput input)
 {
-    const float roadWidth = input.metadata;
-    const float rightDistance = input.uv.x * roadWidth;
+    static const float forwardRepeat = 100.0;
 
-    // TODO: いずれテクスチャも使ってシェーダーアート的な表現を試す
-    if (abs(rightDistance) < 5.0)
-    {
-        // 中央
-        return float3(1, 1, 0.5); // TODO: ここもテクスチャ。テクスチャ一枚を「中央区間」「両端区間」「その他区間」で分けて使いたい
-    }
-    else if (abs(rightDistance) > roadWidth - 2.5)
-    {
-        // 両端
-        return float3(0.5, 1, 0.5); // TODO: ここもテクスチャ
-    }
-    else
-    {
-        float2 uv = input.uv;
-        uv.x = rightDistance / 5.0;
-        uv.y = uv.y / 5.0;
-        return g_textures[NonUniformResourceIndex(input.textureIndex)].Sample(g_sampler0, uv).rgb;
-    }
+    // TODO: CourseModelBuilder 側で v の累積値を考慮しないとミラーリピートにならない...
+    // TODO: 手計算でミラーさせるのをやめてサンプラー側で対応
+    const float forward = input.uv.y / forwardRepeat;
+    const float mirroredForward = 1.0 - abs(frac(forward * 0.5) * 2.0 - 1.0);
+    const float2 uv = float2(input.uv.x * 0.5 + 0.5, mirroredForward);
+
+    return g_textures[NonUniformResourceIndex(input.textureIndex)].Sample(g_sampler0, uv).rgb;
 }
 
 float3 shadeRoadBottom(PSInput input)
 {
-    // TODO
-    return float3(0, 0, 0.5);
+    static const float forwardRepeat = 100.0;
+    const float2 uv = float2(input.uv.x * input.metadata * 0.5, input.uv.y / forwardRepeat);
+    return g_textures[NonUniformResourceIndex(input.textureIndex)].Sample(g_sampler0, uv).rgb;
 }
 
 float3 shadeRoadSide(PSInput input)
 {
-    // TODO
-    return srgbToLinear(float3(0.5, 0.5, 0.5));
+    return g_textures[NonUniformResourceIndex(input.textureIndex)].Sample(g_sampler0, input.uv).rgb;
 }
 
 float3 shadePipeEntryExitTop(PSInput input)
@@ -215,19 +203,19 @@ float3 shadeCylinderOuter(PSInput input)
 float3 shadeBarrierTop(PSInput input)
 {
     // TODO
-    return srgbToLinear(float3(0.97, 0.53, 0.00));
+    return srgbToLinear(float3(0.93, 0.80, 0.96));
 }
 
 float3 shadeBarrierSide(PSInput input)
 {
     // TODO
-    return srgbToLinear(float3(0.97, 0.53, 0.00));
+    return srgbToLinear(float3(0.93, 0.80, 0.96));
 }
 
 float3 shadeBarrierBottom(PSInput input)
 {
     // TODO
-    return srgbToLinear(float3(0.97, 0.53, 0.00));
+    return srgbToLinear(float3(0.67, 0.52, 0.78));
 }
 
 PSOutput PS(PSInput input)
