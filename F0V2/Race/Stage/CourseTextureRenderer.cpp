@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "CourseTextureDrawer.h"
+#include "CourseTextureRenderer.h"
 
 #include "Asset.generated.h"
 #include "Race/Common/CourseTextureKind.h"
@@ -64,10 +64,10 @@ namespace
     }
 }
 
-struct CourseTextureDrawer::Impl : ActorBase
+struct CourseTextureRenderer::Impl : ActorBase
 {
 #if defined(_DEBUG)
-    std::u32string m_debugName = U"CourseTextureDrawer";
+    std::u32string m_debugName = U"CourseTextureRenderer";
 #endif
     ActorContainer m_children{};
 
@@ -146,17 +146,17 @@ private:
 
 namespace Race
 {
-    CourseTextureDrawer::CourseTextureDrawer() :
+    CourseTextureRenderer::CourseTextureRenderer() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void CourseTextureDrawer::init()
+    void CourseTextureRenderer::init()
     {
         p_impl->Init();
     }
 
-    std::shared_ptr<ActorBase> CourseTextureDrawer::asActor() const
+    std::shared_ptr<ActorBase> CourseTextureRenderer::asActor() const
     {
         return p_impl;
     }

@@ -4,7 +4,7 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "StageStaticCollider.h"
-#include "CourseTextureDrawer.h"
+#include "CourseTextureRenderer.h"
 #include "CB/Skydome.h"
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
@@ -183,7 +183,7 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 {
     ActorContainer m_children{};
 
-    CourseTextureDrawer m_courseTextureDrawer{};
+    CourseTextureRenderer m_courseTextureRenderer{};
 
     ModelDrawer m_groundPlaneDrawer{};
 
@@ -211,8 +211,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
         // -----------------------------------------------
 
-        m_courseTextureDrawer = m_children.birth(CourseTextureDrawer());
-        m_courseTextureDrawer.init();
+        m_courseTextureRenderer = m_children.birth(CourseTextureRenderer());
+        m_courseTextureRenderer.init();
 
         // -----------------------------------------------
 
