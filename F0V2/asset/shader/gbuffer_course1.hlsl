@@ -203,13 +203,13 @@ float3 shadeCylinderOuter(PSInput input)
 float3 shadeBarrierTop(PSInput input)
 {
     // TODO
-    return srgbToLinear(float3(0.93, 0.80, 0.96));
+    return srgbToLinear(float3(0.93, 0.65, 0.96));
 }
 
 float3 shadeBarrierSide(PSInput input)
 {
     // TODO
-    return srgbToLinear(float3(0.93, 0.80, 0.96));
+    return srgbToLinear(float3(0.93, 0.65, 0.96));
 }
 
 float3 shadeBarrierBottom(PSInput input)

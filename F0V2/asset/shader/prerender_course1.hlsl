@@ -172,7 +172,7 @@ float4 PS_RoadTop(PSInput input) : SV_Target
     const float sdfAa = max(fwidth(metaballSdf), 1e-5);
     const float centerMetaball = 1.0 - smoothstep(-sdfAa, sdfAa, metaballSdf);
 
-    const float3 platinumGold = float3(0.90, 0.85, 0.45);
+    const float3 platinumGold = float3(0.90, 0.85, 0.15);
 
     // 両端線もここで描き、gbuffer 側には完成した一枚を渡す。
     const float sideLine = 1.0 - smoothstep(0.012, 0.025, abs(roadX - 0.91));
