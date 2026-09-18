@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "CourseRenderTextureDrawer.h"
+#include "CourseTextureDrawer.h"
 
 #include "Asset.generated.h"
-#include "Race/Common/CourseRenderTextureKind.h"
+#include "Race/Common/CourseTextureKind.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/DynamicBinding.h"
@@ -14,12 +14,12 @@ using namespace Race;
 
 namespace
 {
-    struct CourseRenderTexture_b10
+    struct CoursTexture_b10
     {
         float g_time;
     };
 
-    GraphicsShader GetShaderOf(CourseRenderTextureKind kind)
+    GraphicsShader GetShaderOf(CourseTextureKind kind)
     {
         const auto courseShader = [](const std::string& psEntryPoint)
         {
@@ -32,12 +32,12 @@ namespace
 
         switch (kind)
         {
-        case CourseRenderTextureKind::RoadTop: return courseShader("PS_RoadTop");
-        case CourseRenderTextureKind::RoadBottom: return courseShader("PS_RoadBottom");
-        case CourseRenderTextureKind::RoadSide: return courseShader("PS_RoadSide");
-        case CourseRenderTextureKind::BoostPad: return Asset_shader::gimmick_boost_pad;
-        case CourseRenderTextureKind::JumpPad: return Asset_shader::gimmick_jump_pad;
-        case CourseRenderTextureKind::PitZone: return Asset_shader::gimmick_pit_zone;
+        case CourseTextureKind::RoadTop: return courseShader("PS_RoadTop");
+        case CourseTextureKind::RoadBottom: return courseShader("PS_RoadBottom");
+        case CourseTextureKind::RoadSide: return courseShader("PS_RoadSide");
+        case CourseTextureKind::BoostPad: return Asset_shader::gimmick_boost_pad;
+        case CourseTextureKind::JumpPad: return Asset_shader::gimmick_jump_pad;
+        case CourseTextureKind::PitZone: return Asset_shader::gimmick_pit_zone;
         default: break;
         }
 
@@ -46,16 +46,16 @@ namespace
     }
 }
 
-struct CourseRenderTextureDrawer::Impl : ActorBase
+struct CourseTextureDrawer::Impl : ActorBase
 {
 #if defined(_DEBUG)
-    std::u32string m_debugName = U"CourseRenderTextureDrawer";
+    std::u32string m_debugName = U"CourseTextureDrawer";
 #endif
     ActorContainer m_children{};
 
-    CourseRenderTexture_b10 m_cb10{};
+    CoursTexture_b10 m_cb10{};
 
-    std::array<GenericModelDrawer, CourseRenderTextureCount> m_drawers{};
+    std::array<GenericModelDrawer, CourseTextureCount> m_drawers{};
 
     int m_frameCount{};
 
@@ -63,14 +63,14 @@ struct CourseRenderTextureDrawer::Impl : ActorBase
     {
         const auto model = std::make_shared<SingleShapeModelBuffer>(6);
 
-        for (int i = 0; i < CourseRenderTextureCount; ++i)
+        for (int i = 0; i < CourseTextureCount; ++i)
         {
             m_drawers[i] = GenericModelDrawer{
                 GenericModelDrawerParams{}
                 .setModel(model)
                 .setVertexInput({})
                 .setOptions(GraphicsOptions())
-                .setShader(GetShaderOf(static_cast<CourseRenderTextureKind>(i)))
+                .setShader(GetShaderOf(static_cast<CourseTextureKind>(i)))
                 .setDynamicCbvCount(1)
             };
         }
@@ -98,9 +98,9 @@ private:
 
         // TODO: カメラから本当に見えるものだけ描画したい
 
-        for (int i = 0; i < CourseRenderTextureCount; ++i)
+        for (int i = 0; i < CourseTextureCount; ++i)
         {
-            const auto bind = g_sharedState->courseRenderTextures[i].scopedClearBind();
+            const auto bind = g_sharedState->courseTextures[i].scopedClearBind();
             DynamicBinding::SetDynamicCbv(10, cbv);
             m_drawers[i].draw();
         }
@@ -114,17 +114,17 @@ private:
 
 namespace Race
 {
-    CourseRenderTextureDrawer::CourseRenderTextureDrawer() :
+    CourseTextureDrawer::CourseTextureDrawer() :
         p_impl(std::make_shared<Impl>())
     {
     }
 
-    void CourseRenderTextureDrawer::init()
+    void CourseTextureDrawer::init()
     {
         p_impl->Init();
     }
 
-    std::shared_ptr<ActorBase> CourseRenderTextureDrawer::asActor() const
+    std::shared_ptr<ActorBase> CourseTextureDrawer::asActor() const
     {
         return p_impl;
     }

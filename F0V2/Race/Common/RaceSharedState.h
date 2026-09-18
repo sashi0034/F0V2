@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "AIRank.h"
 #include "CourseData.h"
-#include "CourseRenderTextureKind.h"
+#include "CourseTextureKind.h"
 #include "CB/ShadowCaster.h"
 #include "TY/Array.h"
 #include "TY/DynamicHandle.h"
@@ -39,7 +39,7 @@ namespace Race
 
         RenderTarget shadowMap{};
 
-        std::array<RenderTarget, CourseRenderTextureCount> courseRenderTextures{};
+        std::array<RenderTarget, CourseTextureCount> courseTextures{};
 
         bool isRaceStarted{};
 
@@ -50,9 +50,9 @@ namespace Race
         RaceSharedState();
 
         [[nodiscard]]
-        const RenderTarget& courseRenderTexture(CourseRenderTextureKind kind) const
+        const RenderTarget& courseTexture(CourseTextureKind kind) const
         {
-            return courseRenderTextures[static_cast<int>(kind)];
+            return courseTextures[static_cast<int>(kind)];
         }
     };
 

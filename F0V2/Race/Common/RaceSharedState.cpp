@@ -8,16 +8,16 @@ using namespace Race;
 namespace
 {
     /// @brief kind ごとのテクスチャの一辺のサイズ
-    int GetTextureSizeOf(CourseRenderTextureKind kind)
+    int GetTextureSizeOf(CourseTextureKind kind)
     {
         switch (kind)
         {
-        case CourseRenderTextureKind::RoadTop: return 512;
-        case CourseRenderTextureKind::RoadBottom: return 256;
-        case CourseRenderTextureKind::RoadSide: return 256;
-        case CourseRenderTextureKind::BoostPad: return 128;
-        case CourseRenderTextureKind::JumpPad: return 128;
-        case CourseRenderTextureKind::PitZone: return 256;
+        case CourseTextureKind::RoadTop: return 512;
+        case CourseTextureKind::RoadBottom: return 256;
+        case CourseTextureKind::RoadSide: return 256;
+        case CourseTextureKind::BoostPad: return 128;
+        case CourseTextureKind::JumpPad: return 128;
+        case CourseTextureKind::PitZone: return 256;
         default: break;
         }
 
@@ -73,11 +73,11 @@ namespace Race
 
         // -----------------------------------------------
 
-        for (int i = 0; i < CourseRenderTextureCount; ++i)
+        for (int i = 0; i < CourseTextureCount; ++i)
         {
-            const int textureSize = GetTextureSizeOf(static_cast<CourseRenderTextureKind>(i));
+            const int textureSize = GetTextureSizeOf(static_cast<CourseTextureKind>(i));
 
-            courseRenderTextures[i] =
+            courseTextures[i] =
                 RenderTargetParams{}
                 .setRtv(
                     RtvParams{}

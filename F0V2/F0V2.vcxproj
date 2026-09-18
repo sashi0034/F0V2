@@ -225,7 +225,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Common\RaceDeferredShadingDrawer.cpp" />
     <ClCompile Include="Race\Common\RaceDrawUpscaler.cpp" />
     <ClCompile Include="Race\RaceDrawQualityController.cpp" />
-    <ClCompile Include="Race\Stage\CourseRenderTextureDrawer.cpp" />
+    <ClCompile Include="Race\Stage\CourseTextureDrawer.cpp" />
     <ClCompile Include="Race\UI\UI_DurabilityBar.cpp" />
     <ClCompile Include="Race\UI\UI_LabelText.cpp" />
     <ClCompile Include="Race\Machine\MachineDrawer.cpp" />
@@ -349,7 +349,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\AI\CharacterAIInputCommand.h" />
     <ClInclude Include="Race\AI\MetaAI.h" />
     <ClInclude Include="Race\Common\AIRank.h" />
-    <ClInclude Include="Race\Common\CourseRenderTextureKind.h" />
+    <ClInclude Include="Race\Common\CourseTextureKind.h" />
     <ClInclude Include="Race\Common\CourseFileInfo.h" />
     <ClInclude Include="Race\Common\CourseGimmick.h" />
     <ClInclude Include="Race\Common\CourseModelDrawer.h" />
@@ -370,7 +370,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Vfx\SimpleParticleVfxRenderer.h" />
     <ClInclude Include="Race\RaceControlState.h" />
     <ClInclude Include="Race\RaceDrawQualityController.h" />
-    <ClInclude Include="Race\Stage\CourseRenderTextureDrawer.h" />
+    <ClInclude Include="Race\Stage\CourseTextureDrawer.h" />
     <ClInclude Include="Race\UI\RaceUIController.h" />
     <ClInclude Include="Race\UI\UI_DurabilityBar.h" />
     <ClInclude Include="Race\UI\UI_LabelText.h" />
