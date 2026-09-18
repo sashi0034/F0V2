@@ -4,12 +4,9 @@
 #include "CourseConstants.h"
 #include "CourseMinimapModelBuilder.h"
 #include "GimmickModelBuilder.h"
-#include "TY/DynamicTexture.h"
-#include "TY/Image.h"
+#include "RaceSharedState.h"
 #include "TY/Quaternion.h"
 #include "TY/Immediate3D.h"
-#include "TY/InlineComponent.h"
-#include "TY/Palette.h"
 #include "TY/Rect.h"
 
 using namespace Race;
@@ -17,29 +14,6 @@ using namespace Race;
 namespace
 {
     constexpr float bottomThickness = 5.0f;
-
-    Image createStartingLineImage()
-    {
-        constexpr int half = 32;
-        Image image{Size{half * 2, half * 2}};
-        for (int y = 0; y < image.size().x; ++y)
-        {
-            for (int x = 0; x < image.size().y; ++x)
-            {
-                const bool isWhite = (x / half + y / half) % 2 == 0;
-                image[{x, y}] = (isWhite ? Palette::White : Palette::Black).toColorU8();
-            }
-        }
-
-        return image;
-    }
-
-    struct BuilderCache : IInlineComponent
-    {
-        DynamicTexture startingLineTexture{createStartingLineImage()};
-    };
-
-    InlineComponent<BuilderCache> s_builderCache{};
 
     struct FaceVertex
     {
@@ -474,7 +448,8 @@ namespace
             model.shapes.push_back(CourseModelShape{
                 std::move(topShape.vertices),
                 std::move(topShape.indices),
-                model.takeMaterialIndex("starting_line", s_builderCache->startingLineTexture)
+                model.takeMaterialIndex(
+                    "starting_line", g_sharedState->courseTexture(CourseTextureKind::StartingLine))
             });
 
             model.shapes.push_back(CourseModelShape{

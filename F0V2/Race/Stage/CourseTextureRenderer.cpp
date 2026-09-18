@@ -6,9 +6,12 @@
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/DynamicBinding.h"
+#include "TY/DynamicTexture.h"
 #include "TY/GameTime.h"
 #include "TY/GenericModelBufferTemplates.h"
+#include "TY/Image.h"
 #include "TY/ModelDrawer.h"
+#include "TY/Palette.h"
 #include "TY/RenderTarget.h"
 
 using namespace Race;
@@ -20,10 +23,30 @@ namespace
         float g_time;
     };
 
-    int getTextureSizeOf(CourseTextureKind kind)
+    //  スタートラインの市松模様
+    Image createStartingLineImage()
+    {
+        constexpr int half = 32;
+        Image image{Size{half * 2, half * 2}};
+        for (int y = 0; y < image.size().x; ++y)
+        {
+            for (int x = 0; x < image.size().y; ++x)
+            {
+                const bool isWhite = (x / half + y / half) % 2 == 0;
+                image[{x, y}] = (isWhite ? Palette::White : Palette::Black).toColorU8();
+            }
+        }
+
+        return image;
+    }
+
+    // 0 なら描画対象外
+    int getRenderTextureSizeOf(CourseTextureKind kind)
     {
         switch (kind)
         {
+        case CourseTextureKind::None: return 0;
+        case CourseTextureKind::StartingLine: return 0;
         case CourseTextureKind::RoadTop: return 512;
         case CourseTextureKind::RoadBottom: return 256;
         case CourseTextureKind::RoadSide: return 256;
@@ -37,7 +60,7 @@ namespace
         return 128;
     }
 
-    GraphicsShader GetShaderOf(CourseTextureKind kind)
+    GraphicsShader getShaderOf(CourseTextureKind kind)
     {
         const auto courseShader = [](const std::string& psEntryPoint)
         {
@@ -83,9 +106,13 @@ struct CourseTextureRenderer::Impl : ActorBase
     {
         const auto model = std::make_shared<SingleShapeModelBuffer>(6);
 
+        DynamicTexture startingLineTexture = DynamicTexture{createStartingLineImage()};
+        g_sharedState->courseTextures[static_cast<int>(CourseTextureKind::StartingLine)] = startingLineTexture;
+
         for (int i = 0; i < CourseTextureCount; ++i)
         {
-            const int textureSize = getTextureSizeOf(static_cast<CourseTextureKind>(i));
+            const int textureSize = getRenderTextureSizeOf(static_cast<CourseTextureKind>(i));
+            if (textureSize == 0) continue;
 
             m_renderTargets[i] =
                 RenderTargetParams{}
@@ -102,7 +129,7 @@ struct CourseTextureRenderer::Impl : ActorBase
                 .setModel(model)
                 .setVertexInput({})
                 .setOptions(GraphicsOptions())
-                .setShader(GetShaderOf(static_cast<CourseTextureKind>(i)))
+                .setShader(getShaderOf(static_cast<CourseTextureKind>(i)))
                 .setDynamicCbvCount(1)
             };
         }
@@ -132,6 +159,8 @@ private:
 
         for (int i = 0; i < CourseTextureCount; ++i)
         {
+            if (m_renderTargets[i].isEmpty()) continue;
+
             const auto bind = m_renderTargets[i].scopedClearBind();
             DynamicBinding::SetDynamicCbv(10, cbv);
             m_drawers[i].draw();
