@@ -14,9 +14,9 @@ namespace TY
 
         GraphicsFormat format{DXGI_FORMAT_R8G8B8A8_UNORM};
 
-        /// @brief 生成時のリソースステート
-        /// @remark RenderTarget::scopedBind() はスコープを抜けるときバインド前のステート、つまりこれに戻す
         D3D12_RESOURCE_STATES initialState{D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE};
+
+        int mipLevels{1};
 
         RenderTargetTextureParams& setSize(Size size_);
 
@@ -25,6 +25,10 @@ namespace TY
         RenderTargetTextureParams& setFormat(GraphicsFormat format_);
 
         RenderTargetTextureParams& setInitialState(D3D12_RESOURCE_STATES initialState_);
+
+        RenderTargetTextureParams& setMipLevels(int mipLevels_);
+
+        RenderTargetTextureParams& enableFullMipLevels();
     };
 
     class RenderTargetTexture

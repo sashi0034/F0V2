@@ -82,7 +82,8 @@ namespace Race
                 .setRtv(
                     RtvParams{}
                     .setSize(Size::One() * textureSize)
-                    .setClearColor(ColorF32{1.0f, 1.0f}));
+                    .setClearColor(ColorF32{1.0f, 1.0f})
+                    .enableFullMipLevels());
         }
     }
 }

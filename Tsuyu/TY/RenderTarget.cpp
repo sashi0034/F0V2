@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "RenderTargetTexture.h"
 #include "TextureDrawer.h"
+#include "detail/MipmapGenerator.h"
 #include "detail/RenderContext_singleton.h"
 
 using namespace TY;
@@ -33,6 +34,8 @@ struct RenderTarget::Impl
 
     Array<DXGI_FORMAT> m_rtvFormats{};
     Array<D3D12_CPU_DESCRIPTOR_HANDLE> m_rtvDescriptorHandles{};
+
+    Array<MipmapGenerator> m_mipGenerators{}; // 各要素 m_rtvHandles に対応
 
     DepthBufferHandle m_dsvHandle{};
 
@@ -160,6 +163,9 @@ struct RenderTarget::Impl
                     rtvHandle);
 
                 m_rtvDescriptorHandles.push_back(rtvHandle);
+                m_mipGenerators.push_back(
+                    m_rtvHandles[i].mipCount() > 1 ? MipmapGenerator{m_rtvHandles[i]} : MipmapGenerator{});
+
                 rtvHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
             }
 
@@ -252,6 +258,12 @@ struct RenderTarget::Impl
                 for (int i = 0; i < m_rtvHandles.size(); ++i)
                 {
                     m_rtvHandles[i].transitionResourceState(previousResourceStates[i]);
+                }
+
+                // 描画結果からミップを生成
+                for (const auto& mipGenerator : m_mipGenerators)
+                {
+                    mipGenerator.generate();
                 }
 
                 if (s_renderTargetStack[s_renderTargetStack.size() - 1].p_impl.get() != this)

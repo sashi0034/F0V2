@@ -58,6 +58,7 @@ namespace TY
         [[nodiscard]]
         ScopedRenderTarget scopedClearBind() const;
 
+        /// @remark スコープを抜けるときに、リソースステート管理やミップ更新なども行う
         [[nodiscard]]
         ScopedRenderTarget scopedBind() const;
 

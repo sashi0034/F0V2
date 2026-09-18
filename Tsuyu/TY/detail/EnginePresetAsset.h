@@ -10,6 +10,8 @@ namespace TY
 
 namespace TY::detail
 {
+    class ComputePipelineState;
+
     namespace EnginePresetAsset
     {
         void Init();
@@ -23,6 +25,8 @@ namespace TY::detail
         PixelShader GetStubPS();
 
         ComputeShader GetStubCS();
+
+        ComputePipelineState GetGenerateMipsPSO();
 
         UnorderedStructuredBufferObject GetEmptyStructuredBuffer();
     }

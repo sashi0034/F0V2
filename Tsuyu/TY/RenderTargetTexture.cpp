@@ -23,13 +23,14 @@ struct RenderTargetTexture::Impl
         resourceDesc.Width = params.size.x;
         resourceDesc.Height = params.size.y;
         resourceDesc.DepthOrArraySize = 1;
-        resourceDesc.MipLevels = 1;
+        resourceDesc.MipLevels = static_cast<UINT16>(params.mipLevels);
         resourceDesc.Format = params.format;
         resourceDesc.SampleDesc = {1, 0};
         resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
         resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-        if (allowUav)
+        if (allowUav ||
+            params.mipLevels != 1) // ミップ生成に UAV が必要
         {
             resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
         }
@@ -90,6 +91,18 @@ namespace TY
     RenderTargetTextureParams& RenderTargetTextureParams::setInitialState(D3D12_RESOURCE_STATES initialState_)
     {
         initialState = initialState_;
+        return *this;
+    }
+
+    RenderTargetTextureParams& RenderTargetTextureParams::setMipLevels(int mipLevels_)
+    {
+        mipLevels = mipLevels_;
+        return *this;
+    }
+
+    RenderTargetTextureParams& RenderTargetTextureParams::enableFullMipLevels()
+    {
+        mipLevels = 0;
         return *this;
     }
 

@@ -92,8 +92,6 @@ private:
         }
     }
 
-    // TODO: テクスチャのミップ対応
-    // - MipSlice を変えて UAV を作成し、ComputeShader で書き込む
     void drawTextures()
     {
         const auto cbv = DynamicBinding::UploadDynamicCbv(m_cb10);
