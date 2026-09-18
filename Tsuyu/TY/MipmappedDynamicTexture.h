@@ -4,6 +4,7 @@
 
 namespace TY
 {
+    // TODO: これは MipmapGenerator を使って DynamicTexture と統合したほうがいいかも?
     class MipmappedDynamicTexture
     {
     public:
