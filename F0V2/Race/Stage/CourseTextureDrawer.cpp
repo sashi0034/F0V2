@@ -9,15 +9,33 @@
 #include "TY/GameTime.h"
 #include "TY/GenericModelBufferTemplates.h"
 #include "TY/ModelDrawer.h"
+#include "TY/RenderTarget.h"
 
 using namespace Race;
 
 namespace
 {
-    struct CoursTexture_b10
+    struct CourseTexture_b10
     {
         float g_time;
     };
+
+    int getTextureSizeOf(CourseTextureKind kind)
+    {
+        switch (kind)
+        {
+        case CourseTextureKind::RoadTop: return 512;
+        case CourseTextureKind::RoadBottom: return 256;
+        case CourseTextureKind::RoadSide: return 256;
+        case CourseTextureKind::BoostPad: return 128;
+        case CourseTextureKind::JumpPad: return 128;
+        case CourseTextureKind::PitZone: return 256;
+        default: break;
+        }
+
+        assert(false);
+        return 128;
+    }
 
     GraphicsShader GetShaderOf(CourseTextureKind kind)
     {
@@ -53,7 +71,9 @@ struct CourseTextureDrawer::Impl : ActorBase
 #endif
     ActorContainer m_children{};
 
-    CoursTexture_b10 m_cb10{};
+    CourseTexture_b10 m_cb10{};
+
+    std::array<RenderTarget, CourseTextureCount> m_renderTargets{};
 
     std::array<GenericModelDrawer, CourseTextureCount> m_drawers{};
 
@@ -65,6 +85,18 @@ struct CourseTextureDrawer::Impl : ActorBase
 
         for (int i = 0; i < CourseTextureCount; ++i)
         {
+            const int textureSize = getTextureSizeOf(static_cast<CourseTextureKind>(i));
+
+            m_renderTargets[i] =
+                RenderTargetParams{}
+                .setRtv(
+                    RtvParams{}
+                    .setSize(Size::One() * textureSize)
+                    .setClearColor(ColorF32{1.0f, 1.0f})
+                    .enableFullMipLevels());
+
+            g_sharedState->courseTextures[i] = m_renderTargets[i].getFrontRtv();
+
             m_drawers[i] = GenericModelDrawer{
                 GenericModelDrawerParams{}
                 .setModel(model)
@@ -100,7 +132,7 @@ private:
 
         for (int i = 0; i < CourseTextureCount; ++i)
         {
-            const auto bind = g_sharedState->courseTextures[i].scopedClearBind();
+            const auto bind = m_renderTargets[i].scopedClearBind();
             DynamicBinding::SetDynamicCbv(10, cbv);
             m_drawers[i].draw();
         }

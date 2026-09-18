@@ -39,7 +39,7 @@ namespace Race
 
         RenderTarget shadowMap{};
 
-        std::array<RenderTarget, CourseTextureCount> courseTextures{};
+        std::array<TextureHandle, CourseTextureCount> courseTextures{};
 
         bool isRaceStarted{};
 
@@ -50,7 +50,7 @@ namespace Race
         RaceSharedState();
 
         [[nodiscard]]
-        const RenderTarget& courseTexture(CourseTextureKind kind) const
+        const TextureHandle& courseTexture(CourseTextureKind kind) const
         {
             return courseTextures[static_cast<int>(kind)];
         }

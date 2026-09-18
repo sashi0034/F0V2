@@ -5,27 +5,6 @@
 
 using namespace Race;
 
-namespace
-{
-    /// @brief kind ごとのテクスチャの一辺のサイズ
-    int GetTextureSizeOf(CourseTextureKind kind)
-    {
-        switch (kind)
-        {
-        case CourseTextureKind::RoadTop: return 512;
-        case CourseTextureKind::RoadBottom: return 256;
-        case CourseTextureKind::RoadSide: return 256;
-        case CourseTextureKind::BoostPad: return 128;
-        case CourseTextureKind::JumpPad: return 128;
-        case CourseTextureKind::PitZone: return 256;
-        default: break;
-        }
-
-        assert(false);
-        return 128;
-    }
-}
-
 namespace Race
 {
     RaceSharedState::RaceSharedState()
@@ -70,20 +49,5 @@ namespace Race
                 .setClearColor(ColorF32{1.0f, 1.0f}) // FIXME?
                 .setFormat(DXGI_FORMAT_R32_FLOAT)
             );
-
-        // -----------------------------------------------
-
-        for (int i = 0; i < CourseTextureCount; ++i)
-        {
-            const int textureSize = GetTextureSizeOf(static_cast<CourseTextureKind>(i));
-
-            courseTextures[i] =
-                RenderTargetParams{}
-                .setRtv(
-                    RtvParams{}
-                    .setSize(Size::One() * textureSize)
-                    .setClearColor(ColorF32{1.0f, 1.0f})
-                    .enableFullMipLevels());
-        }
     }
 }

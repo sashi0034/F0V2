@@ -183,6 +183,8 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 {
     ActorContainer m_children{};
 
+    CourseTextureDrawer m_courseTextureDrawer{};
+
     ModelDrawer m_groundPlaneDrawer{};
 
     // Array<ModelBuffer> m_courseModels{};
@@ -199,8 +201,6 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
     StageStaticCollider m_staticCollider{};
 
-    CourseTextureDrawer m_courseTextureDrawer{};
-
     Array<start_position> m_startPositions{};
 
     DistanceCache m_distanceCache{};
@@ -208,6 +208,11 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
+
+        // -----------------------------------------------
+
+        m_courseTextureDrawer = m_children.birth(CourseTextureDrawer());
+        m_courseTextureDrawer.init();
 
         // -----------------------------------------------
 
@@ -262,9 +267,6 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
         m_staticCollider = StageStaticCollider();
         m_staticCollider.build(colliders);
-
-        m_courseTextureDrawer = m_children.birth(CourseTextureDrawer());
-        m_courseTextureDrawer.init();
 
         buildStartPositions();
 
