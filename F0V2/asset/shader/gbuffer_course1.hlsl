@@ -118,16 +118,19 @@ float3 shadeRoadTop(PSInput input)
     if (abs(rightDistance) < 5.0)
     {
         // 中央
-        return float3(1, 1, 0.5);
+        return float3(1, 1, 0.5); // TODO: ここもテクスチャ。テクスチャ一枚を「中央区間」「両端区間」「その他区間」で分けて使いたい
     }
     else if (abs(rightDistance) > roadWidth - 2.5)
     {
         // 両端
-        return float3(0.5, 1, 0.5);
+        return float3(0.5, 1, 0.5); // TODO: ここもテクスチャ
     }
     else
     {
-        return float3(0.5, 0.5, 0.5) * sin(input.uv.y / 5.0);
+        float2 uv = input.uv;
+        uv.x = rightDistance / 5.0;
+        uv.y = uv.y / 5.0;
+        return g_textures[NonUniformResourceIndex(input.textureIndex)].Sample(g_sampler0, uv).rgb;
     }
 }
 
