@@ -126,13 +126,13 @@ namespace
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
-        const auto t = static_cast<uint32_t>(faceType);
-        const auto ti = static_cast<uint32_t>(textureKind);
+        const auto f = static_cast<uint32_t>(faceType);
+        const auto t = static_cast<uint32_t>(textureKind);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), f, t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), f, t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), f, t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), f, t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
@@ -180,13 +180,13 @@ namespace
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
-        const auto t = static_cast<uint32_t>(faceType);
-        const auto ti = static_cast<uint32_t>(textureKind);
+        const auto f = static_cast<uint32_t>(faceType);
+        const auto t = static_cast<uint32_t>(textureKind);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), f, t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), f, t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), f, t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), f, t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
@@ -208,13 +208,13 @@ namespace
         const RectF& uvRect = RectF{0, 0, 1, 1})
     {
         const auto& [l0, r0, l1, r1] = face;
-        const auto t = static_cast<uint32_t>(faceType);
-        const auto ti = static_cast<uint32_t>(textureKind);
+        const auto f = static_cast<uint32_t>(faceType);
+        const auto t = static_cast<uint32_t>(textureKind);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), f, t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), f, t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), f, t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), f, t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;

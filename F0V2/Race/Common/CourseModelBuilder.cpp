@@ -143,10 +143,10 @@ namespace
         const CourseTextureKind overrideTexture = CourseTextureKind::None)
     {
         const auto& [l0, r0, l1, r1] = face;
-        const auto t = static_cast<uint32_t>(faceType);
-        const auto ti = overrideTexture != CourseTextureKind::None
-                            ? static_cast<int>(overrideTexture)
-                            : getTextureIndex(faceType);
+        const auto f = static_cast<uint32_t>(faceType);
+        const auto t = overrideTexture != CourseTextureKind::None
+                           ? static_cast<int>(overrideTexture)
+                           : getTextureIndex(faceType);
 
         // NOTE: 面を分割することで矩形の UV 補完精度が向上する
         std::array<FaceQuad, 2> subFaces{face};
@@ -176,16 +176,16 @@ namespace
             const RectF& subUV = subUVRects[i];
 
             shape.vertices[shape.vertexOffset] = CourseModelVertex{
-                sr1.pos, sr1.normal, subUV.bl(), t, ti, sr1.metadata
+                sr1.pos, sr1.normal, subUV.bl(), f, t, sr1.metadata
             };
             shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{
-                sl1.pos, sl1.normal, subUV.br(), t, ti, sl1.metadata
+                sl1.pos, sl1.normal, subUV.br(), f, t, sl1.metadata
             };
             shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{
-                sr0.pos, sr0.normal, subUV.tl(), t, ti, sr0.metadata
+                sr0.pos, sr0.normal, subUV.tl(), f, t, sr0.metadata
             };
             shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{
-                sl0.pos, sl0.normal, subUV.tr(), t, ti, sl0.metadata
+                sl0.pos, sl0.normal, subUV.tr(), f, t, sl0.metadata
             };
 
             shape.indices[shape.indexOffset] = shape.vertexOffset;
@@ -286,15 +286,15 @@ namespace
         const CourseTextureKind overrideTexture = CourseTextureKind::None)
     {
         const auto& [l0, r0, l1, r1] = face;
-        const auto t = static_cast<uint32_t>(faceType);
-        const auto ti = overrideTexture != CourseTextureKind::None
-                            ? static_cast<int>(overrideTexture)
-                            : getTextureIndex(faceType);
+        const auto f = static_cast<uint32_t>(faceType);
+        const auto t = overrideTexture != CourseTextureKind::None
+                           ? static_cast<int>(overrideTexture)
+                           : getTextureIndex(faceType);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), f, t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), f, t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), f, t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), f, t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 1;
@@ -318,15 +318,15 @@ namespace
         const CourseTextureKind overrideTexture = CourseTextureKind::None)
     {
         const auto& [l0, r0, l1, r1] = face;
-        const auto t = static_cast<uint32_t>(faceType);
-        const auto ti = overrideTexture != CourseTextureKind::None
-                            ? static_cast<int>(overrideTexture)
-                            : getTextureIndex(faceType);
+        const auto f = static_cast<uint32_t>(faceType);
+        const auto t = overrideTexture != CourseTextureKind::None
+                           ? static_cast<int>(overrideTexture)
+                           : getTextureIndex(faceType);
 
-        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), t, ti, r1.metadata};
-        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), t, ti, l1.metadata};
-        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), t, ti, r0.metadata};
-        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), t, ti, l0.metadata};
+        shape.vertices[shape.vertexOffset] = CourseModelVertex{r1.pos, r1.normal, uvRect.bl(), f, t, r1.metadata};
+        shape.vertices[shape.vertexOffset + 1] = CourseModelVertex{l1.pos, l1.normal, uvRect.br(), f, t, l1.metadata};
+        shape.vertices[shape.vertexOffset + 2] = CourseModelVertex{r0.pos, r0.normal, uvRect.tl(), f, t, r0.metadata};
+        shape.vertices[shape.vertexOffset + 3] = CourseModelVertex{l0.pos, l0.normal, uvRect.tr(), f, t, l0.metadata};
 
         shape.indices[shape.indexOffset] = shape.vertexOffset;
         shape.indices[shape.indexOffset + 1] = shape.vertexOffset + 2;
