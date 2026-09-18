@@ -16,14 +16,11 @@ namespace
     public:
         explicit CourseModelBuffer(const CourseModelData& data)
         {
-            for (const auto& shape : data.shapes)
-            {
-                m_shapes.push_back(GenericModelShapeBufferElement{
-                    .materialIndex = 0,
-                    .vertexBuffer = VertexBuffer<CourseModelVertex>{shape.vertexBuffer},
-                    .indexBuffer = IndexBuffer{shape.indexBuffer},
-                });
-            }
+            m_shapes.push_back(GenericModelShapeBufferElement{
+                .materialIndex = 0,
+                .vertexBuffer = VertexBuffer<CourseModelVertex>{data.shape.vertexBuffer},
+                .indexBuffer = IndexBuffer{data.shape.indexBuffer},
+            });
 
             // FIXME: シェーダーは b2 を読まないが、GenericModelDrawer が CBV を 1 つ要求するのでダミーを置く
             m_materialCbv.push_back({ConstantBufferObject{Empty}});
@@ -75,7 +72,7 @@ namespace Race
 {
     CourseModelDrawer::CourseModelDrawer(const CourseModelData& modelData, const GraphicsOptions& options)
     {
-        if (modelData.shapes.empty()) return;
+        if (modelData.shape.indexBuffer.empty()) return;
 
         m_impl = GenericModelDrawerParams{}
                  .setModel(std::make_shared<CourseModelBuffer>(modelData))

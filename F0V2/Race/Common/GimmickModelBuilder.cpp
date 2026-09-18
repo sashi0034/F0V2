@@ -293,7 +293,7 @@ namespace
             }
         }
 
-        model.shapes.push_back(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
+        model.shape.append(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
     }
 
     enum class LCR : uint8_t
@@ -395,7 +395,7 @@ namespace
         pushGimmickTopFace(shape, s0_index, topFace, CourseFaceType::Default, textureKind, gimmick, options);
         pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default, textureKind);
 
-        model.shapes.push_back(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
+        model.shape.append(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
     }
 
     void buildPad_Circular(
@@ -491,7 +491,7 @@ namespace
         pushGimmickTopFace(shape, s0_index, topFace, CourseFaceType::Default, textureKind, gimmick, options);
         pushGimmickBottomFace(shape, makeBottomFaceQuad(topFace, 0.0f), CourseFaceType::Default, textureKind);
 
-        model.shapes.push_back(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
+        model.shape.append(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
     }
 
     std::pair<Float3, Float3> separateStrip(const CourseStrip& s, LCR lcr)
@@ -561,7 +561,7 @@ namespace
             texY += texH;
         }
 
-        model.shapes.push_back(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
+        model.shape.append(CourseModelShape{std::move(shape.vertices), std::move(shape.indices)});
     }
 }
 
