@@ -1,5 +1,5 @@
 // CourseTextureKind.h でも定義
-#define CourseTextureCount 8
+#define CourseTextureCount 9
 
 // TODO: いずれ Texture2D<float4> g_textures[] (unbounded) にしたい
 Texture2D<float4> g_textures[CourseTextureCount] : register(t0);
@@ -154,8 +154,9 @@ float3 shadePipeEntryExitSide(PSInput input)
 
 float3 shadePipeInner(PSInput input)
 {
-    // TODO
-    return srgbToLinear(float3(0.5, 0.5, 0.5));
+    static const float forwardRepeat = 120.0;
+    const float2 uv = float2(input.uv.x, input.uv.y / forwardRepeat);
+    return g_textures[NonUniformResourceIndex(input.textureIndex)].Sample(g_sampler0, uv).rgb;
 }
 
 float3 shadePipeOuter(PSInput input)

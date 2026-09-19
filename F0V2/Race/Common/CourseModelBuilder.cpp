@@ -124,6 +124,7 @@ namespace
         case CourseFaceType::RoadTop: return CourseTextureKind::RoadTop;
         case CourseFaceType::RoadBottom: return CourseTextureKind::RoadBottom;
         case CourseFaceType::RoadSide: return CourseTextureKind::RoadSide;
+        case CourseFaceType::PipeInner: return CourseTextureKind::PipeInner;
         default: return CourseTextureKind::None; // TODO: パイプ・シリンダー・バリア用のテクスチャ
         }
     }
@@ -554,6 +555,8 @@ namespace
 
         const int pipeFirstStrip = hasEntry * PipeEntryExitStrips;
         const int pipeLastStrip = pipeFirstStrip + pipeStrips - 2;
+
+        float vOffset = 0;
         for (int m = pipeFirstStrip; m <= pipeLastStrip; ++m)
         {
             auto& s0 = segment.midwayStrips[m];
@@ -582,7 +585,12 @@ namespace
                 const FaceQuad topFace{l0, r0, l1, r1};
                 const FaceQuad bottomFace = makeBottomFaceQuad(topFace);
 
-                pushGroundTopFace(shape, topFace, CourseFaceType::PipeInner, options);
+                // TODO
+                const RectF pipeUV{
+                    static_cast<float>(i0 + 1) / subdivision, vOffset,
+                    -1.0f / subdivision, s0.lengthToNext
+                };
+                pushGroundTopFace(shape, topFace, CourseFaceType::PipeInner, options, pipeUV);
                 pushGroundBottomFace(shape, bottomFace, CourseFaceType::PipeOuter, options);
 
                 // 出入り口と繋がっていない上半分は断面が開いているので塞ぐ
@@ -600,6 +608,8 @@ namespace
                     }
                 }
             }
+
+            vOffset += s0.lengthToNext;
         }
 
         if (hasExit)

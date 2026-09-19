@@ -12,6 +12,7 @@ namespace Race
         RoadTop,
         RoadBottom,
         RoadSide,
+        PipeInner,
         // TODO...
 
         BoostPad,

@@ -209,3 +209,42 @@ float4 PS_RoadSide(PSInput input) : SV_Target
 
     return float4(sRGB2L(rgb), 1.0);
 }
+
+// TODO
+float4 PS_PipeInner(PSInput input) : SV_Target
+{
+    const float2 uv = input.uv;
+    const float flow = uv.y - g_time * 0.20; // 5 秒でテクスチャ 1 枚分、奥へ流れる
+
+    // 緩く湾曲した光の帯
+    const float twist = sin(TWO_PI * (uv.x + flow - g_time * 0.04));
+    const float bend = 0.18 * cos(TWO_PI * uv.x * 2.0 + twist * 0.55)
+        + 0.08 * sin(TWO_PI * (uv.x * 3.0 + flow));
+    const float ribbonWave = 0.5 + 0.5 * cos(TWO_PI * (flow * 2.0 + bend));
+    const float ribbonWidth = 0.5 + 0.5 * sin(TWO_PI * (uv.x - flow - g_time * 0.06));
+    const float ribbon = smoothstep(lerp(0.12, 0.48, ribbonWidth), 0.95, ribbonWave);
+
+    // 少し遅れて流れるサテン調の反射
+    const float sheenPhase = uv.x * 2.0 + uv.y - g_time * 0.13
+        + 0.12 * sin(TWO_PI * (uv.x - flow));
+    const float sheen = 0.5 + 0.5 * sin(TWO_PI * sheenPhase);
+
+    // 速さの違う 2 組の細い反射
+    const float threadFlow = uv.y - g_time * 0.29;
+    const float threadPhase = uv.x * 3.0 - threadFlow
+        + 0.16 * sin(TWO_PI * (uv.x + threadFlow));
+    const float crossThreadPhase = uv.x * 5.0 - uv.y + g_time * 0.11
+        + 0.10 * sin(TWO_PI * (uv.x * 2.0 + uv.y - g_time * 0.09));
+    const float thread = smoothstep(0.65, 0.99, 0.5 + 0.5 * cos(TWO_PI * threadPhase));
+    const float crossThread = smoothstep(0.72, 0.99, 0.5 + 0.5 * cos(TWO_PI * crossThreadPhase));
+    const float threadBlend = 0.5 + 0.5 * sin(TWO_PI * (uv.x + flow - g_time * 0.09));
+    const float strands = lerp(thread, crossThread, threadBlend);
+
+    // 真珠色に帯と細い反射を重ねる
+    float3 rgb = float3(0.72, 0.725, 0.73);
+    rgb += float3(0.060, 0.052, 0.032) * ribbon;
+    rgb += float3(0.022, 0.017, 0.008) * strands;
+    rgb += float3(0.016, 0.022, 0.030) * sheen;
+
+    return float4(sRGB2L(rgb), 1.0);
+}

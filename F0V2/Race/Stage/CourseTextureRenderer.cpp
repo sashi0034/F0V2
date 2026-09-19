@@ -55,6 +55,7 @@ namespace
         case CourseTextureKind::RoadTop: return {.size = 512, .updateInterval = 2};
         case CourseTextureKind::RoadBottom: return {.size = 256, .updateInterval = 20};
         case CourseTextureKind::RoadSide: return {.size = 256, .updateInterval = 10};
+        case CourseTextureKind::PipeInner: return {.size = 512, .updateInterval = 3};
         case CourseTextureKind::BoostPad: return {.size = 128, .updateInterval = 5};
         case CourseTextureKind::JumpPad: return {.size = 128, .updateInterval = 5};
         case CourseTextureKind::PitZone: return {.size = 256, .updateInterval = 5};
@@ -98,6 +99,7 @@ namespace
         case CourseTextureKind::RoadTop: return courseShader("PS_RoadTop");
         case CourseTextureKind::RoadBottom: return courseShader("PS_RoadBottom");
         case CourseTextureKind::RoadSide: return courseShader("PS_RoadSide");
+        case CourseTextureKind::PipeInner: return courseShader("PS_PipeInner");
         case CourseTextureKind::BoostPad: return Asset_shader::gimmick_boost_pad;
         case CourseTextureKind::JumpPad: return Asset_shader::gimmick_jump_pad;
         case CourseTextureKind::PitZone: return Asset_shader::gimmick_pit_zone;
