@@ -14,11 +14,21 @@ namespace TY
 
         GraphicsFormat format{DXGI_FORMAT_R8G8B8A8_UNORM};
 
+        D3D12_RESOURCE_STATES initialState{D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE};
+
+        int mipLevels{1};
+
         RenderTargetTextureParams& setSize(Size size_);
 
         RenderTargetTextureParams& setClearColor(const ColorF32& clearColor_);
 
         RenderTargetTextureParams& setFormat(GraphicsFormat format_);
+
+        RenderTargetTextureParams& setInitialState(D3D12_RESOURCE_STATES initialState_);
+
+        RenderTargetTextureParams& setMipLevels(int mipLevels_);
+
+        RenderTargetTextureParams& enableFullMipLevels();
     };
 
     class RenderTargetTexture

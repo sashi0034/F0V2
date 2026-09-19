@@ -135,15 +135,12 @@ namespace
 
             material.name = m.name;
 
-            material.diffuseTexture =
+            material.albedoTexture =
                 m.diffuse_texname.empty()
                     ? TextureHandle{}
                     : DiskTexture{baseDir + "/" + m.diffuse_texname};
 
-            material.parameters.ambient = Float3(m.ambient[0], m.ambient[1], m.ambient[2]);
-            material.parameters.diffuse = Float3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
-            material.parameters.specular = Float3(m.specular[0], m.specular[1], m.specular[2]);
-            material.parameters.shininess = m.shininess;
+            material.parameters.albedo = Float3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
 
             modelData.materials.push_back(material);
         }

@@ -9,6 +9,7 @@
 #include "Race/RaceControlState.h"
 #include "UI_DurabilityBar.h"
 #include "UI_LabelText.h"
+#include "UI_Minimap.h"
 #include "TY/ActorContainer.h"
 #include "TY/Gamepad.h"
 #include "TY/Immediate2D.h"
@@ -45,6 +46,7 @@ struct RaceUIController::Impl : ActorBase, std::enable_shared_from_this<Impl>, I
     ActorContainer m_children{};
     const RaceControlState* m_raceControlState{};
     UI_DurabilityBar m_durabilityBar{};
+    UI_Minimap m_minimap{};
 
     void Init(const RaceControlState& raceControlState)
     {
@@ -54,6 +56,9 @@ struct RaceUIController::Impl : ActorBase, std::enable_shared_from_this<Impl>, I
 
         m_durabilityBar = m_children.birth(UI_DurabilityBar());
         m_durabilityBar.init();
+
+        m_minimap = m_children.birth(UI_Minimap());
+        m_minimap.init();
     }
 
 private:
@@ -78,6 +83,12 @@ private:
         // 耐久値バー
         {
             m_durabilityBar.draw();
+        }
+
+        // -----------------------------------------------
+        // ミニマップ
+        {
+            m_minimap.draw();
         }
 
         // -----------------------------------------------
@@ -320,7 +331,7 @@ private:
             messages.push_back(U"[ A ]: アクセル");
             messages.push_back(U"[ B ]: " + boostMessage);
             messages.push_back(U"[ LT | RT ]: ドリフト");
-            messages.push_back(U"[ LB | RB ]: ハイパーターン");
+            messages.push_back(U"[ LB | RB ]: クイックターン");
         }
         else
         {
@@ -328,7 +339,7 @@ private:
             messages.push_back(U"[ W ]: アクセル");
             messages.push_back(U"[ Space ]: " + boostMessage);
             messages.push_back(U"[ \U000F004D | \U000F0054 ]: ドリフト");
-            messages.push_back(U"[ \U000F004D \U000F004D | \U000F0054 \U000F0054 ]: ハイパーターン");
+            messages.push_back(U"[ \U000F004D \U000F004D | \U000F0054 \U000F0054 ]: クイックターン");
             messages.push_back(U"[ \U000F005D | \U000F0045 ]: ピッチ (空中)");
         }
 

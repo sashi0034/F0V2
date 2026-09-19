@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "EnginePresetAsset.h"
 
+#include "ComputePipelineState.h"
+
 #include "TY/DynamicTexture.h"
 #include "TY/Image.h"
 #include "TY/Shader.h"
@@ -22,6 +24,8 @@ struct EnginePresetAssetImpl
 
     ComputeShader m_stubCS{};
 
+    ComputePipelineState m_generateMipsPSO{};
+
     UnorderedStructuredBufferObject m_emptyStructuredBuffer{};
 
     void Init()
@@ -36,6 +40,18 @@ struct EnginePresetAssetImpl
         m_stubCS = ComputeShader{ShaderParams::CS("asset/engine/compute_stub.hlsl")};
 
         m_emptyStructuredBuffer = UnorderedStructuredBufferObject(1, sizeof(uint8_t));
+
+        m_generateMipsPSO = ComputePipelineState{
+            ComputePipelineStateParams{
+                .computeShader = ComputeShader{ShaderParams::CS("asset/engine/generate_mips_cs.hlsl")},
+                .samplers = {
+                    GraphicsSamplerOptions{}
+                    .setFilter(GraphicsFilterMode::Linear)
+                    .setAddress(GraphicsAddressMode::Clamp)
+                },
+                .descriptorTable = {DescriptorEntry{.srvCount = 1, .uavCount = 1}},
+            }
+        };
 
         m_initialized = true;
     }
@@ -80,6 +96,12 @@ namespace TY::detail
     {
         assert(s_enginePresetAsset.m_initialized);
         return s_enginePresetAsset.m_stubCS;
+    }
+
+    ComputePipelineState EnginePresetAsset::GetGenerateMipsPSO()
+    {
+        assert(s_enginePresetAsset.m_initialized);
+        return s_enginePresetAsset.m_generateMipsPSO;
     }
 
     UnorderedStructuredBufferObject EnginePresetAsset::GetEmptyStructuredBuffer()

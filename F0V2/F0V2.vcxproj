@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -164,6 +164,12 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Asset0.cpp" />
+    <Content Include="asset\shader\gbuffer_course1.hlsl" />
+    <Content Include="asset\shader\gbuffer_course2.hlsl" />
+    <ClCompile Include="Race\Common\CourseMinimapModelBuilder.cpp" />
+    <ClCompile Include="Race\Common\CourseModelDrawer.cpp" />
+    <ClCompile Include="Race\Common\GimmickModelBuilder.cpp" />
+    <ClCompile Include="Race\UI\UI_Minimap.cpp" />
     <ClCompile Include="Race\Vfx\BillboardVfxRenderer.cpp" />
     <ClCompile Include="Race\Vfx\MachineVfxEmitter.cpp" />
     <ClCompile Include="Race\Vfx\MultiTextureBillboardVfxRenderer.cpp" />
@@ -192,12 +198,15 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <Content Include="asset\shader\gimmick_boost_pad.hlsl" />
     <Content Include="asset\shader\gimmick_jump_pad.hlsl" />
     <Content Include="asset\shader\gimmick_pit_zone.hlsl" />
+    <Content Include="asset\shader\prerender_course1.hlsl" />
     <Content Include="asset\shader\shadertoy_ps.hlsl" />
     <Content Include="asset\shader\shadertoy_cs.hlsl" />
     <Content Include="asset\shader\scenery1_cs.hlsl" />
     <Content Include="asset\shader\shadow_caster_old.hlsl" />
     <Content Include="asset\shader\wave_test.hlsl" />
     <Content Include="asset\shader\gbuffer_pass.hlsl" />
+    <Content Include="asset\shader\minimap.hlsl" />
+    <Content Include="asset\shader\minimap_outline.hlsl" />
     <Content Include="asset\shader\cheap_aa.hlsl" />
     <Content Include="asset\shader\simple_particle.hlsl" />
     <Content Include="asset\shader\simple_deferred_cs.hlsl" />
@@ -216,7 +225,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Common\RaceDeferredShadingDrawer.cpp" />
     <ClCompile Include="Race\Common\RaceDrawUpscaler.cpp" />
     <ClCompile Include="Race\RaceDrawQualityController.cpp" />
-    <ClCompile Include="Race\Stage\GimmickTextureDrawer.cpp" />
+    <ClCompile Include="Race\Stage\CourseTextureRenderer.cpp" />
     <ClCompile Include="Race\UI\UI_DurabilityBar.cpp" />
     <ClCompile Include="Race\UI\UI_LabelText.cpp" />
     <ClCompile Include="Race\Machine\MachineDrawer.cpp" />
@@ -340,10 +349,17 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\AI\CharacterAIInputCommand.h" />
     <ClInclude Include="Race\AI\MetaAI.h" />
     <ClInclude Include="Race\Common\AIRank.h" />
+    <ClInclude Include="Race\Common\CourseTextureKind.h" />
     <ClInclude Include="Race\Common\CourseFileInfo.h" />
     <ClInclude Include="Race\Common\CourseGimmick.h" />
+    <ClInclude Include="Race\Common\CourseModelDrawer.h" />
+    <ClInclude Include="Race\Common\CourseModelShape.h" />
+    <ClInclude Include="Race\Common\CouseFaceType.h" />
+    <ClInclude Include="Race\Common\GimmickModelBuilder.h" />
     <ClInclude Include="Race\Common\RaceDeferredShadingDrawer.h" />
     <ClInclude Include="Race\Common\RaceDrawUpscaler.h" />
+    <ClInclude Include="Race\Common\CourseMinimapModelBuilder.h" />
+    <ClInclude Include="Race\UI\UI_Minimap.h" />
     <ClInclude Include="Race\Vfx\BillboardVfxRenderer.h" />
     <ClInclude Include="Race\Vfx\IRaceVfxSystem.h" />
     <ClInclude Include="Race\Vfx\MachineVfxEmitter.h" />
@@ -354,7 +370,7 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="Race\Vfx\SimpleParticleVfxRenderer.h" />
     <ClInclude Include="Race\RaceControlState.h" />
     <ClInclude Include="Race\RaceDrawQualityController.h" />
-    <ClInclude Include="Race\Stage\GimmickTextureDrawer.h" />
+    <ClInclude Include="Race\Stage\CourseTextureRenderer.h" />
     <ClInclude Include="Race\UI\RaceUIController.h" />
     <ClInclude Include="Race\UI\UI_DurabilityBar.h" />
     <ClInclude Include="Race\UI\UI_LabelText.h" />

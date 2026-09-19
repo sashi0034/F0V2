@@ -361,41 +361,41 @@ namespace Race
             state.m_passiveBoost = Max<float>(0.0f, state.m_passiveBoost - dt);
         }
 
-        // ハイパーターン
-        const bool canTriggerHyperTurn = state.m_hyperTurnTime == 0.0f; // && not state.m_stabilizingAfterHyperTurn;
-        if (canTriggerHyperTurn && deviceInput.hyperTurnRequested)
+        // クイックターン
+        const bool canTriggerQuickTurn = state.m_quickTurnTime == 0.0f; // && not state.m_stabilizingAfterQuickTurn;
+        if (canTriggerQuickTurn && deviceInput.quickTurnRequested)
         {
-            state.m_hyperTurn = 0.0f;
-            state.m_hyperTurnTime = 0.1f;
-            state.m_stabilizingAfterHyperTurn = false;
+            state.m_quickTurn = 0.0f;
+            state.m_quickTurnTime = 0.1f;
+            state.m_stabilizingAfterQuickTurn = false;
 
             state.m_velocity = state.m_velocity * 0.95f;
 
-            updateOutcome.hyperTurnAccepted = true;
+            updateOutcome.quickTurnAccepted = true;
         }
 
-        if (state.m_hyperTurnTime > 0.0f)
+        if (state.m_quickTurnTime > 0.0f)
         {
             // 傾く
             const float impulseIntensity = 0.5 + Min(state.m_velocity.length(), 100.0f) / 100.0f;
-            state.m_hyperTurn += deviceInput.rightHandling * impulseIntensity * dt;
+            state.m_quickTurn += deviceInput.rightHandling * impulseIntensity * dt;
 
-            state.m_hyperTurnTime = Max<float>(0.0f, state.m_hyperTurnTime - dt);
-            if (state.m_hyperTurnTime == 0.0f)
+            state.m_quickTurnTime = Max<float>(0.0f, state.m_quickTurnTime - dt);
+            if (state.m_quickTurnTime == 0.0f)
             {
-                state.m_stabilizingAfterHyperTurn = true;
+                state.m_stabilizingAfterQuickTurn = true;
             }
         }
 
-        if (state.m_stabilizingAfterHyperTurn)
+        if (state.m_stabilizingAfterQuickTurn)
         {
             // 体制復帰
-            const auto s = Math::Sign(state.m_hyperTurn);
-            state.m_hyperTurn -= s * 5.0f * dt;
-            if (s != Math::Sign(state.m_hyperTurn))
+            const auto s = Math::Sign(state.m_quickTurn);
+            state.m_quickTurn -= s * 5.0f * dt;
+            if (s != Math::Sign(state.m_quickTurn))
             {
-                state.m_hyperTurn = 0.0f;
-                state.m_stabilizingAfterHyperTurn = false;
+                state.m_quickTurn = 0.0f;
+                state.m_stabilizingAfterQuickTurn = false;
             }
         }
 
@@ -535,10 +535,10 @@ namespace Race
             state.m_forwardVector += state.rightVector() * (rightShift * steeringSensitivity * frameScale);
             state.m_forwardVector = state.m_forwardVector.normalized();
 
-            if (state.m_hyperTurn != 0.0f)
+            if (state.m_quickTurn != 0.0f)
             {
                 // 速度偏向
-                state.m_forwardVector += state.rightVector() * state.m_hyperTurn * frameScale;
+                state.m_forwardVector += state.rightVector() * state.m_quickTurn * frameScale;
                 state.m_forwardVector = state.m_forwardVector.normalized();
 
                 const Float3 upVector =
@@ -549,7 +549,7 @@ namespace Race
                     const Float3 upVelocity = upVector * upVector.dot(state.m_velocity);
                     Float3 v = state.m_velocity - upVelocity;
 
-                    const float t = FastExpAlpha(Min(0.1f, Abs(state.m_hyperTurn)), dt);
+                    const float t = FastExpAlpha(Min(0.1f, Abs(state.m_quickTurn)), dt);
                     v = v.length() * v.normalized().safe_slerp(state.m_forwardVector, t, state.m_upVector);
 
                     state.m_velocity = upVelocity + v;
@@ -600,7 +600,7 @@ namespace Race
 
         // ビューのクォータニオン作成
         {
-            const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_hyperTurn) * 0.5f;
+            const float rollAmount = deviceInput.rightHandling * 0.5f + Math::Sign(state.m_quickTurn) * 0.5f;
             const Quaternion rollRotation{state.m_visualForwardVector, -rollAmount};
 
             const Float3 visualRightVector =

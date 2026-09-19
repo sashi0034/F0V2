@@ -15,10 +15,7 @@ cbuffer ModelState : register(b1)
 
 cbuffer ModelMaterial : register(b2)
 {
-    float3 g_ambient;
-    float3 g_diffuse;
-    float3 g_specular;
-    float g_shininess;
+    float3 g_albedo;
 }
 
 cbuffer LambertLight : register(b10)
@@ -59,7 +56,7 @@ float4 PS(PSInput input) : SV_TARGET
 
     const float3 diffuseLight = g_lightColor * t;
 
-    float4 finalColor = g_texture0.Sample(g_sampler0, input.uv) * float4(g_diffuse, 1.0f);
+    float4 finalColor = g_texture0.Sample(g_sampler0, input.uv) * float4(g_albedo, 1.0f);
 
     finalColor.xyz *= diffuseLight.xyz;
 

@@ -245,6 +245,7 @@
     <ClInclude Include="TY\Concepts.h" />
     <ClInclude Include="TY\ConstantBufferWrapper.h" />
     <ClInclude Include="TY\detail\ComputePipelineState.h" />
+    <ClInclude Include="TY\detail\MipmapGenerator.h" />
     <ClInclude Include="TY\detail\Gamepad_singleton.h" />
     <ClInclude Include="TY\detail\RootSignature.h" />
     <ClInclude Include="TY\Gamepad.h" />
@@ -404,6 +405,7 @@
     <ClCompile Include="TY\Stopwatch.cpp" />
     <ClCompile Include="TY\StructuredBuffer.cpp" />
     <ClCompile Include="TY\detail\ComputePipelineState.cpp" />
+    <ClCompile Include="TY\detail\MipmapGenerator.cpp" />
     <ClCompile Include="TY\detail\Gamepad_singleton.cpp" />
     <ClCompile Include="TY\detail\RootSignature.cpp" />
     <ClCompile Include="TY\Gamepad.cpp" />

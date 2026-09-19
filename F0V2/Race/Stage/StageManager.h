@@ -4,6 +4,7 @@
 #include "Race/Common/CourseModelBuilder.h"
 #include "Race/Common/CourseTriangleAttribute.h"
 #include "Race/Machine/LapProgress.h"
+#include "TY/ModelBuffer.h"
 #include "TY/TriangleBvh.h"
 #include "TY_Extension/GameObjectHandle.h"
 
@@ -17,6 +18,10 @@ namespace Race
         void init() override;
 
         float courseLength() const;
+
+        // const Array<ModelBuffer>& courseModels() const;
+
+        const Array<ModelBuffer>& courseMinimapModels() const;
 
         StageStaticCollider& stageStaticCollider();
         const StageStaticCollider& stageStaticCollider() const;

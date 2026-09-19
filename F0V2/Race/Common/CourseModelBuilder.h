@@ -1,13 +1,15 @@
 ﻿#pragma once
 #include "CourseData.h"
+#include "CourseModelShape.h"
 #include "CourseTriangleAttribute.h"
 #include "TY/Array.h"
-#include "TY/ModelBuffer.h"
 #include "TY/PrimitiveTypes3D.h"
 #include "TY/TriangleBvh.h"
 
 namespace Race
 {
+    class CourseMinimapModelBuilder;
+
     struct CoursePolygoneCollider
     {
         Array<IndexedTriangle> groundTris{};
@@ -28,9 +30,12 @@ namespace Race
     struct CourseModelBuilderOptions
     {
         bool createStartingLine{};
+        CourseSegmentStyle priorStyle{};
+        CourseSegmentStyle nextStyle{};
         CoursePolygoneCollider* outCollider = nullptr;
         Array<GimmickPlacement>* outGimmickPlacements = nullptr;
+        CourseMinimapModelBuilder* outMinimapModel = nullptr;
     };
 
-    ModelBuffer BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options);
+    CourseModelData BuildCourseModel(const CourseSegment& segment, const CourseModelBuilderOptions& options);
 }

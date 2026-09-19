@@ -29,6 +29,7 @@ namespace TY
         virtual int materialCount() const = 0;
 
         /// @remark [materialCount][1]
+        /// // TODO: materialCbv() が空でも動作するように修正
         [[nodiscard]]
         virtual const MaterialList<DescriptorList<ConstantBufferObject>>& materialCbv() const = 0;
 

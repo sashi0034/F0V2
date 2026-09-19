@@ -38,11 +38,11 @@ namespace Race
 
         float m_pitchRate{};
 
-        float m_hyperTurn{}; // neutral: 0.0f
+        float m_quickTurn{}; // neutral: 0.0f
 
-        float m_hyperTurnTime{};
+        float m_quickTurnTime{};
 
-        bool m_stabilizingAfterHyperTurn{};
+        bool m_stabilizingAfterQuickTurn{};
 
         float m_manualBoost{};
 
@@ -106,7 +106,7 @@ namespace Race
 
             float driftTrigger{}; // [-1.0f, 1.0f]
 
-            bool hyperTurnRequested{};
+            bool quickTurnRequested{};
 
             float cheatBoostFactor{1.0f}; // TODO: AI が予想以上に強くなったから廃止してもいいかも
         } input{};
@@ -127,7 +127,7 @@ namespace Race
         bool accelInputAccepted{};
         bool driftInputAccepted{};
         bool boostInputAccepted{};
-        bool hyperTurnAccepted{};
+        bool quickTurnAccepted{};
     };
 
     MachinePhysicsUpdateOutcome UpdateMachinePhysicsState(MachinePhysicsState& state, const MachinePhysicsProps& props);

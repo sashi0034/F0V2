@@ -4,12 +4,14 @@
 #include "Asset.generated.h"
 #include "Asset0.h"
 #include "StageStaticCollider.h"
-#include "GimmickTextureDrawer.h"
+#include "CourseTextureRenderer.h"
 #include "CB/Skydome.h"
 #include "GM/DebugService.h"
 #include "Race/IRaceContext.h"
 #include "Race/RaceContextContent.h"
+#include "Race/Common/CourseMinimapModelBuilder.h"
 #include "Race/Common/CourseModelBuilder.h"
+#include "Race/Common/CourseModelDrawer.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/DynamicTexture.h"
@@ -181,9 +183,15 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 {
     ActorContainer m_children{};
 
+    CourseTextureRenderer m_courseTextureRenderer{};
+
     ModelDrawer m_groundPlaneDrawer{};
 
-    Array<ModelDrawer> m_courseDrawers{};
+    // Array<ModelBuffer> m_courseModels{};
+
+    Array<ModelBuffer> m_courseMinimapModels{};
+
+    Array<CourseModelDrawer> m_courseDrawers{};
 
     Array<Array<GimmickPlacement>> m_gimmickPlacements{};
 
@@ -193,8 +201,6 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
     StageStaticCollider m_staticCollider{};
 
-    GimmickTextureDrawer m_gimmickTextureDrawer{};
-
     Array<start_position> m_startPositions{};
 
     DistanceCache m_distanceCache{};
@@ -202,6 +208,11 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
     void Init()
     {
         GetRaceContext().registerDrawer(shared_from_this());
+
+        // -----------------------------------------------
+
+        m_courseTextureRenderer = m_children.birth(CourseTextureRenderer());
+        m_courseTextureRenderer.init();
 
         // -----------------------------------------------
 
@@ -223,30 +234,29 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
         m_gimmickPlacements.resize(g_sharedState->courseSegments.size());
         for (int i = 0; i < g_sharedState->courseSegments.size(); ++i)
         {
-            const auto& segment = g_sharedState->courseSegments[i];
+            const auto& segments = g_sharedState->courseSegments;
+            const auto& segment = segments[i];
 
             colliders.push_back({});
+            CourseMinimapModelBuilder minimapModelBuilder{};
             const auto courseModel = BuildCourseModel(
                 segment,
                 {
                     .createStartingLine = i == 0,
+                    .priorStyle = segments[Modulo<int>(i - 1, segments.size())].style,
+                    .nextStyle = segments[(i + 1) % segments.size()].style,
                     .outCollider = &colliders.back(),
                     .outGimmickPlacements = &m_gimmickPlacements[i],
+                    .outMinimapModel = &minimapModelBuilder,
                 }
             );
 
-            if (courseModel.isEmpty())
-            {
-                m_courseDrawers.push_back({});
-            }
-            else
-            {
-                m_courseDrawers.push_back(
-                    ModelDrawerParams{}
-                    .setModel(courseModel)
-                    .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
-                    .setShader(Asset_shader::gbuffer_pass));
-            }
+            m_courseMinimapModels.push_back(minimapModelBuilder.build());
+
+            // Gap セグメントなど、描くものが無い場合は空のドロワーになる
+            m_courseDrawers.push_back(CourseModelDrawer{
+                courseModel, GraphicsOptions::FromTarget(g_sharedState->gbufferTarget)
+            });
 
             m_triangleCount += colliders.back().groundTris.size();
 
@@ -257,9 +267,6 @@ struct StageManager::Impl : GameObjectBase, std::enable_shared_from_this<Impl>, 
 
         m_staticCollider = StageStaticCollider();
         m_staticCollider.build(colliders);
-
-        m_gimmickTextureDrawer = m_children.birth(GimmickTextureDrawer());
-        m_gimmickTextureDrawer.init();
 
         buildStartPositions();
 
@@ -455,6 +462,16 @@ namespace Race
     float StageManager::courseLength() const
     {
         return p_impl->m_courseLength;
+    }
+
+    // const Array<ModelBuffer>& StageManager::courseModels() const
+    // {
+    //     return p_impl->m_courseModels;
+    // }
+
+    const Array<ModelBuffer>& StageManager::courseMinimapModels() const
+    {
+        return p_impl->m_courseMinimapModels;
     }
 
     StageStaticCollider& StageManager::stageStaticCollider()

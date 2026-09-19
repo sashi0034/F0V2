@@ -15,10 +15,7 @@ cbuffer ModelState : register(b1)
 
 cbuffer ModelMaterial : register(b2)
 {
-    float3 g_ambient;
-    float3 g_diffuse;
-    float3 g_specular;
-    float g_shininess;
+    float3 g_albedo;
 }
 
 cbuffer PhongLight : register(b10)
@@ -50,7 +47,7 @@ PSInput VS(float4 position : POSITION, float4 normal : NORMAL, float2 uv : TEXCO
 
     result.normal = normalize(mul(g_worldMatrix, normal.xyz));
 
-    result.color = g_diffuse;
+    result.color = g_albedo;
 
     result.uv = uv;
     return result;

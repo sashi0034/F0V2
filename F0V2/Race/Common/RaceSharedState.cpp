@@ -3,6 +3,8 @@
 
 #include "TY/Screen.h"
 
+using namespace Race;
+
 namespace Race
 {
     RaceSharedState::RaceSharedState()
@@ -47,28 +49,5 @@ namespace Race
                 .setClearColor(ColorF32{1.0f, 1.0f}) // FIXME?
                 .setFormat(DXGI_FORMAT_R32_FLOAT)
             );
-
-        // -----------------------------------------------
-
-        gimmickTextures.boostPad =
-            RenderTargetParams{}
-            .setRtv(
-                RtvParams{}
-                .setSize(Size::One() * 128)
-                .setClearColor(ColorF32{1.0f, 1.0f}));
-
-        gimmickTextures.jumpPad =
-            RenderTargetParams{}
-            .setRtv(
-                RtvParams{}
-                .setSize(Size::One() * 128)
-                .setClearColor(ColorF32{1.0f, 1.0f}));
-
-        gimmickTextures.pitZone =
-            RenderTargetParams{}
-            .setRtv(
-                RtvParams{}
-                .setSize(Size::One() * 256)
-                .setClearColor(ColorF32{1.0f, 1.0f}));
     }
 }

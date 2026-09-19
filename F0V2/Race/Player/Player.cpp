@@ -110,7 +110,7 @@ private:
 
         MachinePhysicsProps::input_t input;
 
-        bool leftHyperInput{}, rightHyperInput{};
+        bool leftQuickTurnInput{}, rightQuickTurnInput{};
         if (IsUsingGamepad())
         {
             input.accelPressed = MainGamepad.a().pressed ||
@@ -128,8 +128,8 @@ private:
 
             input.driftTrigger = -MainGamepad.leftTrigger() + MainGamepad.rightTrigger();
 
-            leftHyperInput = MainGamepad.lb().down;
-            rightHyperInput = MainGamepad.rb().down;
+            leftQuickTurnInput = MainGamepad.lb().down;
+            rightQuickTurnInput = MainGamepad.rb().down;
         }
         else
         {
@@ -146,16 +146,16 @@ private:
             input.driftTrigger =
                 (KeyLeft.pressed() ? -1.0f : (KeyRight.pressed() ? 1.0f : 0.0f));
 
-            leftHyperInput = leftKeyDoubleTapped;
-            rightHyperInput = rightKeyDoubleTapped;
+            leftQuickTurnInput = leftKeyDoubleTapped;
+            rightQuickTurnInput = rightKeyDoubleTapped;
 
-            // ダブルアップの次はシングルタップでハイパーターンを出来るようにする
+            // ダブルアップの次はシングルタップでクイックターンを出来るようにする
             if (leftKeyDoubleTapped) m_leftKeyDoubleTap.setRemainingTime(m_leftKeyDoubleTap.getInterval());
             if (rightKeyDoubleTapped) m_rightKeyDoubleTap.setRemainingTime(m_rightKeyDoubleTap.getInterval());
         }
 
-        input.hyperTurnRequested =
-            (input.rightHandling < -0.1f && leftHyperInput) || (input.rightHandling > 0.1f && rightHyperInput);
+        input.quickTurnRequested =
+            (input.rightHandling < -0.1f && leftQuickTurnInput) || (input.rightHandling > 0.1f && rightQuickTurnInput);
 
 #if defined(_DEBUG)
         if (g_debugService.disablePlayerInput)
@@ -231,9 +231,9 @@ private:
             Asset_sound::Boost().playOneShot();
         }
 
-        if (updateOutcome.hyperTurnAccepted)
+        if (updateOutcome.quickTurnAccepted)
         {
-            Asset_sound::HyperTurn().playOneShot();
+            Asset_sound::QuickTurn().playOneShot();
         }
 
         // -----------------------------------------------

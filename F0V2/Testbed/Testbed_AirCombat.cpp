@@ -158,8 +158,8 @@ namespace
 
                 for (int i = 0; i < modelData.materials.size(); ++i)
                 {
-                    modelData.materials[i].parameters.diffuse =
-                        Float3::One() - modelData.materials[i].parameters.diffuse;
+                    modelData.materials[i].parameters.albedo =
+                        Float3::One() - modelData.materials[i].parameters.albedo;
                 }
 
                 enemyModel = modelData;

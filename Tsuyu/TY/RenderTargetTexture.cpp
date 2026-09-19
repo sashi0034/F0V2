@@ -23,13 +23,14 @@ struct RenderTargetTexture::Impl
         resourceDesc.Width = params.size.x;
         resourceDesc.Height = params.size.y;
         resourceDesc.DepthOrArraySize = 1;
-        resourceDesc.MipLevels = 1;
+        resourceDesc.MipLevels = static_cast<UINT16>(params.mipLevels);
         resourceDesc.Format = params.format;
         resourceDesc.SampleDesc = {1, 0};
         resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
         resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-        if (allowUav)
+        if (allowUav ||
+            params.mipLevels != 1) // ミップ生成に UAV が必要
         {
             resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
         }
@@ -48,9 +49,9 @@ struct RenderTargetTexture::Impl
                 &heapProperties,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
-                D3D12_RESOURCE_STATE_RENDER_TARGET,
+                params.initialState,
                 &clearValue,
-                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(D3D12_RESOURCE_STATE_RENDER_TARGET)));
+                IID_PPV_ARGS(m_textureHandle.assignResourceAddress(params.initialState)));
             FAILED(hr))
         {
             LogError(std::format("RenderTargetTexture: Failed to create texture resource: {:08x}", hr));
@@ -84,6 +85,24 @@ namespace TY
     RenderTargetTextureParams& RenderTargetTextureParams::setFormat(GraphicsFormat format_)
     {
         format = format_;
+        return *this;
+    }
+
+    RenderTargetTextureParams& RenderTargetTextureParams::setInitialState(D3D12_RESOURCE_STATES initialState_)
+    {
+        initialState = initialState_;
+        return *this;
+    }
+
+    RenderTargetTextureParams& RenderTargetTextureParams::setMipLevels(int mipLevels_)
+    {
+        mipLevels = mipLevels_;
+        return *this;
+    }
+
+    RenderTargetTextureParams& RenderTargetTextureParams::enableFullMipLevels()
+    {
+        mipLevels = 0;
         return *this;
     }
 

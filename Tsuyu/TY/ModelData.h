@@ -22,17 +22,16 @@ namespace TY
 
     struct ModelMaterialParameters
     {
-        alignas(16) Float3 ambient{};
-        alignas(16) Float3 diffuse{};
-        alignas(16) Float3 specular{};
-        alignas(16) float shininess{};
+        alignas(16) Float3 albedo{};
+
+        // TODO: 必要なものを追加 (場合によっては union も使用)
     };
 
     struct ModelMaterial
     {
         std::string name{};
         ModelMaterialParameters parameters{};
-        TextureHandle diffuseTexture{};
+        TextureHandle albedoTexture{};
     };
 
     struct ModelData

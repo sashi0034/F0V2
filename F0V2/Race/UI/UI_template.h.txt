@@ -3,7 +3,7 @@
 
 namespace Race
 {
-    class Hud_template : public ActorHandle
+    class UI_template : public ActorHandle
     {
     public:
         Hud_template();

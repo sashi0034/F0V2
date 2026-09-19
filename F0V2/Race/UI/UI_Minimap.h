@@ -3,12 +3,14 @@
 
 namespace Race
 {
-    class GimmickTextureDrawer : public ActorHandle
+    class UI_Minimap : public ActorHandle
     {
     public:
-        GimmickTextureDrawer();
+        UI_Minimap();
 
         void init();
+
+        void draw() const;
 
         std::shared_ptr<ActorBase> asActor() const override;
 

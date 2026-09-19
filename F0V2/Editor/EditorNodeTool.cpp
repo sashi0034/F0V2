@@ -7,12 +7,14 @@
 #include "Util/DebugUI.h"
 #include "EditorState.h"
 #include "Race/Common/CourseModelBuilder.h"
+#include "Race/Common/CourseModelDrawer.h"
 #include "Race/Common/CourseData.h"
 #include "Race/Common/CourseSegmentBuilder.h"
 #include "Race/Common/RaceSharedState.h"
 #include "TY/ActorContainer.h"
 #include "TY/Graphics3D.h"
 #include "TY/Intersects2D.h"
+#include "TY/Math.h"
 #include "TY/ModelDrawer.h"
 #include "TY/Mouse.h"
 #include "TY/PrimitiveModel3D.h"
@@ -37,7 +39,7 @@ struct EditorNodeTool::Impl : GameObjectBase
 
     Array<CourseSegment> m_segments{};
 
-    Array<ModelDrawer> m_courseDrawers{};
+    Array<CourseModelDrawer> m_courseDrawers{};
 
     int m_activeNodeIndex{};
 
@@ -176,19 +178,17 @@ private:
 
         for (const auto i : rebuildIndexes)
         {
-            const auto modelBuffer = BuildCourseModel(m_segments[i], {});
-            if (modelBuffer.isEmpty())
-            {
-                m_courseDrawers[i] = {};
-            }
-            else
-            {
-                m_courseDrawers[i] =
-                    ModelDrawerParams{}
-                    .setModel(modelBuffer)
-                    .setOptions(GraphicsOptions::FromTarget(g_sharedState->gbufferTarget))
-                    .setShader(Asset_shader::gbuffer_pass);
-            }
+            const auto courseModel = BuildCourseModel(
+                m_segments[i],
+                {
+                    .priorStyle = m_segments[Modulo<int>(i - 1, m_segments.size())].style,
+                    .nextStyle = m_segments[(i + 1) % m_segments.size()].style,
+                }
+            );
+
+            m_courseDrawers[i] = CourseModelDrawer{
+                courseModel, GraphicsOptions::FromTarget(g_sharedState->gbufferTarget)
+            };
         }
     }
 
