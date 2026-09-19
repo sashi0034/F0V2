@@ -41,8 +41,17 @@ struct MachineDrawer::Impl
             {
                 material.parameters.albedo = linearColor.toFloat3();
             }
-
-            if (material.name == "Light_Lens")
+            else if (material.name == "Paint_Secondary_Gray")
+            {
+                // TODO
+                material.parameters.albedo = (material.parameters.albedo + linearColor.toFloat3()) * 0.5f;
+            }
+            else if (material.name == "Canopy_Smoked")
+            {
+                // TODO
+                material.parameters.albedo = (material.parameters.albedo * 0.9f + linearColor.toFloat3()) * 0.1f;
+            }
+            else if (material.name == "Light_Lens")
             {
                 material.parameters.albedo = MinVector3(
                     Float3::One(),
