@@ -164,6 +164,20 @@ public:
             .setUav({m_deferredOutput})
             .setDynamicCbvCount(1)
         };
+
+#if 1
+        m_velocityFieldDebugTexture = UnorderedRenderTargetTexture{
+            RenderTargetTextureParams{}
+            .setSize(FogTextureSize)
+            .setClearColor(ColorF32{0.25f, 0.25f, 0.25f, 1.0f})
+        };
+        m_velocityFieldDebugDispatcher = ComputeDispatcher{
+            ComputeDispatcherParams{}
+            .setCS(ComputeShader{ShaderParams::CS("asset/shader/velocity_field_visualizer_cs.hlsl")})
+            .setSrv({m_terrain.GetVelocityFieldTexture()})
+            .setUav({m_velocityFieldDebugTexture})
+        };
+#endif
     }
 
     void Update()
@@ -254,9 +268,14 @@ public:
             .resized(Float2{256.0f, 256.0f})
             .setPosition(Float2{16.0f, 16.0f}));
 
-        // 速度場テクスチャをそのまま可視化する。
+        // 速度場を通常のカラー Texture へ変換し、最前面に表示する。
+        m_velocityFieldDebugDispatcher.dispatch(
+            (FogTextureSize.x + 7) / 8,
+            (FogTextureSize.y + 7) / 8);
+        const TextureHandle velocityFieldDebugTexture =
+            static_cast<const RenderTargetTexture&>(m_velocityFieldDebugTexture);
         immediateDrawer.push(
-            Immediate2D::Texture{m_terrain.GetVelocityFieldTexture()}
+            Immediate2D::Texture{velocityFieldDebugTexture}
             .resized(Float2{256.0f, 256.0f})
             .setPosition(Float2{288.0f, 16.0f}));
 #endif
@@ -276,6 +295,10 @@ private:
     std::array<ComputeDispatcher, 2> m_fogAdvectionDispatchers{};
     std::array<ComputeDispatcher, 2> m_columnUpdateDispatchers{};
     ComputeDispatcher m_deferredDispatcher{};
+#if 1
+    UnorderedRenderTargetTexture m_velocityFieldDebugTexture{};
+    ComputeDispatcher m_velocityFieldDebugDispatcher{};
+#endif
     int m_currentFogTextureIndex{};
     float m_elapsedTime{};
     Float2 m_lastCameraInteractionPosition{};
