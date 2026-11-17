@@ -5,6 +5,7 @@
 
 #include "TY/Gamepad.h"
 #include "TY/Graphics3D.h"
+#include "TY/ImmediateDrawer.h"
 #include "TY/Mat4x4.h"
 #include "TY/Screen.h"
 #include "TY/SimpleCamera3D.h"
@@ -39,6 +40,15 @@ public:
             FarZ));
 
         m_terrain.Draw(m_camera.eyePosition());
+
+#if 1
+        // Draw last without depth so the height map is always visible in front.
+        ImmediateDrawer::Global()
+            .push(Immediate2D::Texture{m_terrain.GetHeightMapDebugTexture()}
+                  .resized(Float2{256.0f, 256.0f})
+                  .setPosition(Float2{16.0f, 16.0f}))
+            .draw();
+#endif
     }
 
 private:

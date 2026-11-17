@@ -16,7 +16,6 @@ namespace
 {
     constexpr float HeightScale = 12.0f;
     constexpr float NoiseFrequency = 0.018f;
-    constexpr int TextureSize = 512;
 
     struct PhongLight_b10
     {
@@ -129,18 +128,56 @@ namespace
         return rock.lerp(snow, std::clamp((height - 5.0f) / 5.0f, 0.0f, 1.0f));
     }
 
-    Image MakeTerrainTexture()
+    std::vector<float> MakeHeightMapData()
     {
-        Image image{Size{TextureSize, TextureSize}};
+        std::vector<float> heightMap(Terrain::HeightMapSize * Terrain::HeightMapSize);
         constexpr float halfSize = Terrain::TerrainSize * 0.5f;
 
-        for (int y = 0; y < TextureSize; ++y)
+        for (int y = 0; y < Terrain::HeightMapSize; ++y)
         {
-            const float z = -halfSize + Terrain::TerrainSize * static_cast<float>(y) / (TextureSize - 1);
-            for (int x = 0; x < TextureSize; ++x)
+            const float z = -halfSize
+                + Terrain::TerrainSize * static_cast<float>(y) / (Terrain::HeightMapSize - 1);
+            for (int x = 0; x < Terrain::HeightMapSize; ++x)
             {
-                const float worldX = -halfSize + Terrain::TerrainSize * static_cast<float>(x) / (TextureSize - 1);
-                image[Point{x, y}] = TerrainColor(TerrainHeight(worldX, z)).toColorU8();
+                const float worldX = -halfSize
+                    + Terrain::TerrainSize * static_cast<float>(x) / (Terrain::HeightMapSize - 1);
+                heightMap[y * Terrain::HeightMapSize + x] = TerrainHeight(worldX, z);
+            }
+        }
+
+        return heightMap;
+    }
+
+    Image MakeTerrainTexture(const std::vector<float>& heightMap)
+    {
+        Image image{Size{Terrain::HeightMapSize, Terrain::HeightMapSize}};
+
+        for (int y = 0; y < Terrain::HeightMapSize; ++y)
+        {
+            for (int x = 0; x < Terrain::HeightMapSize; ++x)
+            {
+                const float height = heightMap[y * Terrain::HeightMapSize + x];
+                image[Point{x, y}] = TerrainColor(height).toColorU8();
+            }
+        }
+
+        return image;
+    }
+
+    Image MakeHeightMapDebugTexture(const std::vector<float>& heightMap)
+    {
+        Image image{Size{Terrain::HeightMapSize, Terrain::HeightMapSize}};
+
+        for (int y = 0; y < Terrain::HeightMapSize; ++y)
+        {
+            for (int x = 0; x < Terrain::HeightMapSize; ++x)
+            {
+                const float height = heightMap[y * Terrain::HeightMapSize + x];
+                const float normalizedHeight = std::clamp(
+                    (height + HeightScale) / (HeightScale * 2.0f),
+                    0.0f,
+                    1.0f);
+                image[Point{x, y}] = ColorF32{normalizedHeight}.toColorU8();
             }
         }
 
@@ -217,6 +254,9 @@ namespace
 
 struct Terrain::Impl
 {
+    std::vector<float> heightMapData{};
+    DynamicTexture heightMapTexture{};
+    DynamicTexture heightMapDebugTexture{};
     DynamicTexture texture{};
     GraphicsShader shader{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
     ConstantBufferWrapper<PhongLight_b10> light{};
@@ -224,7 +264,16 @@ struct Terrain::Impl
 
     Impl()
     {
-        texture = DynamicTexture{MakeTerrainTexture()};
+        heightMapData = MakeHeightMapData();
+        heightMapTexture = DynamicTexture{ImageView{
+            reinterpret_cast<const uint8_t*>(heightMapData.data()),
+            Size{HeightMapSize, HeightMapSize},
+            heightMapData.size() * sizeof(float),
+            DXGI_FORMAT_R32_FLOAT,
+        }};
+
+        heightMapDebugTexture = DynamicTexture{MakeHeightMapDebugTexture(heightMapData)};
+        texture = DynamicTexture{MakeTerrainTexture(heightMapData)};
         drawer = ModelDrawer{
             ModelDrawerParams{}
             .setModel(ModelBuffer{MakeTerrainModel(texture)})
@@ -244,6 +293,16 @@ Terrain::~Terrain() = default;
 float Terrain::GetTerrainHeight(float x, float z) const
 {
     return TerrainHeight(x, z);
+}
+
+TextureHandle Terrain::GetHeightMapTexture() const
+{
+    return m_impl->heightMapTexture;
+}
+
+TextureHandle Terrain::GetHeightMapDebugTexture() const
+{
+    return m_impl->heightMapDebugTexture;
 }
 
 void Terrain::Draw(const Float3& eyePosition)
