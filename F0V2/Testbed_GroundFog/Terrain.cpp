@@ -268,6 +268,10 @@ struct Terrain::Impl
             ModelDrawerParams{}
             .setModel(ModelBuffer{MakeTerrainModel(texture)})
             .setShader(shader)
+            .setOptions(GraphicsOptions::Default3D().setRtvFormats({
+                DXGI_FORMAT_R8G8B8A8_UNORM,
+                DXGI_FORMAT_R8G8B8A8_UNORM,
+            }))
         };
     }
 };
