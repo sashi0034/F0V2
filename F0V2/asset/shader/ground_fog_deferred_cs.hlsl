@@ -60,7 +60,7 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const float3 normal = normalize(g_normalBuffer[pixel].xyz * 2.0f - 1.0f);
 
     // ライトは仮実装としてシェーダー内に固定する。
-    const float3 lightPosition = float3(-100.0f, 250.0f, -100.0f);
+    const float3 lightPosition = float3(0.0f, 250.0f, 0.0f);
     const float3 lightDirection = normalize(lightPosition - worldPosition);
     const float diffuse = saturate(dot(normal, lightDirection));
 
