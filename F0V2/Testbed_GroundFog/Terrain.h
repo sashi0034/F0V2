@@ -25,7 +25,7 @@ public:
 
     [[nodiscard]] TextureHandle GetHeightMapDebugTexture() const;
 
-    void Draw(const Float3& eyePosition);
+    void Draw() const;
 
 private:
     struct Impl;

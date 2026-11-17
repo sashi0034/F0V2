@@ -166,6 +166,8 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Asset0.cpp" />
     <Content Include="asset\shader\gbuffer_course1.hlsl" />
     <Content Include="asset\shader\gbuffer_course2.hlsl" />
+    <Content Include="asset\shader\ground_fog_deferred_cs.hlsl" />
+    <Content Include="asset\shader\ground_fog_gbuffer.hlsl" />
     <ClCompile Include="Race\Common\CourseMinimapModelBuilder.cpp" />
     <ClCompile Include="Race\Common\CourseModelDrawer.cpp" />
     <ClCompile Include="Race\Common\GimmickModelBuilder.cpp" />

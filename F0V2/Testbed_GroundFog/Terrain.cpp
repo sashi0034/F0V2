@@ -2,7 +2,6 @@
 #include "Terrain.h"
 
 #include "TY/Color.h"
-#include "TY/ConstantBufferWrapper.h"
 #include "TY/DynamicTexture.h"
 #include "TY/GraphicsOptions.h"
 #include "TY/Image.h"
@@ -16,14 +15,6 @@ namespace
 {
     constexpr float HeightScale = 12.0f;
     constexpr float NoiseFrequency = 0.018f;
-
-    struct PhongLight_b10
-    {
-        alignas(16) Float3 lightDirection;
-        alignas(16) Float3 lightColor{};
-        alignas(16) Float3 eyePosition{};
-        alignas(16) Float3 ambientColor{};
-    };
 
     uint32_t HashLattice(int x, int y)
     {
@@ -258,8 +249,7 @@ struct Terrain::Impl
     DynamicTexture heightMapTexture{};
     DynamicTexture heightMapDebugTexture{};
     DynamicTexture texture{};
-    GraphicsShader shader{GraphicsShader::VS_PS("asset/shader/phong.hlsl")};
-    ConstantBufferWrapper<PhongLight_b10> light{};
+    GraphicsShader shader{GraphicsShader::VS_PS("asset/shader/ground_fog_gbuffer.hlsl")};
     ModelDrawer drawer{};
 
     Impl()
@@ -278,7 +268,6 @@ struct Terrain::Impl
             ModelDrawerParams{}
             .setModel(ModelBuffer{MakeTerrainModel(texture)})
             .setShader(shader)
-            .setCbv10AndLater({light})
         };
     }
 };
@@ -305,13 +294,7 @@ TextureHandle Terrain::GetHeightMapDebugTexture() const
     return m_impl->heightMapDebugTexture;
 }
 
-void Terrain::Draw(const Float3& eyePosition)
+void Terrain::Draw() const
 {
-    m_impl->light->lightDirection = Float3{0.45f, -1.0f, 0.3f}.normalized();
-    m_impl->light->lightColor = Float3{1.0f, 0.96f, 0.88f};
-    m_impl->light->eyePosition = eyePosition;
-    m_impl->light->ambientColor = Float3{0.24f, 0.27f, 0.23f};
-    m_impl->light.upload();
-
     m_impl->drawer.draw();
 }
