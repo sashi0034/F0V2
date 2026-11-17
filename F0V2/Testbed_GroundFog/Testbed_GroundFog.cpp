@@ -66,7 +66,17 @@ public:
         m_deferredDispatcher = ComputeDispatcher{
             ComputeDispatcherParams{}
             .setCS(ComputeShader{ShaderParams::CS("asset/shader/ground_fog_deferred_cs.hlsl")})
-            .setSrv({m_gbufferColor, m_gbufferNormal, m_gbuffer.getDepthBuffer()})
+            .setSamplers({
+                GraphicsSamplerOptions{}
+                .setAddress(GraphicsAddressMode::Clamp)
+                .setFilter(GraphicsFilterMode::Linear)
+            })
+            .setSrv({
+                m_gbufferColor,
+                m_gbufferNormal,
+                m_gbuffer.getDepthBuffer(),
+                m_terrain.GetHeightMapTexture()
+            })
             .setUav({m_deferredOutput})
             .setDynamicCbvCount(1)
         };

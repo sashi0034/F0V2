@@ -1,12 +1,15 @@
 Texture2D<float4> g_colorBuffer : register(t0);
 Texture2D<float4> g_normalBuffer : register(t1);
 Texture2D<float> g_depthBuffer : register(t2);
+Texture2D<float> g_terrainHeightMap : register(t3);
+
+SamplerState g_linearClamp : register(s0);
 
 RWTexture2D<float4> g_output : register(u0);
 
 cbuffer DeferredParams : register(b0)
 {
-    column_major float4x4 g_projectionMatrixInv;
+    column_major float4x4 g_projectionMatrixInv; // NDC to View
     column_major float4x4 g_viewMatrixInv;
     float2 g_outputResolution;
     float2 g_padding;
@@ -45,32 +48,88 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         return;
     }
 
-    const float depth = g_depthBuffer[pixel];
+    const float2 uv = (float2(pixel) + 0.5f) / g_outputResolution;
+    const float2 ndcXY = uv * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f);
 
-    // 深度 1.0 は地形が描画されていない背景。
-    if (depth >= 1.0f)
+    float4 viewFar = mul(g_projectionMatrixInv, float4(ndcXY, 1.0f, 1.0f));
+    viewFar /= viewFar.w;
+
+    const float3 rayOrigin = mul(g_viewMatrixInv, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+    const float3 rayDirection = normalize(mul((float3x3)g_viewMatrixInv, viewFar.xyz));
+
+    const float depth = g_depthBuffer[pixel];
+    float maxDistance = 100.0f;
+    float3 linearSceneColor;
+
+    if (depth < 1.0f)
     {
+        // GBuffer あり
+        const float3 worldPosition = ReconstructWorldPosition(pixel, depth);
+        maxDistance = min(maxDistance, length(worldPosition - rayOrigin));
+
+        const float3 normal = normalize(g_normalBuffer[pixel].xyz * 2.0f - 1.0f);
+
+        // ライトは仮実装としてシェーダー内に固定する。
+        const float3 lightPosition = float3(0.0f, 250.0f, 0.0f);
+        const float3 lightDirection = normalize(lightPosition - worldPosition);
+        const float diffuse = saturate(dot(normal, lightDirection));
+
+        const float3 ambientLight = float3(1.0f, 1.0f, 1.0f) * 0.28f;
+        const float3 lightColor = float3(1.0f, 1.0f, 1.0f) * 0.72f;
+        linearSceneColor = g_colorBuffer[pixel].rgb * (ambientLight + lightColor * diffuse);
+    }
+    else
+    {
+        // GBuffer なし (空)
         const float skyGradient = 1.0f - float(pixel.y) / g_outputResolution.y;
-        const float3 skyColor = lerp(float3(0.38f, 0.52f, 0.65f), float3(0.12f, 0.25f, 0.48f), skyGradient);
-        g_output[pixel] = float4(skyColor, 1.0f);
-        return;
+        linearSceneColor = lerp(
+            float3(0.38f, 0.52f, 0.65f),
+            float3(0.12f, 0.25f, 0.48f),
+            skyGradient);
     }
 
-    const float3 worldPosition = ReconstructWorldPosition(pixel, depth);
-    const float3 normal = normalize(g_normalBuffer[pixel].xyz * 2.0f - 1.0f);
+    static const int FogSteps = 64;
+    static const float FogHeight = 1.4f;
+    static const float FogDensity = 0.2f;
+    static const float TerrainSize = 100.0f;
 
-    // ライトは仮実装としてシェーダー内に固定する。
-    const float3 lightPosition = float3(0.0f, 250.0f, 0.0f);
-    const float3 lightDirection = normalize(lightPosition - worldPosition);
-    const float diffuse = saturate(dot(normal, lightDirection));
+    const float stepLength = maxDistance / FogSteps;
+    float transmittance = 1.0f;
 
-    const float3 linearAlbedo = g_colorBuffer[pixel].rgb;
+    // 霧のボリュームレンダリング
+    for (int i = 0; i < FogSteps; ++i)
+    {
+        const float distance = (float(i) + 0.5f) * stepLength;
+        const float3 samplePosition = rayOrigin + rayDirection * distance;
+        const float2 terrainUV = samplePosition.xz / TerrainSize + 0.5f;
 
-    const float3 ambientLight = float3(1, 1, 1) * 0.28f;
-    const float3 lightColor = float3(1, 1, 1) * 0.72f;
-    const float3 linearColor = linearAlbedo * (ambientLight + lightColor * diffuse);
+        float groundHeight;
+        if (any(terrainUV < 0.0f) || any(terrainUV > 1.0f))
+        {
+            groundHeight = -10.0f; // 海っぽく霧が広がってるイメージ
+        }
+        else
+        {
+            groundHeight = g_terrainHeightMap.SampleLevel(g_linearClamp, terrainUV, 0.0f);
+        }
 
-    const float3 outputColor = LinearToSRGB(saturate(linearColor));
+        const float heightFromGround = samplePosition.y - groundHeight;
+        if (heightFromGround < 0.0f || heightFromGround >= FogHeight)
+        {
+            continue;
+        }
+
+        // Beer-Lambert 則で透過率を更新する。
+        transmittance *= exp(-FogDensity * stepLength);
+        if (transmittance < 0.01f)
+        {
+            break;
+        }
+    }
+
+    const float3 linearFogColor = float3(0.70f, 0.70f, 0.82f);
+    const float3 linearOutput = lerp(linearFogColor, linearSceneColor, transmittance);
+    const float3 outputColor = LinearToSRGB(saturate(linearOutput));
 
     g_output[pixel] = float4(outputColor, 1.0f);
 }
