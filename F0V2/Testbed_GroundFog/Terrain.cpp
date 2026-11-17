@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Terrain.h"
 
+#include <DirectXPackedVector.h>
+
 #include "TY/Color.h"
 #include "TY/DynamicTexture.h"
 #include "TY/GraphicsOptions.h"
@@ -120,6 +122,26 @@ namespace
         return std::clamp(value / amplitudeSum * 0.5f + 0.5f, 0.0f, 1.0f);
     }
 
+    Float2 CurlNoise(float x, float z)
+    {
+        constexpr float derivativeStep = 0.25f;
+        constexpr float velocityScale = 25.0f;
+        constexpr float baseFrequency = 0.025f;
+        constexpr Float2 noiseOffset{73.0f, -41.0f};
+
+        const float dNoiseDx = (
+            NormalizedFBm(x + derivativeStep, z, baseFrequency, noiseOffset)
+            - NormalizedFBm(x - derivativeStep, z, baseFrequency, noiseOffset)
+        ) / (derivativeStep * 2.0f);
+        const float dNoiseDz = (
+            NormalizedFBm(x, z + derivativeStep, baseFrequency, noiseOffset)
+            - NormalizedFBm(x, z - derivativeStep, baseFrequency, noiseOffset)
+        ) / (derivativeStep * 2.0f);
+
+        // 2D の流れ関数から発散しにくい Curl Noise を作る。
+        return Float2{dNoiseDz, -dNoiseDx} * velocityScale;
+    }
+
     ColorF32 TerrainColor(float height)
     {
         constexpr ColorF32 lowland{0.12f, 0.24f, 0.08f};
@@ -183,6 +205,36 @@ namespace
         }
 
         return columnMap;
+    }
+
+    std::vector<DirectX::PackedVector::XMHALF4> MakeVelocityFieldData()
+    {
+        std::vector<DirectX::PackedVector::XMHALF4> result(
+            Terrain::HeightMapSize * Terrain::HeightMapSize);
+        constexpr float halfSize = Terrain::TerrainSize * 0.5f;
+
+        for (int y = 0; y < Terrain::HeightMapSize; ++y)
+        {
+            const float z = -halfSize
+                + Terrain::TerrainSize * static_cast<float>(y) / (Terrain::HeightMapSize - 1);
+            for (int x = 0; x < Terrain::HeightMapSize; ++x)
+            {
+                const float worldX = -halfSize
+                    + Terrain::TerrainSize * static_cast<float>(x) / (Terrain::HeightMapSize - 1);
+                const Float2 velocity = CurlNoise(worldX, z);
+                const size_t index = y * Terrain::HeightMapSize + x;
+
+                // RG に (vx, vz) を格納する。BA は将来の拡張用。
+                result[index] = DirectX::PackedVector::XMHALF4{
+                    velocity.x,
+                    velocity.y,
+                    0.0f,
+                    1.0f,
+                };
+            }
+        }
+
+        return result;
     }
 
     Image MakeTerrainTexture(const std::vector<float>& heightMap)
@@ -293,9 +345,11 @@ struct Terrain::Impl
 {
     std::vector<float> heightMapData{};
     std::vector<Float2> columnTextureData{};
+    std::vector<DirectX::PackedVector::XMHALF4> velocityFieldData{};
     DynamicTexture heightMapTexture{};
     DynamicTexture heightMapDebugTexture{};
     DynamicTexture columnTexture{};
+    DynamicTexture velocityFieldTexture{};
     DynamicTexture texture{};
     GraphicsShader shader{GraphicsShader::VS_PS("asset/shader/ground_fog_gbuffer.hlsl")};
     ModelDrawer drawer{};
@@ -319,6 +373,16 @@ struct Terrain::Impl
                 Size{HeightMapSize, HeightMapSize},
                 columnTextureData.size() * sizeof(Float2),
                 DXGI_FORMAT_R32G32_FLOAT,
+            }
+        };
+
+        velocityFieldData = MakeVelocityFieldData();
+        velocityFieldTexture = DynamicTexture{
+            ImageView{
+                reinterpret_cast<const uint8_t*>(velocityFieldData.data()),
+                Size{HeightMapSize, HeightMapSize},
+                velocityFieldData.size() * sizeof(DirectX::PackedVector::XMHALF4),
+                DXGI_FORMAT_R16G16B16A16_FLOAT,
             }
         };
 
@@ -361,6 +425,11 @@ TextureHandle Terrain::GetHeightMapDebugTexture() const
 TextureHandle Terrain::GetColumnTexture() const
 {
     return m_impl->columnTexture;
+}
+
+TextureHandle Terrain::GetVelocityFieldTexture() const
+{
+    return m_impl->velocityFieldTexture;
 }
 
 void Terrain::Draw() const

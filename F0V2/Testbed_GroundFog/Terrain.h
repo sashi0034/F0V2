@@ -27,6 +27,8 @@ public:
 
     [[nodiscard]] TextureHandle GetColumnTexture() const;
 
+    [[nodiscard]] TextureHandle GetVelocityFieldTexture() const;
+
     void Draw() const;
 
 private:

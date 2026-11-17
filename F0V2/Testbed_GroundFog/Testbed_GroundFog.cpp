@@ -124,6 +124,12 @@ public:
             Immediate2D::Texture{m_terrain.GetHeightMapDebugTexture()}
             .resized(Float2{256.0f, 256.0f})
             .setPosition(Float2{16.0f, 16.0f}));
+
+        // 速度場テクスチャをそのまま可視化する。
+        immediateDrawer.push(
+            Immediate2D::Texture{m_terrain.GetVelocityFieldTexture()}
+            .resized(Float2{256.0f, 256.0f})
+            .setPosition(Float2{288.0f, 16.0f}));
 #endif
 
         immediateDrawer.draw();
