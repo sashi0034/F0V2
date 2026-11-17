@@ -26,7 +26,9 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const float2 velocity = g_velocityField.SampleLevel(g_linearClamp, uv, 0.0f).rg;
 
     // Semi-Lagrangian 法で前フレームの位置を逆算する。
-    const float2 previousUV = uv - velocity * g_deltaTime / g_terrainSize;
+    const float advectionSpeed = 1.0f;
+    const float dt = g_deltaTime * advectionSpeed;
+    const float2 previousUV = uv - velocity * dt / g_terrainSize;
     float4 fog = g_previousFog.SampleLevel(g_linearClamp, previousUV, 0.0f);
 
     // RG はノイズ座標のオフセットとして速度に応じて更新する。

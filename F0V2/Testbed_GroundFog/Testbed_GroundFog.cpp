@@ -170,10 +170,16 @@ public:
             m_terrain.Draw();
         }
 
+        const float deltaTime = static_cast<float>(System::DeltaTime());
+        m_elapsedTime += deltaTime;
+
+        // Simplex Noise から Curl Noise を計算し、速度場を毎フレーム更新する。
+        m_terrain.UpdateVelocityField(m_elapsedTime);
+
         // Semi-Lagrangian 法で Fog Texture を移流し、読み書きを入れ替える。
         const FogAdvectionParams_b0 fogAdvectionParams{
             .textureResolution = FogTextureSize.cast<Float2>(),
-            .deltaTime = static_cast<float>(System::DeltaTime()),
+            .deltaTime = deltaTime,
             .terrainSize = Terrain::TerrainSize,
         };
         DynamicBinding::SetDynamicCbv(0, fogAdvectionParams);
@@ -235,6 +241,7 @@ private:
     std::array<ComputeDispatcher, 2> m_columnUpdateDispatchers{};
     ComputeDispatcher m_deferredDispatcher{};
     int m_currentFogTextureIndex{};
+    float m_elapsedTime{};
 };
 
 void Testbed_GroundFog()

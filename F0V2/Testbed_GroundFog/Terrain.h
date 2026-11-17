@@ -29,6 +29,8 @@ public:
 
     [[nodiscard]] TextureHandle GetVelocityFieldTexture() const;
 
+    void UpdateVelocityField(float elapsedTime) const;
+
     void Draw() const;
 
 private:

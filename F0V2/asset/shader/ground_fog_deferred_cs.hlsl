@@ -117,7 +117,8 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
             fogColumn = g_columnTexture.SampleLevel(g_linearClamp, terrainUV, 0.0f);
         }
 
-        const float fogHeight = fogColumn.x;
+        const float fogHeightScale = 1.0f;
+        const float fogHeight = fogColumn.x * fogHeightScale;
         const float fogWeight = fogColumn.y;
         const float heightFromGround = samplePosition.y - groundHeight;
 
