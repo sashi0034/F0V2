@@ -23,6 +23,14 @@ namespace
 {
     constexpr float FarZ = 500.0f;
     constexpr Size RenderSize{1920, 1080};
+    constexpr Size FogTextureSize{512, 512};
+
+    struct alignas(16) FogAdvectionParams_b0
+    {
+        Float2 textureResolution{};
+        float deltaTime{};
+        float terrainSize{};
+    };
 
     struct alignas(16) DeferredParams_b0
     {
@@ -63,20 +71,82 @@ public:
             .setClearColor(ColorF32{0.0f, 0.0f})
         };
 
+        const auto fogTextureParams = RenderTargetTextureParams{}
+            .setSize(FogTextureSize)
+            .setClearColor(ColorF32{0.0f, 0.0f, 1.0f, 0.0f})
+            .setFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+        // Fog Texture は RG = ノイズ座標オフセット、B = 濃度、A = かき乱され具合とする。
+        for (auto& fogTexture : m_fogTextures)
+        {
+            fogTexture = UnorderedRenderTargetTexture{fogTextureParams};
+
+            // 2 枚とも (0, 0, 1, 0) で初期化する。
+            const RenderTarget clearTarget{
+                RenderTargetParams{}
+                .setRtv(static_cast<const RenderTargetTexture&>(fogTexture))
+            };
+            const auto clearScope = clearTarget.scopedClearBind();
+        }
+
+        // 移流結果を反映した Column Texture を毎フレームここへ書き込む。
+        m_updatedColumnTexture = UnorderedRenderTargetTexture{
+            RenderTargetTextureParams{}
+            .setSize(FogTextureSize)
+            .setClearColor(ColorF32{0.0f, 0.0f})
+            .setFormat(DXGI_FORMAT_R32G32_FLOAT)
+        };
+
+        const TextureHandle fogTextureHandles[] = {
+            static_cast<const RenderTargetTexture&>(m_fogTextures[0]),
+            static_cast<const RenderTargetTexture&>(m_fogTextures[1]),
+        };
+
+        const auto linearClampSampler = GraphicsSamplerOptions{}
+            .setAddress(GraphicsAddressMode::Clamp)
+            .setFilter(GraphicsFilterMode::Linear);
+        const auto linearWrapSampler = GraphicsSamplerOptions{}
+            .setAddress(GraphicsAddressMode::Wrap)
+            .setFilter(GraphicsFilterMode::Linear);
+
+        // 読み元と書き先が逆になる 2 通りの Dispatcher を用意する。
+        for (int sourceIndex = 0; sourceIndex < 2; ++sourceIndex)
+        {
+            const int destinationIndex = 1 - sourceIndex;
+            m_fogAdvectionDispatchers[sourceIndex] = ComputeDispatcher{
+                ComputeDispatcherParams{}
+                .setCS(ComputeShader{ShaderParams::CS("asset/shader/fog_advection_cs.hlsl")})
+                .setSamplers({linearClampSampler})
+                .setSrv({
+                    fogTextureHandles[sourceIndex],
+                    m_terrain.GetVelocityFieldTexture()
+                })
+                .setUav({static_cast<UnorderedTextureHandle>(m_fogTextures[destinationIndex])})
+                .setDynamicCbvCount(1)
+            };
+
+            m_columnUpdateDispatchers[sourceIndex] = ComputeDispatcher{
+                ComputeDispatcherParams{}
+                .setCS(ComputeShader{ShaderParams::CS("asset/shader/column_update_cs.hlsl")})
+                .setSamplers({linearWrapSampler})
+                .setSrv({
+                    m_terrain.GetColumnTexture(),
+                    fogTextureHandles[sourceIndex]
+                })
+                .setUav({m_updatedColumnTexture})
+            };
+        }
+
         m_deferredDispatcher = ComputeDispatcher{
             ComputeDispatcherParams{}
             .setCS(ComputeShader{ShaderParams::CS("asset/shader/ground_fog_deferred_cs.hlsl")})
-            .setSamplers({
-                GraphicsSamplerOptions{}
-                .setAddress(GraphicsAddressMode::Clamp)
-                .setFilter(GraphicsFilterMode::Linear)
-            })
+            .setSamplers({linearClampSampler})
             .setSrv({
                 m_gbufferColor,
                 m_gbufferNormal,
                 m_gbuffer.getDepthBuffer(),
                 m_terrain.GetHeightMapTexture(),
-                m_terrain.GetColumnTexture()
+                static_cast<const RenderTargetTexture&>(m_updatedColumnTexture)
             })
             .setUav({m_deferredOutput})
             .setDynamicCbvCount(1)
@@ -99,6 +169,23 @@ public:
             const auto gbufferScope = m_gbuffer.scopedClearBind();
             m_terrain.Draw();
         }
+
+        // Semi-Lagrangian 法で Fog Texture を移流し、読み書きを入れ替える。
+        const FogAdvectionParams_b0 fogAdvectionParams{
+            .textureResolution = FogTextureSize.cast<Float2>(),
+            .deltaTime = static_cast<float>(System::DeltaTime()),
+            .terrainSize = Terrain::TerrainSize,
+        };
+        DynamicBinding::SetDynamicCbv(0, fogAdvectionParams);
+        m_fogAdvectionDispatchers[m_currentFogTextureIndex].dispatch(
+            (FogTextureSize.x + 7) / 8,
+            (FogTextureSize.y + 7) / 8);
+        m_currentFogTextureIndex = 1 - m_currentFogTextureIndex;
+
+        // 移流後の Fog Texture から Column Texture を毎フレーム更新する。
+        m_columnUpdateDispatchers[m_currentFogTextureIndex].dispatch(
+            (FogTextureSize.x + 7) / 8,
+            (FogTextureSize.y + 7) / 8);
 
         // GBuffer とデプスをコンピュートシェーダーで統合する。
         const DeferredParams_b0 deferredParams{
@@ -142,7 +229,12 @@ private:
     RenderTargetTexture m_gbufferNormal{};
     RenderTarget m_gbuffer{};
     UnorderedRenderTargetTexture m_deferredOutput{};
+    std::array<UnorderedRenderTargetTexture, 2> m_fogTextures{};
+    UnorderedRenderTargetTexture m_updatedColumnTexture{};
+    std::array<ComputeDispatcher, 2> m_fogAdvectionDispatchers{};
+    std::array<ComputeDispatcher, 2> m_columnUpdateDispatchers{};
     ComputeDispatcher m_deferredDispatcher{};
+    int m_currentFogTextureIndex{};
 };
 
 void Testbed_GroundFog()
