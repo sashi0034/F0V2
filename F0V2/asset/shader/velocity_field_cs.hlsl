@@ -5,6 +5,14 @@ cbuffer VelocityFieldParams : register(b0)
     float2 g_textureResolution;
     float g_elapsedTime;
     float g_terrainSize;
+
+    float2 g_interactionPosition;
+    float g_interactionStrength;
+    float g_interactionRadius;
+
+    float2 g_interactionDirection;
+    float g_sourceSinkStrength;
+    float g_vortexStrength;
 }
 
 static const float2 Gradients[8] =
@@ -215,6 +223,57 @@ float2 CurlNoise(float2 worldPosition, float time)
     return float2(dNoiseDz, -dNoiseDx) * VelocityScale;
 }
 
+float GaussianWeight(float2 offset, float radius)
+{
+    const float radiusSquared = max(radius * radius, 0.0001f);
+    return exp(-dot(offset, offset) / (2.0f * radiusSquared));
+}
+
+float2 GaussianRadialVelocity(float2 worldPosition, float2 center, float strength)
+{
+    const float2 offset = worldPosition - center;
+    return offset / max(g_interactionRadius, 0.0001f)
+        * GaussianWeight(offset, g_interactionRadius)
+        * strength;
+}
+
+float2 GaussianVortexVelocity(float2 worldPosition, float2 center, float strength)
+{
+    const float2 offset = worldPosition - center;
+    const float2 tangent = float2(-offset.y, offset.x);
+    return tangent / max(g_interactionRadius, 0.0001f)
+        * GaussianWeight(offset, g_interactionRadius)
+        * strength;
+}
+
+float2 CameraInteractionVelocity(float2 worldPosition)
+{
+    const float directionLength = length(g_interactionDirection);
+    const float2 direction = directionLength > 0.0001f
+                                 ? g_interactionDirection / directionLength
+                                 : float2(1.0f, 0.0f);
+
+    const float separation = g_interactionRadius * 0.45f;
+    const float2 sourceCenter = g_interactionPosition + direction * separation;
+    const float2 sinkCenter = g_interactionPosition - direction * separation;
+
+    // 移動方向の前側から湧き出し、後側へ吸い込む。
+    const float2 source = GaussianRadialVelocity(
+        worldPosition,
+        sourceCenter,
+        g_sourceSinkStrength);
+    const float2 sink = GaussianRadialVelocity(
+        worldPosition,
+        sinkCenter,
+        -g_sourceSinkStrength * 0.2f);
+    const float2 vortex = GaussianVortexVelocity(
+        worldPosition,
+        g_interactionPosition,
+        g_vortexStrength);
+
+    return (source + sink + vortex) * g_interactionStrength;
+}
+
 [numthreads(8, 8, 1)]
 void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
@@ -228,6 +287,11 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const float2 uv = (float2(pixel) + 0.5f) / g_textureResolution;
     float2 worldPosition = (uv - 0.5f) * g_terrainSize;
 
-    const float2 velocity = CurlNoise(worldPosition, g_elapsedTime);
-    g_velocityField[pixel] = float4(velocity, 0.0f, 1.0f);
+    const float2 interactionVelocity = CameraInteractionVelocity(worldPosition);
+    const float2 velocity = CurlNoise(worldPosition, g_elapsedTime) + interactionVelocity;
+    const float impact = GaussianWeight(
+        worldPosition - g_interactionPosition,
+        g_interactionRadius) * g_interactionStrength;
+
+    g_velocityField[pixel] = float4(velocity, 0.0f, saturate(impact));
 }

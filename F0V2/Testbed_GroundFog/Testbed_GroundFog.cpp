@@ -24,12 +24,20 @@ namespace
     constexpr float FarZ = 500.0f;
     constexpr Size RenderSize{1920, 1080};
     constexpr Size FogTextureSize{512, 512};
+    constexpr float CameraInteractionDistance = 1.0f;
+    constexpr float CameraInteractionDecay = 1.5f;
 
     struct alignas(16) FogAdvectionParams_b0
     {
         Float2 textureResolution{};
         float deltaTime{};
         float terrainSize{};
+    };
+
+    struct alignas(16) ColumnUpdateParams_b0
+    {
+        float terrainSize{};
+        float padding[3]{};
     };
 
     struct alignas(16) DeferredParams_b0
@@ -48,6 +56,10 @@ public:
     {
         MainGamepad.registerMapping(GamepadMapping::FromTomlFile("asset/gamepad.toml"));
         m_camera.reset(Float3{0.0f, 24.0f, -32.0f}, Float3{0.0f, 2.0f, 0.0f});
+
+        const Float3 cameraPosition = m_camera.eyePosition();
+        m_lastCameraInteractionPosition = Float2{cameraPosition.x, cameraPosition.z};
+        m_cameraInteractionPosition = m_lastCameraInteractionPosition;
 
         // GBuffer はカラーと法線、RenderTarget が生成するデプスバッファを使用する。
         m_gbufferColor = RenderTargetTexture{
@@ -130,10 +142,11 @@ public:
                 .setCS(ComputeShader{ShaderParams::CS("asset/shader/column_update_cs.hlsl")})
                 .setSamplers({linearWrapSampler})
                 .setSrv({
-                    m_terrain.GetColumnTexture(),
+                    m_terrain.GetColumnNoiseTexture(),
                     fogTextureHandles[sourceIndex]
                 })
                 .setUav({m_updatedColumnTexture})
+                .setDynamicCbvCount(1)
             };
         }
 
@@ -173,8 +186,27 @@ public:
         const float deltaTime = static_cast<float>(System::DeltaTime());
         m_elapsedTime += deltaTime;
 
+        // カメラ位置を XZ 平面へ真下に投影する。
+        const Float3 cameraPosition = m_camera.eyePosition();
+        const Float2 cameraGroundPosition{cameraPosition.x, cameraPosition.z};
+        const Float2 cameraDisplacement = cameraGroundPosition - m_lastCameraInteractionPosition;
+        const float cameraDistance = cameraDisplacement.length();
+
+        m_cameraInteractionStrength *= std::exp(-CameraInteractionDecay * deltaTime);
+        if (cameraDistance >= CameraInteractionDistance)
+        {
+            m_cameraInteractionPosition = cameraGroundPosition;
+            m_cameraInteractionDirection = cameraDisplacement / cameraDistance;
+            m_cameraInteractionStrength = 1.0f;
+            m_lastCameraInteractionPosition = cameraGroundPosition;
+        }
+
         // Simplex Noise から Curl Noise を計算し、速度場を毎フレーム更新する。
-        m_terrain.UpdateVelocityField(m_elapsedTime);
+        m_terrain.UpdateVelocityField(
+            m_elapsedTime,
+            m_cameraInteractionPosition,
+            m_cameraInteractionDirection,
+            m_cameraInteractionStrength);
 
         // Semi-Lagrangian 法で Fog Texture を移流し、読み書きを入れ替える。
         const FogAdvectionParams_b0 fogAdvectionParams{
@@ -189,6 +221,10 @@ public:
         m_currentFogTextureIndex = 1 - m_currentFogTextureIndex;
 
         // 移流後の Fog Texture から Column Texture を毎フレーム更新する。
+        const ColumnUpdateParams_b0 columnUpdateParams{
+            .terrainSize = Terrain::TerrainSize,
+        };
+        DynamicBinding::SetDynamicCbv(0, columnUpdateParams);
         m_columnUpdateDispatchers[m_currentFogTextureIndex].dispatch(
             (FogTextureSize.x + 7) / 8,
             (FogTextureSize.y + 7) / 8);
@@ -242,6 +278,10 @@ private:
     ComputeDispatcher m_deferredDispatcher{};
     int m_currentFogTextureIndex{};
     float m_elapsedTime{};
+    Float2 m_lastCameraInteractionPosition{};
+    Float2 m_cameraInteractionPosition{};
+    Float2 m_cameraInteractionDirection{1.0f, 0.0f};
+    float m_cameraInteractionStrength{};
 };
 
 void Testbed_GroundFog()

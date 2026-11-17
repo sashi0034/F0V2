@@ -24,6 +24,14 @@ namespace
         Float2 textureResolution{};
         float elapsedTime{};
         float terrainSize{};
+
+        Float2 interactionPosition{};
+        float interactionStrength{};
+        float interactionRadius{};
+
+        Float2 interactionDirection{};
+        float sourceSinkStrength{};
+        float vortexStrength{};
     };
 
     uint32_t HashLattice(int x, int y)
@@ -169,9 +177,9 @@ namespace
         return heightMap;
     }
 
-    std::vector<Float2> MakeColumnTextureData()
+    std::vector<Float2> MakeColumnNoiseTextureData()
     {
-        std::vector<Float2> columnMap(Terrain::HeightMapSize * Terrain::HeightMapSize);
+        std::vector<Float2> columnNoiseMap(Terrain::HeightMapSize * Terrain::HeightMapSize);
         constexpr float halfSize = Terrain::TerrainSize * 0.5f;
 
         for (int y = 0; y < Terrain::HeightMapSize; ++y)
@@ -185,14 +193,12 @@ namespace
 
                 const float v = NormalizedFBm(worldX, z, 0.012f, Float2{31.0f, -17.0f});
                 const float n = NormalizedFBm(worldX, z, 0.035f, Float2{-43.0f, 29.0f});
-                const float height = 1.4f * v * n;
-                const float weight = height * 0.8f;
 
-                columnMap[y * Terrain::HeightMapSize + x] = Float2{height, weight};
+                columnNoiseMap[y * Terrain::HeightMapSize + x] = Float2{v, n};
             }
         }
 
-        return columnMap;
+        return columnNoiseMap;
     }
 
     Image MakeTerrainTexture(const std::vector<float>& heightMap)
@@ -302,10 +308,10 @@ namespace
 struct Terrain::Impl
 {
     std::vector<float> heightMapData{};
-    std::vector<Float2> columnTextureData{};
+    std::vector<Float2> columnNoiseTextureData{};
     DynamicTexture heightMapTexture{};
     DynamicTexture heightMapDebugTexture{};
-    DynamicTexture columnTexture{};
+    DynamicTexture columnNoiseTexture{};
     UnorderedRenderTargetTexture velocityFieldTexture{};
     ComputeDispatcher velocityFieldDispatcher{};
     DynamicTexture texture{};
@@ -324,12 +330,12 @@ struct Terrain::Impl
             }
         };
 
-        columnTextureData = MakeColumnTextureData();
-        columnTexture = DynamicTexture{
+        columnNoiseTextureData = MakeColumnNoiseTextureData();
+        columnNoiseTexture = DynamicTexture{
             ImageView{
-                reinterpret_cast<const uint8_t*>(columnTextureData.data()),
+                reinterpret_cast<const uint8_t*>(columnNoiseTextureData.data()),
                 Size{HeightMapSize, HeightMapSize},
-                columnTextureData.size() * sizeof(Float2),
+                columnNoiseTextureData.size() * sizeof(Float2),
                 DXGI_FORMAT_R32G32_FLOAT,
             }
         };
@@ -383,9 +389,9 @@ TextureHandle Terrain::GetHeightMapDebugTexture() const
     return m_impl->heightMapDebugTexture;
 }
 
-TextureHandle Terrain::GetColumnTexture() const
+TextureHandle Terrain::GetColumnNoiseTexture() const
 {
-    return m_impl->columnTexture;
+    return m_impl->columnNoiseTexture;
 }
 
 TextureHandle Terrain::GetVelocityFieldTexture() const
@@ -393,12 +399,22 @@ TextureHandle Terrain::GetVelocityFieldTexture() const
     return static_cast<const RenderTargetTexture&>(m_impl->velocityFieldTexture);
 }
 
-void Terrain::UpdateVelocityField(float elapsedTime) const
+void Terrain::UpdateVelocityField(
+    float elapsedTime,
+    const Float2& interactionPosition,
+    const Float2& interactionDirection,
+    float interactionStrength) const
 {
     const VelocityFieldParams_b0 params{
         .textureResolution = Float2{HeightMapSize, HeightMapSize},
         .elapsedTime = elapsedTime,
         .terrainSize = TerrainSize,
+        .interactionPosition = interactionPosition,
+        .interactionStrength = interactionStrength,
+        .interactionRadius = 3.0f,
+        .interactionDirection = interactionDirection,
+        .sourceSinkStrength = 18.0f,
+        .vortexStrength = 8.0f,
     };
     DynamicBinding::SetDynamicCbv(0, params);
     m_impl->velocityFieldDispatcher.dispatch(

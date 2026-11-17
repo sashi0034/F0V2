@@ -25,11 +25,15 @@ public:
 
     [[nodiscard]] TextureHandle GetHeightMapDebugTexture() const;
 
-    [[nodiscard]] TextureHandle GetColumnTexture() const;
+    [[nodiscard]] TextureHandle GetColumnNoiseTexture() const;
 
     [[nodiscard]] TextureHandle GetVelocityFieldTexture() const;
 
-    void UpdateVelocityField(float elapsedTime) const;
+    void UpdateVelocityField(
+        float elapsedTime,
+        const Float2& interactionPosition,
+        const Float2& interactionDirection,
+        float interactionStrength) const;
 
     void Draw() const;
 
