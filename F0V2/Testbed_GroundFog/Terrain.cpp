@@ -148,7 +148,7 @@ namespace
             for (int x = 0; x < Terrain::HeightMapSize; ++x)
             {
                 const float height = heightMap[y * Terrain::HeightMapSize + x];
-                image[Point{x, y}] = TerrainColor(height).toColorU8();
+                image[Point{x, y}] = TerrainColor(height).sRGBToLinear().toColorU8();
             }
         }
 

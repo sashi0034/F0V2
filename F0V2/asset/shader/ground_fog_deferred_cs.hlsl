@@ -27,6 +27,14 @@ float3 ReconstructWorldPosition(uint2 pixel, float depth)
     return worldPosition.xyz;
 }
 
+float3 LinearToSRGB(float3 color)
+{
+    return lerp(
+        color * 12.92f,
+        1.055f * pow(max(color, 0.0f), 1.0f / 2.4f) - 0.055f,
+        step(0.0031308f, color));
+}
+
 [numthreads(8, 8, 1)]
 void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
@@ -52,10 +60,17 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     const float3 normal = normalize(g_normalBuffer[pixel].xyz * 2.0f - 1.0f);
 
     // ライトは仮実装としてシェーダー内に固定する。
-    const float3 lightPosition = float3(-25.0f, 45.0f, -20.0f);
+    const float3 lightPosition = float3(-100.0f, 250.0f, -100.0f);
     const float3 lightDirection = normalize(lightPosition - worldPosition);
     const float diffuse = saturate(dot(normal, lightDirection));
-    const float lighting = 0.28f + diffuse * 0.72f;
 
-    g_output[pixel] = float4(g_colorBuffer[pixel].rgb * lighting, 1.0f);
+    const float3 linearAlbedo = g_colorBuffer[pixel].rgb;
+
+    const float3 ambientLight = float3(1, 1, 1) * 0.28f;
+    const float3 lightColor = float3(1, 1, 1) * 0.72f;
+    const float3 linearColor = linearAlbedo * (ambientLight + lightColor * diffuse);
+
+    const float3 outputColor = LinearToSRGB(saturate(linearColor));
+
+    g_output[pixel] = float4(outputColor, 1.0f);
 }
