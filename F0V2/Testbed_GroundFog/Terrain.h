@@ -25,6 +25,8 @@ public:
 
     [[nodiscard]] TextureHandle GetHeightMapDebugTexture() const;
 
+    [[nodiscard]] TextureHandle GetColumnTexture() const;
+
     void Draw() const;
 
 private:

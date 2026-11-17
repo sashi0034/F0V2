@@ -75,7 +75,8 @@ public:
                 m_gbufferColor,
                 m_gbufferNormal,
                 m_gbuffer.getDepthBuffer(),
-                m_terrain.GetHeightMapTexture()
+                m_terrain.GetHeightMapTexture(),
+                m_terrain.GetColumnTexture()
             })
             .setUav({m_deferredOutput})
             .setDynamicCbvCount(1)

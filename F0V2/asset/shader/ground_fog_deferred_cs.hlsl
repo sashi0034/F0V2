@@ -2,6 +2,7 @@ Texture2D<float4> g_colorBuffer : register(t0);
 Texture2D<float4> g_normalBuffer : register(t1);
 Texture2D<float> g_depthBuffer : register(t2);
 Texture2D<float> g_terrainHeightMap : register(t3);
+Texture2D<float2> g_columnTexture : register(t4);
 
 SamplerState g_linearClamp : register(s0);
 
@@ -89,8 +90,6 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     }
 
     static const int FogSteps = 64;
-    static const float FogHeight = 1.4f;
-    static const float FogDensity = 0.2f;
     static const float TerrainSize = 100.0f;
 
     const float stepLength = maxDistance / FogSteps;
@@ -104,23 +103,37 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
         const float2 terrainUV = samplePosition.xz / TerrainSize + 0.5f;
 
         float groundHeight;
+        float2 fogColumn;
         if (any(terrainUV < 0.0f) || any(terrainUV > 1.0f))
         {
+            // マップ範囲外
             groundHeight = -10.0f; // 海っぽく霧が広がってるイメージ
+            fogColumn = float2(1.4f, 1.4f * 0.8f);
         }
         else
         {
+            // ハイトマップとコラムマップからサンプルする
             groundHeight = g_terrainHeightMap.SampleLevel(g_linearClamp, terrainUV, 0.0f);
+            fogColumn = g_columnTexture.SampleLevel(g_linearClamp, terrainUV, 0.0f);
         }
 
+        const float fogHeight = fogColumn.x;
+        const float fogWeight = fogColumn.y;
         const float heightFromGround = samplePosition.y - groundHeight;
-        if (heightFromGround < 0.0f || heightFromGround >= FogHeight)
+
+        if (fogHeight <= 0.0001f || heightFromGround < 0.0f || heightFromGround >= fogHeight)
         {
             continue;
         }
 
-        // Beer-Lambert 則で透過率を更新する。
-        transmittance *= exp(-FogDensity * stepLength);
+        const float s = heightFromGround / fogHeight;
+        const float falloff = 1.5f;
+        const float opacity = 2.0f;
+
+        const float density = fogWeight / fogHeight * (falloff + 1.0f) * pow(1.0f - s, falloff);
+
+        transmittance *= exp(-opacity * density * stepLength);
+
         if (transmittance < 0.01f)
         {
             break;

@@ -100,6 +100,26 @@ namespace
         return height / amplitudeSum * HeightScale;
     }
 
+    float NormalizedFBm(float x, float z, float baseFrequency, const Float2& offset)
+    {
+        float amplitude = 1.0f;
+        float frequency = baseFrequency;
+        float value = 0.0f;
+        float amplitudeSum = 0.0f;
+
+        for (int octave = 0; octave < 4; ++octave)
+        {
+            value += SimplexNoise2D(
+                (x + offset.x) * frequency,
+                (z + offset.y) * frequency) * amplitude;
+            amplitudeSum += amplitude;
+            frequency *= 2.0f;
+            amplitude *= 0.5f;
+        }
+
+        return std::clamp(value / amplitudeSum * 0.5f + 0.5f, 0.0f, 1.0f);
+    }
+
     ColorF32 TerrainColor(float height)
     {
         constexpr ColorF32 lowland{0.12f, 0.24f, 0.08f};
@@ -137,6 +157,32 @@ namespace
         }
 
         return heightMap;
+    }
+
+    std::vector<Float2> MakeColumnTextureData()
+    {
+        std::vector<Float2> columnMap(Terrain::HeightMapSize * Terrain::HeightMapSize);
+        constexpr float halfSize = Terrain::TerrainSize * 0.5f;
+
+        for (int y = 0; y < Terrain::HeightMapSize; ++y)
+        {
+            const float z = -halfSize
+                + Terrain::TerrainSize * static_cast<float>(y) / (Terrain::HeightMapSize - 1);
+            for (int x = 0; x < Terrain::HeightMapSize; ++x)
+            {
+                const float worldX = -halfSize
+                    + Terrain::TerrainSize * static_cast<float>(x) / (Terrain::HeightMapSize - 1);
+
+                const float v = NormalizedFBm(worldX, z, 0.012f, Float2{31.0f, -17.0f});
+                const float n = NormalizedFBm(worldX, z, 0.035f, Float2{-43.0f, 29.0f});
+                const float height = 1.4f * v * n;
+                const float weight = height * 0.8f;
+
+                columnMap[y * Terrain::HeightMapSize + x] = Float2{height, weight};
+            }
+        }
+
+        return columnMap;
     }
 
     Image MakeTerrainTexture(const std::vector<float>& heightMap)
@@ -246,8 +292,10 @@ namespace
 struct Terrain::Impl
 {
     std::vector<float> heightMapData{};
+    std::vector<Float2> columnTextureData{};
     DynamicTexture heightMapTexture{};
     DynamicTexture heightMapDebugTexture{};
+    DynamicTexture columnTexture{};
     DynamicTexture texture{};
     GraphicsShader shader{GraphicsShader::VS_PS("asset/shader/ground_fog_gbuffer.hlsl")};
     ModelDrawer drawer{};
@@ -255,12 +303,24 @@ struct Terrain::Impl
     Impl()
     {
         heightMapData = MakeHeightMapData();
-        heightMapTexture = DynamicTexture{ImageView{
-            reinterpret_cast<const uint8_t*>(heightMapData.data()),
-            Size{HeightMapSize, HeightMapSize},
-            heightMapData.size() * sizeof(float),
-            DXGI_FORMAT_R32_FLOAT,
-        }};
+        heightMapTexture = DynamicTexture{
+            ImageView{
+                reinterpret_cast<const uint8_t*>(heightMapData.data()),
+                Size{HeightMapSize, HeightMapSize},
+                heightMapData.size() * sizeof(float),
+                DXGI_FORMAT_R32_FLOAT,
+            }
+        };
+
+        columnTextureData = MakeColumnTextureData();
+        columnTexture = DynamicTexture{
+            ImageView{
+                reinterpret_cast<const uint8_t*>(columnTextureData.data()),
+                Size{HeightMapSize, HeightMapSize},
+                columnTextureData.size() * sizeof(Float2),
+                DXGI_FORMAT_R32G32_FLOAT,
+            }
+        };
 
         heightMapDebugTexture = DynamicTexture{MakeHeightMapDebugTexture(heightMapData)};
         texture = DynamicTexture{MakeTerrainTexture(heightMapData)};
@@ -296,6 +356,11 @@ TextureHandle Terrain::GetHeightMapTexture() const
 TextureHandle Terrain::GetHeightMapDebugTexture() const
 {
     return m_impl->heightMapDebugTexture;
+}
+
+TextureHandle Terrain::GetColumnTexture() const
+{
+    return m_impl->columnTexture;
 }
 
 void Terrain::Draw() const
