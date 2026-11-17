@@ -178,6 +178,8 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClCompile Include="Race\Vfx\RaceVfxDrawer.cpp" />
     <ClCompile Include="Race\Vfx\SimpleParticleVfxRenderer.cpp" />
     <ClCompile Include="Race\UI\RaceUIController.cpp" />
+    <ClCompile Include="Testbed_GroundFog\Testbed_GroundFog.cpp" />
+    <ClCompile Include="Testbed_GroundFog\Terrain.cpp" />
     <ClCompile Include="Util\DoubleTapDetector.cpp" />
     <ClCompile Include="Util\ExpLerp.cpp" />
     <ClCompile Include="Util\MonitorInfo.cpp" />
@@ -419,6 +421,8 @@ xcopy /Y "$(WindowsSdkDir)\bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(OutDir)
     <ClInclude Include="pch.h" />
     <ClInclude Include="Testbed\Testbed_RenderTarget.h" />
     <ClInclude Include="ResourcePathWrapper.h" />
+    <ClInclude Include="Testbed_GroundFog\Testbed_GroundFog.h" />
+    <ClInclude Include="Testbed_GroundFog\Terrain.h" />
     <ClInclude Include="TY_Extension\AwaitContext.h" />
     <ClInclude Include="TY_Extension\CoroutineActor.h" />
     <ClInclude Include="TY_Extension\GameObjectBase.h" />

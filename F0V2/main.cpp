@@ -10,6 +10,7 @@
 #include "Testbed/Testbed_ShadowMap.h"
 #include "Testbed/Testbed_ImmediateDrawer.h"
 #include "Testbed/Testbed_Shadertoy.h"
+#include "Testbed_GroundFog/Testbed_GroundFog.h"
 #include "TY/System.h"
 #include "TY/ActorContainer.h"
 #include "Util/DebugTomlValue.h"
@@ -28,8 +29,8 @@ void Main()
 
     InitImmediatePrintAddon();
 
-#if 0
-    Testbed_WaveTest();
+#if 1
+    Testbed_GroundFog();
 #else
     using namespace TY;
 
